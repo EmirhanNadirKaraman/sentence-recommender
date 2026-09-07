@@ -96,3 +96,18 @@ class WordRepository:
     @staticmethod
     def _is_real_word(lemma: str) -> bool:
         return bool(lemma) and lemma.isalpha() and len(lemma) > 1
+
+
+class PatternRepository:
+    """The registered multi-word patterns — `phrase_table`, the catalogue the
+    matcher's blueprints are checked against."""
+
+    def __init__(self, db, language: str = "de") -> None:
+        self._db = db
+        self._language = language
+
+    def canonicals(self) -> frozenset[str]:
+        return frozenset(self._db.column(
+            "SELECT canonical FROM phrase_table WHERE language = %s",
+            (self._language,),
+        ))

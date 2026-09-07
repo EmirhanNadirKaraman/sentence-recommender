@@ -70,12 +70,26 @@ class Settings:
     function_words: Path = ROOT / "data" / "function_words.txt"
     priority_words: Path = ROOT / "data" / "words_4000.txt"
 
+    # Tatoeba German-English export.  Human-written sentences with human
+    # translations — the primary source of examples.  Local files, nothing
+    # is downloaded.
+    tatoeba_sentences: Path = Path(
+        "/Users/emir/Documents/GitHub/FakeClozemaster/tatoeba_filler/good_sentences.csv")
+    tatoeba_links: Path = Path(
+        "/Users/emir/Documents/GitHub/FakeClozemaster/tatoeba_filler/good_sentence_ids.csv")
+
     # Local mutable state (SRS cards, generated roadmap).
     state_path: Path = ROOT / "data" / "state.sqlite3"
 
     # Sentence acceptance band, in tokens.
     min_tokens: int = 4
     max_tokens: int = 25
+
+    # spaCy worker processes for the one-off corpus analysis.
+    analysis_processes: int = 4
+
+    # Examples shown per review card.
+    examples_per_card: int = 3
 
     # Selection weight: score = unlock_gain + priority_weight * priority.
     # `priority` is in [0, 1] for both unit kinds, so the weight sets how far a
