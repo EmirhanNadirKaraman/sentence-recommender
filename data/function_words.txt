@@ -1,0 +1,275 @@
+# Function words — the closed word classes present in the German corpus.
+#
+# Every line here counts as ALREADY KNOWN when the roadmap decides which
+# sentences are i+1.  These are the classes a learner acquires wholesale
+# rather than one item at a time: articles, pronouns, prepositions,
+# conjunctions, particles, auxiliaries, modals.
+#
+# HOW TO REVIEW
+#   Delete a line — or put a `#` in front of it — for anything you do NOT
+#   know.  What remains is treated as known.  Order does not matter.
+#
+# The number is how often the word occurs in the corpus; the words after it
+# are the surface forms it appears as.
+#
+# Generated 2026-09-08 from word_table (language=de) — 232 lemmas.
+# Regenerate with:  python main.py function-words
+
+
+## Artikel (3)
+der   #  2337x  Das, Dem, Den, Der
+ein   #   650x  Ein, Eine, Einem, Einen
+fürn  #     1x  fürn
+
+## Personalpronomen (14)
+ich    #   397x  Ich, ich
+es     #   282x  Es, es
+sie    #   239x  Sie, sie
+wir    #   201x  Wir, wir
+er     #   114x  Er, er
+mir    #    82x  Mir, mir
+du     #    75x  Du, du
+uns    #    56x  uns
+mich   #    55x  mich
+ihm    #    22x  Ihm, ihm
+ihnen  #    22x  Ihnen, ihnen
+euch   #    19x  euch
+dir    #    14x  dir
+ihn    #    13x  ihn
+
+## Reflexivpronomen (2)
+sich  #   160x  Sich, sich
+dich  #    26x  dich
+
+## Possessivpronomen (5)
+sein   #   968x  Ist, Sein, Seine, Sind
+ihr    #   101x  Ihr, Ihre, ihr, ihre
+mein   #    85x  Mein, Meine, mein, meine
+unser  #    35x  Unser, Unsere, unser, unsere
+dein   #    17x  dein, deine, deinem, deiner
+
+## Demonstrativpronomen (4)
+dieser     #   165x  Dies, Diese, Dieser, Dieses
+derjenige  #     1x  diejenigen
+jener      #     1x  Jene
+derselbe   #     1x  derselben
+
+## Indefinitpronomen (38)
+was           #   129x  Was, was
+man           #   108x  Man, man
+alle          #    72x  Alles, alle, allem, alles
+mehr          #    59x  Mehr, mehr
+kein          #    56x  Kein, Keine, kein, keine
+viel          #    37x  Viel, viel
+vieler        #    27x  Vielen, viele, vieler
+beide         #    24x  Beide, Beides, beide, beiden
+jeder         #    22x  Jede, Jeder, Jedes, jede
+aller         #    16x  Alle, allen, aller
+viele         #    16x  Viele, Vieles, vielen, vieles
+weniger       #    15x  Wenige, wenige, wenigen, weniger
+erster        #    14x  erste
+paar          #    11x  paar
+solcher       #    11x  Solche, solche, solchen, solches
+einige        #    10x  einige, einiges
+mehrere       #    10x  Mehrere, mehrere, mehreren, mehrerer
+nichts        #    10x  nichts
+jemand        #     9x  jemand, jemandem
+meister       #     8x  meiste, meisten
+einiger       #     7x  Einige
+irgendwas     #     5x  irgendwas
+mancher       #     5x  Manche, Manches, manche, manchen
+anderer       #     3x  Andere, anderem
+einer         #     3x  Einer, Eines
+irgendeiner   #     2x  irgendeine
+irgendwa      #     2x  Irgendwas
+jemander      #     2x  jemanden
+keiner        #     2x  keiner
+stressig      #     1x  stressigsten
+sämtlicher    #     1x  sämtliche
+aufn          #     1x  aufn
+jeglicher     #     1x  jeglichen
+jedermann     #     1x  jedermann
+irgendwelche  #     1x  Irgendwelche
+irgendjemand  #     1x  irgendjemand
+interessante  #     1x  interessantesten
+all           #     1x  All
+
+## Fragewörter (14)
+wo         #    34x  Wo, wo
+warum      #    33x  Warum, warum
+wer        #    14x  Wer, wer
+welcher    #    13x  Welche, welche, welchem, welcher
+wozu       #     7x  Wozu, wozu
+wann       #     3x  wann
+weshalb    #     2x  weshalb
+wieso      #     2x  wieso
+worauf     #     2x  worauf
+wovon      #     1x  wovon
+wem        #     1x  wem
+inwieweit  #     1x  inwieweit
+wofür      #     1x  Wofür
+woher      #     1x  Woher
+
+## Pronominaladverbien (26)
+dabei        #    34x  Dabei, dabei
+damit        #    27x  Damit, damit
+dazu         #    24x  Dazu, dazu
+darauf       #    14x  Darauf, darauf
+dafür        #    14x  Dafür, dafür
+deswegen     #    13x  Deswegen, deswegen
+davon        #    12x  davon
+deshalb      #    10x  Deshalb, deshalb
+darum        #     8x  Darum, darum
+dran         #     6x  dran
+daran        #     5x  daran
+außerdem     #     4x  Außerdem, außerdem
+darüber      #     3x  darüber
+dahin        #     3x  dahin
+davor        #     3x  davor
+stattdessen  #     2x  Stattdessen, stattdessen
+trotzdem     #     2x  trotzdem
+darin        #     1x  Darin
+darunter     #     1x  Darunter
+dazwischen   #     1x  dazwischen
+worüber      #     1x  worüber
+drunter      #     1x  drunter
+dahinter     #     1x  dahinter
+danach       #     1x  Danach
+dagegen      #     1x  dagegen
+dadurch      #     1x  dadurch
+
+## Präpositionen (47)
+in           #   523x  Im, In, im, in
+zu           #   301x  Zu, Zum, zu, zum
+mit          #   221x  Mit, mit
+von          #   210x  Von, vom, von
+an           #   201x  Am, An, am, an
+für          #   177x  Für, für, fürs
+auf          #   167x  Auf, auf, aufs
+als          #   125x  Als, als
+aus          #   116x  Aus, aus
+bei          #   110x  Bei, Beim, bei, beim
+nach         #    76x  Nach, nach
+um           #    67x  Um, um
+vor          #    60x  Vor, vor, vorm
+über         #    46x  über, übers
+bis          #    44x  Bis, bis
+durch        #    39x  Durch, durch
+seit         #    31x  Seit, seit
+ohne         #    25x  Ohne, ohne
+ab           #    20x  Ab, ab
+unter        #    19x  Unter, unter
+gegen        #    17x  Gegen, gegen
+zwischen     #    16x  zwischen
+wegen        #    13x  Wegen, wegen
+neben        #     9x  Neben, neben
+hinter       #     9x  Hinter, hinter
+per          #     6x  per
+trotz        #     5x  Trotz, trotz
+nahe         #     4x  nahe
+pro          #     4x  pro
+gegenüber    #     4x  gegenüber
+entlang      #     4x  entlang
+außerhalb    #     4x  außerhalb
+unte         #     2x  unte
+aufgrund     #     2x  aufgrund
+bezüglich    #     1x  bezüglich
+hinaus       #     1x  hinaus
+laut         #     1x  Laut
+jenseits     #     1x  jenseits
+außer        #     1x  außer
+ausweislich  #     1x  Ausweislich
+voll         #     1x  Voller
+anstelle     #     1x  anstelle
+anhand       #     1x  Anhand
+angesichts   #     1x  Angesichts
+innerhalb    #     1x  innerhalb
+inne         #     1x  inne
+namens       #     1x  namens
+
+## Konjunktionen (24)
+und              #   611x  Und, und
+dass             #   183x  Dass, dass
+aber             #   139x  Aber, aber
+wenn             #   114x  Wenn, wenn
+wie              #   110x  Wie, wie
+oder             #    95x  Oder, oder
+weil             #    39x  Weil, weil
+denn             #    26x  Denn, denn
+sondern          #    24x  sondern
+doch             #    18x  Doch
+ob               #    17x  Ob, ob
+während          #     6x  Während, während
+indem            #     4x  indem
+seitdem          #     4x  Seitdem, seitdem
+sowohl           #     3x  Sowohl, sowohl
+falls            #     3x  Falls, falls
+bevor            #     3x  Bevor, bevor
+solange          #     2x  solange
+sowie            #     2x  Sowie, sowie
+beziehungsweise  #     1x  beziehungsweise
+weder            #     1x  weder
+pack             #     1x  pack
+obwohl           #     1x  obwohl
+nachdem          #     1x  nachdem
+
+## Partikeln (27)
+nicht     #   211x  Nicht, nicht
+ja        #   156x  Ja, ja
+nein      #    11x  Nein, nein
+raus      #     9x  raus
+zurück    #     9x  zurück
+los       #     8x  los
+hin       #     7x  hin
+drauf     #     6x  drauf
+weg       #     6x  weg
+her       #     5x  her
+zusammen  #     5x  zusammen
+frei      #     5x  frei
+statt     #     4x  statt
+vorbei    #     3x  vorbei
+hoch      #     3x  hoch
+fest      #     2x  Fest, fest
+heraus    #     2x  heraus
+bereit    #     2x  bereit
+weh       #     2x  weh
+übrig     #     1x  übrig
+lahm      #     1x  lahm
+herum     #     1x  herum
+aufrecht  #     1x  aufrecht
+jawoll    #     1x  Jawoll
+parat     #     1x  parat
+ran       #     1x  ran
+dar       #     1x  dar
+
+## Hilfsverben (10)
+haben    #   375x  Haben, Hat, Hatte, Hätte
+werden   #   264x  Wurde, Wurden, Würde, geworden
+hab      #    12x  hab
+hattest  #     3x  Hattest, hattest
+habe     #     3x  Habe
+wart     #     1x  wart
+habt     #     1x  Habt
+wirst    #     1x  wirst
+seid     #     1x  Seid
+sin      #     1x  wär
+
+## Modalverben (18)
+können    #   160x  Kann, Können, Könnte, Könnten
+wollen    #    52x  Wollen, will, wollen, wollte
+muss      #    45x  muss
+sollen    #    41x  Soll, Sollte, soll, sollen
+müssen    #    28x  müsse, müssen, müsst, müssten
+dürfen    #    15x  darf, durfte, dürfen
+möchten   #    12x  Möchte, möchte, möchten
+könnsten  #     7x  kannst
+lass      #     3x  lass
+mussen    #     3x  musste, mussten
+willst    #     3x  willst
+wollt     #     3x  wollt
+möchtet   #     2x  Möchtet
+mögen     #     2x  mag, mögen
+müssteen  #     2x  müsste
+werdn     #     2x  würd
+alt       #     2x  ältesten
+möchtest  #     1x  möchtest
