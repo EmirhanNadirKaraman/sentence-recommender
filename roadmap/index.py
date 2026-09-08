@@ -56,6 +56,11 @@ class CorpusIndex:
         return self._unknown[position]
 
     @property
+    def known(self) -> frozenset[Unit]:
+        """What this index currently counts as known."""
+        return frozenset(self._units)
+
+    @property
     def readable(self) -> int:
         """How many sentences have nothing unknown left in them."""
         return self._readable

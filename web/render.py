@@ -142,6 +142,35 @@ button:hover { border-color: var(--target); }
   padding-left: 14px; border-left: 3px solid var(--rail); }
 .mark.right { border-left-color: var(--target); }
 
+/* Actions: what to do about the thing just shown. */
+.actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  margin: 30px 0 0; }
+.actions form { display: inline; }
+.actions .link {
+  font: 400 15px var(--sans); padding: 8px 15px; text-decoration: none;
+  color: var(--ink); background: var(--surface);
+  border: 1px solid var(--faint); border-radius: 3px; display: inline-block;
+}
+.actions .link:hover, .actions button:hover { border-color: var(--target); }
+
+/* Video: player above, transcript following along beside it. */
+.player { position: relative; padding-bottom: 56.25%; height: 0;
+  background: var(--surface); border: 1px solid var(--faint); }
+.player iframe { position: absolute; inset: 0; width: 100%; height: 100%;
+  border: 0; }
+.transcript { list-style: none; margin: 26px 0 0; padding: 0;
+  max-height: 24rem; overflow-y: auto; border-top: 1px solid var(--faint); }
+.cue { display: grid; grid-template-columns: 3.4rem 1fr; gap: 14px;
+  padding: 9px 4px; border-bottom: 1px solid var(--faint); cursor: pointer; }
+.cue .at { font-size: 13px; color: var(--ink-2);
+  font-variant-numeric: tabular-nums; }
+.cue .said { font: 400 16px/1.5 var(--serif); color: var(--ink-2); }
+.cue:hover .said { color: var(--ink); }
+.cue.on .said, .cue.now .said { color: var(--ink); }
+.cue.on { background: var(--surface); }
+.cue.now { box-shadow: inset 3px 0 0 var(--rail); }
+.occurrence { font-size: 14px; color: var(--ink-2); margin: 0 0 22px; }
+
 .pager { display: flex; gap: 18px; align-items: baseline; margin-top: 30px;
   font-size: 14px; color: var(--ink-2); }
 .quiet { color: var(--ink-2); }
@@ -187,19 +216,28 @@ def layout(title: str, body: str, here: str = "/", source: str = "") -> str:
 
 
 def mark(text: str, surface: str | None) -> str:
-    """The sentence with its one new word marked.
+    """The sentence with its one new thing marked.
 
-    Escaped first, then the escaped surface is wrapped, so a word containing
-    markup characters cannot break out. Falls back to the plain sentence when
-    the surface is unknown or has been rewritten past matching.
+    Escaped first, then the escaped needle is wrapped, so a word carrying
+    markup characters cannot break out.
+
+    A pattern's recorded surface is the span the matcher aligned, and its
+    tokens are often not adjacent in the sentence — "wollen wir zum" never
+    appears in "Heute wollen wir zum Edeka" once punctuation shifts. So when
+    the whole span misses, each of its words is marked separately. Better to
+    point at the right words in the wrong shape than at nothing.
     """
     safe = escape(text)
     if not surface:
         return safe
-    needle = escape(surface)
-    if needle not in safe:
-        return safe
-    return safe.replace(needle, f"<span class='target'>{needle}</span>", 1)
+    whole = escape(surface)
+    if whole in safe:
+        return safe.replace(whole, f"<span class='target'>{whole}</span>", 1)
+    for word in sorted(surface.split(), key=len, reverse=True):
+        piece = escape(word)
+        if piece and piece in safe:
+            safe = safe.replace(piece, f"<span class='target'>{piece}</span>", 1)
+    return safe
 
 
 def sentence(text: str, translation: str | None, surface: str | None = None,

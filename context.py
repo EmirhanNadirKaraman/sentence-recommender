@@ -14,7 +14,7 @@ from corpus import CorpusStore, SentenceFilter, UnitAnalyzer
 from db import Database, PatternRepository, WordRepository
 from roadmap import ExampleIndex, KnownSet
 from srs import CardStore, PromptBuilder, SM2Scheduler
-from vocab import Unit, WordListLoader
+from vocab import KnownStore, Unit, WordListLoader
 
 
 class Application:
@@ -68,8 +68,13 @@ class Application:
 
     # --- vocabulary ------------------------------------------------------
 
+    @cached_property
+    def marked_known(self) -> KnownStore:
+        return KnownStore(self.settings.state_path)
+
     def known_set(self) -> KnownSet:
-        """The starting known set: the two vocabulary files, resolved to lemmas.
+        """Everything the reader knows: the vocabulary files plus what they
+        have marked while reading.
 
         Resolved twice on purpose.  The corpus is lemmatised by spaCy, so the
         vocabulary has to land in *that* lemma space or a known word will not
@@ -80,7 +85,9 @@ class Application:
         with Database(self.settings.database) as db:
             lemmas = WordRepository(db, self.settings.language).lemmas_for_surfaces(surfaces)
         lemmas |= self.analyzer.lemmas(surfaces)
-        return KnownSet(Unit.lemma(lemma) for lemma in lemmas)
+        return KnownSet(
+            {Unit.lemma(lemma) for lemma in lemmas} | self.marked_known.units()
+        )
 
     def priority_surfaces(self) -> list[str]:
         """The frequency-ordered word list that ranks what to teach next."""

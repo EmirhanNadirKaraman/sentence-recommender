@@ -64,9 +64,19 @@ def _make_handler(viewer: Viewer):
             body = self.rfile.read(length).decode("utf-8")
             form = {k: v[0] for k, v in parse_qs(body).items()}
             try:
-                self._send(viewer.grade(form))
+                if urlparse(self.path).path.rstrip("/") == "/known":
+                    self._redirect(viewer.mark_known(form))
+                else:
+                    self._send(viewer.grade(form))
             except Exception as error:            # noqa: BLE001
                 self._send(_oops(error), status=500)
+
+        def _redirect(self, target: str) -> None:
+            """303 after a state change, so a refresh does not repeat it."""
+            self.send_response(303)
+            self.send_header("Location", target)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
 
         def _route(self, path: str, query: dict) -> tuple[str, int]:
             if path == "/":
@@ -77,6 +87,8 @@ def _make_handler(viewer: Viewer):
                 return viewer.review(query), 200
             if path == "/subtitles":
                 return viewer.subtitles(query), 200
+            if path == "/watch":
+                return viewer.watch(query), 200
             if path.startswith("/unit/"):
                 _, _, kind, key = path.split("/", 3)
                 return viewer.unit(kind, unquote(key), query), 200

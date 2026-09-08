@@ -162,6 +162,19 @@ Roadmaps are stored per source, so the page can switch between studying the
 video subtitles and studying everything without rebuilding either. The
 examples shown beside a card come from whichever you have selected.
 
+**What is next is computed live.** The page holds its own index rather than
+reading a fixed sequence, so *I know this* takes effect on the next page load:
+the word joins your known set, its card is dropped, and every sentence that
+was waiting on it becomes readable. No rebuild. The stored roadmap stays as
+the planned curriculum for the CLI and the export.
+
+**Words can be watched being said.** Every subtitle sentence carries the
+video and the second it starts, so *Watch it said* opens the clip at that
+moment with the full transcript beside it. The transcript follows the video
+and any line seeks it — the one place this project uses JavaScript, because
+the player is the only thing that knows what time it is. The page still reads
+and navigates with the script blocked.
+
 The palette and structure come from a German school exercise book — cool
 squared paper, königsblau ink, and the red margin rule dividing the rail of
 step numbers from the reading column. German is set in a reading face and

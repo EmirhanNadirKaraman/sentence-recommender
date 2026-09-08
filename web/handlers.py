@@ -1,51 +1,63 @@
 """What each page shows.
 
-One method per route. Handlers return finished HTML; the server does the
-sockets and nothing else.
-
-Everything is scoped to a source — the roadmap over the video subtitles and
-the one over everything are different curricula, and the examples shown
-alongside a card should come from whichever you are actually studying.
+The viewer answers "what is i+1 *right now*" from a live index rather than
+from a stored roadmap, so marking a word known takes effect on the next page
+load. The stored roadmap remains the planned curriculum for the CLI; this is
+the reader's moving position in it.
 """
 from __future__ import annotations
 
-import unicodedata
 from collections import defaultdict
+from dataclasses import dataclass
 from datetime import datetime
 from html import escape
 from urllib.parse import quote
 
-from roadmap import ExampleIndex, RoadmapStore
-from roadmap.store import ALL
-from srs import PromptBuilder, SM2Scheduler
+from corpus.sentence import Sentence
+from roadmap import CorpusIndex, ExampleIndex, RoadmapBuilder, UnitPriority
+from roadmap.store import ALL, RoadmapStore
 from vocab.entry import Unit
-from web.render import layout, mark, sentence
+from web import watch as video
+from web.render import layout, sentence
+from web.review import ReviewSection
 
 PAGE_SIZE = 40
-
-# Which roadmap to open on when none is asked for. Subtitles first: they are
-# real spoken German, and that is what most people build this to study.
 PREFERRED = ("subtitle", "subtitle:llm", ALL)
-
 LABELS = {ALL: "everything", "subtitle": "video subtitles",
           "subtitle:llm": "video subtitles, model-corrected",
           "tatoeba": "Tatoeba"}
 
 
-class Viewer:
-    """Reads the built results and renders them."""
+@dataclass
+class Scope:
+    """Everything needed to answer "what is i+1" for one corpus."""
 
+    sentences: list[Sentence]
+    index: CorpusIndex
+    builder: RoadmapBuilder
+    examples: ExampleIndex
+
+
+class Viewer:
     def __init__(self, app) -> None:
-        self._app = app
+        self.app = app
         self._known = None
-        self._examples: dict[str, ExampleIndex] = {}
-        self._scheduler = SM2Scheduler()
+        self._scopes: dict[str, Scope] = {}
         self._store = RoadmapStore(app.settings.state_path)
+        self._review = ReviewSection(self)
+        # Units set aside without claiming to know them. Session-only: the
+        # card in the review queue is the durable record, this just stops the
+        # page offering the same thing again.
+        self._passed: set[Unit] = set()
 
     # --- scope ------------------------------------------------------------
 
     def sources(self) -> dict[str, int]:
-        return self._store.sources()
+        known = self.app.corpus_store.builds(teachable_only=True)
+        out = {name: count for name, count in known.items()}
+        if len(out) > 1:
+            out[ALL] = sum(out.values())
+        return out
 
     def source(self, query: dict) -> str:
         available = self.sources()
@@ -62,17 +74,26 @@ class Viewer:
     @property
     def known(self) -> frozenset[Unit]:
         if self._known is None:
-            self._known = self._app.known_set().units
-        return self._known
+            self._known = self.app.known_set()
+        return self._known.units
 
-    def examples(self, source: str) -> ExampleIndex:
-        if source not in self._examples:
-            self._examples[source] = ExampleIndex(
-                self._app.corpus(*self._builds(source))
+    def scope(self, source: str) -> Scope:
+        """The live index for one corpus, built once and kept current."""
+        if source not in self._scopes:
+            sentences = self.app.corpus(*self._builds(source))
+            known = self.app.known_set()
+            index = CorpusIndex(sentences, known)
+            priority = UnitPriority.build(self.app.priority_surfaces(), sentences)
+            self._scopes[source] = Scope(
+                sentences=sentences,
+                index=index,
+                builder=RoadmapBuilder(index, priority,
+                                       self.app.settings.priority_weight),
+                examples=ExampleIndex(sentences),
             )
-        return self._examples[source]
+        return self._scopes[source]
 
-    def _switch(self, source: str, page: str) -> str:
+    def switch(self, source: str, page: str) -> str:
         counts = self.sources()
         if len(counts) < 2:
             return ""
@@ -84,49 +105,98 @@ class Viewer:
         )
         return f"<div class='switch'><span>Studying</span>{links}</div>"
 
-    # --- pages ------------------------------------------------------------
+    # --- what is next -----------------------------------------------------
 
     def next_up(self, query: dict) -> str:
         source = self.source(query)
-        steps = self._store.load(source)
-        if not steps:
-            return layout("i+1", self._switch(source, "/") +
-                          "<h1>Nothing mapped yet</h1><p class='empty'>Run "
-                          "<code>python main.py build-roadmap</code> to lay out a "
-                          "roadmap over this corpus.</p>", "/", source)
+        scope = self.scope(source)
+        step = scope.builder.peek(exclude=frozenset(self._passed))
+        switch = self.switch(source, "/")
 
-        step = self._next_step(steps)
         if step is None:
-            body = (self._switch(source, "/") + "<h1>All caught up</h1>"
-                    f"<p class='empty'>Every one of the {len(steps):,} steps on "
-                    "this roadmap has been answered at least once. Map further "
-                    "with <code>build-roadmap --steps</code>.</p>")
+            body = (switch + "<h1>Nothing left that is i+1</h1>"
+                    "<p class='empty'>Every sentence in this corpus needs two or "
+                    "more new things. Add another corpus, or "
+                    "<a href='/review'>review what you have</a>.</p>")
             return layout("i+1", body, "/", source)
-        builds = self._app.corpus_store.builds(teachable_only=True)
-        counted = sum(builds.get(b, 0)
-                      for b in (self._builds(source) or builds))
-        total, due = self._app.card_store.counts(datetime.now())
 
-        head = (f"<h1>Step {step.position} of {len(steps)}</h1>"
-                f"<p class='note'>Everything in this sentence is already yours "
-                f"except one thing.</p>")
+        unit, surface = step.unit, step.sentence.surface_of(step.unit)
+        readable = scope.index.readable
+        occurrences = scope.examples.count(unit)
         body = (
-            self._switch(source, "/") + head +
-            sentence(step.sentence.text, step.sentence.translation,
-                     step.sentence.surface_of(step.unit), lead=True) +
-            f"<h2>What it teaches</h2>"
-            f"<p class='de'>{escape(step.unit.key)}</p>"
-            f"<p class='en'>{'a verb pattern' if step.unit.is_pattern else 'a word'},"
-            f" opening {step.gain} more sentence"
-            f"{'s' if step.gain != 1 else ''}</p>"
-            "<div class='figures'>"
-            f"<div><div class='n'>{counted:,}</div><div class='k'>sentences</div></div>"
-            f"<div><div class='n'>{len(steps):,}</div><div class='k'>steps mapped</div></div>"
-            f"<div><div class='n'>{due:,}</div>"
-            f"<div class='k'>of {total:,} cards due</div></div>"
-            "</div>"
+            switch +
+            f"<h1>{readable:,} sentences you can already read</h1>"
+            "<p class='note'>Here is the next one. Everything in it is yours "
+            "except one thing.</p>"
+            + sentence(step.sentence.text, step.sentence.translation,
+                       surface, lead=True) +
+            "<h2>The new thing</h2>"
+            f"<p class='de'>{escape(unit.key)}</p>"
+            f"<p class='en'>{'a verb pattern' if unit.is_pattern else 'a word'}, "
+            f"appearing in {occurrences:,} sentence"
+            f"{'s' if occurrences != 1 else ''} here and opening {step.gain} "
+            f"more</p>"
+            + self._actions(unit, source, "/", watchable=self._has_video(scope, unit))
         )
         return layout("i+1", body, "/", source)
+
+    def _actions(self, unit: Unit, source: str, back: str,
+                 watchable: bool = False) -> str:
+        """What to do about the thing just shown."""
+        args = (f"src={quote(source)}&kind={quote(unit.kind)}"
+                f"&key={quote(unit.key, safe='')}")
+        hidden = (f"<input type='hidden' name='kind' value='{escape(unit.kind)}'>"
+                  f"<input type='hidden' name='key' value='{escape(unit.key)}'>"
+                  f"<input type='hidden' name='src' value='{escape(source)}'>"
+                  f"<input type='hidden' name='back' value='{escape(back)}'>")
+        watch = (f"<a class='link' href='/watch?{args}'>Watch it said</a>"
+                 if watchable else "")
+        return (
+            "<div class='actions'>"
+            f"<form method='post' action='/known'>{hidden}"
+            "<button class='go' name='action' value='known'>I know this</button>"
+            "</form>"
+            f"{watch}"
+            f"<a class='link' href='/unit/{unit.kind}/{quote(unit.key, safe='')}"
+            f"?src={quote(source)}'>Other sentences</a>"
+            f"<form method='post' action='/known'>{hidden}"
+            "<button name='action' value='pass'>Not yet</button></form>"
+            "</div>"
+        )
+
+    @staticmethod
+    def _has_video(scope: Scope, unit: Unit) -> bool:
+        return any(s.timing for s in scope.examples.examples(
+            unit, frozenset(), limit=40))
+
+    # --- marking ----------------------------------------------------------
+
+    def mark_known(self, form: dict) -> str:
+        """Record a unit as known, or set it aside, and say where to go next.
+
+        Marking known updates every live index in place, so the next page is
+        computed against it immediately rather than waiting for a rebuild.
+        """
+        unit = Unit(form.get("kind", ""), form.get("key", ""))
+        back = form.get("back") or "/"
+        source = form.get("src", "")
+        if not unit.key:
+            return back
+
+        if form.get("action") == "pass":
+            self._passed.add(unit)
+        else:
+            self.app.marked_known.add(unit)
+            self.app.card_store.remove(unit)
+            self._passed.discard(unit)
+            if self._known is not None and unit not in self._known:
+                self._known.learn(unit)
+            for scope in self._scopes.values():
+                if unit not in scope.index.known:
+                    scope.index.learn(unit)
+        return f"{back}?src={quote(source)}" if source else back
+
+    # --- the rest ---------------------------------------------------------
 
     def roadmap(self, query: dict) -> str:
         source = self.source(query)
@@ -138,6 +208,7 @@ class Viewer:
                      or needle in s.sentence.text.lower()]
         if kind in ("word", "pattern"):
             steps = [s for s in steps if s.unit.is_pattern == (kind == "pattern")]
+        known = self.known
 
         page = max(int(query.get("page") or 1), 1)
         pages = max((len(steps) + PAGE_SIZE - 1) // PAGE_SIZE, 1)
@@ -145,202 +216,140 @@ class Viewer:
 
         entries = "".join(
             "<div class='entry'>"
-            f"<div class='rail'>{s.position}"
-            f"<span class='kind'>{'pattern' if s.unit.is_pattern else 'word'}</span>"
-            "</div><div class='body'>"
-            f"<div class='unit'><a href='/unit/{s.unit.kind}/{quote(s.unit.key, safe='')}"
-            f"?src={quote(source)}'>{escape(s.unit.key)}</a></div>"
+            f"<div class='rail'>{s.position}<span class='kind'>"
+            f"{'known' if s.unit in known else ('pattern' if s.unit.is_pattern else 'word')}"
+            "</span></div><div class='body'>"
+            f"<div class='unit'><a href='/unit/{s.unit.kind}/"
+            f"{quote(s.unit.key, safe='')}?src={quote(source)}'>"
+            f"{escape(s.unit.key)}</a></div>"
             f"{sentence(s.sentence.text, s.sentence.translation, s.sentence.surface_of(s.unit))}"
             "</div></div>"
             for s in window
         )
         listing = (f"<div class='ledger'>{entries}</div>" if window
                    else "<p class='empty'>Nothing here matches that.</p>")
-
-        body = (
-            self._switch(source, "/roadmap") +
-            "<h1>Roadmap</h1>"
-            f"<p class='note'>{len(steps):,} steps in the order they are taught. "
-            "The marked word is the only unknown one in its sentence.</p>"
-            f"{self._filters(needle, kind, source)}{listing}"
-            f"{self._pager(page, pages, needle, kind, source)}"
-        )
+        body = (self.switch(source, "/roadmap") + "<h1>Roadmap</h1>"
+                f"<p class='note'>{len(steps):,} steps as they were planned. "
+                "The marked word is the only unknown one in its sentence.</p>"
+                f"{self._filters(needle, kind, source)}{listing}"
+                f"{self._pager(page, pages, needle, kind, source)}")
         return layout("Roadmap", body, "/roadmap", source)
 
     def unit(self, kind: str, key: str, query: dict) -> str:
         source = self.source(query)
         target = Unit(kind, key)
-        index = self.examples(source)
-        found = index.examples(target, self.known, limit=20)
+        scope = self.scope(source)
+        known = self.known
+        found = scope.examples.examples(target, known, limit=25)
 
         entries = "".join(
             "<div class='entry'>"
-            f"<div class='rail'>{len(s.units - self.known - {target})}"
+            f"<div class='rail'>{len(s.units - known - {target})}"
             "<span class='kind'>unknown</span></div>"
             f"<div class='body'>{sentence(s.text, s.translation, s.surface_of(target))}"
-            "</div></div>"
-            for s in found
+            + (f"<div class='actions'><a class='link' href='/watch?src={quote(source)}"
+               f"&kind={quote(kind)}&key={quote(key, safe='')}&i={i}'>"
+               f"Watch at {_clock(s.timing.start)}</a></div>" if s.timing else "")
+            + "</div></div>"
+            for i, s in enumerate(found)
         )
         listing = (f"<div class='ledger'>{entries}</div>" if found
                    else "<p class='empty'>No sentence in this corpus uses it. "
                         "Generate one with <code>python main.py fill-gaps</code>.</p>")
-
-        position = next((s.position for s in self._store.load(source)
-                         if s.unit == target), None)
-        where = (f"Step {position} of the roadmap." if position
-                 else "Not on the roadmap.")
+        already = target in known
         body = (
             f"<h1>{escape(key)}</h1>"
-            f"<p class='note'>{escape(where)} {index.count(target):,} sentences "
-            "in this corpus use it. The rail counts what else is unknown in each.</p>"
-            f"{listing}"
+            f"<p class='note'>{scope.examples.count(target):,} sentences here use "
+            "it. The rail counts what else is unknown in each, so the top ones "
+            "are the readable ones.</p>"
+            + ("<p class='note'>You have marked this known.</p>" if already
+               else self._actions(target, source,
+                                  f"/unit/{kind}/{quote(key, safe='')}",
+                                  watchable=any(s.timing for s in found)))
+            + listing
         )
         return layout(key, body, "/roadmap", source)
+
+    def watch(self, query: dict) -> str:
+        source = self.source(query)
+        target = Unit(query.get("kind", ""), query.get("key", ""))
+        scope = self.scope(source)
+        clips = [s for s in scope.examples.examples(target, self.known, limit=60)
+                 if s.timing]
+        if not clips:
+            return layout("Watch", self.switch(source, "/") +
+                          "<h1>Nothing to watch</h1><p class='empty'>No video "
+                          "sentence in this corpus uses that.</p>", "/", source)
+
+        i = min(max(int(query.get("i") or 0), 0), len(clips) - 1)
+        clip = clips[i]
+        cues = self._cues(clip.timing.video_id)
+        here = min(range(len(cues)),
+                   key=lambda n: abs(cues[n].timing.start - clip.timing.start))
+        surface = clip.surface_of(target)
+
+        args = (f"src={quote(source)}&kind={quote(target.kind)}"
+                f"&key={quote(target.key, safe='')}")
+        prev = (f"<a href='/watch?{args}&i={i - 1}'>previous</a>" if i else "")
+        nxt = (f"<a href='/watch?{args}&i={i + 1}'>next</a>"
+               if i + 1 < len(clips) else "")
+        body = (
+            f"<h1>{escape(target.key)}</h1>"
+            f"<p class='occurrence'>Occurrence {i + 1} of {len(clips)} in these "
+            "videos. The transcript follows the video; click any line to jump.</p>"
+            + video.player(clip.timing.video_id, clip.timing.start, clip.timing.end)
+            + sentence(clip.text, clip.translation, surface)
+            + f"<div class='pager'>{prev}{nxt}</div>"
+            + self._actions(target, source, "/")
+            + "<h2>Transcript</h2>"
+            + video.transcript(cues, here, surface)
+            + video.script()
+        )
+        return layout(f"{target.key} on video", body, "/subtitles", source)
+
+    def _cues(self, video_id: str) -> list[Sentence]:
+        cues = [s for s in self.app.corpus_store.load(
+                    "subtitle", "subtitle:llm", teachable_only=False)
+                if s.timing and s.timing.video_id == video_id]
+        return sorted(cues, key=lambda s: s.timing.start)
 
     def subtitles(self, query: dict) -> str:
         source = self.source(query)
         by_video: dict[str, list] = defaultdict(list)
-        for s in self._app.corpus_store.load("subtitle", "subtitle:llm",
-                                             teachable_only=False):
+        for s in self.app.corpus_store.load("subtitle", "subtitle:llm",
+                                            teachable_only=False):
             if s.timing:
                 by_video[s.timing.video_id].append(s)
-
         rows = "".join(
-            f"<tr><td><code>{escape(video)}</code></td>"
-            f"<td class='n'>{len(group):,}</td>"
-            f"<td class='n'>{max(x.timing.end for x in group) / 60:.0f} min</td></tr>"
-            for video, group in sorted(by_video.items())
+            f"<tr><td><a href='https://www.youtube.com/watch?v={escape(v)}'>"
+            f"<code>{escape(v)}</code></a></td><td class='n'>{len(g):,}</td>"
+            f"<td class='n'>{max(x.timing.end for x in g) / 60:.0f} min</td></tr>"
+            for v, g in sorted(by_video.items())
         )
         table = (f"<table class='rows'><tr><th>video</th><th class='n'>cues</th>"
                  f"<th class='n'>length</th></tr>{rows}</table>" if rows
                  else "<p class='empty'>No aligned subtitles yet.</p>")
-        body = (
-            "<h1>Videos</h1>"
-            "<p class='note'>Corrected subtitles, re-timed to the video clock so "
-            "they can go back over the picture. Write them out with "
-            "<code>python main.py export-subtitles</code>.</p>"
-            f"{table}"
-        )
+        body = ("<h1>Videos</h1><p class='note'>Corrected subtitles re-timed to "
+                "the video clock. Open a word from the roadmap to watch it being "
+                "said.</p>" + table)
         return layout("Videos", body, "/subtitles", source)
 
-    # --- review -----------------------------------------------------------
+    # --- review delegates -------------------------------------------------
 
     def review(self, query: dict, verdict: str = "") -> str:
-        source = self.source(query)
-        now = datetime.now()
-        total, due = self._app.card_store.counts(now)
-        cards = self._app.card_store.due(now, limit=1)
-        if not cards:
-            body = (self._switch(source, "/review") + verdict +
-                    "<h1>Nothing due</h1>"
-                    f"<p class='empty'>{total:,} cards are scheduled. "
-                    "Come back when one comes round, or map more of the roadmap.</p>")
-            return layout("Review", body, "/review", source)
-
-        prompt = PromptBuilder(self.examples(source),
-                               self._app.settings.examples_per_card
-                               ).build(cards[0], self.known)
-        body = (self._switch(source, "/review") + verdict +
-                self._card(prompt, due, source))
-        return layout("Review", body, "/review", source)
+        return self._review.page(query, verdict)
 
     def grade(self, form: dict) -> str:
-        source = form.get("src") or ALL
-        unit = Unit(form.get("kind", ""), form.get("key", ""))
-        card = next((c for c in self._app.card_store.due(datetime.now(), limit=400)
-                     if c.unit == unit), None)
-        if card is None:
-            return self.review({"src": source})
-
-        action = form.get("action", "")
-        if action == "skip":
-            return self.review({"src": source})
-        if action == "reveal":
-            prompt = PromptBuilder(self.examples(source),
-                                   self._app.settings.examples_per_card
-                                   ).build(card, self.known)
-            _, due = self._app.card_store.counts(datetime.now())
-            return layout("Review",
-                          self._switch(source, "/review") +
-                          self._card(prompt, due, source, revealed=True),
-                          "/review", source)
-
-        if action in ("yes", "no"):
-            correct = action == "yes"
-        else:
-            correct = _fold(form.get("answer", "")) == _fold(unit.key)
-
-        self._app.card_store.save(
-            self._scheduler.review(card, correct, datetime.now())
-        )
-        css = "right" if correct else ""
-        word = "Right." if correct else "Not this time."
-        verdict = (f"<p class='mark {css}'>{word} "
-                   f"<span class='target'>{escape(unit.key)}</span></p>")
-        return self.review({"src": source}, verdict)
-
-    def _card(self, prompt, due: int, source: str, revealed: bool = False) -> str:
-        unit = prompt.unit
-        hidden = (f"<input type='hidden' name='kind' value='{escape(unit.kind)}'>"
-                  f"<input type='hidden' name='key' value='{escape(unit.key)}'>"
-                  f"<input type='hidden' name='src' value='{escape(source)}'>")
-        if prompt.cloze:
-            shown = "".join(
-                f"<p class='de'>{_blank(line)}</p>" +
-                (f"<p class='en'>{escape(x.translation)}</p>" if x.translation else "")
-                for line, x in zip(prompt.cloze, prompt.examples)
-            )
-            heading = "Which word is missing?"
-            controls = (f"{hidden}<input type='text' name='answer' autofocus "
-                        "autocomplete='off' spellcheck='false'>"
-                        "<button class='go' type='submit'>Check</button>"
-                        "<button name='action' value='skip'>Skip</button>")
-        else:
-            shown = "".join(
-                f"<p class='en'>{escape(x.translation or x.text)}</p>"
-                for x in prompt.examples
-            ) or "<p class='empty'>No example sentences for this one.</p>"
-            heading = f"Say this using {escape(unit.key)}"
-            if revealed:
-                shown += "<h2>How it is actually said</h2>" + "".join(
-                    f"<p class='de'>{escape(x.text)}</p>" for x in prompt.examples
-                )
-                controls = (f"{hidden}"
-                            "<button class='go' name='action' value='yes'>Got it</button>"
-                            "<button name='action' value='no'>Missed it</button>")
-            else:
-                controls = (f"{hidden}"
-                            "<input type='hidden' name='action' value='reveal'>"
-                            "<button class='go' type='submit'>Show me</button>"
-                            "<button name='action' value='skip'>Skip</button>")
-        return (
-            f"<h1>{heading}</h1>"
-            f"<p class='note'>{due:,} card{'s' if due != 1 else ''} due.</p>"
-            f"<div class='prompt'>{shown}</div>"
-            f"<form class='answer' method='post' action='/review'>{controls}</form>"
-        )
+        return self._review.grade(form)
 
     # --- bits -------------------------------------------------------------
-
-    def _next_step(self, steps):
-        """The earliest step still waiting to be learned, or None if none is.
-
-        A step's card is created due, so before any review this is step one;
-        answering it schedules the card forward and the next step surfaces.
-        Ordering by roadmap position rather than by due date matters — the
-        roadmap is a sequence, and the point is to meet it in order.
-        """
-        waiting = {c.unit for c in
-                   self._app.card_store.due(datetime.now(), limit=100_000)}
-        return next((s for s in steps if s.unit in waiting), None)
 
     @staticmethod
     def _filters(needle: str, kind: str, source: str) -> str:
         options = "".join(
             f"<option value='{v}'{' selected' if kind == v else ''}>{label}</option>"
             for v, label in (("", "words and patterns"), ("word", "words only"),
-                             ("pattern", "patterns only"))
-        )
+                             ("pattern", "patterns only")))
         return ("<form class='bar' method='get' action='/roadmap'>"
                 f"<input type='hidden' name='src' value='{escape(source)}'>"
                 f"<input type='text' name='q' value='{escape(needle)}' "
@@ -359,9 +368,6 @@ class Viewer:
                 f"<span class='quiet'>page {page} of {pages}</span>{fwd}</div>")
 
 
-def _blank(line: str) -> str:
-    return escape(line.strip()).replace("_____", "<span class='blank'></span>")
-
-
-def _fold(text: str) -> str:
-    return unicodedata.normalize("NFC", text.strip()).lower()
+def _clock(seconds: float) -> str:
+    minutes, secs = divmod(int(seconds), 60)
+    return f"{minutes}:{secs:02d}"

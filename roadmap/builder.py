@@ -41,8 +41,21 @@ class RoadmapBuilder:
             self._index.learn(step.unit)
         return steps
 
-    def _next_step(self, position: int) -> RoadmapStep | None:
-        candidates = self._index.candidates()
+    def peek(self, position: int = 1,
+             exclude: frozenset = frozenset()) -> RoadmapStep | None:
+        """The step the walk would take next, without taking it.
+
+        Lets a reader be shown what is i+1 *right now* — recomputed against
+        whatever they have marked known since — rather than a position in a
+        sequence planned earlier. `exclude` passes over units the reader has
+        set aside without claiming to know them.
+        """
+        return self._next_step(position, exclude)
+
+    def _next_step(self, position: int,
+                   exclude: frozenset = frozenset()) -> RoadmapStep | None:
+        candidates = {u: p for u, p in self._index.candidates().items()
+                      if u not in exclude}
         if not candidates:
             return None
         unit, sentences, gain, score = max(

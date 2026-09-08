@@ -53,6 +53,13 @@ class CardStore:
                  card.unit.kind, card.unit.key),
             )
 
+    def remove(self, unit: Unit) -> None:
+        """Drop a unit's card — used when it is marked known, since there is
+        nothing left to test."""
+        with sqlite3.connect(self._path) as conn:
+            conn.execute("DELETE FROM cards WHERE kind = ? AND key = ?",
+                         (unit.kind, unit.key))
+
     def due(self, now: datetime, limit: int = 20) -> list[Card]:
         with sqlite3.connect(self._path) as conn:
             rows = conn.execute(
