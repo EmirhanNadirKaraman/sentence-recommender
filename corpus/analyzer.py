@@ -81,14 +81,39 @@ class UnitAnalyzer:
         known to be wrong.
         """
         if self._verb_lemmas is None:
-            from spacy.lookups import load_lookups   # noqa: PLC0415 — heavy import
-            table = load_lookups(self._language, ["lemma_lookup"]).get_table(
+            self._verb_lemmas = _LemmaLookup(
+                self._lookup_table(), self._read_overrides()
+            )
+        return self._verb_lemmas
+
+    def _lookup_table(self):
+        """spaCy's German lemma table, or None if the package is not installed.
+
+        `spacy-lookups-data` is an optional data package, so its absence has
+        to degrade lemma repair rather than stop the program — the
+        corpus-majority pass still runs and `data/lemma_overrides.txt` still
+        applies. It is worth saying out loud though: without the table,
+        inflected forms like "willst" and "musst" stay separate units from
+        their infinitives, and a corpus built that way is measurably worse.
+        """
+        try:
+            from spacy.lookups import load_lookups   # noqa: PLC0415 — heavy
+            return load_lookups(self._language, ["lemma_lookup"]).get_table(
                 "lemma_lookup"
             )
-            # spaCy's Table hashes its keys, so iterating it yields integers,
-            # not words. It has to be queried through get(), never copied.
-            self._verb_lemmas = _LemmaLookup(table, self._read_overrides())
-        return self._verb_lemmas
+        except Exception as error:              # noqa: BLE001 — optional data
+            print(
+                f"\nWARNING: no spaCy lemma table for {self._language!r} "
+                f"({type(error).__name__}).\n"
+                "  spacy-lookups-data is missing from THIS interpreter. It also "
+                "changes how\n  spaCy itself lemmatises: without it \"musst\" "
+                "resolves to \"mussen\" rather than\n  \"müssen\", so inflected "
+                "forms stay separate from their infinitives and\n  any corpus "
+                "built now will be measurably worse.\n"
+                "  fix: pip install spacy-lookups-data   (or use .venv/bin/python)\n",
+                file=sys.stderr, flush=True,
+            )
+            return None
 
     @staticmethod
     def _read_overrides() -> dict[str, str]:
@@ -118,6 +143,7 @@ class UnitAnalyzer:
         walks the parsed Doc.  Worth it only for the full corpus — for a
         handful of sentences the fork cost dominates.
         """
+        self.verb_lemmas          # load the table now, so its absence is said once
         docs = self.matcher.nlp.pipe(
             [s.text for s in sentences],
             batch_size=500,
@@ -140,6 +166,7 @@ class UnitAnalyzer:
         Used to resolve the vocabulary files into the corpus's own lemma space,
         so a known word and its corpus occurrences cannot disagree.
         """
+        self.verb_lemmas          # as above: report a missing table up front
         out: set[str] = set()
         for doc in self.matcher.nlp.pipe(texts, batch_size=256):
             out.update(
@@ -317,8 +344,11 @@ class _LemmaLookup:
     """Surface -> infinitive, from hand-written overrides over spaCy's table.
 
     Wraps rather than copies the table: spaCy's `Table` hashes its keys, so
-    iterating it yields integers instead of words and any dict built from it
-    is empty of everything except what was added afterwards.
+    iterating it yields integers instead of words, and any dict built from it
+    holds nothing but whatever was added afterwards.
+
+    `table` may be None when the optional data package is absent, in which
+    case only the overrides apply.
     """
 
     def __init__(self, table, overrides: dict[str, str]) -> None:
@@ -328,5 +358,7 @@ class _LemmaLookup:
     def get(self, surface: str, default: str = "") -> str:
         if surface in self._overrides:
             return self._overrides[surface]
+        if self._table is None:
+            return default
         found = self._table.get(surface)
         return str(found).lower() if found else default

@@ -33,6 +33,11 @@ accusative, so both are scheduled.
 
 ## Commands
 
+Run everything through the project's interpreter, `.venv/bin/python` — the
+bare `python` on your PATH is a different environment and will not have
+`spacy-lookups-data`, which changes how spaCy lemmatises German. `python`
+below means `.venv/bin/python`.
+
 ```
 python main.py serve                      browse the results at localhost:8765
 python main.py status                     what is built, what is due
@@ -136,11 +141,16 @@ don't know.
 
 ```
 uv venv --python 3.12 .venv
-uv pip install --python .venv/bin/python psycopg2-binary spacy requests
+uv pip install --python .venv/bin/python -r requirements.txt
 uv pip install --python .venv/bin/python \
   https://github.com/explosion/spacy-models/releases/download/de_core_news_sm-3.8.0/de_core_news_sm-3.8.0-py3-none-any.whl
 cp .env.example .env      # Postgres credentials
 ```
+
+`spacy-lookups-data` is not optional in practice. Without it spaCy resolves
+`musst` to `mussen` rather than `müssen`, so inflected forms stay separate
+units from their infinitives. The analyser warns loudly if it is absent and
+carries on, but a corpus built that way is measurably worse.
 
 For sentence generation, add to `.env`:
 
