@@ -132,12 +132,19 @@ class CorpusStore:
             ).fetchall()
             units: dict[int, set[Unit]] = {}
             surfaces: dict[int, list[tuple[Unit, str]]] = {}
+            # Two million unit rows across forty thousand distinct units, so
+            # nearly every one is a repeat. Interning them turns most of those
+            # rows into a dict lookup instead of an object, which is most of
+            # the cost of loading the Tatoeba corpus.
+            seen: dict[tuple[str, str], Unit] = {}
             for sid, kind, key, surface in conn.execute(
                 "SELECT su.sentence_id, su.kind, su.key, su.surface FROM sentence_units su"
                 " JOIN sentences s ON s.id = su.sentence_id"
                 f" WHERE s.build IN ({placeholders})", builds,
             ):
-                unit = Unit(kind, key)
+                unit = seen.get((kind, key))
+                if unit is None:
+                    unit = seen[(kind, key)] = Unit(kind, key)
                 units.setdefault(sid, set()).add(unit)
                 if surface:
                     surfaces.setdefault(sid, []).append((unit, surface))

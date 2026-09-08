@@ -93,8 +93,10 @@ class Viewer:
         """The live index for one corpus, built once and kept current."""
         if source not in self._scopes:
             sentences = self.app.corpus(*self._builds(source))
-            known = self.app.known_set()
-            index = CorpusIndex(sentences, known)
+            # The resolved vocabulary, not a fresh resolution: known_set()
+            # re-runs the parser over every word in the files, which is
+            # sixteen seconds, and this viewer already holds the answer.
+            index = CorpusIndex(sentences, KnownSet(self.known))
             priority = self.app.priority()
             self._scopes[source] = Scope(
                 sentences=sentences,
