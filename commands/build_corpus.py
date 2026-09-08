@@ -3,30 +3,38 @@
 The expensive command.  Analysis runs the German parser plus the phrase
 matcher over every sentence, so the result is cached under a build name and
 the other commands never repeat it.
+
+Build names carry how the sentences were made, not just where they came from,
+because the same source corrected two different ways gives two different
+corpora and neither should overwrite the other.
 """
 from __future__ import annotations
 
 import time
 
 from corpus import (
-    MergeCorrector, SubtitleSource, TatoebaSource,
+    LLMCorrector, MergeCorrector, SubtitleSource, TatoebaSource,
 )
 from db import Database
+from generation import LLMClient
 
 
 class BuildCorpusCommand:
     """Builds one named corpus.
 
-      tatoeba   276k human-written German sentences with English translations
-      subtitle  the language-app subtitle corpus, reassembled into sentences
+      tatoeba        276k human-written German sentences with English translations
+      subtitle       the language-app subtitle corpus, rejoined and re-split
+      subtitle:llm   the same lines repaired by the local model
     """
 
-    def run(self, app, source: str, limit: int | None = None) -> None:
+    def run(self, app, source: str, limit: int | None = None,
+            corrector: str = "merge") -> None:
         settings = app.settings
         started = time.time()
+        build = f"{source}:llm" if source == "subtitle" and corrector == "llm" else source
 
-        sentences = self._collect(app, source)
-        print(f"{source}: {len(sentences)} sentences from source "
+        sentences = self._collect(app, source, corrector)
+        print(f"{build}: {len(sentences)} sentences from source "
               f"({time.time() - started:.0f}s)")
 
         sentence_filter = app.filter()
@@ -39,21 +47,45 @@ class BuildCorpusCommand:
         print(f"  analysing with {settings.analysis_processes} processes…", flush=True)
         analysed = app.analyzer.analyze_all(kept)
 
-        app.corpus_store.save(analysed, build=source)
+        app.corpus_store.save(analysed, build=build)
         units = len({u for s in analysed for u in s.units})
         print(f"  cached {len(analysed)} sentences, {units} distinct units "
               f"({time.time() - started:.0f}s total)")
 
-    @staticmethod
-    def _collect(app, source: str):
+    def _collect(self, app, source: str, corrector: str):
         settings = app.settings
         if source == "tatoeba":
             return TatoebaSource(
                 settings.tatoeba_sentences, settings.tatoeba_links
             ).sentences()
-        if source == "subtitle":
-            with Database(settings.database) as db:
-                videos = SubtitleSource(db, settings.language).videos()
-            corrector = MergeCorrector()
-            return [s for video in videos for s in corrector.correct(video)]
-        raise SystemExit(f"unknown source {source!r} (expected tatoeba or subtitle)")
+        if source != "subtitle":
+            raise SystemExit(f"unknown source {source!r} (expected tatoeba or subtitle)")
+
+        with Database(settings.database) as db:
+            videos = SubtitleSource(db, settings.language).videos()
+        engine = self._corrector(corrector, settings)
+        print(f"  {len(videos)} videos, correcting with {corrector}…", flush=True)
+
+        sentences = []
+        for index, video in enumerate(videos, start=1):
+            sentences.extend(engine.correct(video))
+            if corrector == "llm":
+                print(f"    video {index}/{len(videos)} — {len(sentences)} sentences",
+                      flush=True)
+        if isinstance(engine, LLMCorrector) and engine.fallbacks:
+            print(f"  {engine.fallbacks} of {engine.chunks} chunks fell back "
+                  "to the rule-based corrector")
+        return sentences
+
+    @staticmethod
+    def _corrector(name: str, settings):
+        if name == "merge":
+            return MergeCorrector()
+        if name != "llm":
+            raise SystemExit(f"unknown corrector {name!r} (expected merge or llm)")
+        client = LLMClient(timeout=settings.llm_timeout)
+        if not client.available:
+            raise SystemExit(
+                "no local model configured — set LLM_BASE_URL and LLM_MODEL in .env"
+            )
+        return LLMCorrector(client, settings.llm_chunk_size)

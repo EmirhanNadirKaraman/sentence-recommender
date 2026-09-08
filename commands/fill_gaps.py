@@ -22,19 +22,20 @@ VOCABULARY_SAMPLE = 250
 
 
 class FillGapsCommand:
-    def run(self, app, limit: int | None = None) -> None:
+    def run(self, app, limit: int | None = None,
+            builds: tuple[str, ...] = ()) -> None:
         settings = app.settings
         steps = RoadmapStore(settings.state_path).load()
         if not steps:
             raise SystemExit("no roadmap — run `build-roadmap` first")
 
-        client = LLMClient()
+        client = LLMClient(timeout=settings.llm_timeout)
         if not client.available:
             raise SystemExit(
                 "no local model configured — set LLM_BASE_URL and LLM_MODEL in .env"
             )
 
-        sentences = app.corpus()
+        sentences = app.corpus(*builds)
         examples = ExampleIndex(sentences)
         priority = UnitPriority.build(app.priority_surfaces(), sentences)
         known = app.known_set()

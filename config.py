@@ -85,6 +85,12 @@ class Settings:
     min_tokens: int = 4
     max_tokens: int = 25
 
+    # Local model, reached over Tailscale.  Endpoint comes from LLM_BASE_URL
+    # and LLM_MODEL in .env; without them the LLM paths refuse rather than
+    # silently degrading.
+    llm_chunk_size: int = 25      # subtitle lines sent per correction call
+    llm_timeout: float = 180.0
+
     # spaCy worker processes for the one-off corpus analysis.
     analysis_processes: int = 4
 

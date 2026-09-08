@@ -9,11 +9,16 @@ from roadmap import CorpusIndex, RoadmapBuilder, RoadmapStore, UnitPriority
 class BuildRoadmapCommand:
     """Produces the ordered sequence and an SRS card for every step."""
 
-    def run(self, app, steps: int | None = None) -> None:
+    def run(self, app, steps: int | None = None,
+            builds: tuple[str, ...] = ()) -> None:
         settings = app.settings
-        sentences = app.corpus()
+        sentences = app.corpus(*builds)
         if not sentences:
-            raise SystemExit("no cached corpus — run `build-corpus tatoeba` first")
+            raise SystemExit(
+                "no cached corpus for "
+                + (", ".join(builds) if builds else "any build")
+                + " — run `build-corpus` first"
+            )
 
         known = app.known_set()
         print(f"corpus {len(sentences)} sentences · known set {len(known)} units")

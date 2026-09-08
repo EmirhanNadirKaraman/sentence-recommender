@@ -7,7 +7,8 @@ from srs import ReviewSession
 
 
 class ReviewCommand:
-    def run(self, app, limit: int = 20) -> None:
+    def run(self, app, limit: int = 20,
+            builds: tuple[str, ...] = ()) -> None:
         now = datetime.now()
         total, due = app.card_store.counts(now)
         if not due:
@@ -15,7 +16,9 @@ class ReviewCommand:
             return
 
         print(f"{due} of {total} cards due.  Enter to skip, 'skip' to skip.")
-        session = ReviewSession(app.card_store, app.scheduler, app.prompts())
+        session = ReviewSession(
+            app.card_store, app.scheduler, app.prompts(*builds)
+        )
         report = session.run(app.known_set().units, limit=limit, now=now)
         print(f"\n{report.summary()}")
         if report.missed:
