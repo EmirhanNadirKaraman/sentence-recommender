@@ -6,7 +6,7 @@ import argparse
 from pathlib import Path
 
 from commands import (
-    AddVideoCommand, BuildCorpusCommand, BuildRoadmapCommand,
+    AddVideoCommand, AddVideosCommand, BuildCorpusCommand, BuildRoadmapCommand,
     BuildStudyListCommand, ExportSubtitlesCommand, FillGapsCommand,
     ReviewCommand, ServeCommand, StatusCommand,
 )
@@ -31,6 +31,15 @@ def _parser() -> argparse.ArgumentParser:
     video.add_argument("video", metavar="ID_OR_URL",
                        help="a YouTube video id, or any URL containing one")
     video.add_argument("--language", help="subtitle language (default: de)")
+
+    many = sub.add_parser(
+        "add-videos", help="scrape a list of videos into the catalogue")
+    many.add_argument("source", metavar="FILE|lexy|-",
+                      help="a file of ids or URLs, 'lexy' to read them from "
+                           "that database, or '-' for standard input")
+    many.add_argument("--language", help="subtitle language (default: de)")
+    many.add_argument("--dry-run", action="store_true",
+                      help="list what would be fetched, and stop")
 
     corpus = sub.add_parser("build-corpus", help="analyse and cache a sentence source")
     corpus.add_argument("source", choices=["tatoeba", "subtitle"])
@@ -101,6 +110,8 @@ def main() -> int:
     app = Application()
     if args.command == "add-video":
         AddVideoCommand().run(app, args.video, args.language)
+    elif args.command == "add-videos":
+        AddVideosCommand().run(app, args.source, args.language, args.dry_run)
     elif args.command == "build-corpus":
         BuildCorpusCommand().run(app, args.source, args.limit,
                                  args.corrector, args.min_words)

@@ -1,0 +1,91 @@
+"""`add-videos` — scrape a list of YouTube videos into the catalogue.
+
+The same work as `add-video`, done for many. Ids come from a file, from
+standard input, or from another database on this server that happens to hold
+a list of them.
+
+Each video is attempted independently: one with no German subtitles, or one
+YouTube has withdrawn, is reported and skipped rather than stopping the run.
+The corpus is analysed once at the end rather than after each, since the
+incremental update finds every new video in one pass.
+"""
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+from commands.add_video import AddVideoCommand
+from corpus import CorpusUpdater
+from db import Database
+from ingest import VideoIngestor
+from roadmap import RoadmapRefresher
+
+
+class AddVideosCommand:
+    def run(self, app, source: str, language: str | None = None,
+            dry_run: bool = False) -> None:
+        ids = self._collect(app, source)
+        ingestor = VideoIngestor(app.settings, app.analyzer)
+        fresh = [v for v in ids if not ingestor.already_have(v)]
+
+        print(f"{len(ids)} ids, {len(fresh)} not yet in the catalogue")
+        if dry_run:
+            print("  (dry run — nothing will be fetched or written)")
+            for video_id in fresh:
+                print(f"    {video_id}")
+            return
+        if not fresh:
+            return
+
+        added, refused = [], []
+        for index, video_id in enumerate(fresh, start=1):
+            print(f"  [{index}/{len(fresh)}] {video_id} … ", end="", flush=True)
+            try:
+                landed = ingestor.add(video_id, language)
+            except SystemExit as why:
+                refused.append((video_id, str(why)))
+                print("skipped")
+                continue
+            except Exception as error:          # noqa: BLE001 — one bad video
+                refused.append((video_id, f"{type(error).__name__}: {error}"))
+                print("failed")
+                continue
+            added.append(landed)
+            print(f"{landed.lines} lines, {landed.language}")
+
+        print(f"\n{len(added)} added, {len(refused)} skipped")
+        for video_id, why in refused:
+            print(f"  {video_id}: {why.splitlines()[0]}")
+
+        if added:
+            print("\nanalysing the new videos…", flush=True)
+            caught = CorpusUpdater(app).catch_up()
+            print(f"  {caught.teachable} sentences to study from, "
+                  f"{caught.context} more for the overlay")
+            for label, steps in sorted(
+                RoadmapRefresher(app).refresh(touching="subtitle").items()
+            ):
+                print(f"  roadmap [{label}]: {steps} steps")
+
+    @staticmethod
+    def _collect(app, source: str) -> list[str]:
+        """Video ids from a file, from standard input, or from `lexy`."""
+        if source == "lexy":
+            # Another database on the same server keeps a list of ids. It has
+            # no titles or languages, so anything not in German is found out
+            # only by trying it.
+            config = app.settings.database
+            with Database(config.__class__(
+                name="lexy", user=config.user, password=config.password,
+                host=config.host, port=config.port,
+            )) as db:
+                return db.column("SELECT DISTINCT video_id FROM youtube_video"
+                                 " WHERE video_id <> '' ORDER BY video_id")
+        if source == "-":
+            return [line.strip() for line in sys.stdin if line.strip()]
+        path = Path(source)
+        if not path.exists():
+            raise SystemExit(f"no such file: {source} (or use 'lexy' or '-')")
+        return [AddVideoCommand._identify(line)
+                for line in path.read_text(encoding="utf-8").splitlines()
+                if line.strip() and not line.startswith("#")]

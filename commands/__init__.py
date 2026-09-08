@@ -1,4 +1,5 @@
 from .add_video import AddVideoCommand
+from .add_videos import AddVideosCommand
 from .build_corpus import BuildCorpusCommand
 from .build_roadmap import BuildRoadmapCommand
 from .build_study_list import BuildStudyListCommand
@@ -9,7 +10,7 @@ from .serve import ServeCommand
 from .status import StatusCommand
 
 __all__ = [
-    "AddVideoCommand", "BuildCorpusCommand", "BuildRoadmapCommand",
+    "AddVideoCommand", "AddVideosCommand", "BuildCorpusCommand", "BuildRoadmapCommand",
     "BuildStudyListCommand", "ExportSubtitlesCommand", "FillGapsCommand",
     "ReviewCommand", "ServeCommand", "StatusCommand",
 ]
