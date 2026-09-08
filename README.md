@@ -61,11 +61,22 @@ carries no information there. Two failures showed up directly in the roadmap:
 - `Gibst du das Tom?` tags the verb as a name and the name as a noun, which
   put `tom` in the roadmap at step 12 as the highest-gain word in the corpus.
 
+A third failure is not positional at all: second-person forms like `willst`,
+`gibst` and `nimmst` come back unreduced everywhere, and the stem vowel
+changes, so no rule recovers the infinitive. spaCy ships a German lemma
+lookup table that has them — but it is context-free and maps `sein` to `mein`
+and `sie` to `ich`, so it is consulted only where the parser called the token
+a verb, already failed on it, and the word is not itself an infinitive.
+`data/lemma_overrides.txt` covers the handful the table misses; add a line
+whenever an inflected form turns up in the roadmap.
+
 Per-token output cannot be trusted, but the mistakes are a minority across a
-quarter of a million sentences. So the first pass tallies evidence and the
-second acts on the majority verdict: which lemma a surface form usually gets,
-and whether a lemma is usually tagged as a name. On the subtitle corpus this
-takes `tom`, `hast`, `bist` and `gibst` from teachable units to zero.
+quarter of a million sentences. So the first pass repairs what it can and
+tallies evidence, and the second acts on the majority verdict: which lemma a
+surface form usually gets, and whether a lemma is usually tagged as a name.
+The vote needs a decisive margin, because some words really are two words —
+`weiß` is both a colour and a form of `wissen`, and flattening that would be
+worse than the failure it fixes.
 
 ## Choosing a corpus
 

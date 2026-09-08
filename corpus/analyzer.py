@@ -13,11 +13,10 @@ Two kinds of unit come out:
             rather than a plain dictionary look-up
 
 Analysis is two passes over the corpus, because the model's per-token output
-is not trustworthy enough to use directly.  The first pass reads every token
-and tallies evidence; the second repairs what the evidence shows to be wrong.
-Both repairs address the same weakness — a capitalised word at the start of a
-German sentence, where the model has no case signal to work with.  See
-`_lemma_corrections` and `_proper_nouns`.
+is not trustworthy enough to use directly.  The first pass reads every token,
+repairs the lemma where the model plainly gave up, and tallies evidence; the
+second acts on that evidence.  See `_verb_lemma`, `_lemma_corrections` and
+`_proper_nouns` for what each repair fixes and why.
 """
 from __future__ import annotations
 
@@ -30,8 +29,18 @@ from db.word_repo import FREE_TAGS, PUNCTUATION_TAGS
 from vocab.entry import Unit
 
 _MATCHER_DIR = Path(__file__).resolve().parents[1] / "matcher"
+_OVERRIDES = Path(__file__).resolve().parents[1] / "data" / "lemma_overrides.txt"
 
 VERB_TAGS = ("VV", "VA", "VM")
+
+# A German infinitive ends in -en or -n.  A verb lemma that already looks like
+# one is almost certainly right, and must not be "corrected" — this is the
+# guard that keeps `sein` and `haben` away from the lookup table below.
+INFINITIVE_ENDINGS = ("en", "n")
+
+# How decisively a competing lemma must outnumber an apparent failure before
+# the corpus vote overrides it.  See `_lemma_corrections`.
+CORRECTION_MARGIN = 4
 
 
 class Evidence:
@@ -41,7 +50,6 @@ class Evidence:
         self.names: Counter[str] = Counter()
         self.content: Counter[str] = Counter()
         self.by_surface: dict[str, Counter[str]] = defaultdict(Counter)
-        self.unlemmatised: set[str] = set()
 
 
 class UnitAnalyzer:
@@ -57,6 +65,41 @@ class UnitAnalyzer:
         self._language = language
         self._processes = processes
         self._matcher = None
+        self._verb_lemmas: "_LemmaLookup | None" = None
+
+    @property
+    def verb_lemmas(self) -> "_LemmaLookup":
+        """Surface -> infinitive, for verb forms the parser cannot reduce.
+
+        Two sources: `data/lemma_overrides.txt` for hand-checked corrections,
+        and spaCy's German lookup table (355k entries) underneath.
+
+        That table is context-free and must never be applied broadly — it maps
+        `sein` to `mein`, `sie` to `ich` and `ein` to `einen`, because it
+        conflates whole pronoun paradigms.  `_verb_lemma` is what makes it
+        safe, by consulting it only where the alternative is a lemma already
+        known to be wrong.
+        """
+        if self._verb_lemmas is None:
+            from spacy.lookups import load_lookups   # noqa: PLC0415 — heavy import
+            table = load_lookups(self._language, ["lemma_lookup"]).get_table(
+                "lemma_lookup"
+            )
+            # spaCy's Table hashes its keys, so iterating it yields integers,
+            # not words. It has to be queried through get(), never copied.
+            self._verb_lemmas = _LemmaLookup(table, self._read_overrides())
+        return self._verb_lemmas
+
+    @staticmethod
+    def _read_overrides() -> dict[str, str]:
+        if not _OVERRIDES.exists():
+            return {}
+        out: dict[str, str] = {}
+        for raw in _OVERRIDES.read_text(encoding="utf-8").splitlines():
+            line = raw.split("#", 1)[0].split()
+            if len(line) == 2:
+                out[line[0].lower()] = line[1].lower()
+        return out
 
     @property
     def matcher(self):
@@ -100,8 +143,7 @@ class UnitAnalyzer:
         out: set[str] = set()
         for doc in self.matcher.nlp.pipe(texts, batch_size=256):
             out.update(
-                token.lemma_.strip().lower()
-                for token in doc if self._is_content(token)
+                self._verb_lemma(token) for token in doc if self._is_content(token)
             )
         return out
 
@@ -113,18 +155,14 @@ class UnitAnalyzer:
         for token in doc:
             if token.tag_ in PUNCTUATION_TAGS or token.is_punct or token.is_space:
                 continue
-            lemma = token.lemma_.strip().lower()
-            if not lemma or lemma == "--":
+            lemma = self._verb_lemma(token)
+            if not lemma:
                 continue
             if token.tag_ in FREE_TAGS:
                 evidence.names[lemma] += 1
                 continue
-            surface = token.text.lower()
             evidence.content[lemma] += 1
-            evidence.by_surface[surface][lemma] += 1
-            if lemma == surface and token.text[:1].isupper() \
-                    and token.tag_.startswith(VERB_TAGS):
-                evidence.unlemmatised.add(surface)
+            evidence.by_surface[token.text.lower()][lemma] += 1
             unit = Unit.lemma(lemma)
             units.add(unit)
             surfaces.setdefault(unit, token.text)
@@ -135,6 +173,33 @@ class UnitAnalyzer:
                 units.add(unit)
                 surfaces.setdefault(unit, " ".join(phrase["sentence_phrase"]))
         return frozenset(units), tuple(surfaces.items())
+
+    def _verb_lemma(self, token) -> str:
+        """`token`'s lemma, with an inflected verb folded into its infinitive.
+
+        The model leaves many second-person forms unreduced — "willst",
+        "musst", "gibst", "nimmst" — in every position, not just at the start
+        of a sentence, so `wollen` and `willst` become separate units and a
+        learner who knows the verb still meets it as unknown. The stem vowel
+        changes, so no rule recovers it; a lookup does.
+
+        Three guards keep the lookup from doing harm, and all three matter:
+
+          the parser called it a verb    — so a pronoun or article is never touched
+          its lemma equals its surface   — so only an evident failure is overridden
+          the surface is not already an infinitive
+                                         — so "sein" and "haben", whose lemma
+                                           correctly is themselves, are left alone
+        """
+        lemma = token.lemma_.strip().lower()
+        if not lemma or lemma == "--":
+            return ""
+        surface = token.text.lower()
+        if (lemma == surface
+                and token.tag_.startswith(VERB_TAGS)
+                and not surface.endswith(INFINITIVE_ENDINGS)):
+            return self.verb_lemmas.get(surface, lemma)
+        return lemma
 
     # --- second pass -----------------------------------------------------
 
@@ -152,24 +217,25 @@ class UnitAnalyzer:
            times, so the majority lemma for a surface fixes the minority
            failures.  Only identity lemmas are touched — a disagreement between
            two real lemmas is left alone.
-        2. A lower-case re-parse, for surfaces the corpus never saw
-           mid-sentence.  Batched into one pipe call rather than one per token,
-           which is the difference between seconds and many minutes.
+        Only identity lemmas are touched, and only when the alternative wins
+        decisively.  Some words really are two words: "weiß" is both a colour
+        and a form of "wissen", and both readings occur constantly.  Flattening
+        that into one lemma is worse than leaving the failure in place, so a
+        correction needs the alternative to outnumber the identity reading by
+        `CORRECTION_MARGIN`.  A systematic lemmatiser failure clears that
+        easily; a genuine ambiguity does not.
+
+        This catches what `_verb_lemma` cannot: words the parser did not tag as
+        verbs, and forms absent from the lookup table.
         """
         corrections: dict[str, str] = {}
         for surface, lemmas in evidence.by_surface.items():
-            if surface not in lemmas:
+            failures = lemmas.get(surface, 0)
+            if not failures:
                 continue                      # never failed on this surface
-            best, _ = lemmas.most_common(1)[0]
-            if best != surface:
+            best, count = lemmas.most_common(1)[0]
+            if best != surface and count >= failures * CORRECTION_MARGIN:
                 corrections[surface] = best
-
-        remaining = sorted(evidence.unlemmatised - corrections.keys())
-        if remaining:
-            for surface, doc in zip(remaining, self.matcher.nlp.pipe(remaining)):
-                lemma = doc[0].lemma_.strip().lower()
-                if lemma and lemma != surface:
-                    corrections[surface] = lemma
         return corrections
 
     @staticmethod
@@ -228,3 +294,22 @@ class UnitAnalyzer:
         if token.tag_ in PUNCTUATION_TAGS or token.tag_ in FREE_TAGS:
             return False
         return bool(token.lemma_.strip()) and token.lemma_ != "--"
+
+
+class _LemmaLookup:
+    """Surface -> infinitive, from hand-written overrides over spaCy's table.
+
+    Wraps rather than copies the table: spaCy's `Table` hashes its keys, so
+    iterating it yields integers instead of words and any dict built from it
+    is empty of everything except what was added afterwards.
+    """
+
+    def __init__(self, table, overrides: dict[str, str]) -> None:
+        self._table = table
+        self._overrides = overrides
+
+    def get(self, surface: str, default: str = "") -> str:
+        if surface in self._overrides:
+            return self._overrides[surface]
+        found = self._table.get(surface)
+        return str(found).lower() if found else default

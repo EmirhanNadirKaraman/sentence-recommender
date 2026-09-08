@@ -195,3 +195,81 @@ class ScriptedClient:
         if not self._replies:
             raise RuntimeError("model unreachable")
         return self._replies.pop(0)
+
+
+class LemmaLookupTest(unittest.TestCase):
+    """The guards around spaCy's context-free German lemma table.
+
+    Applied broadly that table is destructive — it maps `sein` to `mein` and
+    `sie` to `ich`, because it conflates whole pronoun paradigms. These tests
+    pin the three conditions that make consulting it safe.
+    """
+
+    def setUp(self) -> None:
+        from corpus.analyzer import UnitAnalyzer
+        self.analyzer = UnitAnalyzer(frozenset())
+        self.analyzer._verb_lemmas = _FakeLookup({
+            "willst": "wollen", "sein": "mein", "sie": "ich", "muss": "müssen",
+        })
+
+    def lemma(self, text: str, spacy_lemma: str, tag: str) -> str:
+        return self.analyzer._verb_lemma(_FakeToken(text, spacy_lemma, tag))
+
+    def test_folds_an_inflected_verb_the_parser_gave_up_on(self) -> None:
+        self.assertEqual(self.lemma("willst", "willst", "VMFIN"), "wollen")
+
+    def test_leaves_an_infinitive_alone_even_when_the_table_has_it(self) -> None:
+        """This is what keeps `sein` from becoming `mein`."""
+        self.assertEqual(self.lemma("sein", "sein", "VAINF"), "sein")
+
+    def test_never_touches_a_non_verb(self) -> None:
+        """And this is what keeps `sie` from becoming `ich`."""
+        self.assertEqual(self.lemma("sie", "sie", "PPER"), "sie")
+
+    def test_leaves_a_lemma_the_parser_resolved(self) -> None:
+        self.assertEqual(self.lemma("musst", "müssen", "VMFIN"), "müssen")
+
+    def test_lower_cases_so_units_dedupe(self) -> None:
+        self.assertEqual(self.lemma("Haus", "Haus", "NN"), "haus")
+
+    def test_drops_the_placeholder_lemma(self) -> None:
+        self.assertEqual(self.lemma(".", "--", "$."), "")
+
+
+class LemmaCorrectionsTest(unittest.TestCase):
+    """The corpus-wide vote that catches what the tag guard cannot."""
+
+    def corrections(self, observed: dict[str, dict[str, int]]) -> dict:
+        from collections import Counter
+        from corpus.analyzer import Evidence, UnitAnalyzer
+        evidence = Evidence()
+        for surface, lemmas in observed.items():
+            evidence.by_surface[surface] = Counter(lemmas)
+        return UnitAnalyzer(frozenset())._lemma_corrections(evidence)
+
+    def test_repairs_a_form_the_parser_usually_gets_right(self) -> None:
+        """`Willst` is mis-tagged sentence-initially but fine elsewhere."""
+        self.assertEqual(
+            self.corrections({"willst": {"wollen": 900, "willst": 100}}),
+            {"willst": "wollen"},
+        )
+
+    def test_leaves_a_genuine_ambiguity_alone(self) -> None:
+        """`weiß` is both a colour and a form of `wissen`; both are real."""
+        self.assertEqual(self.corrections({"weiß": {"wissen": 600, "weiß": 500}}), {})
+
+    def test_ignores_a_surface_that_never_failed(self) -> None:
+        self.assertEqual(self.corrections({"hat": {"haben": 5000}}), {})
+
+
+class _FakeToken:
+    def __init__(self, text: str, lemma: str, tag: str) -> None:
+        self.text, self.lemma_, self.tag_ = text, lemma, tag
+
+
+class _FakeLookup:
+    def __init__(self, table: dict[str, str]) -> None:
+        self._table = table
+
+    def get(self, surface: str, default: str = "") -> str:
+        return self._table.get(surface, default)

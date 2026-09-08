@@ -1,0 +1,12 @@
+# Verb forms neither the parser nor spaCy's German lookup table resolves.
+#
+# One line per correction: the written form, then the lemma it belongs to.
+# Consulted ONLY for a token the parser tagged as a verb and failed to
+# lemmatise, so an entry here cannot affect the same spelling used as another
+# part of speech — "weiß" stays "weiß" when it is the colour.
+#
+# Add a line whenever an inflected form shows up in the roadmap that should
+# have been folded into its infinitive.
+
+muss    müssen
+soll    sollen
