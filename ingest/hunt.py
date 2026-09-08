@@ -43,19 +43,28 @@ class VideoHunter:
         self._ingestor = ingestor
 
     def search(self, word: str, limit: int = PER_WORD) -> list[str]:
-        """Video ids for a German query about `word`, most relevant first."""
+        """Video ids for a German query about `word`, captioned ones only.
+
+        Asked through YouTube's own Subtitles/CC filter — the `sp` token
+        below — because a plain search is mostly video with no captions at
+        all: an unfiltered run added four videos and threw away five. The
+        filter does not promise *German* captions, so each video is still
+        checked, but it stops most of the wasted fetches.
+        """
+        from urllib.parse import quote_plus      # noqa: PLC0415
         import yt_dlp                            # noqa: PLC0415 — heavy
 
         options = {"quiet": True, "no_warnings": True, "skip_download": True,
-                   "extract_flat": "in_playlist"}
-        query = f"ytsearch{limit}:{word} erklärt auf deutsch"
+                   "extract_flat": "in_playlist", "playlistend": limit}
+        url = ("https://www.youtube.com/results?search_query="
+               f"{quote_plus(word + ' deutsch')}&sp=EgIoAQ%253D%253D")
         try:
             with yt_dlp.YoutubeDL(options) as ydl:
-                found = ydl.extract_info(query, download=False)
+                found = ydl.extract_info(url, download=False)
         except Exception:                        # noqa: BLE001 — a dud query
             return []
         return [entry["id"] for entry in (found or {}).get("entries", [])
-                if entry and entry.get("id")]
+                if entry and entry.get("id")][:limit]
 
     def gather(self, words: list[Unit], wanted: int) -> Hunt:
         """Search each word in turn until `wanted` new videos are found.
