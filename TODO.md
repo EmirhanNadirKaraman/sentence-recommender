@@ -70,6 +70,26 @@ only after the frontier is genuinely empty rather than as a general relaxation.
   `build-corpus subtitle --corrector llm`. Watch the fallback count on the
   first run; a high one means the prompt needs work, not the code.
 
+## The cache does not know when the analyser changed
+
+A fix to `corpus/analyzer.py` changes how units are derived, but the cached
+corpus keeps whatever the old code produced, and nothing says so. A bad
+pattern match stayed visible for a whole session after being fixed, because
+the fix was verified against a live analysis and the cache was never rebuilt.
+
+Stamp each build with a fingerprint of the analyser — the rules that decide
+units, not the whole file — and warn when what is cached was made by
+different rules. Cheap, and it turns a silent wrong answer into a line of
+output.
+
+Until then: after changing the analyser, rebuild every corpus.
+
+```
+python main.py build-corpus subtitle       # seconds
+python main.py build-corpus tatoeba        # about seven minutes
+python main.py build-roadmap --source subtitle --goals
+```
+
 ## Known limitations
 
 - **`weiß` stays split** between the colour and the form of *wissen*. Both
