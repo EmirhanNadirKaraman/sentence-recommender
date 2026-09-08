@@ -51,6 +51,16 @@ def _parser() -> argparse.ArgumentParser:
     hunt.add_argument("--dry-run", action="store_true",
                       help="show what it would fetch, and stop")
 
+    channel = sub.add_parser(
+        "add-channel",
+        help="add every video in a channel that has manual German subtitles")
+    channel.add_argument("channel", metavar="ID|@HANDLE|URL")
+    channel.add_argument("--limit", type=int, default=0,
+                         help="stop after N videos (default: the whole channel)")
+    channel.add_argument("--language", help="subtitle language (default: de)")
+    channel.add_argument("--dry-run", action="store_true",
+                         help="list what would be fetched, and stop")
+
     corpus = sub.add_parser("build-corpus", help="analyse and cache a sentence source")
     corpus.add_argument("source", choices=["tatoeba", "subtitle"])
     corpus.add_argument(
@@ -125,6 +135,9 @@ def main() -> int:
     elif args.command == "hunt":
         HuntVideosCommand().run(app, args.batch, args.rounds, args.source,
                                 args.dry_run)
+    elif args.command == "add-channel":
+        AddVideosCommand().run(app, args.channel, args.language, args.dry_run,
+                               args.limit)
     elif args.command == "build-corpus":
         BuildCorpusCommand().run(app, args.source, args.limit,
                                  args.corrector, args.min_words)

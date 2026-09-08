@@ -18,13 +18,14 @@ from commands.add_video import AddVideoCommand
 from corpus import CorpusUpdater
 from db import Database
 from ingest import VideoIngestor
+from ingest.channel import CHANNEL_ID
 from roadmap import RoadmapRefresher
 
 
 class AddVideosCommand:
     def run(self, app, source: str, language: str | None = None,
-            dry_run: bool = False) -> None:
-        ids = self._collect(app, source)
+            dry_run: bool = False, limit: int = 0) -> None:
+        ids = self._collect(app, source, limit)
         ingestor = VideoIngestor(app.settings, app.analyzer)
         fresh = [v for v in ids if not ingestor.already_have(v)]
 
@@ -68,8 +69,20 @@ class AddVideosCommand:
                 print(f"  roadmap [{label}]: {steps} steps")
 
     @staticmethod
-    def _collect(app, source: str) -> list[str]:
-        """Video ids from a file, from standard input, or from `lexy`."""
+    def _collect(app, source: str, limit: int = 0) -> list[str]:
+        """Video ids from a channel, a file, standard input, or `lexy`."""
+        # Matched, not merely contained: a file called UCLA-words.txt is a
+        # file, and a bare word is a filename before it is a handle.
+        if (source.startswith("@")
+                or CHANNEL_ID.fullmatch(source)
+                or "youtube.com/@" in source
+                or "youtube.com/channel/" in source
+                or "youtube.com/c/" in source):
+            from ingest import ChannelLister    # noqa: PLC0415
+            lister = ChannelLister()
+            channel = lister.identify(source)
+            print(f"listing {channel}…", flush=True)
+            return lister.videos(channel, limit)
         if source == "lexy":
             # Another database on the same server keeps a list of ids. It has
             # no titles or languages, so anything not in German is found out
