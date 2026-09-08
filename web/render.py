@@ -143,6 +143,11 @@ button:hover { border-color: var(--target); }
   padding-left: 14px; border-left: 3px solid var(--rail); }
 .mark.right { border-left-color: var(--target); }
 
+/* The player sits above the reading, and follows whichever sentence is shown. */
+.stage { margin: 6px 0 22px; }
+.stage .de { font-size: 17px; color: var(--ink-2); margin: 12px 0 0;
+  min-height: 1.6em; }
+
 /* Alternative i+1 sentences for the same unit, stepped through in place. */
 .deck { min-height: 7.2rem; }
 .also { font: 400 13.5px/1.5 var(--sans); color: var(--ink-2); margin: 10px 0 0; }

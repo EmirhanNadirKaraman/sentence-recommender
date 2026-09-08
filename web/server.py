@@ -66,7 +66,8 @@ def _make_handler(viewer: Viewer):
             path = parsed.path.rstrip("/") or "/"
             try:
                 html, status = self._route(path, query)
-                self._send(html, status)
+                if status:                     # 0 means the route already replied
+                    self._send(html, status)
             except Exception as error:            # noqa: BLE001 — show it, don't die
                 _report(error, self.path)
                 self._send(_oops(error), status=500)
@@ -102,10 +103,22 @@ def _make_handler(viewer: Viewer):
                 return viewer.subtitles(query), 200
             if path == "/watch":
                 return viewer.watch(query), 200
+            if path == "/api/transcript":
+                self._send_json(viewer.transcript_json(query.get("video", "")))
+                return "", 0
             if path.startswith("/unit/"):
                 _, _, kind, key = path.split("/", 3)
                 return viewer.unit(kind, unquote(key), query), 200
             return _missing(path), 404
+
+        def _send_json(self, data) -> None:
+            import json
+            payload = json.dumps(data).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
 
         def _send(self, html: str, status: int = 200) -> None:
             payload = html.encode("utf-8")

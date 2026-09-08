@@ -149,6 +149,7 @@ class Viewer:
             switch + picker +
             f"<h1>{scope.index.readable:,} sentences you can already read</h1>"
             f"<p class='note'>{lede}</p>"
+            + self._stage(scope, unit)
             + self._deck(scope, unit) +
             "<h2>The new thing</h2>"
             f"<p class='de'>{escape(unit.key)}</p>"
@@ -156,8 +157,37 @@ class Viewer:
             f"{'s' if occurrences != 1 else ''} here and opening {step.gain} "
             f"more</p>"
             + self._actions(unit, source, "/", watchable=self._has_video(scope, unit))
+            + ("<h2>Transcript</h2><ol class='transcript' id='transcript'></ol>"
+               if self._has_video(scope, unit) else "")
+            + video.merged_script()
         )
         return layout("i+1", body, "/", source)
+
+    def _stage(self, scope: Scope, unit: Unit) -> str:
+        """The player, opened on the first sentence the deck will show.
+
+        Rendered here rather than behind a link: the point of a subtitle
+        corpus is that every sentence was said out loud, so hearing one should
+        be the default rather than a second click. Returns nothing when no
+        example has a video, which is every Tatoeba sentence.
+        """
+        first = next((s for s in scope.examples.examples(unit, self.known,
+                                                         limit=DECK_SIZE)
+                      if s.timing), None)
+        return video.stage(first.timing.video_id, first.timing.start) if first else ""
+
+    def transcript_json(self, video_id: str) -> dict:
+        """Every cue of one video, for the transcript beside the player.
+
+        Fetched per video rather than shipped with the page: the deck can
+        touch a dozen videos and their cues together would be most of the
+        bytes.
+        """
+        return {"cues": [
+            {"at": round(c.timing.start, 2), "clock": _clock(c.timing.start),
+             "text": c.text}
+            for c in self._cues(video_id)
+        ]}
 
     def _deck(self, scope: Scope, unit: Unit) -> str:
         """Every sentence using `unit`, readable ones first, stepped in place.
@@ -175,7 +205,10 @@ class Viewer:
         if not options:
             return ""
         slides = "".join(
-            f"<div class='slide'{'' if i == 0 else ' hidden'}>"
+            f"<div class='slide'{'' if i == 0 else ' hidden'}"
+            + (f" data-video='{escape(s.timing.video_id)}' "
+               f"data-at='{s.timing.start:.2f}'" if s.timing else "")
+            + ">"
             f"{sentence(s.text, s.translation, s.surface_of(unit), lead=True)}"
             f"{self._also_new(s, unit, known)}</div>"
             for i, s in enumerate(options)
