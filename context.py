@@ -149,7 +149,9 @@ class Application:
         """
         with Database(self.settings.database) as db:
             patterns = PatternRepository(db, self.settings.language).canonicals()
-        return GoalList(self.settings.goal_words).units(patterns)
+        return GoalList(self.settings.goal_words).units(
+            patterns, self.analyzer.lemmatise_each
+        )
 
     def priority(self) -> UnitPriority:
         return UnitPriority.build(self.goal_units)

@@ -170,6 +170,24 @@ class UnitAnalyzer:
             self._lemma_corrections(evidence),
         )
 
+    def lemmatise_each(self, texts: list[str]) -> list[str]:
+        """One lemma per input, in the corpus's own lemma space.
+
+        Unlike `lemmas`, which pools everything, this keeps the alignment —
+        a caller turning a word list into units needs to know which lemma
+        came from which entry. A phrase yields its last content word, since
+        that is the head: "zur Verfügung stellen" is `stellen`.
+
+        Anything that lemmatises to nothing comes back empty rather than
+        being dropped, so the caller still sees one answer per question.
+        """
+        out: list[str] = []
+        for doc in self.matcher.nlp.pipe(texts, batch_size=256):
+            found = [self._verb_lemma(token) for token in doc
+                     if self._is_content(token)]
+            out.append(found[-1] if found else "")
+        return out
+
     def lemmas(self, texts: list[str]) -> set[str]:
         """Lemmatise arbitrary text with the same model the corpus was parsed by.
 
