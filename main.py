@@ -8,7 +8,7 @@ from pathlib import Path
 from commands import (
     AddVideoCommand, AddVideosCommand, BuildCorpusCommand, BuildRoadmapCommand,
     BuildStudyListCommand, ExportSubtitlesCommand, FillGapsCommand,
-    ReviewCommand, ServeCommand, StatusCommand,
+    HuntVideosCommand, ReviewCommand, ServeCommand, StatusCommand,
 )
 from context import Application
 from db import Database, WordRepository
@@ -40,6 +40,16 @@ def _parser() -> argparse.ArgumentParser:
     many.add_argument("--language", help="subtitle language (default: de)")
     many.add_argument("--dry-run", action="store_true",
                       help="list what would be fetched, and stop")
+
+    hunt = sub.add_parser(
+        "hunt", help="find and add video for the words the corpus cannot teach")
+    hunt.add_argument("--batch", type=int, default=10,
+                      help="videos to add per round (default 10)")
+    hunt.add_argument("--rounds", type=int, default=1,
+                      help="how many times to repeat (default 1)")
+    hunt.add_argument("--source", default="subtitle", help="corpus to grow")
+    hunt.add_argument("--dry-run", action="store_true",
+                      help="show what it would fetch, and stop")
 
     corpus = sub.add_parser("build-corpus", help="analyse and cache a sentence source")
     corpus.add_argument("source", choices=["tatoeba", "subtitle"])
@@ -112,6 +122,9 @@ def main() -> int:
         AddVideoCommand().run(app, args.video, args.language)
     elif args.command == "add-videos":
         AddVideosCommand().run(app, args.source, args.language, args.dry_run)
+    elif args.command == "hunt":
+        HuntVideosCommand().run(app, args.batch, args.rounds, args.source,
+                                args.dry_run)
     elif args.command == "build-corpus":
         BuildCorpusCommand().run(app, args.source, args.limit,
                                  args.corrector, args.min_words)
