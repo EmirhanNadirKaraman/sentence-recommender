@@ -297,8 +297,8 @@ class Viewer:
             f"<h1>{escape(target.key)}</h1>"
             f"<p class='occurrence'>Occurrence {i + 1} of {len(clips)} in these "
             "videos. The transcript follows the video; click any line to jump.</p>"
-            + video.player(clip.timing.video_id, clip.timing.start, clip.timing.end)
-            + sentence(clip.text, clip.translation, surface)
+            + video.player(clip.timing.video_id, clip.timing.start)
+            + video.caption(clip.text, clip.translation, surface)
             + f"<div class='pager'>{prev}{nxt}</div>"
             + self._actions(target, source, "/")
             + "<h2>Transcript</h2>"

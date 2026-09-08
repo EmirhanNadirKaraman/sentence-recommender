@@ -158,8 +158,15 @@ button:hover { border-color: var(--target); }
   background: var(--surface); border: 1px solid var(--faint); }
 .player iframe { position: absolute; inset: 0; width: 100%; height: 100%;
   border: 0; }
-.transcript { list-style: none; margin: 26px 0 0; padding: 0;
-  max-height: 24rem; overflow-y: auto; border-top: 1px solid var(--faint); }
+/* The spoken line, right under the picture. Reserved height so the layout
+   does not jump each time it changes. */
+.caption { margin: 18px 0 4px; min-height: 4.6rem; }
+.caption .de { font-size: 22px; line-height: 1.45; }
+.caption .en { min-height: 1.2em; }
+
+.transcript { list-style: none; margin: 20px 0 0; padding: 0;
+  max-height: 22rem; overflow-y: auto; overscroll-behavior: contain;
+  border-top: 1px solid var(--faint); }
 .cue { display: grid; grid-template-columns: 3.4rem 1fr; gap: 14px;
   padding: 9px 4px; border-bottom: 1px solid var(--faint); cursor: pointer; }
 .cue .at { font-size: 13px; color: var(--ink-2);
