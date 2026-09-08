@@ -89,16 +89,7 @@ class VideoIngestor:
                 "little to be worth keeping."
             )
         if not transcript:
-            # Deliberately not "has none". Nothing came back, and the two
-            # reasons are indistinguishable from here: the video may truly
-            # have no subtitles in this language, or YouTube may be refusing
-            # a client that has asked too often. Three videos in one run were
-            # reported as having no German subtitles minutes after the same
-            # code had fetched a hundred lines from each.
-            raise SystemExit(
-                f"{video_id}: no {wanted} subtitles came back. Either it has "
-                "none, or YouTube is rate-limiting — try it again later."
-            )
+            raise SystemExit(f"{video_id}: {self._why_empty(video_id, wanted)}")
 
         with WritableDatabase(self._settings.database) as db:
             cursor = db.cursor()
@@ -132,3 +123,34 @@ class VideoIngestor:
 
         return Ingested(video_id=video_id, title=meta["title"],
                         language=detected, lines=len(transcript), source=source)
+
+    @staticmethod
+    def _why_empty(video_id: str, wanted: str) -> str:
+        """Say which reason it was, rather than listing the possibilities.
+
+        Only manually written subtitles are accepted — auto-generated ones
+        mangle exactly what a learner is studying — and YouTube reports the
+        two kinds separately, so the distinction is there for the asking.
+        Worth asking: twenty videos in one run were guessed at as
+        rate-limiting when every one of them simply had no hand-written
+        track.
+        """
+        import yt_dlp                            # noqa: PLC0415 — heavy
+
+        try:
+            with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True,
+                                   "skip_download": True}) as ydl:
+                info = ydl.extract_info(
+                    f"https://www.youtube.com/watch?v={video_id}", download=False)
+        except Exception:                        # noqa: BLE001 — say less, not wrong
+            return (f"no {wanted} subtitles came back, and the video could not "
+                    "be inspected to say why.")
+        manual = set(info.get("subtitles") or {})
+        auto = set(info.get("automatic_captions") or {})
+        if wanted in auto and wanted not in manual:
+            return (f"only auto-generated {wanted} captions, which are not "
+                    "used — they mangle the endings you are learning.")
+        if manual:
+            return (f"no hand-written {wanted} subtitles; it has "
+                    f"{', '.join(sorted(manual)[:4])}.")
+        return f"no hand-written subtitles at all, in any language."
