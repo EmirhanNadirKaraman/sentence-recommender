@@ -305,7 +305,10 @@ class Viewer:
         source = self.source(query)
         text = query.get("text", "")
         back = query.get("back") or "/"
-        found = next((s for s in self.scope(source, self.counting(query)).sentences
+        # Always the unfiltered analysis, whatever the counting switch says:
+        # this page exists to correct what the analyser found, and the units
+        # most worth removing are the ones the study list would have hidden.
+        found = next((s for s in self.scope(source, False).sentences
                       if s.text == text),
                      None)
         if found is None:
