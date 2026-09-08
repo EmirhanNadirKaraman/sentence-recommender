@@ -16,12 +16,16 @@ from urllib.parse import quote
 from corpus.sentence import Sentence
 from roadmap import CorpusIndex, ExampleIndex, RoadmapBuilder, UnitPriority
 from roadmap.store import ALL, RoadmapStore
-from vocab.entry import Unit
+from vocab.entry import LEMMA, PATTERN, Unit
 from web import watch as video
 from web.render import layout, sentence
 from web.review import ReviewSection
 
 PAGE_SIZE = 40
+
+# How many alternative i+1 sentences to carry for one unit. Enough to find a
+# readable one, few enough that the page stays small.
+DECK_SIZE = 24
 PREFERRED = ("subtitle", "subtitle:llm", ALL)
 LABELS = {ALL: "everything", "subtitle": "video subtitles",
           "subtitle:llm": "video subtitles, model-corrected",
@@ -110,35 +114,96 @@ class Viewer:
     def next_up(self, query: dict) -> str:
         source = self.source(query)
         scope = self.scope(source)
-        step = scope.builder.peek(exclude=frozenset(self._passed))
+        only = query.get("only") or ""
+        skip = set(self._passed)
+        if only == "word":
+            # Patterns are grammar, not vocabulary. Some days you want one and
+            # not the other, so they can be stepped over without being learned.
+            skip |= {u for u in scope.index.known_units_of_kind(PATTERN)}
+        step = scope.builder.peek(
+            exclude=frozenset(skip),
+            kinds=frozenset({LEMMA}) if only == "word" else frozenset(),
+        )
         switch = self.switch(source, "/")
+        picker = self._kind_picker(only, source)
 
         if step is None:
-            body = (switch + "<h1>Nothing left that is i+1</h1>"
-                    "<p class='empty'>Every sentence in this corpus needs two or "
-                    "more new things. Add another corpus, or "
+            body = (switch + picker + "<h1>Nothing left that is i+1</h1>"
+                    "<p class='empty'>Every remaining sentence needs two or more "
+                    "new things. Widen the filter, add another corpus, or "
                     "<a href='/review'>review what you have</a>.</p>")
             return layout("i+1", body, "/", source)
 
         unit, surface = step.unit, step.sentence.surface_of(step.unit)
-        readable = scope.index.readable
         occurrences = scope.examples.count(unit)
+        # A pattern step is the confusing case: every word reads fine and only
+        # the grammar is new, so say that rather than claiming a hidden word.
+        if unit.is_pattern:
+            lede = ("You know every word in this sentence. What is new is the "
+                    "pattern the verb takes — which cases it needs.")
+            kind = "a verb pattern"
+        else:
+            lede = "Everything in this sentence is yours except one word."
+            kind = "a word"
         body = (
-            switch +
-            f"<h1>{readable:,} sentences you can already read</h1>"
-            "<p class='note'>Here is the next one. Everything in it is yours "
-            "except one thing.</p>"
-            + sentence(step.sentence.text, step.sentence.translation,
-                       surface, lead=True) +
+            switch + picker +
+            f"<h1>{scope.index.readable:,} sentences you can already read</h1>"
+            f"<p class='note'>{lede}</p>"
+            + self._deck(scope, unit) +
             "<h2>The new thing</h2>"
             f"<p class='de'>{escape(unit.key)}</p>"
-            f"<p class='en'>{'a verb pattern' if unit.is_pattern else 'a word'}, "
-            f"appearing in {occurrences:,} sentence"
+            f"<p class='en'>{kind}, appearing in {occurrences:,} sentence"
             f"{'s' if occurrences != 1 else ''} here and opening {step.gain} "
             f"more</p>"
             + self._actions(unit, source, "/", watchable=self._has_video(scope, unit))
         )
         return layout("i+1", body, "/", source)
+
+    def _deck(self, scope: Scope, unit: Unit) -> str:
+        """Every sentence where `unit` is the only unknown, one at a time.
+
+        These are the frontier sentences the index already tracks, so the set
+        is exactly "i+1, and this is the thing missing". Rendered together and
+        stepped through in place, because reloading the page to read another
+        example of the same word breaks the reading.
+        """
+        options = sorted(
+            (scope.index.sentence(p) for p in
+             scope.index.candidates().get(unit, ())),
+            key=lambda s: (len(s.units), len(s.text)),
+        )[:DECK_SIZE]
+        if not options:
+            return ""
+        slides = "".join(
+            f"<div class='slide'{'' if i == 0 else ' hidden'}>"
+            f"{sentence(s.text, s.translation, s.surface_of(unit), lead=True)}"
+            "</div>"
+            for i, s in enumerate(options)
+        )
+        if len(options) == 1:
+            return f"<div class='deck' id='deck'>{slides}</div>"
+        return (
+            f"<div class='deck' id='deck'>{slides}</div>"
+            "<div class='stepper'>"
+            "<button type='button' id='prev' aria-label='Previous sentence'>"
+            "&#8592;</button>"
+            f"<span class='count'><span id='at'>1</span> of {len(options)}</span>"
+            "<button type='button' id='next' aria-label='Next sentence'>"
+            "&#8594;</button>"
+            "<span class='hint'>or use the arrow keys</span></div>"
+            + _DECK_SCRIPT
+        )
+
+    @staticmethod
+    def _kind_picker(only: str, source: str) -> str:
+        choices = (("", "words and patterns"), ("word", "words only"))
+        links = "".join(
+            f"<a href='/?src={quote(source)}"
+            + (f"&only={value}" if value else "")
+            + f"' class='{'on' if only == value else ''}'>{label}</a>"
+            for value, label in choices
+        )
+        return f"<div class='switch'><span>Teaching me</span>{links}</div>"
 
     def _actions(self, unit: Unit, source: str, back: str,
                  watchable: bool = False) -> str:
@@ -371,3 +436,34 @@ class Viewer:
 def _clock(seconds: float) -> str:
     minutes, secs = divmod(int(seconds), 60)
     return f"{minutes}:{secs:02d}"
+
+
+_DECK_SCRIPT = """
+<script>
+(function () {
+  var slides = document.querySelectorAll('#deck .slide');
+  var at = document.getElementById('at');
+  var showing = 0;
+  if (slides.length < 2) return;
+
+  function show(i) {
+    slides[showing].hidden = true;
+    showing = (i + slides.length) % slides.length;
+    slides[showing].hidden = false;
+    at.textContent = showing + 1;
+  }
+
+  document.getElementById('prev').onclick = function () { show(showing - 1); };
+  document.getElementById('next').onclick = function () { show(showing + 1); };
+
+  document.addEventListener('keydown', function (e) {
+    // Never steal the arrows from a field someone is typing in.
+    var el = document.activeElement;
+    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ||
+               el.tagName === 'SELECT' || el.isContentEditable)) return;
+    if (e.key === 'ArrowLeft') { show(showing - 1); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { show(showing + 1); e.preventDefault(); }
+  });
+})();
+</script>
+"""

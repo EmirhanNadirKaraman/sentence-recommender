@@ -60,6 +60,9 @@ class CorpusIndex:
         """What this index currently counts as known."""
         return frozenset(self._units)
 
+    def known_units_of_kind(self, kind: str) -> set[Unit]:
+        return {u for u in self._by_unit if u.kind == kind}
+
     @property
     def readable(self) -> int:
         """How many sentences have nothing unknown left in them."""

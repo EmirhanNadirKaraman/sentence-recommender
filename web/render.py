@@ -38,6 +38,7 @@ STYLE = """
   }
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0; background: var(--paper); color: var(--ink);
@@ -141,6 +142,14 @@ button:hover { border-color: var(--target); }
 .mark { font: 400 17px/1.4 var(--serif); margin: 0 0 26px;
   padding-left: 14px; border-left: 3px solid var(--rail); }
 .mark.right { border-left-color: var(--target); }
+
+/* Alternative i+1 sentences for the same unit, stepped through in place. */
+.deck { min-height: 5.6rem; }
+.stepper { display: flex; gap: 12px; align-items: center; margin-top: 14px;
+  font-size: 14px; color: var(--ink-2); }
+.stepper button { padding: 4px 12px; font-size: 16px; line-height: 1.2; }
+.stepper .count { font-variant-numeric: tabular-nums; }
+.stepper .hint { margin-left: 4px; }
 
 /* Actions: what to do about the thing just shown. */
 .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center;

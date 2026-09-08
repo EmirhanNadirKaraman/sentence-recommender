@@ -41,8 +41,8 @@ class RoadmapBuilder:
             self._index.learn(step.unit)
         return steps
 
-    def peek(self, position: int = 1,
-             exclude: frozenset = frozenset()) -> RoadmapStep | None:
+    def peek(self, position: int = 1, exclude: frozenset = frozenset(),
+             kinds: frozenset = frozenset()) -> RoadmapStep | None:
         """The step the walk would take next, without taking it.
 
         Lets a reader be shown what is i+1 *right now* — recomputed against
