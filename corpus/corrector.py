@@ -26,9 +26,18 @@ STAGE_DIRECTION = re.compile(r"\*[^*]*\*|\*+|\[[^\]]*\]|♪")
 WHITESPACE = re.compile(r"\s+")
 
 # A boundary is terminal punctuation followed by the start of something new.
-# Deliberately conservative: German abbreviations ("z.B.") are lower-case
-# after the dot, so requiring a capital or an opening quote skips them.
+# The usual "capital letter after the dot" test does not work in German, where
+# every noun is capitalised — "Ich mag z.B. Kaffee" would split at the
+# abbreviation.  So a candidate boundary is also checked against the token that
+# ends at it.
 BOUNDARY = re.compile(r'(?<=[.!?])\s+(?=[„"»\'A-ZÄÖÜ])')
+
+# Abbreviations that end in a period without ending a sentence.  Single and
+# double letters ("z.B.", "u.a.") are caught by the length rule instead.
+ABBREVIATIONS = frozenset({
+    "bzw", "ca", "evtl", "ggf", "inkl", "max", "min", "usw", "vgl",
+    "Abb", "Dr", "Fr", "Hr", "Nr", "Prof", "St",
+})
 
 
 class SentenceCorrector(ABC):
@@ -74,7 +83,27 @@ class MergeCorrector(SentenceCorrector):
             cursor += len(text)
         return "".join(parts), spans
 
-    @staticmethod
-    def _boundaries(text: str) -> list[tuple[int, int]]:
-        cuts = [0, *(m.end() for m in BOUNDARY.finditer(text)), len(text)]
+    @classmethod
+    def _boundaries(cls, text: str) -> list[tuple[int, int]]:
+        cuts = [0]
+        cuts.extend(
+            match.end() for match in BOUNDARY.finditer(text)
+            if not cls._is_abbreviation(text[:match.start()])
+        )
+        cuts.append(len(text))
         return [(cuts[i], cuts[i + 1]) for i in range(len(cuts) - 1)]
+
+    @staticmethod
+    def _is_abbreviation(prefix: str) -> bool:
+        """Does `prefix` end in an abbreviation rather than a sentence?
+
+        Looks at the whitespace-delimited token the punctuation belongs to:
+        "z.B." carries an internal period, "Dr." is on the list, and anything
+        one or two letters long ("u.", "a.") is not a word.
+        """
+        token = prefix.split()[-1].rstrip(".!?") if prefix.split() else ""
+        if not token:
+            return False
+        if "." in token:
+            return True
+        return token in ABBREVIATIONS or len(token) <= 2

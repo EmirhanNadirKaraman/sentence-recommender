@@ -5,7 +5,6 @@ import unicodedata
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from srs.card import Card
 from srs.prompt import ReviewPrompt
 from vocab.entry import Unit
 
@@ -19,7 +18,7 @@ class SessionReport:
 
     def summary(self) -> str:
         if not self.reviewed:
-            return "Nothing was due."
+            return "Nothing was reviewed."
         rate = 100 * self.correct / self.reviewed
         return (f"{self.reviewed} reviewed · {self.correct} correct "
                 f"({rate:.0f}%) · {self.skipped} skipped")
@@ -56,25 +55,20 @@ class ReviewSession:
         return report
 
     def _review(self, prompt: ReviewPrompt) -> bool | None:
-        """True/False for graded, None for skipped."""
+        """True or False once graded, None if skipped."""
         self._write(f"\n{prompt.heading}\n")
-        for line, example in zip(prompt.cloze or ("",) * len(prompt.examples),
-                                 prompt.examples):
-            if line:
-                self._write(f"   {line}")
-            if example.translation:
-                self._write(f"     {example.translation}")
-        if not prompt.examples:
-            self._write("   (no example sentences available)")
+        for line in prompt.question_lines():
+            self._write(line)
 
         answer = self._read("\n> ").strip()
         if answer in {"", "skip"}:
             return None
 
         if prompt.self_graded:
-            for example in prompt.examples:
-                self._write(f"   e.g. {example.text}")
-            return self._read("Did you get it right? [y/N] ").strip().lower() == "y"
+            self._write("\n   how it is actually said:")
+            for line in prompt.answer_lines():
+                self._write(line)
+            return self._read("\nDid you get it right? [y/N] ").strip().lower() == "y"
 
         correct = self._normalise(answer) == self._normalise(prompt.answer)
         self._write("   ✓ correct" if correct else f"   ✗ {prompt.answer}")

@@ -29,7 +29,7 @@ class BuildRoadmapCommand:
         for step in plan:
             app.card_store.add(app.scheduler.new_card(step.unit, now))
 
-        readable = len(index.readable())
+        readable = index.readable
         print(f"roadmap: {len(plan)} steps · {readable} sentences fully readable "
               f"at the end · {len(plan)} cards ready")
         for step in plan[:10]:

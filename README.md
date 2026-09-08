@@ -35,8 +35,14 @@ python main.py function-words             regenerate the closed-class review fil
 python main.py build-corpus tatoeba       analyse and cache a source (~25 min)
 python main.py build-corpus subtitle      the smaller subtitle corpus (~15 s)
 python main.py build-roadmap --steps 200  run the greedy walk
+python main.py fill-gaps                  generate the examples the corpus lacks
 python main.py review                     terminal SRS session
+python -m unittest discover -s tests -t .  run the tests
 ```
+
+Rough costs, measured: `build-corpus tatoeba` 6 min (255,640 sentences, four
+spaCy processes); `build-roadmap` about 11 s per 300 steps once the corpus is
+cached, plus 10 s to load it.
 
 ## The known set
 

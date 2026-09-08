@@ -37,6 +37,25 @@ class ReviewPrompt:
     def unit(self) -> Unit:
         return self.card.unit
 
+    def question_lines(self) -> list[str]:
+        """What the learner sees before answering."""
+        if not self.examples:
+            return ["   (no example sentences available)"]
+        if self.cloze:
+            lines = []
+            for blanked, example in zip(self.cloze, self.examples):
+                lines.append(f"   {blanked}")
+                if example.translation:
+                    lines.append(f"      {example.translation}")
+            return lines
+        # Pattern cards withhold the German entirely — the translations say
+        # what to express, and the sentences are the answer.
+        return [f"   • {e.translation or e.text}" for e in self.examples]
+
+    def answer_lines(self) -> list[str]:
+        """What is revealed once they have answered."""
+        return [f"   {e.text}" for e in self.examples]
+
 
 class PromptBuilder:
     def __init__(self, examples, count: int = 3) -> None:

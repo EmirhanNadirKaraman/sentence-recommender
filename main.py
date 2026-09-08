@@ -4,7 +4,8 @@ from __future__ import annotations
 import argparse
 
 from commands import (
-    BuildCorpusCommand, BuildRoadmapCommand, ReviewCommand, StatusCommand,
+    BuildCorpusCommand, BuildRoadmapCommand, FillGapsCommand,
+    ReviewCommand, StatusCommand,
 )
 from context import Application
 from db import Database, WordRepository
@@ -21,6 +22,9 @@ def _parser() -> argparse.ArgumentParser:
 
     plan = sub.add_parser("build-roadmap", help="run the greedy i+1 walk")
     plan.add_argument("--steps", type=int, help="stop after N steps")
+
+    gaps = sub.add_parser("fill-gaps", help="generate examples the corpus lacks")
+    gaps.add_argument("--limit", type=int, help="stop after N generated sentences")
 
     review = sub.add_parser("review", help="review the cards that are due")
     review.add_argument("--limit", type=int, default=20)
@@ -44,6 +48,8 @@ def main() -> int:
         BuildCorpusCommand().run(app, args.source, args.limit)
     elif args.command == "build-roadmap":
         BuildRoadmapCommand().run(app, args.steps)
+    elif args.command == "fill-gaps":
+        FillGapsCommand().run(app, args.limit)
     elif args.command == "review":
         ReviewCommand().run(app, args.limit)
     elif args.command == "status":

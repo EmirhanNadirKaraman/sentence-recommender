@@ -9,6 +9,11 @@ wired to a chat and video app whose events do not exist here.
 
 An incorrect answer resets the interval but only nudges the ease, so a word
 missed once comes back tomorrow without being permanently marked difficult.
+
+Intervals are capped.  Growth is geometric, so a card answered correctly forty
+times running reaches an interval that `timedelta` cannot represent, and the
+review session crashes rather than scheduling it.  Ten years is already past
+the point where a longer interval means anything.
 """
 from __future__ import annotations
 
@@ -26,6 +31,7 @@ class SM2Scheduler:
     EASE_PENALTY = 0.15
     MAX_EASE = 3.0
     MIN_EASE = 1.3
+    MAX_INTERVAL_DAYS = 3650.0
 
     def new_card(self, unit: Unit, now: datetime) -> Card:
         """A card due immediately — a newly taught unit is reviewed the same day."""
@@ -39,7 +45,9 @@ class SM2Scheduler:
 
     def review(self, card: Card, correct: bool, now: datetime) -> Card:
         if correct:
-            interval = card.interval_days * card.ease_factor
+            interval = min(
+                card.interval_days * card.ease_factor, self.MAX_INTERVAL_DAYS
+            )
             ease = min(card.ease_factor + self.EASE_BONUS, self.MAX_EASE)
             repetitions = card.repetitions + 1
         else:
