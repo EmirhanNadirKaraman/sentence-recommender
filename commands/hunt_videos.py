@@ -61,8 +61,11 @@ class HuntVideosCommand:
             ):
                 print(f"  roadmap [{label}]: {steps} steps")
             after = self._stranded(app, source)
+            closed = len(stuck) - len(after)
             print(f"  stranded: {len(stuck):,} → {len(after):,} "
-                  f"({len(stuck) - len(after):+,})")
+                  f"({closed:,} fewer)" if closed >= 0
+                  else f"  stranded: {len(stuck):,} → {len(after):,} "
+                       f"({-closed:,} more)")
 
     @staticmethod
     def _stranded(app, source: str) -> list[tuple[Unit, int]]:

@@ -20,6 +20,10 @@ from db import Database, WritableDatabase
 
 SCRAPER = Path("/Users/emir/Documents/GitHub/language-app/subtitle-scraper")
 
+# Below this a caption track is a title card or a burned-in credit, not
+# speech. A hunting round pulled in two videos of one line each.
+MIN_LINES = 20
+
 
 @dataclass(frozen=True)
 class Ingested:
@@ -76,6 +80,14 @@ class VideoIngestor:
         transcript, detected, dialect, source = pipeline.get_transcript(
             video_id, wanted
         )
+        if transcript and len(transcript) < MIN_LINES:
+            # A caption track with a couple of lines is a title card or a
+            # music video, not material. Refused before the write, because
+            # the catalogue is shared and there is no command to undo one.
+            raise SystemExit(
+                f"{video_id}: only {len(transcript)} caption lines — too "
+                "little to be worth keeping."
+            )
         if not transcript:
             # Deliberately not "has none". Nothing came back, and the two
             # reasons are indistinguishable from here: the video may truly
