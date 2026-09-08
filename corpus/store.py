@@ -83,6 +83,8 @@ class CorpusStore:
                 )
 
     def load(self, *builds: str) -> list[Sentence]:
+        if not builds:
+            return []          # `WHERE build IN ()` is not valid SQL
         placeholders = ",".join("?" * len(builds))
         with self._connect() as conn:
             rows = conn.execute(

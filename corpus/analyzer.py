@@ -6,22 +6,23 @@ reassembled or repunctuated it no longer describes what the learner reads.
 Running the matcher live keeps units and displayed sentence in step — and it
 is the same matcher that produced the bridge in the first place.
 
-Two kinds come out:
+Two kinds of unit come out:
   lemma   — content words, from spaCy's lemmatiser
   pattern — a `phrase_table.canonical`, e.g. "jdm. (Dat) etw. (Akk) geben",
             kept only when the matcher's blueprint is a registered pattern
             rather than a plain dictionary look-up
 
-Two corrections are applied on the way, both for the same underlying reason:
-the small German model is unreliable on a capitalised word at the start of a
-sentence, where German gives it no case signal to work with.  See
-`_lemma_for` and `_proper_nouns`.
+Analysis is two passes over the corpus, because the model's per-token output
+is not trustworthy enough to use directly.  The first pass reads every token
+and tallies evidence; the second repairs what the evidence shows to be wrong.
+Both repairs address the same weakness — a capitalised word at the start of a
+German sentence, where the model has no case signal to work with.  See
+`_lemma_corrections` and `_proper_nouns`.
 """
 from __future__ import annotations
 
 import sys
 from collections import Counter, defaultdict
-from functools import lru_cache
 from pathlib import Path
 
 from corpus.sentence import Sentence
@@ -31,6 +32,16 @@ from vocab.entry import Unit
 _MATCHER_DIR = Path(__file__).resolve().parents[1] / "matcher"
 
 VERB_TAGS = ("VV", "VA", "VM")
+
+
+class Evidence:
+    """What the first pass tallies, so the second can correct the first."""
+
+    def __init__(self) -> None:
+        self.names: Counter[str] = Counter()
+        self.content: Counter[str] = Counter()
+        self.by_surface: dict[str, Counter[str]] = defaultdict(Counter)
+        self.unlemmatised: set[str] = set()
 
 
 class UnitAnalyzer:
@@ -69,17 +80,15 @@ class UnitAnalyzer:
             batch_size=500,
             n_process=self._processes if len(sentences) > 5_000 else 1,
         )
-        names: Counter[str] = Counter()
-        content: Counter[str] = Counter()
-        by_surface: dict[str, Counter[str]] = defaultdict(Counter)
+        evidence = Evidence()
         analysed = [
-            s.with_units(*self._units(doc, names, content, by_surface))
+            s.with_units(*self._units(doc, evidence))
             for s, doc in zip(sentences, docs)
         ]
         return self._normalise(
             analysed,
-            self._proper_nouns(names, content),
-            self._lemma_corrections(by_surface),
+            self._proper_nouns(evidence),
+            self._lemma_corrections(evidence),
         )
 
     def lemmas(self, texts: list[str]) -> set[str]:
@@ -96,22 +105,26 @@ class UnitAnalyzer:
             )
         return out
 
-    # --- unit extraction -------------------------------------------------
+    # --- first pass ------------------------------------------------------
 
-    def _units(self, doc, names: Counter, content: Counter, by_surface: dict):
+    def _units(self, doc, evidence: Evidence):
         units: set[Unit] = set()
         surfaces: dict[Unit, str] = {}
         for token in doc:
             if token.tag_ in PUNCTUATION_TAGS or token.is_punct or token.is_space:
                 continue
-            lemma = self._lemma_for(token)
-            if not lemma:
+            lemma = token.lemma_.strip().lower()
+            if not lemma or lemma == "--":
                 continue
             if token.tag_ in FREE_TAGS:
-                names[lemma] += 1
+                evidence.names[lemma] += 1
                 continue
-            content[lemma] += 1
-            by_surface[token.text.lower()][lemma] += 1
+            surface = token.text.lower()
+            evidence.content[lemma] += 1
+            evidence.by_surface[surface][lemma] += 1
+            if lemma == surface and token.text[:1].isupper() \
+                    and token.tag_.startswith(VERB_TAGS):
+                evidence.unlemmatised.add(surface)
             unit = Unit.lemma(lemma)
             units.add(unit)
             surfaces.setdefault(unit, token.text)
@@ -123,62 +136,44 @@ class UnitAnalyzer:
                 surfaces.setdefault(unit, " ".join(phrase["sentence_phrase"]))
         return frozenset(units), tuple(surfaces.items())
 
-    def _lemma_for(self, token) -> str:
-        """`token`'s lemma, retried in lower case when the model gave up.
+    # --- second pass -----------------------------------------------------
 
-        A sentence-initial finite verb often comes back unlemmatised, because
-        German capitalises the first word of every sentence and the model has
-        no case signal to work with there.  Asking again without the capital
-        recovers many of them ("Hast" -> "haben"); the ones it does not are
-        left to `_lemma_corrections`, which has the whole corpus to go on.
-
-        Nouns are never retried: German capitalises them by rule, not by
-        position, so their capital is real information.
-        """
-        lemma = token.lemma_.strip()
-        if not lemma or lemma == "--":
-            return ""
-        if (lemma == token.text and lemma[:1].isupper()
-                and token.tag_.startswith(VERB_TAGS)):
-            return self._lemmatise_lower(lemma.lower()).lower()
-        return lemma.lower()
-
-    @lru_cache(maxsize=8192)
-    def _lemmatise_lower(self, word: str) -> str:
-        """Lemma of `word` parsed alone in lower case.  Cached — the set of
-        words that trip the model is small and repeats constantly."""
-        return self.matcher.nlp(word)[0].lemma_.strip() or word
-
-    # --- corpus-wide corrections -----------------------------------------
-
-    @staticmethod
-    def _lemma_corrections(by_surface: dict) -> dict[str, str]:
-        """Lemmas the model failed on, repaired from its own better guesses.
+    def _lemma_corrections(self, evidence: Evidence) -> dict[str, str]:
+        """Lemmas the model failed on, repaired from better evidence.
 
         A sentence-initial finite verb comes back unlemmatised — "Willst du
-        das?" yields the lemma "willst", while "Du willst das" yields "wollen".
-        German capitalises the first word of every sentence, so the model has
-        no case signal there; mid-sentence it does.
+        das?" yields "willst", while "Du willst das" yields "wollen".  German
+        capitalises the first word of every sentence, so the model has no case
+        signal there; mid-sentence it does.
 
-        Re-parsing the word alone does not help — it has no context either.
-        The corpus does: the same surface appears in both positions thousands
-        of times, so the majority lemma for a surface repairs the minority
-        failures.  Only identity lemmas (lemma == surface) are corrected; a
-        genuine disagreement between two real lemmas is left alone.
+        Two repairs, strongest evidence first:
+
+        1. The corpus.  The same surface appears in both positions thousands of
+           times, so the majority lemma for a surface fixes the minority
+           failures.  Only identity lemmas are touched — a disagreement between
+           two real lemmas is left alone.
+        2. A lower-case re-parse, for surfaces the corpus never saw
+           mid-sentence.  Batched into one pipe call rather than one per token,
+           which is the difference between seconds and many minutes.
         """
         corrections: dict[str, str] = {}
-        for surface, lemmas in by_surface.items():
+        for surface, lemmas in evidence.by_surface.items():
             if surface not in lemmas:
                 continue                      # never failed on this surface
             best, _ = lemmas.most_common(1)[0]
             if best != surface:
                 corrections[surface] = best
+
+        remaining = sorted(evidence.unlemmatised - corrections.keys())
+        if remaining:
+            for surface, doc in zip(remaining, self.matcher.nlp.pipe(remaining)):
+                lemma = doc[0].lemma_.strip().lower()
+                if lemma and lemma != surface:
+                    corrections[surface] = lemma
         return corrections
 
-    # --- proper nouns ----------------------------------------------------
-
     @staticmethod
-    def _proper_nouns(names: Counter, content: Counter) -> frozenset[str]:
+    def _proper_nouns(evidence: Evidence) -> frozenset[str]:
         """Lemmas the model calls a name more often than not.
 
         Per-token tagging is unreliable at the start of a sentence: in "Gibst
@@ -188,7 +183,8 @@ class UnitAnalyzer:
         vocabulary the learner has to acquire.
         """
         return frozenset(
-            lemma for lemma, count in names.items() if count > content.get(lemma, 0)
+            lemma for lemma, count in evidence.names.items()
+            if count > evidence.content.get(lemma, 0)
         )
 
     @staticmethod
@@ -197,7 +193,7 @@ class UnitAnalyzer:
         proper: frozenset[str],
         corrections: dict[str, str],
     ) -> list[Sentence]:
-        """Apply both corpus-wide passes: drop names, repair failed lemmas."""
+        """Apply both corpus-wide verdicts: drop names, repair failed lemmas."""
         dropped = {Unit.lemma(lemma) for lemma in proper}
         remap = {
             Unit.lemma(wrong): Unit.lemma(right)
@@ -211,9 +207,7 @@ class UnitAnalyzer:
             if not (sentence.units & dropped or sentence.units & remap.keys()):
                 out.append(sentence)
                 continue
-            units = {
-                remap.get(u, u) for u in sentence.units if u not in dropped
-            }
+            units = {remap.get(u, u) for u in sentence.units if u not in dropped}
             surfaces = tuple(
                 (remap.get(u, u), text)
                 for u, text in sentence.surfaces if u not in dropped
