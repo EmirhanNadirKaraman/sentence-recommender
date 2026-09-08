@@ -7,7 +7,7 @@ from pathlib import Path
 
 from commands import (
     BuildCorpusCommand, BuildRoadmapCommand, ExportSubtitlesCommand,
-    FillGapsCommand, ReviewCommand, StatusCommand,
+    FillGapsCommand, ReviewCommand, ServeCommand, StatusCommand,
 )
 from context import Application
 from db import Database, WordRepository
@@ -58,6 +58,11 @@ def _parser() -> argparse.ArgumentParser:
     review.add_argument("--source", nargs="+", default=[], metavar="BUILD",
                         help=SOURCE_HELP)
 
+    serve = sub.add_parser("serve", help="browse the results at localhost")
+    serve.add_argument("--port", type=int, default=8765)
+    serve.add_argument("--no-browser", action="store_true",
+                       help="do not open a browser window")
+
     sub.add_parser("status", help="what is built and what is due")
     sub.add_parser("function-words", help="regenerate the closed-class review file")
     return parser
@@ -85,6 +90,8 @@ def main() -> int:
         FillGapsCommand().run(app, args.limit, tuple(args.source))
     elif args.command == "review":
         ReviewCommand().run(app, args.limit, tuple(args.source))
+    elif args.command == "serve":
+        ServeCommand().run(app, args.port, not args.no_browser)
     elif args.command == "status":
         StatusCommand().run(app)
     elif args.command == "function-words":

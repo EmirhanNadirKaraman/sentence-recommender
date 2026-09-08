@@ -34,6 +34,7 @@ accusative, so both are scheduled.
 ## Commands
 
 ```
+python main.py serve                      browse the results at localhost:8765
 python main.py status                     what is built, what is due
 python main.py function-words             regenerate the closed-class review file
 python main.py build-corpus tatoeba       analyse and cache a source (~7 min)
@@ -148,6 +149,21 @@ LLM_MODEL=<model>
 ```
 
 Without it, generation is skipped and everything else works.
+
+## The local viewer
+
+`python main.py serve` opens a page at `127.0.0.1:8765` with four views:
+the overview, the roadmap (searchable and filterable by words or patterns),
+a per-unit page listing every sentence in the corpus that uses it, and a
+review session that grades and reschedules cards exactly as the CLI does.
+
+Server-rendered from the standard library — no framework, no JavaScript, no
+build step. It binds to localhost only and has no authentication, so it must
+not be exposed beyond this machine.
+
+The first page load takes about fifteen seconds: it reads the whole cached
+corpus and loads spaCy to resolve the vocabulary files. Everything after that
+is instant.
 
 ## Layout
 

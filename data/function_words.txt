@@ -51,7 +51,7 @@ dein   #    17x  dein, deine, deinem, deiner
 ## Demonstrativpronomen (4)
 dieser     #   165x  Dies, Diese, Dieser, Dieses
 derjenige  #     1x  diejenigen
-jener      #     1x  Jene
+# jener      #     1x  Jene
 derselbe   #     1x  derselben
 
 ## Indefinitpronomen (38)
@@ -85,9 +85,9 @@ irgendwa      #     2x  Irgendwas
 jemander      #     2x  jemanden
 keiner        #     2x  keiner
 stressig      #     1x  stressigsten
-sämtlicher    #     1x  sämtliche
+# sämtlicher    #     1x  sämtliche
 aufn          #     1x  aufn
-jeglicher     #     1x  jeglichen
+# jeglicher     #     1x  jeglichen
 jedermann     #     1x  jedermann
 irgendwelche  #     1x  Irgendwelche
 irgendjemand  #     1x  irgendjemand
@@ -106,7 +106,7 @@ wieso      #     2x  wieso
 worauf     #     2x  worauf
 wovon      #     1x  wovon
 wem        #     1x  wem
-inwieweit  #     1x  inwieweit
+# inwieweit  #     1x  inwieweit
 wofür      #     1x  Wofür
 woher      #     1x  Woher
 
@@ -171,20 +171,20 @@ pro          #     4x  pro
 gegenüber    #     4x  gegenüber
 entlang      #     4x  entlang
 außerhalb    #     4x  außerhalb
-unte         #     2x  unte
+# unte         #     2x  unte
 aufgrund     #     2x  aufgrund
 bezüglich    #     1x  bezüglich
 hinaus       #     1x  hinaus
-laut         #     1x  Laut
-jenseits     #     1x  jenseits
+# laut         #     1x  Laut
+# jenseits     #     1x  jenseits
 außer        #     1x  außer
-ausweislich  #     1x  Ausweislich
+# ausweislich  #     1x  Ausweislich
 voll         #     1x  Voller
-anstelle     #     1x  anstelle
-anhand       #     1x  Anhand
-angesichts   #     1x  Angesichts
+# anstelle     #     1x  anstelle
+# anhand       #     1x  Anhand
+# angesichts   #     1x  Angesichts
 innerhalb    #     1x  innerhalb
-inne         #     1x  inne
+# inne         #     1x  inne
 namens       #     1x  namens
 
 ## Konjunktionen (24)
@@ -234,13 +234,13 @@ heraus    #     2x  heraus
 bereit    #     2x  bereit
 weh       #     2x  weh
 übrig     #     1x  übrig
-lahm      #     1x  lahm
-herum     #     1x  herum
-aufrecht  #     1x  aufrecht
-jawoll    #     1x  Jawoll
-parat     #     1x  parat
-ran       #     1x  ran
-dar       #     1x  dar
+# lahm      #     1x  lahm
+# herum     #     1x  herum
+# aufrecht  #     1x  aufrecht
+# jawoll    #     1x  Jawoll
+# parat     #     1x  parat
+# ran       #     1x  ran
+# dar       #     1x  dar
 
 ## Hilfsverben (10)
 haben    #   375x  Haben, Hat, Hatte, Hätte
