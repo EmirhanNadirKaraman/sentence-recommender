@@ -27,9 +27,10 @@ class HuntVideosCommand:
         ingestor = VideoIngestor(app.settings, app.analyzer)
         hunter = VideoHunter(ingestor)
 
+        known = app.known_set()
         for round_number in range(1, rounds + 1):
             print(f"\n── round {round_number} of {rounds} " + "─" * 30)
-            stuck = self._stranded(app, source)
+            stuck = self._stranded(app, source, known)
             if not stuck:
                 print("  nothing is stranded — the roadmap reaches everything.")
                 return
@@ -60,7 +61,7 @@ class HuntVideosCommand:
                 RoadmapRefresher(app).refresh(touching=source).items()
             ):
                 print(f"  roadmap [{label}]: {steps} steps")
-            after = self._stranded(app, source)
+            after = self._stranded(app, source, known)
             closed = len(stuck) - len(after)
             print(f"  stranded: {len(stuck):,} → {len(after):,} "
                   f"({closed:,} fewer)" if closed >= 0
@@ -68,7 +69,7 @@ class HuntVideosCommand:
                        f"({-closed:,} more)")
 
     @staticmethod
-    def _stranded(app, source: str) -> list[tuple[Unit, int]]:
+    def _stranded(app, source: str, known=None) -> list[tuple[Unit, int]]:
         """Every goal the roadmap cannot reach, most worth chasing first.
 
         Two kinds, and the second is much the larger. Some goals are in the
@@ -84,7 +85,7 @@ class HuntVideosCommand:
         sentences = app.corpus(source, list_only=True)
         if not sentences:
             raise SystemExit(f"no cached corpus for {source!r}")
-        spare = CorpusIndex(sentences, app.known_set())
+        spare = CorpusIndex(sentences, known or app.known_set())
         RoadmapBuilder(spare, app.priority(),
                        app.settings.priority_weight).build(max_steps=WALK_LIMIT)
         reached = spare.known

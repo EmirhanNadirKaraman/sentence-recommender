@@ -47,7 +47,11 @@ class RoadmapRefresher:
         Returns name -> new step count, so a caller can say what changed.
         """
         out: dict[str, int] = {}
-        known_units = self._app.known_set().units
+        # Once, not once per roadmap: resolving the vocabulary runs the parser
+        # over every word in the files. CorpusIndex takes a snapshot rather
+        # than holding on to this, so one instance serves every walk.
+        known = self._app.known_set()
+        known_units = known.units
         goal_units = frozenset(self._app.goal_units)
 
         for label in sorted(self._store.sources()):
@@ -57,7 +61,7 @@ class RoadmapRefresher:
             sentences = self._app.corpus(*builds, list_only=list_only)
             if not sentences:
                 continue
-            index = CorpusIndex(sentences, self._app.known_set())
+            index = CorpusIndex(sentences, known)
             plan = RoadmapBuilder(
                 index, self._app.priority(),
                 self._app.settings.priority_weight,
