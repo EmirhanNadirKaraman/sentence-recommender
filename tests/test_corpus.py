@@ -170,9 +170,15 @@ class LLMCorrectorTest(unittest.TestCase):
         self.assertEqual(corrector.fallbacks, 1)
         self.assertEqual(len(result), 1)
 
-    def test_out_of_range_line_numbers_do_not_crash(self) -> None:
+    def test_out_of_range_line_numbers_are_ignored(self) -> None:
+        """The model can name a line that does not exist; the rest still map.
+
+        Content is preserved here so the check passes and the line handling is
+        what is actually under test.
+        """
         _, result, _ = self.correct(
-            '{"sentences": [{"german": "Etwas.", "lines": [1, 99]}]}'
+            '{"sentences": [{"german": "Wir haben heute Namen dabei, '
+            'die man kennen sollte.", "lines": [1, 99]}]}'
         )
         self.assertEqual(result[0].source_ids, (11,))
 
@@ -296,3 +302,57 @@ class _FakeLookup:
 
     def get(self, surface: str, default: str = "") -> str:
         return self._table.get(surface, default)
+
+
+class LLMContentCheckTest(unittest.TestCase):
+    """A reply is only a correction if the original words are still in it.
+
+    Truncation, summarising and refusals all parse as valid JSON, so
+    parseability proves nothing about whether the model did the job.
+    """
+
+    def setUp(self) -> None:
+        self.lines = [line(1, "Wir haben heute viele bekannte Namen dabei,"),
+                      line(2, "die man wirklich kennen sollte.")]
+
+    def correct(self, *replies: str):
+        from corpus import LLMCorrector
+        corrector = LLMCorrector(ScriptedClient(*replies), chunk_size=25)
+        return corrector, corrector.correct(self.lines)
+
+    @staticmethod
+    def reply(*sentences: str) -> str:
+        import json
+        return json.dumps({"sentences": [{"german": s, "lines": [1, 2]}
+                                         for s in sentences]})
+
+    def test_accepts_a_genuine_repair(self) -> None:
+        corrector, result = self.correct(self.reply(
+            "Wir haben heute viele bekannte Namen dabei, die man wirklich kennen sollte."
+        ))
+        self.assertEqual(corrector.rejected, 0)
+        self.assertEqual(len(result), 1)
+
+    def test_rejects_a_summary(self) -> None:
+        corrector, result = self.correct(self.reply("Es geht um Namen."))
+        self.assertEqual(corrector.rejected, 1)
+        self.assertEqual(corrector.fallbacks, 1)
+        self.assertIn("bekannte", result[0].text)      # the fallback kept everything
+
+    def test_rejects_a_model_that_starts_explaining(self) -> None:
+        padding = " ".join(["Das bedeutet, dass der Satz hier erklärt wird."] * 6)
+        corrector, _ = self.correct(self.reply(padding))
+        self.assertEqual(corrector.rejected, 1)
+
+    def test_rejects_a_polite_refusal_that_happens_to_be_json(self) -> None:
+        corrector, _ = self.correct(self.reply("I cannot process this request."))
+        self.assertEqual(corrector.rejected, 1)
+
+    def test_tolerates_the_edits_a_correction_actually_makes(self) -> None:
+        """Punctuation, casing and a fixed word must not trip the check."""
+        corrector, result = self.correct(self.reply(
+            "Wir hatten heute viele bekannte Namen dabei.",
+            "Die man wirklich kennen sollte!",
+        ))
+        self.assertEqual(corrector.rejected, 0)
+        self.assertEqual(len(result), 2)

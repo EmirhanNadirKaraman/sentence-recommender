@@ -84,8 +84,10 @@ class BuildCorpusCommand:
                 print(f"    video {index}/{len(videos)} — {len(sentences)} sentences",
                       flush=True)
         if isinstance(engine, LLMCorrector) and engine.fallbacks:
+            detail = (f", {engine.rejected} of them for losing the original wording"
+                      if engine.rejected else "")
             print(f"  {engine.fallbacks} of {engine.chunks} chunks fell back "
-                  "to the rule-based corrector")
+                  f"to the rule-based corrector{detail}")
         return sentences
 
     @staticmethod

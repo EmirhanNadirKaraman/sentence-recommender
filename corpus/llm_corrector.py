@@ -5,12 +5,14 @@ cut mid-clause, and the ASR leaves real errors behind.  `MergeCorrector`
 rejoins and re-splits them but cannot fix anything inside the text.  This one
 sends each stretch of lines to the model and takes back clean sentences.
 
-Two things keep the model from being load-bearing:
+Three things keep the model from being load-bearing:
 
   * it is asked which input lines each sentence came from, so provenance
     survives the rewrite and the original is always shown alongside;
   * any chunk whose reply does not parse, or comes back empty, falls through
-    to `MergeCorrector` for that chunk alone.
+    to `MergeCorrector` for that chunk alone;
+  * what does parse is checked against the input before it is accepted — a
+    reply is only a correction if most of the original words are still in it.
 
 Units are re-derived from the corrected text by `UnitAnalyzer` regardless of
 which corrector ran, so a rewrite cannot desynchronise the roadmap from what
@@ -20,9 +22,21 @@ from __future__ import annotations
 
 import json
 import re
+from difflib import SequenceMatcher
 
 from corpus.corrector import MergeCorrector, SentenceCorrector
 from corpus.sentence import RawLine, Sentence
+
+WORD = re.compile(r"\w+", re.UNICODE)
+
+# How much of a chunk's original wording a reply must still contain. A real
+# correction changes punctuation and the odd word; anything that loses a third
+# of the text has summarised, truncated or answered a different question.
+MIN_RETENTION = 0.7
+
+# And how much it may add. Comfortably above a genuine repair, low enough to
+# catch a model that starts explaining itself inside the JSON.
+MAX_GROWTH = 1.5
 
 SYSTEM = """\
 You repair German subtitle lines into clean sentences.
@@ -53,6 +67,7 @@ class LLMCorrector(SentenceCorrector):
         self._fallback = MergeCorrector()
         self.chunks = 0
         self.fallbacks = 0
+        self.rejected = 0        # parsed, but did not survive the content check
 
     @property
     def available(self) -> bool:
@@ -81,7 +96,32 @@ class LLMCorrector(SentenceCorrector):
         parsed = self._parse(reply)
         if not parsed:
             return None
+        if not self._preserves_content(chunk, parsed):
+            self.rejected += 1
+            return None
         return [self._build(chunk, german, numbers) for german, numbers in parsed]
+
+    @staticmethod
+    def _preserves_content(chunk: list[RawLine], parsed) -> bool:
+        """Is this a correction of the input, or something else entirely?
+
+        Truncation and hallucination both parse as valid JSON, so parseability
+        proves nothing. Matching the reply's words against the input's catches
+        both: a genuine repair keeps nearly all of them, a summary or a refusal
+        keeps few, and a model that starts explaining itself adds many.
+        """
+        original = [w.lower() for line in chunk for w in WORD.findall(line.content)]
+        corrected = [w.lower() for german, _ in parsed for w in WORD.findall(german)]
+        if not original:
+            return bool(corrected)
+        if not corrected or len(corrected) > len(original) * MAX_GROWTH:
+            return False
+        matched = sum(
+            size for _, _, size in
+            SequenceMatcher(None, original, corrected, autojunk=False)
+            .get_matching_blocks()
+        )
+        return matched / len(original) >= MIN_RETENTION
 
     @staticmethod
     def _build(chunk: list[RawLine], german: str, numbers: list[int]) -> Sentence:
