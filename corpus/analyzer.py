@@ -190,6 +190,14 @@ class UnitAnalyzer:
           the surface is not already an infinitive
                                          — so "sein" and "haben", whose lemma
                                            correctly is themselves, are left alone
+
+        The second guard is why the table never overrides a lemma the parser
+        actually produced.  Measured over the subtitle corpus, the two disagree
+        on 6% of the verb forms the table knows, and where the parser gives a
+        real lemma it is generally the right one: it has "gehört" as "gehören"
+        and "fällt" as "fallen", where the table says "hören" and "fällen" —
+        different verbs.  The table only wins where the parser produced
+        nothing usable.
         """
         lemma = token.lemma_.strip().lower()
         if not lemma or lemma == "--":
@@ -217,16 +225,22 @@ class UnitAnalyzer:
            times, so the majority lemma for a surface fixes the minority
            failures.  Only identity lemmas are touched — a disagreement between
            two real lemmas is left alone.
-        Only identity lemmas are touched, and only when the alternative wins
-        decisively.  Some words really are two words: "weiß" is both a colour
-        and a form of "wissen", and both readings occur constantly.  Flattening
-        that into one lemma is worse than leaving the failure in place, so a
-        correction needs the alternative to outnumber the identity reading by
-        `CORRECTION_MARGIN`.  A systematic lemmatiser failure clears that
-        easily; a genuine ambiguity does not.
+        This catches what `_verb_lemma` cannot: a token the parser did not tag
+        as a verb at all.  Sentence-initial "Willst" comes back tagged as a
+        conjunction, so the verb guard never lets it near the lookup, but the
+        same word mid-sentence resolves to "wollen" hundreds of times.
 
-        This catches what `_verb_lemma` cannot: words the parser did not tag as
-        verbs, and forms absent from the lookup table.
+        Only identity lemmas are touched, and a correction needs one of two
+        things:
+
+          * the lookup table independently proposes the same lemma — two
+            unrelated sources agreeing is enough on its own; or
+          * the alternative outnumbers the failure by `CORRECTION_MARGIN`.
+
+        The margin exists because some words really are two words.  "weiß" is
+        both a colour and a form of "wissen" and both readings are frequent;
+        the lookup has no entry for it, so nothing overrides the margin and the
+        two stay apart.  Flattening them would be worse than the failure.
         """
         corrections: dict[str, str] = {}
         for surface, lemmas in evidence.by_surface.items():
@@ -234,7 +248,10 @@ class UnitAnalyzer:
             if not failures:
                 continue                      # never failed on this surface
             best, count = lemmas.most_common(1)[0]
-            if best != surface and count >= failures * CORRECTION_MARGIN:
+            if best == surface:
+                continue
+            corroborated = self.verb_lemmas.get(surface) == best
+            if corroborated or count >= failures * CORRECTION_MARGIN:
                 corrections[surface] = best
         return corrections
 

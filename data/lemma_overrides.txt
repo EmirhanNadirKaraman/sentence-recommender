@@ -9,4 +9,5 @@
 # have been folded into its infinitive.
 
 muss    müssen
+musst   müssen
 soll    sollen

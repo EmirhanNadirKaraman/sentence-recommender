@@ -243,19 +243,38 @@ class LemmaLookupTest(unittest.TestCase):
 class LemmaCorrectionsTest(unittest.TestCase):
     """The corpus-wide vote that catches what the tag guard cannot."""
 
-    def corrections(self, observed: dict[str, dict[str, int]]) -> dict:
+    def corrections(self, observed: dict[str, dict[str, int]],
+                    lookup: dict[str, str] | None = None) -> dict:
         from collections import Counter
         from corpus.analyzer import Evidence, UnitAnalyzer
         evidence = Evidence()
         for surface, lemmas in observed.items():
             evidence.by_surface[surface] = Counter(lemmas)
-        return UnitAnalyzer(frozenset())._lemma_corrections(evidence)
+        analyzer = UnitAnalyzer(frozenset())
+        analyzer._verb_lemmas = _FakeLookup(lookup or {})
+        return analyzer._lemma_corrections(evidence)
 
     def test_repairs_a_form_the_parser_usually_gets_right(self) -> None:
         """`Willst` is mis-tagged sentence-initially but fine elsewhere."""
         self.assertEqual(
             self.corrections({"willst": {"wollen": 900, "willst": 100}}),
             {"willst": "wollen"},
+        )
+
+    def test_the_lookup_agreeing_is_enough_without_a_margin(self) -> None:
+        """Sentence-initial mis-tagging can be half the occurrences."""
+        observed = {"willst": {"wollen": 672, "willst": 503}}
+        self.assertEqual(self.corrections(observed), {})
+        self.assertEqual(
+            self.corrections(observed, lookup={"willst": "wollen"}),
+            {"willst": "wollen"},
+        )
+
+    def test_a_disagreeing_lookup_does_not_force_a_correction(self) -> None:
+        self.assertEqual(
+            self.corrections({"weiß": {"wissen": 600, "weiß": 500}},
+                             lookup={"weiß": "weissen"}),
+            {},
         )
 
     def test_leaves_a_genuine_ambiguity_alone(self) -> None:
