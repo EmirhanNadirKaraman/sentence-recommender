@@ -29,8 +29,11 @@ class CorpusIndex:
 
     def __init__(self, sentences: list[Sentence], known: KnownSet) -> None:
         self._sentences = sentences
-        self._known = known
-        self._units = set(known.units)          # mutable mirror, for membership
+        # A snapshot, not the caller's object. The index learns as it walks,
+        # and writing that back would silently redefine what the caller thinks
+        # is known — which is how a measurement here once reported learning
+        # more units than were ever unknown.
+        self._units = set(known.units)
         self._by_unit: dict[Unit, set[int]] = defaultdict(set)
         for position, sentence in enumerate(sentences):
             for unit in sentence.units:
@@ -94,7 +97,6 @@ class CorpusIndex:
         """
         if unit in self._units:
             return
-        self._known.learn(unit)
         self._units.add(unit)
         for position in self._by_unit[unit]:
             count = self._unknown[position] - 1

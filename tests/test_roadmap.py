@@ -46,10 +46,15 @@ class CorpusIndexTest(unittest.TestCase):
         self.assertEqual(self.index.unlocks(Unit.lemma("x")), 1)
 
     def test_incremental_state_matches_a_fresh_rebuild(self) -> None:
-        """Learning step by step must leave the index where a rebuild would."""
+        """Learning step by step must leave the index where a rebuild would.
+
+        The comparison is built from the index's own `known`, not from the set
+        it was constructed with: the index does not write back into that, so
+        it still describes the starting position.
+        """
         for key in ("haus", "baum", "x"):
             self.index.learn(Unit.lemma(key))
-            rebuilt = CorpusIndex(self.sentences, KnownSet(self.known.units))
+            rebuilt = CorpusIndex(self.sentences, KnownSet(self.index.known))
             self.assertEqual(self.index.readable, rebuilt.readable)
             self.assertEqual(
                 {u: sorted(p) for u, p in self.index.candidates().items()},
@@ -154,3 +159,29 @@ class LearningTwiceTest(unittest.TestCase):
         before = [self.index.unknown_count(i) for i in range(2)]
         self.index.learn(Unit.lemma("ich"))
         self.assertEqual([self.index.unknown_count(i) for i in range(2)], before)
+
+
+class IndexOwnsItsKnownSetTest(unittest.TestCase):
+    """The index must not write back into the set it was given.
+
+    It learns as it walks, and pushing that into the caller's object
+    redefines what the caller believes is known. A coverage measurement that
+    read the set afterwards reported learning 33,336 units out of 7,645
+    unknown ones, which is how this was found.
+    """
+
+    def test_walking_leaves_the_callers_known_set_alone(self) -> None:
+        known = KnownSet({Unit.lemma("ich")})
+        before = set(known.units)
+        index = CorpusIndex([sentence("a", "ich", "haus")], known)
+
+        index.learn(Unit.lemma("haus"))
+
+        self.assertEqual(set(known.units), before)
+        self.assertIn(Unit.lemma("haus"), index.known)
+
+    def test_the_index_still_tracks_what_it_learned(self) -> None:
+        index = CorpusIndex([sentence("a", "haus")], KnownSet())
+        index.learn(Unit.lemma("haus"))
+        self.assertEqual(index.readable, 1)
+        self.assertEqual(index.unknown_count(0), 0)
