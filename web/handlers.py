@@ -526,9 +526,16 @@ class Viewer:
             f"<span class='kind'>{'pattern' if unit.is_pattern else 'word'}</span>"
             "</div><div class='body'>"
             f"<div class='unit'>{escape(unit.key)}</div>"
-            f"<p class='de'>{escape(example)}</p>"
-            f"<p class='also'>{gap} new things in its easiest sentence here: "
-            f"{escape(', '.join(rest))}</p>"
+            + (f"<p class='de'>{escape(example)}</p>"
+               f"<p class='also'>{gap} new things in its easiest sentence here: "
+               f"{escape(', '.join(rest))}</p>" if example else
+               "<p class='also'>Never said in this corpus. Find a clip of it "
+               "and the chain continues.</p>")
+            + "<div class='tools'>"
+            f"<a class='link' target='_blank' rel='noreferrer' "
+            f"href='https://de.youglish.com/pronounce/"
+            f"{quote(_hunt_term(unit), safe='')}/german'>Find it on YouGlish</a>"
+            "</div>"
             "</div></div>"
             for unit, count, gap, example, rest in rows[:PAGE_SIZE]
         )
@@ -588,6 +595,21 @@ class Viewer:
                     easiest[u] = (len(unknown), s.text,
                                   sorted(x.key for x in unknown - {u})[:4])
         rows = [(u, n, *easiest[u]) for u, n in appearances.most_common()]
+
+        # Goals this corpus never says at all. Far more numerous than the
+        # ones it says but cannot isolate, and the actual work — so they
+        # belong on the page you mine from, not only in the hunt. Anything
+        # the analyser has never emitted is left out: no video can fix it.
+        producible = self.app.producible
+        priority = scope.priority
+        rows += [
+            (unit, 0, 0, "", [])
+            for unit in sorted(
+                (u for u in self.app.goal_units
+                 if u not in reached and u not in appearances and u in producible),
+                key=lambda u: -priority.of(u),
+            )
+        ]
         self._stuck[key] = rows
         return rows
 
@@ -846,6 +868,16 @@ class Viewer:
                if page < pages else "")
         return (f"<div class='pager'>{back}"
                 f"<span class='quiet'>page {page} of {pages}</span>{fwd}</div>")
+
+
+def _hunt_term(unit: Unit) -> str:
+    """What to look the unit up as.
+
+    A pattern is a frame — "jdm. (Dat) etw. (Akk) geben" — and no one
+    searches for that. Its last word is the verb it hangs on, which is what
+    a lookup site indexes.
+    """
+    return unit.key.split()[-1] if unit.is_pattern else unit.key
 
 
 def _clock(seconds: float) -> str:

@@ -99,8 +99,14 @@ class HuntVideosCommand:
         # Goals the corpus never says. Ordered by the study list, which is
         # the only ranking they have — nothing here has seen them.
         priority = app.priority()
+        # Only what material could actually fix. A goal the analyser has never
+        # emitted anywhere cannot be taught by any video, and the study list
+        # ranks several of those near the top — they would head this queue for
+        # ever, sending the hunt after words that cannot be matched.
+        producible = app.producible
         missing = sorted(
-            (u for u in app.goal_units if u not in reached and u not in appearances),
+            (u for u in app.goal_units
+             if u not in reached and u not in appearances and u in producible),
             key=lambda u: -priority.of(u),
         )
         return present + [(unit, 0) for unit in missing]

@@ -153,6 +153,20 @@ class Application:
             patterns, self.analyzer.lemmatise_each
         )
 
+    @cached_property
+    def producible(self) -> frozenset[Unit]:
+        """Every unit the analyser has ever emitted, across all cached builds.
+
+        A goal outside this set cannot be taught by any material, because
+        nothing the parser produces will ever equal it. `phrase_table` holds
+        a few of these — "sich (Akk) sich setzen" says *sich* twice, and
+        "der, die, das" is not a pattern the matcher emits — and because the
+        study list ranks them near the top they would head the blocked list
+        forever, sending you looking for video of a word that cannot be
+        matched.
+        """
+        return frozenset(u for s in self.corpus() for u in s.units)
+
     def priority(self) -> UnitPriority:
         return UnitPriority.build(self.goal_units)
 
