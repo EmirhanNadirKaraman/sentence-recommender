@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import time
 
+from alignment import SubtitleAligner
 from corpus import (
     LLMCorrector, MergeCorrector, SubtitleSource, TatoebaSource,
 )
@@ -64,11 +65,14 @@ class BuildCorpusCommand:
         with Database(settings.database) as db:
             videos = SubtitleSource(db, settings.language).videos()
         engine = self._corrector(corrector, settings)
+        aligner = SubtitleAligner()
         print(f"  {len(videos)} videos, correcting with {corrector}…", flush=True)
 
+        # Aligned per video: a sentence's timing comes from the rows of its own
+        # video, and the aligner needs both sides of one video to match them.
         sentences = []
         for index, video in enumerate(videos, start=1):
-            sentences.extend(engine.correct(video))
+            sentences.extend(aligner.align(video, engine.correct(video)))
             if corrector == "llm":
                 print(f"    video {index}/{len(videos)} — {len(sentences)} sentences",
                       flush=True)

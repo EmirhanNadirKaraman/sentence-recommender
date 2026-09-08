@@ -10,9 +10,13 @@ from corpus.sentence import RawLine, Sentence
 from vocab import Unit, WordListLoader
 
 
-def line(sentence_id: int, content: str) -> RawLine:
-    return RawLine(sentence_id=sentence_id, video_id="v", start_time=float(sentence_id),
-                   content=content, tokens=tuple(content.split()))
+def line(sentence_id: int, content: str, start: float | None = None,
+         duration: float = 2.0) -> RawLine:
+    return RawLine(
+        sentence_id=sentence_id, video_id="v",
+        start_time=float(sentence_id) if start is None else start,
+        duration=duration, content=content, tokens=tuple(content.split()),
+    )
 
 
 class UnitTest(unittest.TestCase):

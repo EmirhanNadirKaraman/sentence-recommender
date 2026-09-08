@@ -2,8 +2,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
+from typing import TYPE_CHECKING
 
 from vocab.entry import Unit
+
+if TYPE_CHECKING:                      # avoids a cycle: alignment imports corpus
+    from alignment.timing import Timing
 
 # Where a sentence came from.  Origin decides how far it can be trusted and,
 # for generated sentences, whether it was ever verified at all.
@@ -23,8 +27,13 @@ class RawLine:
     sentence_id: int
     video_id: str
     start_time: float
+    duration: float
     content: str
     tokens: tuple[str, ...]
+
+    @property
+    def end_time(self) -> float:
+        return self.start_time + self.duration
 
 
 @dataclass(frozen=True)
@@ -44,6 +53,7 @@ class Sentence:
     source_ids: tuple[int, ...] = ()
     units: frozenset[Unit] = field(default_factory=frozenset)
     surfaces: tuple[tuple[Unit, str], ...] = ()
+    timing: "Timing | None" = None
 
     @property
     def original(self) -> str:
@@ -59,6 +69,9 @@ class Sentence:
         surfaces: tuple[tuple[Unit, str], ...] = (),
     ) -> "Sentence":
         return replace(self, units=units, surfaces=surfaces)
+
+    def with_timing(self, timing: "Timing") -> "Sentence":
+        return replace(self, timing=timing)
 
     def surface_of(self, unit: Unit) -> str | None:
         """How `unit` is written in this sentence — "hat" for the lemma "haben".

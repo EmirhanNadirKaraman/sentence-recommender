@@ -21,7 +21,8 @@ class SubtitleSource:
     def lines(self) -> list[RawLine]:
         rows = self._db.rows(
             """
-            SELECT s.sentence_id, s.video_id, s.start_time, s.content, s.tokens
+            SELECT s.sentence_id, s.video_id, s.start_time, s.duration,
+                   s.content, s.tokens
               FROM sentence s
               JOIN video v ON v.video_id = s.video_id
              WHERE v.language = %s
@@ -31,8 +32,8 @@ class SubtitleSource:
         )
         return [
             RawLine(sentence_id=sid, video_id=vid, start_time=start,
-                    content=content, tokens=tuple(tokens or ()))
-            for sid, vid, start, content, tokens in rows
+                    duration=duration, content=content, tokens=tuple(tokens or ()))
+            for sid, vid, start, duration, content, tokens in rows
         ]
 
     def videos(self) -> list[list[RawLine]]:

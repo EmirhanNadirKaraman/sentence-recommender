@@ -3,9 +3,11 @@ from __future__ import annotations
 
 import argparse
 
+from pathlib import Path
+
 from commands import (
-    BuildCorpusCommand, BuildRoadmapCommand, FillGapsCommand,
-    ReviewCommand, StatusCommand,
+    BuildCorpusCommand, BuildRoadmapCommand, ExportSubtitlesCommand,
+    FillGapsCommand, ReviewCommand, StatusCommand,
 )
 from context import Application
 from db import Database, WordRepository
@@ -40,6 +42,17 @@ def _parser() -> argparse.ArgumentParser:
     gaps.add_argument("--source", nargs="+", default=[], metavar="BUILD",
                       help=SOURCE_HELP)
 
+    export = sub.add_parser(
+        "export-subtitles",
+        help="write corrected subtitles as WebVTT, aligned to the video clock",
+    )
+    export.add_argument("--out", type=Path, default=Path("out/subtitles"),
+                        help="directory to write .vtt files into")
+    export.add_argument("--source", nargs="+", default=[], metavar="BUILD",
+                        help="which subtitle build to export (default: subtitle)")
+    export.add_argument("--translation", action="store_true",
+                        help="include the translation as a second cue line")
+
     review = sub.add_parser("review", help="review the cards that are due")
     review.add_argument("--limit", type=int, default=20)
     review.add_argument("--source", nargs="+", default=[], metavar="BUILD",
@@ -64,6 +77,10 @@ def main() -> int:
         BuildCorpusCommand().run(app, args.source, args.limit, args.corrector)
     elif args.command == "build-roadmap":
         BuildRoadmapCommand().run(app, args.steps, tuple(args.source))
+    elif args.command == "export-subtitles":
+        ExportSubtitlesCommand().run(
+            app, args.out, tuple(args.source), args.translation
+        )
     elif args.command == "fill-gaps":
         FillGapsCommand().run(app, args.limit, tuple(args.source))
     elif args.command == "review":

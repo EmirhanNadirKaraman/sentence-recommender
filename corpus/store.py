@@ -16,6 +16,7 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
+from alignment.timing import Timing
 from corpus.sentence import Sentence
 from vocab.entry import Unit
 
@@ -27,7 +28,10 @@ CREATE TABLE IF NOT EXISTS sentences (
     text        TEXT NOT NULL,
     translation TEXT,
     raw_text    TEXT,
-    source_ids  TEXT NOT NULL DEFAULT ''
+    source_ids  TEXT NOT NULL DEFAULT '',
+    video_id    TEXT,
+    start_time  REAL,
+    end_time    REAL
 );
 CREATE INDEX IF NOT EXISTS ix_sentences_build ON sentences(build);
 CREATE TABLE IF NOT EXISTS sentence_units (
@@ -48,6 +52,21 @@ class CorpusStore:
         path.parent.mkdir(parents=True, exist_ok=True)
         with self._connect() as conn:
             conn.executescript(SCHEMA)
+            self._add_missing_columns(conn)
+
+    @staticmethod
+    def _add_missing_columns(conn) -> None:
+        """Bring an older cache file up to the current shape.
+
+        The tables are created with IF NOT EXISTS, so a database written before
+        a column existed keeps its old shape and every read fails. Adding what
+        is missing is cheaper than asking for a rebuild that costs minutes.
+        """
+        existing = {row[1] for row in conn.execute("PRAGMA table_info(sentences)")}
+        for column, kind in (("video_id", "TEXT"), ("start_time", "REAL"),
+                             ("end_time", "REAL")):
+            if column not in existing:
+                conn.execute(f"ALTER TABLE sentences ADD COLUMN {column} {kind}")
 
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self._path)
@@ -69,11 +88,13 @@ class CorpusStore:
             for sentence in sentences:
                 cursor = conn.execute(
                     "INSERT INTO sentences"
-                    " (build, origin, text, translation, raw_text, source_ids)"
-                    " VALUES (?, ?, ?, ?, ?, ?)",
+                    " (build, origin, text, translation, raw_text, source_ids,"
+                    "  video_id, start_time, end_time)"
+                    " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     (build, sentence.origin, sentence.text, sentence.translation,
                      sentence.raw_text,
-                     ",".join(str(i) for i in sentence.source_ids)),
+                     ",".join(str(i) for i in sentence.source_ids),
+                     *self._timing_row(sentence)),
                 )
                 conn.executemany(
                     "INSERT INTO sentence_units (sentence_id, kind, key, surface)"
@@ -82,13 +103,19 @@ class CorpusStore:
                      for u in sentence.units],
                 )
 
+    @staticmethod
+    def _timing_row(sentence: Sentence) -> tuple:
+        timing = sentence.timing
+        return (timing.video_id, timing.start, timing.end) if timing else (None, None, None)
+
     def load(self, *builds: str) -> list[Sentence]:
         if not builds:
             return []          # `WHERE build IN ()` is not valid SQL
         placeholders = ",".join("?" * len(builds))
         with self._connect() as conn:
             rows = conn.execute(
-                "SELECT id, origin, text, translation, raw_text, source_ids"
+                "SELECT id, origin, text, translation, raw_text, source_ids,"
+                " video_id, start_time, end_time"
                 f" FROM sentences WHERE build IN ({placeholders})", builds,
             ).fetchall()
             units: dict[int, set[Unit]] = {}
@@ -111,6 +138,11 @@ class CorpusStore:
                 source_ids=tuple(int(i) for i in source_ids.split(",") if i),
                 units=frozenset(units.get(sid, ())),
                 surfaces=tuple(surfaces.get(sid, ())),
+                timing=(
+                    Timing(video_id, start_time, end_time)
+                    if video_id is not None and start_time is not None else None
+                ),
             )
-            for sid, origin, text, translation, raw_text, source_ids in rows
+            for sid, origin, text, translation, raw_text, source_ids,
+                video_id, start_time, end_time in rows
         ]

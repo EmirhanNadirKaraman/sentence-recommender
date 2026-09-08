@@ -42,6 +42,7 @@ python main.py build-corpus subtitle --corrector llm    repair subtitles with th
 python main.py build-roadmap --steps 200  run the greedy walk
 python main.py build-roadmap --source subtitle:llm      study real video subtitles only
 python main.py fill-gaps                  generate the examples the corpus lacks
+python main.py export-subtitles --source subtitle:llm   corrected subtitles as WebVTT
 python main.py review                     terminal SRS session
 python -m unittest discover -s tests -t .  run the tests
 ```
@@ -77,6 +78,34 @@ surface form usually gets, and whether a lemma is usually tagged as a name.
 The vote needs a decisive margin, because some words really are two words —
 `weiß` is both a colour and a form of `wissen`, and flattening that would be
 worse than the failure it fixes.
+
+## Putting the corrected subtitles back on the video
+
+Correcting the subtitles produces text that is no longer the text the video
+shipped with, so it has to be re-timed before it can be overlaid. Line-level
+provenance is not enough: a subtitle row routinely holds the end of one
+sentence and the start of the next —
+
+```
+6.44s  "die eine Seite der Medaille. Kaum jemand fragt: Was "
+```
+
+— so two corrected sentences would claim the same cue and stack on screen.
+
+`SubtitleAligner` works a level down. Every word of the original gets a time
+(each row's duration shared out by word length), the corrected words are
+matched against them with a sequence matcher, and each sentence takes the span
+of the original words it matched. The matcher tolerates the model's edits,
+because most words survive a correction, and a sentence that matches nothing
+falls back to the rows the model declared.
+
+`export-subtitles` writes one `.vtt` per video — playable through a browser
+`<track>` element, or by ffmpeg, mpv and VLC.
+
+```
+python main.py build-corpus subtitle --corrector llm
+python main.py export-subtitles --source subtitle:llm --out out/subtitles
+```
 
 ## Choosing a corpus
 
