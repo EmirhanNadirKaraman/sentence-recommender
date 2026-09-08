@@ -77,9 +77,15 @@ class VideoIngestor:
             video_id, wanted
         )
         if not transcript:
+            # Deliberately not "has none". Nothing came back, and the two
+            # reasons are indistinguishable from here: the video may truly
+            # have no subtitles in this language, or YouTube may be refusing
+            # a client that has asked too often. Three videos in one run were
+            # reported as having no German subtitles minutes after the same
+            # code had fetched a hundred lines from each.
             raise SystemExit(
-                f"{video_id}: YouTube has no {wanted} subtitles for it, "
-                "manual or automatic."
+                f"{video_id}: no {wanted} subtitles came back. Either it has "
+                "none, or YouTube is rate-limiting — try it again later."
             )
 
         with WritableDatabase(self._settings.database) as db:
