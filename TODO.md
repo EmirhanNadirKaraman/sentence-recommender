@@ -34,6 +34,12 @@ Coverage scales with corpus size, and steeply: every extra video creates fresh
 chances for a unit to stand alone in a sentence. This is the option with no
 new code — the scraper in `language-app` already produces what is needed.
 
+The **Blocked** page is the shopping list. It runs the walk to exhaustion and
+ranks what is stranded by how often it appears, with the closest sentence and
+what else is unknown in it. The *one word away* filter is the highest-value
+subset: 543 units whose easiest sentence has exactly two unknowns, so a single
+clip saying either one plainly unblocks both.
+
 ### 3. Let the walk take i+2 steps when the frontier empties
 
 **Not in effect today.** The deck on the reading page shows sentences with

@@ -214,8 +214,8 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 """
 
-NAV = (("/", "Next"), ("/roadmap", "Roadmap"), ("/review", "Review"),
-       ("/subtitles", "Videos"))
+NAV = (("/", "Next"), ("/roadmap", "Roadmap"), ("/blocked", "Blocked"),
+       ("/review", "Review"), ("/subtitles", "Videos"))
 
 
 def layout(title: str, body: str, here: str = "/", source: str = "") -> str:

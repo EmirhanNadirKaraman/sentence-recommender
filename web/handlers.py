@@ -7,14 +7,16 @@ the reader's moving position in it.
 """
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import datetime
 from html import escape
 from urllib.parse import quote
 
 from corpus.sentence import Sentence
-from roadmap import CorpusIndex, ExampleIndex, RoadmapBuilder, UnitPriority
+from roadmap import (
+    CorpusIndex, ExampleIndex, KnownSet, RoadmapBuilder, UnitPriority,
+)
 from roadmap.store import ALL, RoadmapStore
 from vocab.entry import LEMMA, PATTERN, Unit
 from web import watch as video
@@ -26,6 +28,10 @@ PAGE_SIZE = 40
 # How many alternative i+1 sentences to carry for one unit. Enough to find a
 # readable one, few enough that the page stays small.
 DECK_SIZE = 24
+
+# Ceiling on the exhaustive walk behind the blocked list, so a large corpus
+# cannot hang the page.
+WALK_LIMIT = 5000
 PREFERRED = ("subtitle", "subtitle:llm", ALL)
 LABELS = {ALL: "everything", "subtitle": "video subtitles",
           "subtitle:llm": "video subtitles, model-corrected",
@@ -40,6 +46,7 @@ class Scope:
     index: CorpusIndex
     builder: RoadmapBuilder
     examples: ExampleIndex
+    priority: UnitPriority
 
 
 class Viewer:
@@ -53,6 +60,9 @@ class Viewer:
         # card in the review queue is the durable record, this just stops the
         # page offering the same thing again.
         self._passed: set[Unit] = set()
+        # Blocked-set results, per source. The walk behind them is cheap on a
+        # subtitle corpus and slow on a quarter of a million sentences.
+        self._stuck: dict[str, list] = {}
 
     # --- scope ------------------------------------------------------------
 
@@ -94,6 +104,7 @@ class Viewer:
                 builder=RoadmapBuilder(index, priority,
                                        self.app.settings.priority_weight),
                 examples=ExampleIndex(sentences),
+                priority=priority,
             )
         return self._scopes[source]
 
@@ -322,6 +333,11 @@ class Viewer:
         if kind in ("word", "pattern"):
             steps = [s for s in steps if s.unit.is_pattern == (kind == "pattern")]
         known = self.known
+        hidden = 0
+        if query.get("hide") == "known":
+            before = len(steps)
+            steps = [s for s in steps if s.unit not in known]
+            hidden = before - len(steps)
 
         page = max(int(query.get("page") or 1), 1)
         pages = max((len(steps) + PAGE_SIZE - 1) // PAGE_SIZE, 1)
@@ -342,11 +358,105 @@ class Viewer:
         listing = (f"<div class='ledger'>{entries}</div>" if window
                    else "<p class='empty'>Nothing here matches that.</p>")
         body = (self.switch(source, "/roadmap") + "<h1>Roadmap</h1>"
-                f"<p class='note'>{len(steps):,} steps as they were planned. "
-                "The marked word is the only unknown one in its sentence.</p>"
-                f"{self._filters(needle, kind, source)}{listing}"
-                f"{self._pager(page, pages, needle, kind, source)}")
+                f"<p class='note'>{len(steps):,} steps in the order they were "
+                "planned, saved by the last build. The marked word was the only "
+                "unknown one in its sentence at that point — anything you have "
+                "learned since is labelled <em>known</em> in the rail.</p>"
+                f"{self._filters(needle, kind, source, query.get('hide', ''))}"
+                f"{self._hidden_note(hidden)}{listing}"
+                f"{self._pager(page, pages, needle, kind, source, query.get('hide', ''))}")
         return layout("Roadmap", body, "/roadmap", source)
+
+    @staticmethod
+    def _hidden_note(hidden: int) -> str:
+        if not hidden:
+            return ""
+        return (f"<p class='note'>{hidden:,} step"
+                f"{'s' if hidden != 1 else ''} you have since learned "
+                "are hidden.</p>")
+
+    def blocked(self, query: dict) -> str:
+        """What the roadmap cannot reach, and what to go looking for.
+
+        Once no sentence has exactly one unknown left the walk halts, and
+        everything still unknown is stranded — not because it is hard, but
+        because this corpus never says it plainly enough. Ranked by how often
+        each appears, because that is what makes finding material for it worth
+        the trouble.
+        """
+        source = self.source(query)
+        stranded = self._stranded(source)
+        near_only = query.get("gap") == "near"
+        rows = [r for r in stranded if not near_only or r[2] == 2]
+
+        entries = "".join(
+            "<div class='entry'>"
+            f"<div class='rail'>{count}&times;"
+            f"<span class='kind'>{'pattern' if unit.is_pattern else 'word'}</span>"
+            "</div><div class='body'>"
+            f"<div class='unit'>{escape(unit.key)}</div>"
+            f"<p class='de'>{escape(example)}</p>"
+            f"<p class='also'>{gap} new things in its easiest sentence here: "
+            f"{escape(', '.join(rest))}</p>"
+            "</div></div>"
+            for unit, count, gap, example, rest in rows[:PAGE_SIZE]
+        )
+        near = sum(1 for r in stranded if r[2] == 2)
+        picker = "".join(
+            f"<a href='/blocked?src={quote(source)}"
+            + (f"&gap={v}" if v else "")
+            + f"' class='{'on' if (query.get('gap') or '') == v else ''}'>{label}</a>"
+            for v, label in (("", f"all {len(stranded):,}"),
+                             ("near", f"one word away ({near:,})"))
+        )
+        body = (
+            self.switch(source, "/blocked") +
+            f"<div class='switch'><span>Showing</span>{picker}</div>"
+            "<h1>Where the roadmap stops</h1>"
+            f"<p class='note'>{len(stranded):,} things this corpus can never "
+            "teach you, because none of them is ever the only new thing in a "
+            f"sentence. {near:,} are one word away — learn that word, or find a "
+            "clip that says this one plainly, and the chain continues.</p>"
+            + (f"<div class='ledger'>{entries}</div>" if entries
+               else "<p class='empty'>Nothing is stranded — the roadmap "
+                    "reaches everything in this corpus.</p>")
+            + (f"<p class='note'>Showing the {PAGE_SIZE} most frequent of "
+               f"{len(rows):,}.</p>" if len(rows) > PAGE_SIZE else "")
+        )
+        return layout("Blocked", body, "/blocked", source)
+
+    def _stranded(self, source: str):
+        """Units left unknown once the walk runs out, most frequent first.
+
+        Computed on a throwaway index: running the walk to exhaustion learns
+        everything reachable, and doing that to the live one would tell the
+        reading page they know words they have never seen.
+        """
+        if source in self._stuck:
+            return self._stuck[source]
+        scope = self.scope(source)
+        # Reuse the resolved vocabulary rather than asking for it again —
+        # known_set() re-runs the parser over every word in the files, which
+        # is seconds, and this page already has the answer.
+        spare = CorpusIndex(scope.sentences, KnownSet(self.known))
+        RoadmapBuilder(spare, scope.priority, self.app.settings.priority_weight
+                       ).build(max_steps=WALK_LIMIT)
+        reached = spare.known
+
+        appearances: Counter = Counter()
+        easiest: dict = {}
+        for s in scope.sentences:
+            unknown = s.units - reached
+            if not unknown:
+                continue
+            for u in unknown:
+                appearances[u] += 1
+                if u not in easiest or len(unknown) < easiest[u][0]:
+                    easiest[u] = (len(unknown), s.text,
+                                  sorted(x.key for x in unknown - {u})[:4])
+        rows = [(u, n, *easiest[u]) for u, n in appearances.most_common()]
+        self._stuck[source] = rows
+        return rows
 
     def unit(self, kind: str, key: str, query: dict) -> str:
         source = self.source(query)
@@ -458,21 +568,27 @@ class Viewer:
     # --- bits -------------------------------------------------------------
 
     @staticmethod
-    def _filters(needle: str, kind: str, source: str) -> str:
+    def _filters(needle: str, kind: str, source: str, hide: str = "") -> str:
         options = "".join(
             f"<option value='{v}'{' selected' if kind == v else ''}>{label}</option>"
             for v, label in (("", "words and patterns"), ("word", "words only"),
                              ("pattern", "patterns only")))
+        shown = "".join(
+            f"<option value='{v}'{' selected' if hide == v else ''}>{label}</option>"
+            for v, label in (("", "everything"), ("known", "only what is left")))
         return ("<form class='bar' method='get' action='/roadmap'>"
                 f"<input type='hidden' name='src' value='{escape(source)}'>"
                 f"<input type='text' name='q' value='{escape(needle)}' "
                 "placeholder='a word, a pattern, or something in a sentence'>"
                 f"<select name='kind'>{options}</select>"
+                f"<select name='hide'>{shown}</select>"
                 "<button type='submit'>Filter</button></form>")
 
     @staticmethod
-    def _pager(page: int, pages: int, needle: str, kind: str, source: str) -> str:
-        tail = f"&q={quote(needle)}&kind={quote(kind)}&src={quote(source)}"
+    def _pager(page: int, pages: int, needle: str, kind: str, source: str,
+               hide: str = "") -> str:
+        tail = (f"&q={quote(needle)}&kind={quote(kind)}&src={quote(source)}"
+                f"&hide={quote(hide)}")
         back = (f"<a href='/roadmap?page={page - 1}{tail}'>previous</a>"
                 if page > 1 else "")
         fwd = (f"<a href='/roadmap?page={page + 1}{tail}'>next</a>"
