@@ -55,7 +55,7 @@ class FillGapsCommand:
                     print(f"        {sentence.text}")
                 else:
                     print("        (no acceptable sentence after "
-                          f"{generator._max_attempts} attempts)")
+                          f"{generator.max_attempts} attempts)")
             known.learn(step.unit)
 
         if produced:

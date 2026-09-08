@@ -12,7 +12,7 @@ from collections import Counter
 from corpus.sentence import Sentence
 from vocab.loader import normalize
 
-LEFTOVER_ARTIFACT = re.compile(r"[\[\]<>_♪*]|--")
+LEFTOVER_ARTIFACT = re.compile(r"[\[\]<>_♪*…]|--|\.\.\.")
 ALPHANUMERIC = re.compile(r"\W+", re.UNICODE)
 
 

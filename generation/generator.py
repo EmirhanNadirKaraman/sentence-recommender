@@ -48,7 +48,7 @@ class SentenceGenerator:
     def __init__(self, client, analyzer, max_attempts: int = 4) -> None:
         self._client = client
         self._analyzer = analyzer
-        self._max_attempts = max_attempts
+        self.max_attempts = max_attempts
         self.attempts = 0
         self.accepted = 0
 
@@ -65,7 +65,7 @@ class SentenceGenerator:
         """A verified i+1 sentence for `target`, or None if the model
         never produced one within `max_attempts`."""
         prompt = USER.format(target=target.key, vocabulary=", ".join(vocabulary))
-        for _ in range(self._max_attempts):
+        for _ in range(self.max_attempts):
             self.attempts += 1
             candidate = self._ask(prompt)
             if candidate is None:
