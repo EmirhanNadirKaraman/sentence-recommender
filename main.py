@@ -47,6 +47,10 @@ def _parser() -> argparse.ArgumentParser:
     plan.add_argument("--steps", type=int, help="stop after N steps")
     plan.add_argument("--source", nargs="+", default=[], metavar="BUILD",
                       help=SOURCE_HELP)
+    plan.add_argument("--list-only", action="store_true",
+                      help="count only what data/study_list.txt names, so a "
+                           "noun is not learned twice as both a bare word and "
+                           "an article form")
     plan.add_argument("--goals", action="store_true",
                       help="aim at the list in data/final_result.txt instead "
                            "of making as many sentences readable as possible")
@@ -101,7 +105,8 @@ def main() -> int:
         BuildCorpusCommand().run(app, args.source, args.limit,
                                  args.corrector, args.min_words)
     elif args.command == "build-roadmap":
-        BuildRoadmapCommand().run(app, args.steps, tuple(args.source), args.goals)
+        BuildRoadmapCommand().run(app, args.steps, tuple(args.source),
+                                  args.goals, args.list_only)
     elif args.command == "export-subtitles":
         ExportSubtitlesCommand().run(
             app, args.out, tuple(args.source), args.translation

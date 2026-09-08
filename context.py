@@ -56,16 +56,38 @@ class Application:
     def overrides(self) -> SentenceOverrides:
         return SentenceOverrides(self.settings.state_path)
 
-    def corpus(self, *builds: str, teachable_only: bool = True):
+    def corpus(self, *builds: str, teachable_only: bool = True,
+               list_only: bool = False):
         """Cached sentences from the named builds, with reader corrections.
 
         Corrections are applied on the way out rather than baked into the
         cache, so rebuilding the corpus cannot lose them.
+
+        `list_only` narrows every sentence to the units on the study list.
+        The analyser finds more than the list names — a noun yields both a
+        bare lemma and its article form, so `Kugel` arrives as both `kugel`
+        and `die Kugel` and has to be learned twice. Counting only what the
+        list names removes the duplicate and, because it removes unknowns
+        too, turns sentences that were two or three away into i+1.
+
+        The trade is real: a sentence can then be called readable while
+        holding a word you do not know, because that word was never
+        something you set out to learn.
         """
-        sentences = self.corpus_store.load(
+        sentences = self._apply_overrides(self.corpus_store.load(
             *(builds or self.corpus_store.builds()), teachable_only=teachable_only
-        )
-        return self._apply_overrides(sentences)
+        ))
+        return self._narrow_to_list(sentences) if list_only else sentences
+
+    def _narrow_to_list(self, sentences: list) -> list:
+        goals = frozenset(self.goal_units)
+        return [
+            s.with_units(
+                s.units & goals,
+                tuple((u, x) for u, x in s.surfaces if u in goals),
+            )
+            for s in sentences
+        ]
 
     def _apply_overrides(self, sentences: list) -> list:
         hidden = self.overrides.hidden()

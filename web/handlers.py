@@ -89,16 +89,27 @@ class Viewer:
             self._known = self.app.known_set()
         return self._known.units
 
-    def scope(self, source: str) -> Scope:
-        """The live index for one corpus, built once and kept current."""
-        if source not in self._scopes:
-            sentences = self.app.corpus(*self._builds(source))
+    def counting(self, query: dict) -> bool:
+        """Whether to count only what the study list names. Default yes —
+        the list is what the reader set out to learn."""
+        return (query.get("count") or "list") == "list"
+
+    def scope(self, source: str, list_only: bool = True) -> Scope:
+        """The live index for one corpus, built once and kept current.
+
+        Keyed by counting mode as well as corpus: narrowing to the study list
+        gives genuinely different unknown counts, so the two cannot share.
+        """
+        key = f"{source}|{'list' if list_only else 'all'}"
+        if key not in self._scopes:
+            sentences = self.app.corpus(*self._builds(source),
+                                        list_only=list_only)
             # The resolved vocabulary, not a fresh resolution: known_set()
             # re-runs the parser over every word in the files, which is
             # sixteen seconds, and this viewer already holds the answer.
             index = CorpusIndex(sentences, KnownSet(self.known))
             priority = self.app.priority()
-            self._scopes[source] = Scope(
+            self._scopes[key] = Scope(
                 sentences=sentences,
                 index=index,
                 builder=RoadmapBuilder(index, priority,
@@ -106,7 +117,18 @@ class Viewer:
                 examples=ExampleIndex(sentences),
                 priority=priority,
             )
-        return self._scopes[source]
+        return self._scopes[key]
+
+    def counting_switch(self, query: dict, page: str) -> str:
+        source = self.source(query)
+        here = "list" if self.counting(query) else "all"
+        links = "".join(
+            f"<a href='{page}?src={quote(source)}&count={value}' "
+            f"class='{'on' if here == value else ''}'>{label}</a>"
+            for value, label in (("list", "only my study list"),
+                                 ("all", "every word it finds"))
+        )
+        return f"<div class='switch'><span>Counting</span>{links}</div>"
 
     def switch(self, source: str, page: str) -> str:
         counts = self.sources()
@@ -124,7 +146,7 @@ class Viewer:
 
     def next_up(self, query: dict) -> str:
         source = self.source(query)
-        scope = self.scope(source)
+        scope = self.scope(source, self.counting(query))
         only = query.get("only") or ""
         skip = set(self._passed)
         if only == "word":
@@ -135,7 +157,7 @@ class Viewer:
             exclude=frozenset(skip),
             kinds=frozenset({LEMMA}) if only == "word" else frozenset(),
         )
-        switch = self.switch(source, "/")
+        switch = self.switch(source, "/") + self.counting_switch(query, "/")
         picker = self._kind_picker(only, source)
 
         if step is None:
@@ -283,7 +305,8 @@ class Viewer:
         source = self.source(query)
         text = query.get("text", "")
         back = query.get("back") or "/"
-        found = next((s for s in self.scope(source).sentences if s.text == text),
+        found = next((s for s in self.scope(source, self.counting(query)).sentences
+                      if s.text == text),
                      None)
         if found is None:
             return layout("Fix", "<h1>No such sentence</h1><p class='empty'>It "
@@ -490,7 +513,7 @@ class Viewer:
         the trouble.
         """
         source = self.source(query)
-        stranded = self._stranded(source)
+        stranded = self._stranded(source, self.counting(query))
         near_only = query.get("gap") == "near"
         rows = [r for r in stranded if not near_only or r[2] == 2]
 
@@ -515,8 +538,9 @@ class Viewer:
                              ("near", f"one word away ({near:,})"))
         )
         body = (
-            self.switch(source, "/blocked") +
-            f"<div class='switch'><span>Showing</span>{picker}</div>"
+            self.switch(source, "/blocked")
+            + self.counting_switch(query, "/blocked")
+            + f"<div class='switch'><span>Showing</span>{picker}</div>"
             "<h1>Where the roadmap stops</h1>"
             f"<p class='note'>{len(stranded):,} things this corpus can never "
             "teach you, because none of them is ever the only new thing in a "
@@ -530,16 +554,17 @@ class Viewer:
         )
         return layout("Blocked", body, "/blocked", source)
 
-    def _stranded(self, source: str):
+    def _stranded(self, source: str, list_only: bool = True):
         """Units left unknown once the walk runs out, most frequent first.
 
         Computed on a throwaway index: running the walk to exhaustion learns
         everything reachable, and doing that to the live one would tell the
         reading page they know words they have never seen.
         """
-        if source in self._stuck:
-            return self._stuck[source]
-        scope = self.scope(source)
+        key = f"{source}|{'list' if list_only else 'all'}"
+        if key in self._stuck:
+            return self._stuck[key]
+        scope = self.scope(source, list_only)
         # Reuse the resolved vocabulary rather than asking for it again —
         # known_set() re-runs the parser over every word in the files, which
         # is seconds, and this page already has the answer.
@@ -560,13 +585,13 @@ class Viewer:
                     easiest[u] = (len(unknown), s.text,
                                   sorted(x.key for x in unknown - {u})[:4])
         rows = [(u, n, *easiest[u]) for u, n in appearances.most_common()]
-        self._stuck[source] = rows
+        self._stuck[key] = rows
         return rows
 
     def unit(self, kind: str, key: str, query: dict) -> str:
         source = self.source(query)
         target = Unit(kind, key)
-        scope = self.scope(source)
+        scope = self.scope(source, self.counting(query))
         known = self.known
         found = scope.examples.examples(target, known, limit=25)
 
@@ -603,7 +628,7 @@ class Viewer:
     def watch(self, query: dict) -> str:
         source = self.source(query)
         target = Unit(query.get("kind", ""), query.get("key", ""))
-        scope = self.scope(source)
+        scope = self.scope(source, self.counting(query))
         clips = [s for s in scope.examples.examples(target, self.known, limit=60)
                  if s.timing]
         if not clips:

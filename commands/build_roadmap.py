@@ -16,10 +16,10 @@ from roadmap.store import ALL
 class BuildRoadmapCommand:
     """Produces the ordered sequence and an SRS card for every step."""
 
-    def run(self, app, steps: int | None = None,
-            builds: tuple[str, ...] = (), goals: bool = False) -> None:
+    def run(self, app, steps: int | None = None, builds: tuple[str, ...] = (),
+            goals: bool = False, list_only: bool = False) -> None:
         settings = app.settings
-        sentences = app.corpus(*builds)
+        sentences = app.corpus(*builds, list_only=list_only)
         if not sentences:
             raise SystemExit(
                 "no cached corpus for "
@@ -38,6 +38,8 @@ class BuildRoadmapCommand:
 
         plan = builder.build(max_steps=steps)
         label = "+".join(sorted(builds)) if builds else ALL
+        if list_only:
+            label = f"{label}:list"
         if goals:
             label = f"{label}:goals"
         RoadmapStore(settings.state_path).save(plan, label)
