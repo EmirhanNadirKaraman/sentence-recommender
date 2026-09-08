@@ -49,6 +49,17 @@ def _make_handler(viewer: Viewer):
         def log_message(self, fmt, *args):        # quiet; the terminal is the user's
             pass
 
+        def handle_one_request(self):
+            """Ignore a client that hangs up mid-response.
+
+            A browser cancelling a request — navigating away, or dropping a
+            speculative connection — is normal and not worth a traceback.
+            """
+            try:
+                super().handle_one_request()
+            except (BrokenPipeError, ConnectionResetError):
+                self.close_connection = True
+
         def do_GET(self) -> None:                 # noqa: N802 — http.server's API
             parsed = urlparse(self.path)
             query = {k: v[0] for k, v in parse_qs(parsed.query).items()}
@@ -57,6 +68,7 @@ def _make_handler(viewer: Viewer):
                 html, status = self._route(path, query)
                 self._send(html, status)
             except Exception as error:            # noqa: BLE001 — show it, don't die
+                _report(error, self.path)
                 self._send(_oops(error), status=500)
 
         def do_POST(self) -> None:                # noqa: N802
@@ -69,6 +81,7 @@ def _make_handler(viewer: Viewer):
                 else:
                     self._send(viewer.grade(form))
             except Exception as error:            # noqa: BLE001
+                _report(error, self.path)
                 self._send(_oops(error), status=500)
 
         def _redirect(self, target: str) -> None:
@@ -103,6 +116,17 @@ def _make_handler(viewer: Viewer):
             self.wfile.write(payload)
 
     return Handler
+
+
+def _report(error: Exception, path: str) -> None:
+    """Put the whole traceback on the terminal.
+
+    The page shows a trimmed one so it stays readable; the terminal gets all
+    of it, because that is what gets copied into a bug report.
+    """
+    import traceback
+    print(f"\n--- error serving {path} ---", flush=True)
+    traceback.print_exception(error)
 
 
 def _missing(path: str) -> str:

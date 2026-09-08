@@ -1,1 +1,8 @@
 psycopg2-binary>=2.9
+spacy>=3.8
+spacy-lookups-data>=1.0        # German lemma table; see corpus/analyzer.py
+requests>=2.31                 # the local model client
+
+# The German model is not on PyPI — install it directly:
+#   pip install https://github.com/explosion/spacy-models/releases/download/\
+# de_core_news_sm-3.8.0/de_core_news_sm-3.8.0-py3-none-any.whl
