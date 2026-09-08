@@ -711,11 +711,75 @@ class Viewer:
             "<form class='bar' method='post' action='/add-video'>"
             "<input type='text' name='video' autocomplete='off' "
             "placeholder='a YouTube link, or just the video id'>"
-            "<button class='go' type='submit'>Add to catalogue</button>"
+            "<button class='go' type='submit'>Add video</button>"
             "</form>"
-            "<p class='note'>Fetches the German subtitles and writes them to "
-            "the shared catalogue. Takes up to a minute, and the page waits.</p>"
+            "<form class='bar' method='post' action='/add-channel'>"
+            "<input type='text' name='channel' autocomplete='off' "
+            "placeholder='a channel: UC… id, @handle, or channel URL'>"
+            "<input type='number' name='limit' value='8' min='1' max='40' "
+            "style='width:5.5rem' title='how many videos to take'>"
+            "<button class='go' type='submit'>Add channel</button>"
+            "</form>"
+            "<p class='note'>Both fetch German subtitles and write them to the "
+            "shared catalogue, then fold the result into the roadmap. The page "
+            "waits — about a minute for a video, a few for a channel, which is "
+            "why a channel is capped.</p>"
         )
+
+    def add_channel(self, form: dict) -> str:
+        """Take some of a channel, and say where to go next either way.
+
+        Capped on purpose. A German channel can hold hundreds of videos and
+        each is a fetch of several seconds; a browser waiting half an hour on
+        one POST is a worse way to spend that time than the command line,
+        which is what the cap points people towards.
+        """
+        from corpus import CorpusUpdater
+        from ingest import ChannelLister, VideoIngestor
+        from roadmap import RoadmapRefresher
+
+        given = (form.get("channel") or "").strip()
+        if not given:
+            return "/subtitles?problem=Paste+a+channel+id%2C+handle+or+URL+first."
+        try:
+            limit = max(1, min(int(form.get("limit") or 8), 40))
+        except ValueError:
+            limit = 8
+
+        try:
+            lister = ChannelLister()
+            channel = lister.identify(given)
+            ingestor = VideoIngestor(self.app.settings, self.app.analyzer)
+            wanted = [v for v in lister.videos(channel, limit * 3)
+                      if not ingestor.already_have(v)][:limit]
+        except SystemExit as refused:
+            return f"/subtitles?problem={quote(str(refused))}"
+        except Exception as error:               # noqa: BLE001 — report, don't 500
+            return f"/subtitles?problem={quote(f'{type(error).__name__}: {error}')}"
+
+        if not wanted:
+            return (f"/subtitles?problem={quote(channel + ' has nothing new — '
+                    'everything it lists is already in the catalogue.')}")
+
+        added, refused = [], 0
+        for video_id in wanted:
+            try:
+                added.append(ingestor.add(video_id))
+            except Exception:                    # noqa: BLE001 — one bad video
+                refused += 1
+
+        if not added:
+            return (f"/subtitles?problem={quote(f'{channel}: none of the '
+                    f'{len(wanted)} tried had manual German subtitles.')}")
+
+        caught = CorpusUpdater(self.app).catch_up()
+        rebuilt = RoadmapRefresher(self.app).refresh(touching="subtitle")
+        self._scopes.clear()
+        self._stuck.clear()
+        done = (f"{channel} — {len(added)} videos, {caught.teachable} sentences"
+                + (f", {refused} skipped" if refused else "")
+                + (f", roadmap now {max(rebuilt.values())} steps" if rebuilt else ""))
+        return f"/subtitles?added={quote(done)}"
 
     def add_video(self, form: dict) -> str:
         """Scrape one video, and say where to go next either way.

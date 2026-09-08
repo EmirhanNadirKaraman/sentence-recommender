@@ -84,6 +84,8 @@ def _make_handler(viewer: Viewer):
                     self._redirect(viewer.mark_known(form))
                 elif posted == "/add-video":
                     self._redirect(viewer.add_video(form))
+                elif posted == "/add-channel":
+                    self._redirect(viewer.add_channel(form))
                 elif posted == "/hide":
                     self._redirect(viewer.hide_sentence(form))
                 elif posted == "/fix":
