@@ -1,0 +1,4105 @@
+# The study list: what to learn, in the order to learn it.
+#
+# Two tab-separated columns — the word as it is usually written, then the
+# form the matcher speaks. The second column is the one that counts; the
+# first is there so this stays readable.
+#
+# Order is priority. Everything above the divider comes from
+# words_4000.txt, which is ranked; everything below is known to
+# final_result.txt but was never ranked, so it sits at the end.
+#
+# Generated 2026-09-08. Rebuild with:  python main.py build-study-list
+
+ein	ein
+zu	zu
+im	im
+auf	auf
+werden	werden
+ich	ich
+am	am
+auch	auch
+Sie	Sie
+sich	sich
+an	an
+für	für
+sondern	sondern
+in	in
+von	von
+haben	etw./jdn. (Akk) haben
+der, die, das	der, die, das
+und	und
+sein	sein
+er	er
+es	es
+sie	sie
+so	so
+mit	mit
+Ihr	Ihr
+aus	aus
+noch	noch
+nach	nach
+also	also
+bei	bei
+ja	ja
+dann	dann
+da	da
+können	etw. (Akk) können
+dies	dies
+als	als
+wir	wir
+aber	aber
+man	man
+all, alle	all, alle
+mein	mein
+ander	ander
+schon	schon
+ihr	ihr
+nicht	nicht
+dass	dass
+vor	vor
+kein	kein
+wenn	wenn
+das Jahr	das Jahr
+um	um
+durch	durch
+geben	jdm. (Dat) etw. (Akk) geben
+wie	wie
+das Mal	das Mal
+hier	hier
+müssen	müssen
+nur	nur
+du	du
+bis	bis
+gehen	gehen
+jetzt	jetzt
+wieder	wieder
+neu	neu
+sagen	jdm. (Dat) etw. (Akk) sagen
+groß	groß
+was	was
+wollen	etw. (Akk) wollen
+mehr	mehr
+ganz	ganz
+oder	oder
+wissen	etw. (Akk) wissen
+kommen	kommen
+doch	doch
+sollen	sollen
+über	über
+mal	mal
+sehen	etw./jdn. (Akk) sehen
+lang	lang
+stehen	jdm. (Dat) stehen
+zwei	zwei
+denn	denn
+viel	viel
+gut	gut
+immer	immer
+damit	damit
+die Zeit	die Zeit
+weil	weil
+oben	oben
+lassen	etw./jdn. (Akk) lassen
+das Beispiel	das Beispiel
+machen	etw. (Akk) machen
+wo	wo
+selbst, selber	selbst, selber
+eigentlich	eigentlich
+lange, lang	lange, lang
+deutsch	deutsch
+jeder	jeder
+die Frau	die Frau
+nun, nu	nun, nu
+etwas	etwas
+das Kind	das Kind
+der Aspekt	der Aspekt
+der Mensch	der Mensch
+sehr	sehr
+bleiben	bleiben
+drei	drei
+gegen	gegen
+nein	nein
+weit	weit
+heute	heute
+die Deutsche	die Deutsche
+unser	unser
+unter	unter
+erste	erste
+wenig	wenig
+ob	ob
+dabei	dabei
+das Deutsch	das Deutsch
+beide	beide
+nichts, nix	nichts, nix
+der Tag	der Tag
+zwischen	zwischen
+klein	klein
+ohne	ohne
+einfach	einfach
+liegen	liegen
+dort	dort
+vielleicht	vielleicht
+denken	denken
+genannt	genannt
+das Haus	das Haus
+halten	etw./jdn. (Akk) halten
+möglichst	möglichst
+gleich	gleich
+möglich	möglich
+alt	alt
+die Frage	die Frage
+welch	welch
+nennen	jdn. (Akk) + Name (Akk) nennen
+tun	etw. (Akk) tun
+der Deutscher	der Deutscher
+sprechen	mit jdm. / über etw./jdn. sprechen
+finden	etw./jdn. (Akk) finden
+das Land	das Land
+seit	seit
+glauben	jdm. (Dat) / etw. (Akk) glauben
+während	während
+eben, ebend	eben, ebend
+führen	jdn. (Akk) führen
+der Mann	der Mann
+dazu	dazu
+erstmal	erstmal
+solch	solch
+heißen	heißen
+zeigen	jdm. (Dat) etw. (Akk) zeigen
+natürlich	natürlich
+mögen	etw./jdn. (Akk) mögen
+gar	gar
+dürfen	dürfen
+letzt	letzt
+spät	spät
+etwa	etwa
+wichtig	wichtig
+das Prozent	das Prozent
+die Leute	die Leute
+gerade	gerade
+hoch	hoch
+der Fall	der Fall
+die Hand	die Hand
+erst	erst
+leben	leben
+einmal	einmal
+nehmen	etw./jdn. (Akk) nehmen
+die Arbeit	die Arbeit
+einige	einige
+fahren	etw. (Akk) fahren
+zwar	zwar
+wer	wer
+bringen	jdm. (Dat) etw. (Akk) bringen
+meinen	etw. (Akk) meinen
+eigen	eigen
+bereits	bereits
+schön	schön
+fragen	jdn. (Akk) fragen
+bisschen	bisschen
+jung	jung
+später	später
+spielen	etw. (Akk) spielen
+der Teil, das Teil	der Teil, das Teil
+das Problem	das Problem
+der Herr	der Herr
+nie	nie
+die Stadt	die Stadt
+genau	genau
+weiter	weiter
+vier	vier
+darauf	darauf
+gelten	für jdn./etw. gelten
+kennenlernen	kennenlernen
+wirklich	wirklich
+die Welt	die Welt
+stellen	etw./jdn. (Akk) stellen
+jedoch	jedoch
+das Ende	das Ende
+kennen	etw./jdn. (Akk) kennen
+kurz	kurz
+arbeiten	arbeiten
+die Million	die Million
+oft	oft
+sowie	sowie
+die Schule	die Schule
+folgen	jdm. (Dat) folgen
+stark	stark
+richtig	richtig
+brauchen	etw./jdn. (Akk) brauchen
+dafür	dafür
+recht	recht
+bestehen	aus etw. / etw. (Akk) bestehen bestehen
+das Recht	das Recht
+lernen	etw. (Akk) lernen
+kurzem	kurzem
+die Woche	die Woche
+denen	denen
+bekommen	etw. (Akk) bekommen
+der Grund	der Grund
+verschieden	verschieden
+bestimmt	bestimmt
+allerdings	allerdings
+sicher	sicher
+dein	dein
+fast	fast
+halt	halt
+das Leben	das Leben
+das Auge	das Auge
+davon	davon
+überhaupt	überhaupt
+setzen	etw./jdn. (Akk) setzen
+die Mutter	die Mutter
+besser	besser
+die Seite	die Seite
+schnell	schnell
+wohl	wohl
+verstehen	etw./jdn. (Akk) verstehen
+der Vater	der Vater
+gern, gerne	gern, gerne
+sich setzen	sich (Akk) sich setzen
+nächst	nächst
+versuchen	etw. (Akk) versuchen
+verdienen	etw. (Akk) verdienen
+schreiben	jdm. (Dat) etw. (Akk) schreiben
+die Art	die Art
+besonders	besonders
+der Bereich	der Bereich
+erzählen	jdm. (Dat) etw. (Akk) erzählen
+politisch	politisch
+allein, alleine	allein, alleine
+neben	neben
+beginnen	mit etw. / etw. (Akk) beginnen
+erklären	jdm. (Dat) etw. (Akk) erklären
+laufen	laufen
+der Weg	der Weg
+das Geld	das Geld
+kaum	kaum
+schwer	schwer
+entsprechen	etw./jdm. (Dat) entsprechen
+warum	warum
+klar	klar
+die Sache	die Sache
+das Wort	das Wort
+fünf	fünf
+ziehen	etw. (Akk) ziehen
+beziehungsweise	beziehungsweise
+der Name	der Name
+die Stunde	die Stunde
+die Gesellschaft	die Gesellschaft
+na	na
+darüber	darüber
+der Kopf	der Kopf
+schütteln	jdm. (Dat) die Hand / etw. (Akk) schütteln
+sitzen	sitzen
+die Geschichte	die Geschichte
+einzeln	einzeln
+wegen	wegen
+gehören	jdm. (Dat) gehören
+sogar	sogar
+deshalb	deshalb
+scheinen	jdm. (Dat) scheinen
+fallen	fallen
+damals	damals
+legen	etw./jdn. (Akk) legen
+das Bild	das Bild
+die Mark	die Mark
+sonst	sonst
+bekannt	bekannt
+das Paar	das Paar
+hinter	hinter
+die Möglichkeit	die Möglichkeit
+leicht	leicht
+die Stelle	die Stelle
+entstehen	entstehen
+das Unternehmen	das Unternehmen
+das Buch	das Buch
+ein paar	ein paar
+suchen	etw./jdn. (Akk) suchen
+treffen	jdn. (Akk) / sich mit jdm. treffen
+die Form	die Form
+handeln	mit etw. / von etw. handeln
+erhalten	etw. (Akk) erhalten
+vorstellen	jdm. (Dat) jdn./etw. (Akk) / sich (Dat) etw. (Akk) vorstellen
+daran	daran
+das Wasser	das Wasser
+erreichen	etw./jdn. (Akk) erreichen
+tragen	etw./jdn. (Akk) tragen
+der Sinn	der Sinn
+die Familie	die Familie
+die Aufgabe	die Aufgabe
+abends	abends
+eher	eher
+darin	darin
+die Universität, die Uni	die Universität, die Uni
+je	je
+anders	anders
+frei	frei
+der Abend	der Abend
+schließlich	schließlich
+die Entwicklung	die Entwicklung
+der Morgen	der Morgen
+der Monat	der Monat
+desto	desto
+morgens	morgens
+rund	rund
+zehn	zehn
+morgen	morgen
+schaffen	etw. (Akk) schaffen
+deutlich	deutlich
+die Nacht	die Nacht
+obwohl	obwohl
+die Person	die Person
+das Ziel	das Ziel
+das Ding	das Ding
+daher	daher
+allgemein	allgemein
+der Euro	der Euro
+der Freund	der Freund
+der Blick	der Blick
+gegenüber	gegenüber
+Sinne	Sinne
+der Staat	der Staat
+lesen	etw. (Akk) lesen
+früh	früh
+nachts	nachts
+schlecht	schlecht
+das Thema	das Thema
+unterschiedlich	unterschiedlich
+der Raum	der Raum
+verlieren	etw./jdn. (Akk) verlieren
+das System	das System
+der Platz	der Platz
+mehrere	mehrere
+darstellen	etw./jdn. (Akk) darstellen
+der Wert	der Wert
+zunächst	zunächst
+die Uhr	die Uhr
+die Zahl	die Zahl
+früher	früher
+gemeinsam	gemeinsam
+erkennen	jdn./etw. (Akk) erkennen
+aussehen	nach etw. aussehen
+nahe, nah	nahe, nah
+voll	voll
+einzig	einzig
+entwickeln	etw. (Akk) entwickeln
+reden	mit jdm. / über etw. reden
+die Minute	die Minute
+die Straße	die Straße
+erscheinen	jdm. (Dat) erscheinen
+die Gruppe	die Gruppe
+die Eltern	die Eltern
+der Anfang	der Anfang
+nämlich	nämlich
+direkt	direkt
+der Ort	der Ort
+offen	offen
+Moment	Moment
+dadurch	dadurch
+das Gesicht	das Gesicht
+irgendwie	irgendwie
+erwarten	etw./jdn. (Akk) erwarten
+best	best
+wohnen	wohnen
+jener	jener
+international	international
+naja	naja
+rot	rot
+die Sprache	die Sprache
+bilden	etw. (Akk) bilden
+anfangen	mit etw. anfangen
+bisher	bisher
+sozial	sozial
+der Moment	der Moment
+wert	wert
+die Rolle	die Rolle
+ab	ab
+besonder	besonder
+das Interesse	das Interesse
+die Bedeutung	die Bedeutung
+helfen	jdm. (Dat) helfen
+der Text	der Text
+jemand	jemand
+die Folge	die Folge
+vergehen	vergehen
+betreffen	jdn./etw. (Akk) betreffen
+die Tür	die Tür
+die Milliarde	die Milliarde
+öffentlich	öffentlich
+manchmal	manchmal
+ach	ach
+warten	auf jdn./etw. warten
+der Krieg	der Krieg
+gewiss	gewiss
+der Schüler	der Schüler
+das Ergebnis	das Ergebnis
+meiste, die meisten	meiste, die meisten
+her	her
+das Gespräch	das Gespräch
+niemand	niemand
+der Meter	der Meter
+erinnern	jdn. (Akk) an etw. erinnern
+die Wohnung	die Wohnung
+das Stück	das Stück
+die Regierung	die Regierung
+die Weise	die Weise
+gewinnen	etw. (Akk) gewinnen
+sechs	sechs
+halb	halb
+sich erinnern	an jdn./etw. sich erinnern
+bieten	jdm. (Dat) etw. (Akk) bieten
+europäisch	europäisch
+schließen	etw. (Akk) schließen
+wahrscheinlich	wahrscheinlich
+das Jahrhundert	das Jahrhundert
+dagegen	dagegen
+ziemlich	ziemlich
+studieren	etw. (Akk) studieren
+ebenso	ebenso
+wesentlich	wesentlich
+ergeben	etw. (Akk) ergeben
+der Lehrer	der Lehrer
+ähnlich	ähnlich
+der Begriff	der Begriff
+der Punkt	der Punkt
+die Funktion	die Funktion
+der Boden	der Boden
+verbinden	jdn./etw. (Akk) mit jdm./etw. verbinden
+fühlen	etw. (Akk) fühlen
+der Preis	der Preis
+der Sohn	der Sohn
+danach	danach
+fehlen	jdm. (Dat) fehlen
+sich interessieren	für etw./jdn. sich interessieren
+ansehen	jdm. (Dat) etw. (Akk) / sich (Dat) etw. (Akk) ansehen
+häufig	häufig
+bedeuten	jdm. (Dat) etw. (Akk) bedeuten
+interessieren	jdn. (Akk) interessieren
+die Situation	die Situation
+die Kunst	die Kunst
+die Abbildung	die Abbildung
+gering	gering
+die Angst	die Angst
+die Information	die Information
+nutzen	etw. (Akk) nutzen
+anbieten	jdm. (Dat) etw. (Akk) anbieten
+steigen	steigen
+das Werk	das Werk
+plötzlich	plötzlich
+schwierig	schwierig
+acht	acht
+die Politik	die Politik
+sich ergeben	aus etw. sich ergeben
+außerdem	außerdem
+die Richtung	die Richtung
+inzwischen	inzwischen
+schauen	auf etw./jdn. schauen
+die Stimme	die Stimme
+die Musik	die Musik
+das Programm	das Programm
+der Rahmen	der Rahmen
+völlig	völlig
+schwarz	schwarz
+vergleichen	etw./jdn. (Akk) mit jdm./etw. vergleichen
+sofort	sofort
+der Schritt	der Schritt
+einsetzen	etw./jdn. (Akk) einsetzen
+der Gott	der Gott
+der Absatz	der Absatz
+bald	bald
+ausgehen	von etw. ausgehen
+wachsen	wachsen
+persönlich	persönlich
+genug	genug
+manch	manch
+ändern	etw. (Akk) ändern
+der Beruf	der Beruf
+geschehen	jdm. (Dat) geschehen
+Gott	Gott
+das Auto	das Auto
+die Regel	die Regel
+beschreiben	jdm. (Dat) etw. (Akk) beschreiben
+die Beziehung	die Beziehung
+sich verlassen	auf jdn./etw. sich verlassen
+verlassen	jdn./etw. (Akk) verlassen
+praktisch	praktisch
+der Markt	der Markt
+das Gefühl	das Gefühl
+das Licht	das Licht
+endlich	endlich
+der Tisch	der Tisch
+innerhalb	innerhalb
+das Spiel	das Spiel
+bezeichnen	jdn./etw. (Akk) als etw. bezeichnen
+der Präsident	der Präsident
+modern	modern
+sich befinden	sich befinden
+tief	tief
+wirken	auf jdn./etw. wirken
+annehmen	etw. (Akk) annehmen
+die Zukunft	die Zukunft
+die Erfahrung	die Erfahrung
+planen	etw. (Akk) planen
+die Partei	die Partei
+insbesondere	insbesondere
+tatsächlich	tatsächlich
+kriegen	etw. (Akk) kriegen
+die Bank	die Bank
+die Tochter	die Tochter
+das Mädchen	das Mädchen
+passieren	jdm. (Dat) passieren
+interessant	interessant
+zusätzlich	zusätzlich
+rufen	jdn. (Akk) rufen
+öffnen	jdm. (Dat) etw. (Akk) öffnen
+die Kirche	die Kirche
+ebenfalls	ebenfalls
+hin	hin
+das Verhältnis	das Verhältnis
+zunehmen	zunehmen
+der Doktor	der Doktor
+gestern	gestern
+der Gedanke	der Gedanke
+fordern	etw. (Akk) von jdm. fordern
+der Film	der Film
+gefallen	jdm. (Dat) gefallen
+nachdem	nachdem
+bestimmen	etw. (Akk) bestimmen
+aufnehmen	etw./jdn. (Akk) aufnehmen
+wirtschaftlich	wirtschaftlich
+aufgrund	aufgrund
+der Zusammenhang	der Zusammenhang
+jedenfalls	jedenfalls
+gleichzeitig	gleichzeitig
+amerikanisch	amerikanisch
+die Firma	die Firma
+treten	jdn. (Akk) treten
+bevor	bevor
+der Student	der Student
+die Entscheidung	die Entscheidung
+verändern	etw./jdn. (Akk) verändern
+der Prozess	der Prozess
+bitte	bitte
+übernehmen	etw. (Akk) übernehmen
+der Arm	der Arm
+grün	grün
+zusammen	zusammen
+die Kraft	die Kraft
+lachen	über jdn./etw. lachen
+trotz	trotz
+schlagen	jdn./etw. (Akk) schlagen
+relativ	relativ
+der September	der September
+der Betrieb	der Betrieb
+bloß	bloß
+wobei	wobei
+die Zeitung	die Zeitung
+kaufen	jdm. (Dat) etw. (Akk) kaufen
+das Angebot	das Angebot
+das Gesetz	das Gesetz
+die Grenze	die Grenze
+wann	wann
+gelingen	jdm. (Dat) gelingen
+betrachten	jdn./etw. (Akk) als etw. betrachten
+sieben	sieben
+speziell	speziell
+die Chance	die Chance
+verwenden	etw. (Akk) verwenden
+sich enthalten	jds./etw. (Gen) sich enthalten
+der Satz	der Satz
+jeweils	jeweils
+gesamt	gesamt
+erfolgen	erfolgen
+zuhause	zuhause
+wählen	jdn./etw. (Akk) wählen
+das Zuhause	das Zuhause
+enthalten	etw. (Akk) enthalten
+der Erfolg	der Erfolg
+weiß	weiß
+entscheiden	über etw. (Akk) entscheiden
+pro	pro
+stattfinden	stattfinden
+entscheidend	entscheidend
+technisch	technisch
+feststellen	etw. (Akk) feststellen
+das Mitglied	das Mitglied
+beispielsweise	beispielsweise
+unten	unten
+bewegen	etw./jdn. (Akk) bewegen
+das Internet	das Internet
+insgesamt	insgesamt
+dienen	jdm. (Dat) / als etw. dienen
+die Leistung	die Leistung
+erfahren	etw. (Akk) von jdm. erfahren
+langsam	langsam
+eng	eng
+die Lage	die Lage
+vorher	vorher
+das Pro	das Pro
+vergessen	etw./jdn. (Akk) vergessen
+Lage	Lage
+verschwinden	verschwinden
+das Projekt	das Projekt
+die Kultur	die Kultur
+darum	darum
+das Auftreten	das Auftreten
+trotzdem	trotzdem
+sich verhalten	sich verhalten
+das Verhalten	das Verhalten
+der Arzt	der Arzt
+stimmen	für/gegen jdn./etw. stimmen
+berichten	jdm. (Dat) über etw./jdn. berichten
+das Zimmer	das Zimmer
+rein	rein
+der Körper	der Körper
+der Fuß	der Fuß
+die Klasse	die Klasse
+meist	meist
+das stimmt	das stimmt
+notwendig	notwendig
+englisch	englisch
+sowohl	sowohl
+ständig	ständig
+der Zug	der Zug
+auftreten	auftreten
+trinken	etw. (Akk) trinken
+zudem	zudem
+der Chef	der Chef
+die Lösung	die Lösung
+mindestens	mindestens
+das Fenster	das Fenster
+der Junge	der Junge
+das Produkt	das Produkt
+selten	selten
+rechnen	mit jdm./etw. rechnen
+französisch	französisch
+das Studium	das Studium
+erleben	etw. (Akk) erleben
+die Höhe	die Höhe
+der Vergleich	der Vergleich
+falsch	falsch
+die Idee	die Idee
+die Luft	die Luft
+das Englisch	das Englisch
+beobachten	jdn./etw. (Akk) beobachten
+das Französisch	das Französisch
+wissenschaftlich	wissenschaftlich
+die Meinung	die Meinung
+leider	leider
+holen	jdm. (Dat) etw. (Akk) holen
+fremd	fremd
+die Natur	die Natur
+wahr	wahr
+das Bett	das Bett
+unterscheiden	etw./jdn. (Akk) von etw./jdm. unterscheiden
+sterben	an etw. (Dat) sterben
+die Wirtschaft	die Wirtschaft
+werfen	etw. (Akk) werfen
+irgendwo	irgendwo
+zumindest	zumindest
+der Spaß	der Spaß
+das Modell	das Modell
+das Geschäft	das Geschäft
+normal	normal
+essen	etw. (Akk) essen
+leisten	sich (Dat) etw. (Akk) leisten
+die Bewegung	die Bewegung
+das Mittel	das Mittel
+der Kunde	der Kunde
+reichen	jdm. (Dat) etw. (Akk) reichen
+das Tier	das Tier
+privat	privat
+tot	tot
+verlangen	etw. (Akk) von jdm. verlangen
+der Mitarbeiter	der Mitarbeiter
+der Tod	der Tod
+das Dorf	das Dorf
+sich freuen	auf/über etw. (Akk) sich freuen
+hängen	etw. (Akk) / (Dat-Position) hängen
+der Bruder	der Bruder
+hoffen	auf etw. (Akk) hoffen
+freuen	jdn. (Akk) freuen
+die Angabe	die Angabe
+die Verfügung	die Verfügung
+der Gast	der Gast
+teilen	etw. (Akk) mit jdm. teilen
+wünschen	jdm. (Dat) etw. (Akk) wünschen
+die Sicherheit	die Sicherheit
+positiv	positiv
+der Dank	der Dank
+vorliegen	vorliegen
+der Kollege	der Kollege
+außer	außer
+fest	fest
+bauen	etw. (Akk) bauen
+Verfügung	Verfügung
+das Gebiet	das Gebiet
+zählen	zu etw. / etw. (Akk) zählen
+der Einsatz	der Einsatz
+der Unterschied	der Unterschied
+die Anwendung	die Anwendung
+ankommen	auf etw. / an etw. ankommen
+bezahlen	etw. (Akk) / jdn. (Akk) bezahlen
+die Vorstellung	die Vorstellung
+der Kontakt	der Kontakt
+sorgen	für jdn./etw. sorgen
+das Fach	das Fach
+zentral	zentral
+die Menge	die Menge
+die Verbindung	die Verbindung
+der Sommer	der Sommer
+stecken	etw. (Akk) in etw. stecken
+dauern	dauern
+beziehen	etw. (Akk) auf jdn./etw. beziehen
+fertig	fertig
+der Anspruch	der Anspruch
+weder	weder
+das Herz	das Herz
+spüren	etw. (Akk) spüren
+statt	statt
+die Antwort	die Antwort
+bitten	jdn. (Akk) um etw. bitten
+die Ausbildung	die Ausbildung
+breit	breit
+hart	hart
+unbedingt	unbedingt
+das Alter	das Alter
+der Kilometer	der Kilometer
+grundsätzlich	grundsätzlich
+erhöhen	etw. (Akk) erhöhen
+der Vertrag	der Vertrag
+die Hilfe	die Hilfe
+der Dollar	der Dollar
+das Verfahren	das Verfahren
+zuerst	zuerst
+das Theater	das Theater
+die Gefahr	die Gefahr
+besuchen	jdn./etw. (Akk) besuchen
+die Kosten	die Kosten
+melden	jdm. (Dat) etw. (Akk) melden
+die Polizei	die Polizei
+der Computer	der Computer
+inner	inner
+künftig	künftig
+hinaus	hinaus
+das Gerät	das Gerät
+vorhanden	vorhanden
+der Oktober	der Oktober
+die Reihe	die Reihe
+historisch	historisch
+der Stoff	der Stoff
+die Mitte	die Mitte
+lieber	lieber
+vorkommen	jdm. (Dat) vorkommen
+aha	aha
+betonen	etw. (Akk) betonen
+das Glück	das Glück
+dennoch	dennoch
+zugleich	zugleich
+sodass	sodass
+die Maßnahme	die Maßnahme
+der Westen	der Westen
+erfüllen	jdm. (Dat) etw. (Akk) erfüllen
+der Patient	der Patient
+zuletzt	zuletzt
+knapp	knapp
+die Ordnung	die Ordnung
+besitzen	etw. (Akk) besitzen
+der Beginn	der Beginn
+das Wochenende	das Wochenende
+der Professor	der Professor
+beteiligen	jdn. (Akk) an etw. beteiligen
+der Osten	der Osten
+aktuell	aktuell
+sich eignen	für etw. / als etw. sich eignen
+derzeit	derzeit
+danke	danke
+die Reise	die Reise
+übrig	übrig
+umfassen	etw. (Akk) umfassen
+indem	indem
+unterstützen	jdn./etw. (Akk) unterstützen
+die Einheit	die Einheit
+schlafen	schlafen
+das Institut	das Institut
+merken	jdm. (Dat) etw. (Akk) / sich (Dat) etw. (Akk) merken
+nochmals	nochmals
+passen	jdm. (Dat) / zu etw. passen
+die Bevölkerung	die Bevölkerung
+die Erde	die Erde
+die Schwester	die Schwester
+richten	etw. (Akk) an jdn. richten
+irgendwas	irgendwas
+die Ebene	die Ebene
+zuvor	zuvor
+die Wahl	die Wahl
+lieb	lieb
+die Bedingung	die Bedingung
+das Lächeln	das Lächeln
+Nähe	Nähe
+die Struktur	die Struktur
+lösen	etw. (Akk) lösen
+das Prinzip	das Prinzip
+das Risiko	das Risiko
+daraus	daraus
+lächeln	jdn. (Akk) an / über etw. lächeln
+beschäftigen	jdn. (Akk) mit etw. beschäftigen
+der Vorteil	der Vorteil
+das Haar	das Haar
+schlimm	schlimm
+miteinander	miteinander
+antworten	jdm. (Dat) auf etw. antworten
+trennen	etw./jdn. (Akk) von jdm./etw. trennen
+der Autor	der Autor
+teilweise	teilweise
+schlimmer	schlimmer
+einstellen	etw. (Akk) einstellen
+deswegen	deswegen
+der Sonntag	der Sonntag
+meistens	meistens
+dunkel	dunkel
+die Größe	die Größe
+die Medien	die Medien
+die Untersuchung	die Untersuchung
+bestätigen	jdm. (Dat) etw. (Akk) bestätigen
+die Veränderung	die Veränderung
+überall	überall
+die Daten	die Daten
+die Organisation	die Organisation
+aufbauen	etw. (Akk) aufbauen
+der Einfluss	der Einfluss
+die Macht	die Macht
+lieben	jdn./etw. (Akk) lieben
+die Wirkung	die Wirkung
+der Montag	der Montag
+die Nähe	die Nähe
+laut	laut
+der Brief	der Brief
+genügen	jdm. (Dat) genügen
+durchführen	etw. (Akk) durchführen
+durchaus	durchaus
+weltweit	weltweit
+verkaufen	jdm. (Dat) etw. (Akk) verkaufen
+drücken	etw. (Akk) drücken
+der Sport	der Sport
+der Augenblick	der Augenblick
+untersuchen	etw./jdn. (Akk) untersuchen
+geboren	geboren
+die Diskussion	die Diskussion
+die Liebe	die Liebe
+menschlich	menschlich
+die Technik	die Technik
+erfolgreich	erfolgreich
+der Versuch	der Versuch
+eingehen	auf etw. eingehen
+andererseits	andererseits
+zahlreich	zahlreich
+erlauben	jdm. (Dat) etw. (Akk) erlauben
+die Methode	die Methode
+der Kreis	der Kreis
+offenbar	offenbar
+die Forderung	die Forderung
+die Rede	die Rede
+blicken	auf etw. (Akk) blicken
+konkret	konkret
+regelmäßig	regelmäßig
+ehemalig	ehemalig
+stets	stets
+versprechen	jdm. (Dat) etw. (Akk) versprechen
+die Tätigkeit	die Tätigkeit
+benutzen	etw. (Akk) benutzen
+entdecken	etw. (Akk) entdecken
+die Krankheit	die Krankheit
+der Eindruck	der Eindruck
+die Voraussetzung	die Voraussetzung
+der Kampf	der Kampf
+jeweilig	jeweilig
+längst	längst
+die Schwierigkeit	die Schwierigkeit
+ausreichen	jdm. (Dat) ausreichen
+treiben	etw. (Akk) treiben
+kalt	kalt
+zwölf	zwölf
+überzeugen	jdn. (Akk) von etw. überzeugen
+behandeln	jdn./etw. (Akk) behandeln
+aktiv	aktiv
+das Schweigen	das Schweigen
+drohen	jdm. (Dat) mit etw. drohen
+der Künstler	der Künstler
+staatlich	staatlich
+die Region	die Region
+lediglich	lediglich
+unmittelbar	unmittelbar
+somit	somit
+drehen	etw. (Akk) drehen
+kosten	jdn. (Akk) etw. (Akk) kosten
+Schweizer	Schweizer
+erforderlich	erforderlich
+das Konzept	das Konzept
+der Mund	der Mund
+Franken	Franken
+heutig	heutig
+der Wunsch	der Wunsch
+unabhängig	unabhängig
+kulturell	kulturell
+klingen	nach etw. klingen
+der Artikel	der Artikel
+die Reaktion	die Reaktion
+schweigen	schweigen
+reagieren	auf etw. (Akk) reagieren
+bewusst	bewusst
+ruhig	ruhig
+die Linie	die Linie
+immerhin	immerhin
+der Rücken	der Rücken
+das Kapitel	das Kapitel
+klassisch	klassisch
+die Literatur	die Literatur
+der Beitrag	der Beitrag
+darunter	darunter
+die Aussage	die Aussage
+der Bürger	der Bürger
+heiß	heiß
+die Wand	die Wand
+der Jugendliche, die Jugendliche	der Jugendliche, die Jugendliche
+der Gegensatz	der Gegensatz
+finanziell	finanziell
+der Inhalt	der Inhalt
+fliegen	fliegen
+die Farbe	die Farbe
+der Himmel	der Himmel
+überraschen	jdn. (Akk) mit etw. überraschen
+betreiben	etw. (Akk) betreiben
+die Bibliothek	die Bibliothek
+weiterhin	weiterhin
+Berliner	Berliner
+die Zelle	die Zelle
+weg	weg
+die Kenntnis	die Kenntnis
+der Ansatz	der Ansatz
+genauso	genauso
+das Papier	das Papier
+die Erinnerung	die Erinnerung
+echt	echt
+das Maß	das Maß
+heben	etw. (Akk) heben
+teuer	teuer
+neun	neun
+schicken	jdm. (Dat) etw. (Akk) schicken
+der Kurs	der Kurs
+der Umstand	der Umstand
+die Sekunde	die Sekunde
+ermöglichen	jdm. (Dat) etw. (Akk) ermöglichen
+vertreten	jdn. (Akk) vertreten
+die Sonne	die Sonne
+irgendein	irgendein
+stoßen	gegen etw. / auf etw. stoßen
+das Bein	das Bein
+herstellen	etw. (Akk) herstellen
+vorne, vorn	vorne, vorn
+leiden	an etw. (Dat) / unter etw. (Dat) leiden
+wechseln	etw. (Akk) wechseln
+erneut	erneut
+toll	toll
+singen	jdm. (Dat) etw. (Akk) singen
+hundert	hundert
+nötig	nötig
+verhindern	etw. (Akk) verhindern
+liefern	jdm. (Dat) etw. (Akk) liefern
+die Grundlage	die Grundlage
+benötigen	etw. (Akk) benötigen
+die Wirklichkeit	die Wirklichkeit
+die Küche	die Küche
+die Wissenschaft	die Wissenschaft
+die Hälfte	die Hälfte
+wenigstens	wenigstens
+überlegen	sich (Dat) etw. (Akk) überlegen
+reisen	reisen
+zurzeit	zurzeit
+stammen	aus etw. / von jdm. stammen
+der Garten	der Garten
+zahlen	etw. (Akk) an jdn. zahlen
+der Druck	der Druck
+der Zustand	der Zustand
+abschließen	etw. (Akk) abschließen
+das Meer	das Meer
+der Zeitpunkt	der Zeitpunkt
+circa, zirka (ca.)	circa, zirka (ca.)
+kochen	jdm. (Dat) etw. (Akk) kochen
+der Plan	der Plan
+das Essen	das Essen
+der Hinweis	der Hinweis
+aufgeben	etw. (Akk) aufgeben
+individuell	individuell
+der Auftrag	der Auftrag
+der Baum	der Baum
+greifen	nach etw. greifen
+der Dienst	der Dienst
+der Gegenstand	der Gegenstand
+gesellschaftlich	gesellschaftlich
+die Freude	die Freude
+üblich	üblich
+leer	leer
+verzichten	auf etw. (Akk) verzichten
+irgendwelche	irgendwelche
+absolut	absolut
+täglich	täglich
+entweder	entweder
+die Gemeinde	die Gemeinde
+mittlerweile	mittlerweile
+betragen	betragen
+erwähnen	etw./jdn. (Akk) gegenüber jdm. erwähnen
+wiederum	wiederum
+der November	der November
+die Position	die Position
+das Netz	das Netz
+die Forschung	die Forschung
+soweit	soweit
+der Wald	der Wald
+rasch	rasch
+einrichten	etw. (Akk) einrichten
+die Bundesrepublik	die Bundesrepublik
+die Praxis	die Praxis
+angeben	etw. (Akk) angeben
+zwanzig	zwanzig
+blau	blau
+ungefähr	ungefähr
+national	national
+verfügen	über etw. (Akk) verfügen
+festhalten	jdn./etw. (Akk) festhalten
+sicherlich	sicherlich
+geraten	in etw. (Akk) geraten
+die Haut	die Haut
+das Glas	das Glas
+begründen	etw. (Akk) begründen
+die Maschine	die Maschine
+die Nummer	die Nummer
+vorbereiten	etw. (Akk) / sich auf etw. vorbereiten
+der Finger	der Finger
+wiederholen	etw. (Akk) wiederholen
+verantwortlich	verantwortlich
+das Russisch	das Russisch
+der Titel	der Titel
+russisch	russisch
+der Roman	der Roman
+der Schluss	der Schluss
+draußen	draußen
+die Sicht	die Sicht
+der Ausdruck	der Ausdruck
+der Politiker	der Politiker
+vielmehr	vielmehr
+die Theorie	die Theorie
+das Team	das Team
+die Umwelt	die Umwelt
+der Verein	der Verein
+die Freundin	die Freundin
+der Haushalt	der Haushalt
+schützen	jdn./etw. (Akk) vor jdm./etw. schützen
+stören	jdn. (Akk) bei etw. stören
+der Dienstag	der Dienstag
+typisch	typisch
+das Material	das Material
+die Tatsache	die Tatsache
+der Wagen	der Wagen
+die Unterstützung	die Unterstützung
+die Schulter	die Schulter
+berücksichtigen	etw./jdn. (Akk) berücksichtigen
+bislang	bislang
+zuständig	zuständig
+der Hund	der Hund
+erheblich	erheblich
+irgendwann	irgendwann
+feiern	etw. (Akk) feiern
+die Umgebung	die Umgebung
+der Rest	der Rest
+die Produktion	die Produktion
+die Sorge	die Sorge
+der Soldat	der Soldat
+vermitteln	jdm. (Dat) etw. (Akk) vermitteln
+das Fernsehen	das Fernsehen
+okay	okay
+ernst	ernst
+die Ruhe	die Ruhe
+das Volk	das Volk
+das Zeichen	das Zeichen
+der Schaden	der Schaden
+zufrieden	zufrieden
+behaupten	etw. (Akk) behaupten
+herrschen	über jdn. (Akk) herrschen
+der Mittwoch	der Mittwoch
+die Energie	die Energie
+der Zweck	der Zweck
+der Angriff	der Angriff
+der Grad, das Grad	der Grad, das Grad
+schieben	etw. (Akk) schieben
+die Öffentlichkeit	die Öffentlichkeit
+gründen	etw. (Akk) gründen
+der Schutz	der Schutz
+ausschließen	jdn./etw. (Akk) ausschließen
+erheben	etw. (Akk) erheben
+der Anteil	der Anteil
+der Job	der Job
+der Besuch	der Besuch
+der Wind	der Wind
+der Antrag	der Antrag
+die Erklärung	die Erklärung
+übrigens	übrigens
+diskutieren	mit jdm. über etw. diskutieren
+der Beschäftigte, die Beschäftigte	der Beschäftigte, die Beschäftigte
+der Unterricht	der Unterricht
+das Amt	das Amt
+auftauchen	auftauchen
+anwenden	etw. (Akk) anwenden
+verfolgen	jdn./etw. (Akk) verfolgen
+der Gang	der Gang
+beeinflussen	jdn./etw. (Akk) beeinflussen
+funktionieren	funktionieren
+das Feld	das Feld
+außerhalb	außerhalb
+die Einrichtung	die Einrichtung
+der Lauf	der Lauf
+dick	dick
+das Zentrum	das Zentrum
+ablehnen	etw. (Akk) ablehnen
+der Anschlag	der Anschlag
+einfallen	jdm. (Dat) einfallen
+warm	warm
+das Ausland	das Ausland
+zurückkommen	auf etw. zurückkommen
+zwingen	jdn. (Akk) zu etw. zwingen
+fördern	jdn./etw. (Akk) fördern
+existieren	existieren
+entfernen	etw. (Akk) aus etw. entfernen
+traditionell	traditionell
+wenden	etw. (Akk) / sich an jdn. wenden
+empfinden	etw. (Akk) für jdn. empfinden
+die Erkenntnis	die Erkenntnis
+fassen	etw. (Akk) fassen
+die Spur	die Spur
+die Behandlung	die Behandlung
+das Hotel	das Hotel
+ansprechen	jdn. (Akk) auf etw. ansprechen
+schwach	schwach
+der Fehler	der Fehler
+das Publikum	das Publikum
+krank	krank
+angesichts	angesichts
+niedrig	niedrig
+sichern	jdm. (Dat) etw. (Akk) sichern
+die Analyse	die Analyse
+beachten	etw. (Akk) beachten
+die Hochschule	die Hochschule
+link	link
+die Studie	die Studie
+bereit	bereit
+schneiden	etw. (Akk) schneiden
+der Vorsitzende, die Vorsitzende	der Vorsitzende, die Vorsitzende
+die Freizeit	die Freizeit
+der Partner	der Partner
+die Freiheit	die Freiheit
+der Faktor	der Faktor
+die Kritik	die Kritik
+sich kümmern	um jdn./etw. sich kümmern
+die See	die See
+informieren	jdn. (Akk) über etw. informieren
+anschließend	anschließend
+sinken	sinken
+ankündigen	jdm. (Dat) etw. (Akk) ankündigen
+negativ	negativ
+der Berg	der Berg
+prägen	jdn./etw. (Akk) prägen
+die GmbH	die GmbH
+organisieren	etw. (Akk) organisieren
+nicken	nicken
+der Typ	der Typ
+der See	der See
+vermeiden	etw. (Akk) vermeiden
+leise	leise
+gesetzlich	gesetzlich
+die Gegend	die Gegend
+das Ereignis	das Ereignis
+der Arbeitsplatz	der Arbeitsplatz
+das Objekt	das Objekt
+der Sprecher	der Sprecher
+sowieso	sowieso
+österreichisch	österreichisch
+die Verantwortung	die Verantwortung
+verletzen	jdn./etw. (Akk) verletzen
+die Fähigkeit	die Fähigkeit
+beruflich	beruflich
+heraus, raus	heraus, raus
+empfehlen	jdm. (Dat) etw. (Akk) empfehlen
+die Aufnahme	die Aufnahme
+aufstehen	aufstehen
+verstärken	etw. (Akk) verstärken
+per	per
+das Opfer	das Opfer
+die Wahrheit	die Wahrheit
+der Urlaub	der Urlaub
+einladen	jdn. (Akk) zu etw. einladen
+einerseits	einerseits
+glücklich	glücklich
+vorsehen	etw. (Akk) für jdn. vorsehen
+das Gebäude	das Gebäude
+eröffnen	jdm. (Dat) etw. (Akk) eröffnen
+begreifen	etw. (Akk) begreifen
+die Karte	die Karte
+das Jahrzehnt	das Jahrzehnt
+die Prüfung	die Prüfung
+die Regelung	die Regelung
+sozusagen	sozusagen
+offiziell	offiziell
+beschließen	etw. (Akk) beschließen
+der Gesellschafter	der Gesellschafter
+der Bezug	der Bezug
+leiten	etw. (Akk) leiten
+die Ausstellung	die Ausstellung
+beschränken	etw. (Akk) auf etw. beschränken
+konzentrieren	sich auf etw. (Akk) konzentrieren
+streng	streng
+die Kontrolle	die Kontrolle
+der Norden	der Norden
+selbstverständlich	selbstverständlich
+die Hoffnung	die Hoffnung
+die Bitte	die Bitte
+abhängen	von jdm./etw. abhängen
+schätzen	jdn./etw. (Akk) schätzen
+prüfen	jdn./etw. (Akk) prüfen
+das Schiff	das Schiff
+anlegen	etw. (Akk) anlegen
+sich unterhalten	mit jdm. über etw. sich unterhalten
+sich bemühen	um jdn./etw. sich bemühen
+das Ohr	das Ohr
+ober	ober
+komplex	komplex
+die Tat	die Tat
+schreien	schreien
+der Gewinn	der Gewinn
+verpflichten	jdn. (Akk) zu etw. verpflichten
+das Band	das Band
+festlegen	etw. (Akk) festlegen
+die Einstellung	die Einstellung
+der Bericht	der Bericht
+brechen	etw. (Akk) / jdm. (Dat) etw. (Akk) brechen
+der Band	der Band
+definieren	etw. (Akk) definieren
+der König	der König
+der Mai	der Mai
+zurückkehren	zurückkehren
+orientieren	sich an jdm./etw. orientieren
+der Sieg	der Sieg
+weitergehen	weitergehen
+beitragen	zu etw. beitragen
+die Band	die Band
+das Gericht	das Gericht
+dahin	dahin
+insofern	insofern
+der Bund	der Bund
+der Traum	der Traum
+einnehmen	etw. (Akk) einnehmen
+die Vergangenheit	die Vergangenheit
+der Direktor	der Direktor
+fein	fein
+ausländisch	ausländisch
+der Besucher	der Besucher
+der Abschnitt	der Abschnitt
+die Union	die Union
+erstmals	erstmals
+die Geographie	die Geographie
+der Hintergrund	der Hintergrund
+sinnvoll	sinnvoll
+ursprünglich	ursprünglich
+der Rand	der Rand
+der Amerikaner	der Amerikaner
+ausschließlich	ausschließlich
+übertragen	jdm. (Dat) etw. (Akk) übertragen
+Vergangenheit	Vergangenheit
+präsentieren	jdm. (Dat) etw. (Akk) präsentieren
+hingegen	hingegen
+der Verlust	der Verlust
+abgeben	etw. (Akk) bei jdm. abgeben
+tätig	tätig
+mithilfe	mithilfe
+bisherig	bisherig
+unterwegs	unterwegs
+der Bauer	der Bauer
+die Qualität	die Qualität
+der Freitag	der Freitag
+derselbe, dieselbe, dasselbe	derselbe, dieselbe, dasselbe
+die Ehe	die Ehe
+der Winter	der Winter
+geistig	geistig
+abnehmen	jdm. (Dat) etw. (Akk) abnehmen
+die Ursache	die Ursache
+der Zuschauer	der Zuschauer
+diesmal	diesmal
+anschauen	jdn./etw. (Akk) / sich (Dat) etw. (Akk) anschauen
+die Anzahl	die Anzahl
+jährlich	jährlich
+verteilen	etw. (Akk) an jdn. verteilen
+füllen	etw. (Akk) mit etw. füllen
+böse	böse
+bemerken	etw./jdn. (Akk) bemerken
+die Aktiengesellschaft, die AG	die Aktiengesellschaft, die AG
+die Pflanze	die Pflanze
+der Samstag	der Samstag
+die Störung	die Störung
+sich vornehmen	etw. (Akk) sich vornehmen
+die Generation	die Generation
+die Eigenschaft	die Eigenschaft
+aufweisen	etw. (Akk) aufweisen
+der Vorschlag	der Vorschlag
+der Januar	der Januar
+messen	etw. (Akk) messen
+intensiv	intensiv
+heiraten	jdn. (Akk) heiraten
+hereinkommen, reinkommen	hereinkommen, reinkommen
+der Vertreter	der Vertreter
+derjenige, diejenige, dasjenige	derjenige, diejenige, dasjenige
+die Bildung	die Bildung
+weitgehend	weitgehend
+erzielen	etw. (Akk) erzielen
+der Zentimeter	der Zentimeter
+die Nachricht	die Nachricht
+nachdenken	über jdn./etw. nachdenken
+frisch	frisch
+die Insel	die Insel
+das Instrument	das Instrument
+verbessern	etw. (Akk) verbessern
+der Abstand	der Abstand
+der Leiter	der Leiter
+der Geist	der Geist
+heftig	heftig
+das Semester	das Semester
+der Stand	der Stand
+auslösen	etw. (Akk) auslösen
+der Dezember	der Dezember
+der Abschluss	der Abschluss
+sammeln	etw. (Akk) sammeln
+durchsetzen	etw. (Akk) durchsetzen
+gefährlich	gefährlich
+los	los
+nachher	nachher
+formulieren	etw. (Akk) formulieren
+vollständig	vollständig
+die Tradition	die Tradition
+kämpfen	für/gegen etw./jdn. kämpfen
+das Interview	das Interview
+außen	außen
+militärisch	militärisch
+das Blatt	das Blatt
+solange	solange
+automatisch	automatisch
+der Donnerstag	der Donnerstag
+die Leiter	die Leiter
+ersetzen	jdn./etw. (Akk) durch jdn./etw. ersetzen
+wieso	wieso
+die Basis	die Basis
+berühmt	berühmt
+die Bühne	die Bühne
+ausmachen	etw. (Akk) / jdm. (Dat) etw. ausmachen
+das Museum	das Museum
+vorbei	vorbei
+falls	falls
+offensichtlich	offensichtlich
+das Element	das Element
+drängen	jdn. (Akk) zu etw. drängen
+theoretisch	theoretisch
+die Mama	die Mama
+verbringen	etw. (Zeit) (Akk) verbringen
+warnen	jdn. (Akk) vor etw. (Dat) warnen
+scharf	scharf
+die Nutzung	die Nutzung
+die Dame	die Dame
+die Behörde	die Behörde
+die Kommunikation	die Kommunikation
+die Anlage	die Anlage
+eindeutig	eindeutig
+der Hof	der Hof
+die Gelegenheit	die Gelegenheit
+der Terror	der Terror
+das Verständnis	das Verständnis
+anrufen	jdn. (Akk) anrufen
+der Bürgermeister	der Bürgermeister
+erfassen	etw. (Akk) erfassen
+eins	eins
+die Ecke	die Ecke
+auseinander	auseinander
+gestalten	etw. (Akk) gestalten
+die Auseinandersetzung	die Auseinandersetzung
+regeln	etw. (Akk) regeln
+hinweisen	jdn. (Akk) auf etw. (Akk) hinweisen
+zulassen	etw. (Akk) zulassen
+binden	etw. (Akk) an etw. binden
+die Ansicht	die Ansicht
+anziehen	etw. (Akk) / sich (Akk) anziehen anziehen
+der Herbst	der Herbst
+die Definition	die Definition
+hallo	hallo
+das Kriterium	das Kriterium
+die Bahn	die Bahn
+beenden	etw. (Akk) beenden
+der Jude	der Jude
+die Zusammenarbeit	die Zusammenarbeit
+aufhören	mit etw. aufhören
+die Masse	die Masse
+hell	hell
+die Veranstaltung	die Veranstaltung
+die Nation	die Nation
+britisch	britisch
+still	still
+scheitern	an etw. (Dat) scheitern
+teilnehmen	an etw. (Dat) teilnehmen
+das Hobby	das Hobby
+reduzieren	etw. (Akk) auf etw. reduzieren
+elf	elf
+der Bau	der Bau
+die Änderung	die Änderung
+äußern	etw. (Akk) äußern
+hinten	hinten
+die Ausnahme	die Ausnahme
+angehen	jdn. (Akk) angehen
+das Flugzeug	das Flugzeug
+der Stein	der Stein
+das Foto	das Foto
+die Phase	die Phase
+der Ton	der Ton
+froh	froh
+einführen	etw. (Akk) in etw. einführen
+italienisch	italienisch
+das Italienisch	das Italienisch
+die Landschaft	die Landschaft
+gelangen	zu etw. gelangen
+der Konflikt	der Konflikt
+begleiten	jdn. (Akk) begleiten
+versichern	jdn./etw. (Akk) versichern
+die Lust	die Lust
+die Mehrheit	die Mehrheit
+kritisch	kritisch
+die Leitung	die Leitung
+der Kandidat	der Kandidat
+das BGB	das BGB
+der Franken	der Franken
+links	links
+der Kaffee	der Kaffee
+die Aktivität	die Aktivität
+das Fest	das Fest
+das Dach	das Dach
+besetzen	etw. (Akk) besetzen
+die Rechnung	die Rechnung
+das Schloss	das Schloss
+pflegen	jdn./etw. (Akk) pflegen
+der Nachmittag	der Nachmittag
+begrenzen	etw. (Akk) auf etw. begrenzen
+riesig	riesig
+akzeptieren	etw. (Akk) akzeptieren
+produzieren	etw. (Akk) produzieren
+reißen	etw. (Akk) reißen
+erweisen	sich als etw. erweisen
+die Mannschaft	die Mannschaft
+der Stern	der Stern
+verweisen	jdn. (Akk) auf etw. verweisen
+die Runde	die Runde
+günstig	günstig
+fürchten	etw./jdn. (Akk) / sich vor jdm. fürchten
+der Laden	der Laden
+hauptsächlich	hauptsächlich
+der Experte	der Experte
+rechts	rechts
+springen	springen
+der Meister	der Meister
+möglicherweise	möglicherweise
+bestellen	jdm. (Dat) etw. (Akk) bestellen
+dreißig	dreißig
+die Mauer	die Mauer
+die Gestalt	die Gestalt
+dicht	dicht
+erweitern	etw. (Akk) erweitern
+reich	reich
+die Figur	die Figur
+überprüfen	etw. (Akk) überprüfen
+ermitteln	etw. (Akk) ermitteln
+mittler	mittler
+starten	mit etw. / etw. (Akk) starten
+gegenwärtig	gegenwärtig
+das Büro	das Büro
+nett	nett
+der Frieden	der Frieden
+der Umgang	der Umgang
+berechnen	jdm. (Dat) etw. (Akk) berechnen
+zerstören	etw. (Akk) zerstören
+zeitlich	zeitlich
+aufstellen	etw. (Akk) aufstellen
+die Industrie	die Industrie
+kritisieren	jdn./etw. (Akk) kritisieren
+ansonsten	ansonsten
+die Branche	die Branche
+der Zugang	der Zugang
+die Stellung	die Stellung
+ablaufen	ablaufen
+der Vorgang	der Vorgang
+niemals	niemals
+die Darstellung	die Darstellung
+das Wachstum	das Wachstum
+die Dauer	die Dauer
+üben	etw. (Akk) üben
+die Szene	die Szene
+das Lager	das Lager
+die Strecke	die Strecke
+das Blut	das Blut
+eintreten	für jdn./etw. / in etw. (Akk) eintreten
+erwerben	etw. (Akk) erwerben
+der Schatten	der Schatten
+die Lehre	die Lehre
+die Gewalt	die Gewalt
+der Rat	der Rat
+die Institution	die Institution
+zurückgehen	auf etw. zurückgehen
+ausdrücken	etw. (Akk) ausdrücken
+anschließen	etw. (Akk) an etw. / sich jdm. (Dat) anschließen
+die Spitze	die Spitze
+der Konzern	der Konzern
+die Katze	die Katze
+ergänzen	etw. (Akk) ergänzen
+online	online
+das Pferd	das Pferd
+spezifisch	spezifisch
+der Fußball	der Fußball
+die Weltmeisterschaft	die Weltmeisterschaft
+streichen	etw. (Akk) streichen
+schießen	auf jdn./etw. schießen
+gemäß	gemäß
+die Konsequenz	die Konsequenz
+der Stuhl	der Stuhl
+das Feuer	das Feuer
+westlich	westlich
+grau	grau
+bedürfen	jds./etw. (Gen) bedürfen
+der Ausländer	der Ausländer
+gesund	gesund
+die Aktion	die Aktion
+das Gymnasium	das Gymnasium
+der Verband	der Verband
+entlang	entlang
+der Juli	der Juli
+elektrisch	elektrisch
+das Tor	das Tor
+freilich	freilich
+behalten	etw. (Akk) behalten
+die Nase	die Nase
+die Ausgabe	die Ausgabe
+der Anlass	der Anlass
+der Süden	der Süden
+die Aktie	die Aktie
+der Trainer	der Trainer
+freundlich	freundlich
+das Telefon	das Telefon
+die Führung	die Führung
+belegen	etw. (Akk) belegen
+der Club	der Club
+der Nachbar	der Nachbar
+egal	egal
+total	total
+der Terrorismus	der Terrorismus
+umgehen	mit jdm./etw. / etw. (Akk) umgehen
+extrem	extrem
+die Stufe	die Stufe
+das Bundesland	das Bundesland
+der Fluss	der Fluss
+chemisch	chemisch
+herauskommen, rauskommen	herauskommen, rauskommen
+die Geschwindigkeit	die Geschwindigkeit
+lauten	lauten
+das Gut	das Gut
+stürzen	stürzen
+absehen	von etw. absehen
+betreten	etw. (Akk) betreten
+der Zweifel	der Zweifel
+überleben	etw. (Akk) überleben
+auffallen	jdm. (Dat) auffallen
+verlaufen	verlaufen
+hören	etw./jdn. (Akk) hören
+der Effekt	der Effekt
+die Medizin	die Medizin
+äußerst	äußerst
+vermuten	etw. (Akk) vermuten
+die Software	die Software
+beweisen	jdm. (Dat) etw. (Akk) beweisen
+die Belastung	die Belastung
+zukommen	auf jdn. (Akk) zukommen
+einst	einst
+elektronisch	elektronisch
+abgesehen	abgesehen
+unbekannt	unbekannt
+die Vorschrift	die Vorschrift
+der Umfang	der Umfang
+der Bus	der Bus
+ausüben	etw. (Akk) ausüben
+die Anforderung	die Anforderung
+realisieren	etw. (Akk) realisieren
+erzeugen	etw. (Akk) erzeugen
+brennen	brennen
+biologisch	biologisch
+abhängig	abhängig
+endgültig	endgültig
+stolz	stolz
+künstlerisch	künstlerisch
+sichtbar	sichtbar
+die Messe	die Messe
+verbergen	etw. (Akk) vor jdm. verbergen
+ohnehin	ohnehin
+sobald	sobald
+die Kommission	die Kommission
+das Fahrrad	das Fahrrad
+das Bad	das Bad
+der Mangel	der Mangel
+landen	landen
+allzu	allzu
+der Richter	der Richter
+begegnen	jdm. (Dat) begegnen
+der Anbieter	der Anbieter
+Wiener	Wiener
+tausend	tausend
+der Terrorist	der Terrorist
+verbreiten	etw. (Akk) verbreiten
+das Urteil	das Urteil
+retten	jdn./etw. (Akk) vor jdm./etw. retten
+das Krankenhaus	das Krankenhaus
+senken	etw. (Akk) senken
+der Schmerz	der Schmerz
+umgekehrt	umgekehrt
+die Schuld	die Schuld
+fünfzig	fünfzig
+die Jugend	die Jugend
+das Fleisch	das Fleisch
+der Juni	der Juni
+schuld	schuld
+packen	etw. (Akk) packen
+die Stimmung	die Stimmung
+der Wein	der Wein
+selbstständig	selbstständig
+die Welle	die Welle
+doppelt	doppelt
+schenken	jdm. (Dat) etw. (Akk) schenken
+die Tasche	die Tasche
+die Decke	die Decke
+erfordern	etw. (Akk) erfordern
+jüdisch	jüdisch
+erschrecken	jdn. (Akk) / vor jdm. (Dat) erschrecken
+der Fisch	der Fisch
+der Wettbewerb	der Wettbewerb
+sämtlich	sämtlich
+die Tante	die Tante
+vermutlich	vermutlich
+die Temperatur	die Temperatur
+zweimal	zweimal
+unterrichten	jdn. (Akk) in etw. unterrichten
+arbeitslos	arbeitslos
+der Leser	der Leser
+die Auswirkung	die Auswirkung
+das Bedürfnis	das Bedürfnis
+das Wetter	das Wetter
+die Ware	die Ware
+beurteilen	jdn./etw. (Akk) beurteilen
+erleichtern	jdm. (Dat) etw. (Akk) erleichtern
+religiös	religiös
+schriftlich	schriftlich
+mächtig	mächtig
+zurückziehen	etw. (Akk) / sich zurückziehen
+die Alternative	die Alternative
+anerkennen	etw. (Akk) anerkennen
+die Haltung	die Haltung
+ökonomisch	ökonomisch
+die Waffe	die Waffe
+genießen	etw. (Akk) genießen
+rechtlich	rechtlich
+wahrnehmen	etw./jdn. (Akk) wahrnehmen
+die Ahnung	die Ahnung
+angeblich	angeblich
+die Quelle	die Quelle
+belasten	jdn./etw. (Akk) belasten
+der Manager	der Manager
+nachweisen	jdm. (Dat) etw. (Akk) nachweisen
+das Loch	das Loch
+kräftig	kräftig
+das Kleid	das Kleid
+anhand	anhand
+fließen	fließen
+damalig	damalig
+der Regen	der Regen
+der Spieler	der Spieler
+die Brust	die Brust
+billig	billig
+die Religion	die Religion
+kontrollieren	jdn./etw. (Akk) kontrollieren
+die Länge	die Länge
+die Koalition	die Koalition
+daneben	daneben
+geographisch	geographisch
+die Einführung	die Einführung
+die Förderung	die Förderung
+die Fahrt	die Fahrt
+bunt	bunt
+wild	wild
+dringend	dringend
+der Wissenschaftler	der Wissenschaftler
+woher	woher
+der Vorwurf	der Vorwurf
+der April	der April
+verursachen	etw. (Akk) verursachen
+das Bier	das Bier
+die Summe	die Summe
+der Tourist	der Tourist
+die Bundesregierung	die Bundesregierung
+die Verwendung	die Verwendung
+der Strom	der Strom
+der Test	der Test
+zurück	zurück
+aussprechen	etw. (Akk) aussprechen
+bedienen	jdn./etw. (Akk) / sich (Gen) bedienen
+vorschlagen	jdm. (Dat) etw. (Akk) vorschlagen
+unterbrechen	jdn./etw. (Akk) unterbrechen
+vertrauen	jdm. (Dat) vertrauen
+das Vertrauen	das Vertrauen
+beherrschen	etw. (Akk) beherrschen
+der Umsatz	der Umsatz
+der Termin	der Termin
+die Realität	die Realität
+das Leid	das Leid
+die Landwirtschaft	die Landwirtschaft
+die Krise	die Krise
+die Pause	die Pause
+das Phänomen	das Phänomen
+leid	leid
+leuchten	leuchten
+die Suche	die Suche
+regional	regional
+das Parlament	das Parlament
+freiwillig	freiwillig
+die Perspektive	die Perspektive
+mitnehmen	jdn./etw. (Akk) mitnehmen
+das Merkmal	das Merkmal
+der März	der März
+das Lied	das Lied
+rücken	etw. (Akk) rücken
+das Konzert	das Konzert
+heilig	heilig
+ideal	ideal
+mitten	mitten
+mittels	mittels
+einschränken	etw. (Akk) einschränken
+die Botschaft	die Botschaft
+davor	davor
+das Brot	das Brot
+verabschieden	jdn. (Akk) / sich von jdm. verabschieden
+ausrichten	etw. (Akk) an etw. ausrichten
+zusammenfassen	etw. (Akk) zusammenfassen
+drüben	drüben
+angenehm	angenehm
+töten	jdn./etw. (Akk) töten
+der Fortschritt	der Fortschritt
+die Formel	die Formel
+überwiegend	überwiegend
+der Weltkrieg	der Weltkrieg
+vorlegen	jdm. (Dat) etw. (Akk) vorlegen
+unmöglich	unmöglich
+christlich	christlich
+bedeutend	bedeutend
+eventuell	eventuell
+der Aufbau	der Aufbau
+der Arbeitgeber	der Arbeitgeber
+der August	der August
+die Flasche	die Flasche
+bedingen	etw. (Akk) bedingen
+die Bestimmung	die Bestimmung
+verbieten	jdm. (Dat) etw. (Akk) verbieten
+die Pflicht	die Pflicht
+der Teilnehmer	der Teilnehmer
+waschen	etw./jdn. (Akk) / sich (Dat/Akk) waschen
+der Wille	der Wille
+aufmerksam	aufmerksam
+die Nachfrage	die Nachfrage
+ausbilden	jdn. (Akk) ausbilden
+die Mühe	die Mühe
+fortsetzen	etw. (Akk) fortsetzen
+klappen	klappen
+der Studiengang	der Studiengang
+starren	auf jdn./etw. (Akk) starren
+medizinisch	medizinisch
+angemessen	angemessen
+anhalten	jdn./etw. (Akk) anhalten
+die Debatte	die Debatte
+beantworten	jdm. (Dat) etw. (Akk) beantworten
+integrieren	jdn./etw. (Akk) in etw. integrieren
+sonstig	sonstig
+der Gegner	der Gegner
+die Weile	die Weile
+global	global
+das Kilogramm	das Kilogramm
+mitbringen	jdm. (Dat) etw. (Akk) mitbringen
+die Hauptstadt	die Hauptstadt
+sprachlich	sprachlich
+unternehmen	etw. (Akk) unternehmen
+der Geburtstag	der Geburtstag
+die Gegenwart	die Gegenwart
+die Fremdsprache	die Fremdsprache
+körperlich	körperlich
+räumlich	räumlich
+zeichnen	etw. (Akk) zeichnen
+die Adresse	die Adresse
+einkaufen	etw. (Akk) einkaufen
+keineswegs	keineswegs
+dünn	dünn
+beruhigen	jdn. (Akk) beruhigen
+verstecken	etw. (Akk) vor jdm. verstecken
+auflösen	etw. (Akk) auflösen
+anstreben	etw. (Akk) anstreben
+die Verwaltung	die Verwaltung
+hinauf	hinauf
+die Heimat	die Heimat
+derartig	derartig
+der Käufer	der Käufer
+hingehen	hingehen
+die Konkurrenz	die Konkurrenz
+die Hinsicht	die Hinsicht
+das Kino	das Kino
+der Hals	der Hals
+der Ablauf	der Ablauf
+der Betrag	der Betrag
+gelb	gelb
+ausführen	etw. (Akk) ausführen
+der Schwerpunkt	der Schwerpunkt
+schmal	schmal
+vorsichtig	vorsichtig
+der Kauf	der Kauf
+erläutern	jdm. (Dat) etw. (Akk) erläutern
+fügen	etw. (Akk) in etw. fügen
+entfernt	entfernt
+vereinbaren	etw. (Akk) mit jdm. vereinbaren
+gucken, kucken	gucken, kucken
+die Mathematik	die Mathematik
+wohin	wohin
+verraten	jdm. (Dat) etw. (Akk) / jdn. (Akk) verraten
+mitteilen	jdm. (Dat) etw. (Akk) mitteilen
+arabisch	arabisch
+weich	weich
+der Streit	der Streit
+schwimmen	schwimmen
+die Verhandlung	die Verhandlung
+die Schicht	die Schicht
+malen	jdm. (Dat) etw. (Akk) malen
+die Gemeinschaft	die Gemeinschaft
+ehrlich	ehrlich
+das Gegenteil	das Gegenteil
+die Platte	die Platte
+der Minister	der Minister
+der Nachteil	der Nachteil
+das Management	das Management
+der Millimeter	der Millimeter
+betreuen	jdn./etw. (Akk) betreuen
+der Sitz	der Sitz
+deuten	auf etw. (Akk) deuten
+empirisch	empirisch
+enden	mit etw. enden
+ewig	ewig
+der Erwachsene, die Erwachsene	der Erwachsene, die Erwachsene
+der Kanzler	der Kanzler
+probieren	etw. (Akk) probieren
+der Fahrer	der Fahrer
+höchstens	höchstens
+der Handel	der Handel
+das Drittel	das Drittel
+der Arbeitnehmer	der Arbeitnehmer
+seitdem	seitdem
+begeistern	jdn. (Akk) für etw. begeistern
+die Gewerkschaft	die Gewerkschaft
+spanisch	spanisch
+weshalb	weshalb
+übersetzen	etw. (Akk) in etw. übersetzen
+anzeigen	jdn./etw. (Akk) anzeigen
+der Beamte, die Beamte	der Beamte, die Beamte
+arm	arm
+trocken	trocken
+auffordern	jdn. (Akk) zu etw. auffordern
+steuern	etw. (Akk) steuern
+der Verdacht	der Verdacht
+vielfältig	vielfältig
+der Start	der Start
+der Vogel	der Vogel
+umsetzen	etw. (Akk) umsetzen
+der Widerstand	der Widerstand
+unheimlich	unheimlich
+auswählen	etw./jdn. (Akk) auswählen
+sparen	etw. (Akk) sparen
+wunderbar	wunderbar
+traurig	traurig
+der Tourismus	der Tourismus
+die Tabelle	die Tabelle
+weinen	weinen
+wagen	etw. (Akk) wagen
+das Spanisch	das Spanisch
+umdrehen	etw. (Akk) / sich umdrehen
+gegenseitig	gegenseitig
+entsprechend	entsprechend
+gewaltig	gewaltig
+das Steuer	das Steuer
+grundlegend	grundlegend
+eintragen	etw. (Akk) in etw. eintragen
+türkisch	türkisch
+begrüßen	jdn. (Akk) begrüßen
+der Polizist	der Polizist
+der Schriftsteller	der Schriftsteller
+sportlich	sportlich
+normalerweise	normalerweise
+verheiraten	jdn. (Akk) mit jdm. verheiraten
+die Investition	die Investition
+enttäuschen	jdn. (Akk) enttäuschen
+die Planung	die Planung
+der Bundestag	der Bundestag
+die Therapie	die Therapie
+stützen	etw. (Akk) / sich auf etw. stützen
+die Überlegung	die Überlegung
+träumen	von jdm./etw. träumen
+die Steuer	die Steuer
+die Stärke	die Stärke
+achten	auf jdn./etw. (Akk) achten
+die Einnahme	die Einnahme
+das Bewusstsein	das Bewusstsein
+die Verletzung	die Verletzung
+veröffentlichen	etw. (Akk) veröffentlichen
+der Abgeordnete, die Abgeordnete	der Abgeordnete, die Abgeordnete
+die Beschreibung	die Beschreibung
+katholisch	katholisch
+die Erkrankung	die Erkrankung
+die Fläche	die Fläche
+die Armee	die Armee
+der Verkehr	der Verkehr
+ansetzen	etw. (Akk) ansetzen
+der Anschluss	der Anschluss
+zugeben	etw. (Akk) zugeben
+das Boot	das Boot
+voraussetzen	etw. (Akk) voraussetzen
+das Gehirn	das Gehirn
+die Gesundheit	die Gesundheit
+euer	euer
+die Atmosphäre	die Atmosphäre
+die Auswahl	die Auswahl
+befürchten	etw. (Akk) befürchten
+beinahe	beinahe
+zumal	zumal
+der Bahnhof	der Bahnhof
+ordentlich	ordentlich
+der Wechsel	der Wechsel
+einander	einander
+bevorzugen	jdn./etw. (Akk) bevorzugen
+der Flughafen	der Flughafen
+die Stirn	die Stirn
+der PC	der PC
+aufwachsen	aufwachsen
+die Strategie	die Strategie
+der Alltag	der Alltag
+der Bundeskanzler	der Bundeskanzler
+äußere	äußere
+langfristig	langfristig
+zusammenhängen	mit etw. zusammenhängen
+der Auftritt	der Auftritt
+die Demokratie	die Demokratie
+demokratisch	demokratisch
+die Saison	die Saison
+die Post	die Post
+die Physik	die Physik
+zuhören	jdm. (Dat) zuhören
+der Standort	der Standort
+der Verlag	der Verlag
+der Zeitraum	der Zeitraum
+sauber	sauber
+inhaltlich	inhaltlich
+der Park	der Park
+perfekt	perfekt
+kennzeichnen	etw. (Akk) kennzeichnen
+der Pfarrer	der Pfarrer
+fünfzehn	fünfzehn
+das Schicksal	das Schicksal
+der Hersteller	der Hersteller
+die Erwartung	die Erwartung
+exakt	exakt
+künstlich	künstlich
+sofern	sofern
+die Schrift	die Schrift
+das Niveau	das Niveau
+die Liste	die Liste
+das Holz	das Holz
+das Knie	das Knie
+herum	herum
+hinsichtlich	hinsichtlich
+die Kombination	die Kombination
+die Fotografie	die Fotografie
+das Fahrzeug	das Fahrzeug
+gefährden	jdn./etw. (Akk) gefährden
+der Forscher	der Forscher
+spätestens	spätestens
+zitieren	jdn./etw. (Akk) zitieren
+das Radio	das Radio
+literarisch	literarisch
+der Beweis	der Beweis
+maximal	maximal
+das HGB	das HGB
+entschuldigen	jdn. (Akk) / sich bei jdm. entschuldigen
+Aids	Aids
+dahinter	dahinter
+das Detail	das Detail
+bayrisch	bayrisch
+die Kasse	die Kasse
+grob	grob
+erledigen	etw. (Akk) erledigen
+der Organismus	der Organismus
+die Kategorie	die Kategorie
+parallel	parallel
+die Integration	die Integration
+gewohnt	gewohnt
+die Abteilung	die Abteilung
+gelegentlich	gelegentlich
+die Dimension	die Dimension
+das Gewicht	das Gewicht
+das Frühjahr	das Frühjahr
+enorm	enorm
+gewähren	jdm. (Dat) etw. (Akk) gewähren
+erstellen	etw. (Akk) erstellen
+die Beratung	die Beratung
+flach	flach
+die Beschäftigung	die Beschäftigung
+aussetzen	etw. (Akk) aussetzen
+die Verbesserung	die Verbesserung
+anpassen	etw. (Akk) an etw. / sich (Dat/Akk) anpassen
+der Unfall	der Unfall
+der Februar	der Februar
+beraten	jdn. (Akk) beraten
+die Verpflichtung	die Verpflichtung
+der Bundesrat	der Bundesrat
+beeindrucken	jdn. (Akk) beeindrucken
+die Betrachtung	die Betrachtung
+ausgeben	etw. (Akk) für etw. ausgeben
+tanzen	tanzen
+vergleichbar	vergleichbar
+der Bedarf	der Bedarf
+wandern	wandern
+das Abitur	das Abitur
+die Bewertung	die Bewertung
+das Wesen	das Wesen
+der Mittelpunkt	der Mittelpunkt
+die Arbeitslosigkeit	die Arbeitslosigkeit
+die Kompetenz	die Kompetenz
+die Bezeichnung	die Bezeichnung
+das Vermögen	das Vermögen
+aufheben	etw. (Akk) aufheben
+befragen	jdn. (Akk) zu etw. befragen
+kompliziert	kompliziert
+optimal	optimal
+zuordnen	jdm. (Dat) etw. (Akk) zuordnen
+die Treppe	die Treppe
+der Journalist	der Journalist
+die Beteiligung	die Beteiligung
+sich befassen	mit etw. sich befassen
+das Lebensmittel	das Lebensmittel
+der Strand	der Strand
+kurzfristig	kurzfristig
+der Spiegel	der Spiegel
+die Beobachtung	die Beobachtung
+klären	etw. (Akk) klären
+speichern	etw. (Akk) speichern
+massiv	massiv
+allmählich	allmählich
+der Star	der Star
+sich entschließen	zu etw. sich entschließen
+gegebenenfalls	gegebenenfalls
+das Teilchen	das Teilchen
+der Nutzen	der Nutzen
+der Ministerpräsident	der Ministerpräsident
+die Lippe	die Lippe
+nahezu	nahezu
+die Taste	die Taste
+das Signal	das Signal
+der Ruf	der Ruf
+lehren	jdn. (Akk) etw. (Akk) lehren
+strategisch	strategisch
+der Standard	der Standard
+die CD	die CD
+die Substanz	die Substanz
+müde	müde
+gerecht	gerecht
+der Geschäftsführer	der Geschäftsführer
+der Gebrauch	der Gebrauch
+garantieren	jdm. (Dat) etw. (Akk) garantieren
+sich engagieren	für etw. sich engagieren
+steigern	etw. (Akk) steigern
+der Russe	der Russe
+die Brücke	die Brücke
+die Oberfläche	die Oberfläche
+die Initiative	die Initiative
+hierher	hierher
+der Glaube, der Glauben	der Glaube, der Glauben
+das Experiment	das Experiment
+die Vorbereitung	die Vorbereitung
+kühl	kühl
+lokal	lokal
+der Anwalt	der Anwalt
+generell	generell
+berechtigen	jdn. (Akk) zu etw. berechtigen
+physikalisch	physikalisch
+der Vordergrund	der Vordergrund
+der Grundsatz	der Grundsatz
+mischen	etw. (Akk) mit etw. mischen
+nackt	nackt
+das Rennen	das Rennen
+umfangreich	umfangreich
+konservativ	konservativ
+die Komponente	die Komponente
+rühren	in etw. (Dat) / etw. (Akk) rühren
+versorgen	jdn. (Akk) mit etw. versorgen
+digital	digital
+das Reich	das Reich
+spannend	spannend
+das Viertel	das Viertel
+anstellen	jdn. (Akk) / etw. (Akk) anstellen
+anhören	jdn./etw. (Akk) / sich (Dat) etw. (Akk) anhören
+aufführen	etw. (Akk) aufführen
+der Verkauf	der Verkauf
+der Schuh	der Schuh
+das Seminar	das Seminar
+schrecklich	schrecklich
+sechzig	sechzig
+die Truppe	die Truppe
+die Technologie	die Technologie
+touristisch	touristisch
+bedenken	etw. (Akk) bedenken
+die Versicherung	die Versicherung
+das Umfeld	das Umfeld
+der Schlag	der Schlag
+vereinigen	etw. (Akk) mit etw. vereinigen
+die Sendung	die Sendung
+das Vorjahr	das Vorjahr
+der Verbraucher	der Verbraucher
+angucken, ankucken	angucken, ankucken
+der Kanal	der Kanal
+der Schlaf	der Schlaf
+das Erlebnis	das Erlebnis
+die Bilanz	die Bilanz
+der Sender	der Sender
+beruhen	auf etw. (Dat) beruhen
+investieren	in etw. (Akk) investieren
+einbringen	etw. (Akk) in etw. einbringen
+wecken	jdn. (Akk) wecken
+herausstellen	etw. (Akk) / sich herausstellen
+die Spannung	die Spannung
+vielfach	vielfach
+der Kredit	der Kredit
+gewöhnlich	gewöhnlich
+israelisch	israelisch
+ausgerechnet	ausgerechnet
+die Karriere	die Karriere
+die Kamera	die Kamera
+bewirken	etw. (Akk) bewirken
+das Grundstück	das Grundstück
+komplett	komplett
+befreien	jdn. (Akk) von etw. befreien
+sich verlieben	in jdn. (Akk) sich verlieben
+aufpassen	auf jdn./etw. (Akk) aufpassen
+das Plus	das Plus
+einheitlich	einheitlich
+das TV	das TV
+das Quartal	das Quartal
+finanzieren	etw. (Akk) finanzieren
+der Rechner	der Rechner
+der Bewohner	der Bewohner
+die Erziehung	die Erziehung
+vierzig	vierzig
+die Zigarette	die Zigarette
+der Atem	der Atem
+die Auffassung	die Auffassung
+der Aktionär	der Aktionär
+die Identität	die Identität
+momentan	momentan
+plus	plus
+das Rad	das Rad
+rechtfertigen	etw. (Akk) / sich rechtfertigen
+die Geburt	die Geburt
+das Einkommen	das Einkommen
+zukünftig	zukünftig
+der Verlauf	der Verlauf
+antreten	zu etw. / etw. (Akk) antreten
+der Schnee	der Schnee
+die Sitzung	die Sitzung
+siebzig	siebzig
+der Service	der Service
+geradezu	geradezu
+die Schülerin	die Schülerin
+der Sturm	der Sturm
+real	real
+die Halle	die Halle
+die Reform	die Reform
+die Herausforderung	die Herausforderung
+die Niederlage	die Niederlage
+der Schauspieler	der Schauspieler
+aufsteigen	aufsteigen
+der Mittag	der Mittag
+besprechen	etw. (Akk) mit jdm. besprechen
+testen	etw. (Akk) testen
+einziehen	in etw. (Akk) / etw. (Akk) einziehen
+islamisch	islamisch
+der Charakter	der Charakter
+hoffentlich	hoffentlich
+braun	braun
+gezielt	gezielt
+die Informationstechnologie, die IT	die Informationstechnologie, die IT
+hinein	hinein
+das Tal	das Tal
+die Norm	die Norm
+die Tiefe	die Tiefe
+schade	schade
+statistisch	statistisch
+das Restaurant	das Restaurant
+riechen	nach etw. riechen
+ausstatten	jdn. (Akk) mit etw. ausstatten
+berühren	jdn./etw. (Akk) berühren
+die Träne	die Träne
+der Außenminister	der Außenminister
+vorhaben	etw. (Akk) vorhaben
+das Arzneimittel	das Arzneimittel
+vorgeben	jdm. (Dat) etw. (Akk) vorgeben
+zögern	mit etw. zögern
+die Annahme	die Annahme
+zugrunde	zugrunde
+die Zustimmung	die Zustimmung
+der Zufall	der Zufall
+unterliegen	jdm./etw. (Dat) unterliegen
+tja	tja
+der Benutzer	der Benutzer
+die Trauer	die Trauer
+der Vorstand	der Vorstand
+zufällig	zufällig
+aufhalten	jdn./etw. (Akk) aufhalten
+der Bescheid	der Bescheid
+das Argument	das Argument
+ableiten	etw. (Akk) aus/von etw. ableiten
+der Angehörige, die Angehörige	der Angehörige, die Angehörige
+verschieben	etw. (Akk) verschieben
+überlassen	jdm. (Dat) etw. (Akk) überlassen
+die Blume	die Blume
+indes	indes
+erteilen	jdm. (Dat) etw. (Akk) erteilen
+dramatisch	dramatisch
+die Fraktion	die Fraktion
+juristisch	juristisch
+das Grundgesetz	das Grundgesetz
+einräumen	jdm. (Dat) etw. (Akk) / etw. (Akk) einräumen
+entlassen	jdn. (Akk) aus etw. entlassen
+die Bundeswehr	die Bundeswehr
+demnach	demnach
+das Individuum	das Individuum
+innen	innen
+empfangen	jdn./etw. (Akk) empfangen
+die Existenz	die Existenz
+ergreifen	etw. (Akk) ergreifen
+bezüglich	bezüglich
+der Händler	der Händler
+fern	fern
+die Katastrophe	die Katastrophe
+hierbei	hierbei
+die Disziplin	die Disziplin
+hierzu	hierzu
+erkennbar	erkennbar
+objektiv	objektiv
+musikalisch	musikalisch
+lustig	lustig
+vierzehn	vierzehn
+die Versorgung	die Versorgung
+die Umsetzung	die Umsetzung
+vernünftig	vernünftig
+regieren	jdn./etw. (Akk) regieren
+der Papa	der Papa
+der Sand	der Sand
+seltsam	seltsam
+stattdessen	stattdessen
+die Opposition	die Opposition
+die Tendenz	die Tendenz
+der Musiker	der Musiker
+stärken	jdn./etw. (Akk) stärken
+das Motiv	das Motiv
+komisch	komisch
+trauen	jdm. (Dat) / sich (Akk) trauen
+der Verkäufer	der Verkäufer
+unglaublich	unglaublich
+das Training	das Training
+sorgfältig	sorgfältig
+das Personal	das Personal
+die Station	die Station
+der Wandel	der Wandel
+das Ausmaß	das Ausmaß
+sich wehren	gegen jdn./etw. sich wehren
+widmen	jdm. (Dat) etw. (Akk) / sich (Dat) jdm. widmen
+ahnen	etw. (Akk) ahnen
+die Angelegenheit	die Angelegenheit
+weisen	auf jdn./etw. (Akk) weisen
+aufgehen	aufgehen
+zufolge	zufolge
+derart	derart
+zugehen	auf jdn. (Akk) zugehen
+die Auskunft	die Auskunft
+der Fleck	der Fleck
+sich ausziehen	sich (Dat) etw. (Akk) / sich (Akk) sich ausziehen
+zurückführen	etw. (Akk) auf etw. zurückführen
+vorwiegend	vorwiegend
+aussuchen	jdm. (Dat) etw. (Akk) / sich (Dat) etw. (Akk) aussuchen
+ausziehen	etw. (Akk) / aus etw. (Dat) ausziehen
+das Wunder	das Wunder
+die Begründung	die Begründung
+das Engagement	das Engagement
+durchschnittlich	durchschnittlich
+erarbeiten	sich (Dat) etw. (Akk) erarbeiten
+die Entfernung	die Entfernung
+analysieren	etw. (Akk) analysieren
+mathematisch	mathematisch
+schalten	etw. (Akk) schalten
+radikal	radikal
+der Koffer	der Koffer
+sich lohnen	sich lohnen
+griechisch	griechisch
+der Unternehmer	der Unternehmer
+systematisch	systematisch
+stabil	stabil
+verarbeiten	etw. (Akk) verarbeiten
+das Immunsystem	das Immunsystem
+das Griechisch	das Griechisch
+das Video	das Video
+die Not	die Not
+die Persönlichkeit	die Persönlichkeit
+die Seele	die Seele
+gefangen	gefangen
+der Schlüssel	der Schlüssel
+der Schreibtisch	der Schreibtisch
+versehen	jdn. (Akk) mit etw. versehen
+die Unternehmung	die Unternehmung
+die Vereinbarung	die Vereinbarung
+verrückt	verrückt
+die Handlung	die Handlung
+vertraut	vertraut
+einbeziehen	jdn./etw. (Akk) in etw. einbeziehen
+die Ferne	die Ferne
+ausfallen	ausfallen
+wozu	wozu
+abwarten	etw. (Akk) abwarten
+das Café	das Café
+sich wundern	über jdn./etw. (Akk) sich wundern
+abbauen	etw. (Akk) abbauen
+die Erzählung	die Erzählung
+erstaunlich	erstaunlich
+ehe	ehe
+die Wahrnehmung	die Wahrnehmung
+glatt	glatt
+winzig	winzig
+das Gedicht	das Gedicht
+die Äußerung	die Äußerung
+einbauen	etw. (Akk) in etw. einbauen
+ernsthaft	ernsthaft
+der Angestellte, die Angestellte	der Angestellte, die Angestellte
+die Datei	die Datei
+die Begegnung	die Begegnung
+aufeinander	aufeinander
+golden	golden
+dorthin	dorthin
+die Dienstleistung	die Dienstleistung
+ordnen	etw. (Akk) ordnen
+die Vielzahl	die Vielzahl
+der Träger	der Träger
+die Tonne	die Tonne
+der Trend	der Trend
+der Kanton	der Kanton
+der Keller	der Keller
+die Gründung	die Gründung
+der Verwandte, die Verwandte	der Verwandte, die Verwandte
+interpretieren	etw. (Akk) interpretieren
+die Operation	die Operation
+die Qualifikation	die Qualifikation
+scheinbar	scheinbar
+raten	jdm. (Dat) zu etw. raten
+sanft	sanft
+hübsch	hübsch
+umso	umso
+das Konto	das Konto
+die Variante	die Variante
+vergeben	jdm. (Dat) etw. (Akk) vergeben
+städtisch	städtisch
+schmecken	jdm. (Dat) nach etw. schmecken
+die Vielfalt	die Vielfalt
+die Sammlung	die Sammlung
+die Aufwendungen	die Aufwendungen
+akademisch	akademisch
+die Berechnung	die Berechnung
+die Zahlung	die Zahlung
+wirksam	wirksam
+ablegen	etw. (Akk) ablegen
+ärgern	ärgern
+achtzig	achtzig
+neigen	zu etw. (Dat) neigen
+aufregen	jdn. (Akk) / sich über jdn./etw. aufregen
+der Bestand	der Bestand
+zusammensetzen	etw. (Akk) / sich aus etw. zusammensetzen
+beugen	etw. (Akk) beugen
+der Arbeiter	der Arbeiter
+der Entwurf	der Entwurf
+ausweisen	jdn. (Akk) / sich (Akk) ausweisen
+der Bauch	der Bauch
+der Aufwand	der Aufwand
+beliebt	beliebt
+bereiten	jdm. (Dat) etw. (Akk) bereiten
+abstimmen	über etw. (Akk) / etw. (Akk) mit jdm. abstimmen
+das Entwicklungsland	das Entwicklungsland
+anregen	jdn. (Akk) zu etw. anregen
+ausbauen	etw. (Akk) ausbauen
+entziehen	jdm. (Dat) etw. (Akk) entziehen
+der Kern	der Kern
+die Hose	die Hose
+hierfür	hierfür
+der Impuls	der Impuls
+herzlich	herzlich
+bedecken	jdn./etw. (Akk) mit etw. bedecken
+etliche	etliche
+mangeln	an etw. (Dat) mangeln
+sich gewöhnen	an jdn./etw. (Akk) sich gewöhnen
+klopfen	an etw. (Akk) / auf etw. (Akk) klopfen
+erfinden	etw. (Akk) erfinden
+herkommen	herkommen
+die Finanzierung	die Finanzierung
+experimentell	experimentell
+grinsen	grinsen
+das Kapital	das Kapital
+rauchen	etw. (Akk) rauchen
+rechtzeitig	rechtzeitig
+klagen	über jdn./etw. (Akk) klagen
+die Fachhochschule	die Fachhochschule
+der Fernseher	der Fernseher
+faszinieren	jdn. (Akk) faszinieren
+primär	primär
+der Motor	der Motor
+der Rang	der Rang
+erbringen	etw. (Akk) erbringen
+rollen	etw. (Akk) rollen
+der Zahn	der Zahn
+die Republik	die Republik
+das Salz	das Salz
+ungewöhnlich	ungewöhnlich
+der Wahlkampf	der Wahlkampf
+der Schilling	der Schilling
+die Wolke	die Wolke
+zustimmen	jdm. (Dat) / etw. (Dat) zustimmen
+atmen	atmen
+vorübergehend	vorübergehend
+die Behinderung	die Behinderung
+vorübergehen	an jdm./etw. (Dat) vorübergehen
+übel	übel
+der Stil	der Stil
+der Regisseur	der Regisseur
+zustande	zustande
+vereinen	etw. (Akk) mit etw. vereinen
+verständlich	verständlich
+bequem	bequem
+die Anstrengung	die Anstrengung
+absolvieren	etw. (Akk) absolvieren
+die Vermittlung	die Vermittlung
+versetzen	jdn. (Akk) versetzen
+laden	jdn./etw. (Akk) laden
+die Kooperation	die Kooperation
+der Einwohner	der Einwohner
+der Bord	der Bord
+das Symbol	das Symbol
+die Trennung	die Trennung
+der Eingriff	der Eingriff
+überwinden	etw. (Akk) überwinden
+ökologisch	ökologisch
+der Dichter	der Dichter
+der Fan	der Fan
+errichten	etw. (Akk) errichten
+die Hütte	die Hütte
+lehnen	etw. (Akk) an etw. / sich an etw. lehnen
+die Stasi	die Stasi
+der Täter	der Täter
+die Übertragung	die Übertragung
+herausfinden	etw. (Akk) herausfinden
+das Handy	das Handy
+schlicht	schlicht
+Hamburger	Hamburger
+Frankfurter	Frankfurter
+die Tour	die Tour
+qualifizieren	jdn. (Akk) für etw. / sich für etw. qualifizieren
+die Berücksichtigung	die Berücksichtigung
+bedrohen	jdn. (Akk) mit etw. bedrohen
+die Verfassung	die Verfassung
+sich bewerben	um etw. / bei jdm. sich bewerben
+aufmachen	jdm. (Dat) etw. (Akk) aufmachen
+verleihen	jdm. (Dat) etw. (Akk) verleihen
+vorhin	vorhin
+der Architekt	der Architekt
+bewerten	etw. (Akk) bewerten
+bearbeiten	etw. (Akk) bearbeiten
+ausdrücklich	ausdrücklich
+attraktiv	attraktiv
+vermögen	vermögen
+die Aufmerksamkeit	die Aufmerksamkeit
+sich auswirken	auf etw. (Akk) sich auswirken
+abstrakt	abstrakt
+der Beschluss	der Beschluss
+aufbringen	etw. (Akk) aufbringen
+die Absicht	die Absicht
+vorgehen	gegen jdn./etw. vorgehen
+die Zeitschrift	die Zeitschrift
+vollkommen	vollkommen
+unendlich	unendlich
+weiblich	weiblich
+der Griff	der Griff
+der Feind	der Feind
+eintreffen	eintreffen
+das Geschlecht	das Geschlecht
+die Erweiterung	die Erweiterung
+erlernen	etw. (Akk) erlernen
+geheim	geheim
+der Flüchtling	der Flüchtling
+die Bindung	die Bindung
+decken	etw. (Akk) decken
+das Business	das Business
+der Ehegatte	der Ehegatte
+der Gläubiger	der Gläubiger
+differenzieren	zwischen etw. (Dat) differenzieren
+der Halt	der Halt
+die Einschätzung	die Einschätzung
+die Bibel	die Bibel
+die Entstehung	die Entstehung
+das Gewissen	das Gewissen
+entnehmen	jdm./etw. (Dat) etw. (Akk) entnehmen
+zutreffen	auf jdn./etw. (Akk) zutreffen
+voneinander	voneinander
+die Flucht	die Flucht
+die Börse	die Börse
+dumm	dumm
+einsteigen	in etw. (Akk) einsteigen
+das Marketing	das Marketing
+die Nebenwirkung	die Nebenwirkung
+murmeln	etw. (Akk) murmeln
+der Kindergarten	der Kindergarten
+die Infektion	die Infektion
+hinterlassen	jdm. (Dat) etw. (Akk) hinterlassen
+das Orchester	das Orchester
+loben	jdn. (Akk) für etw. loben
+der Mantel	der Mantel
+der Nationalsozialist, der Nazi	der Nationalsozialist, der Nazi
+der Kontinent	der Kontinent
+das Klima	das Klima
+das Hemd	das Hemd
+der Mut	der Mut
+indirekt	indirekt
+intern	intern
+das Elektron	das Elektron
+das Paket	das Paket
+registrieren	etw. (Akk) registrieren
+mehrmals	mehrmals
+quer	quer
+lebendig	lebendig
+die Kündigung	die Kündigung
+relevant	relevant
+rennen	rennen
+die Oper	die Oper
+das Vorgehen	das Vorgehen
+der Übergang	der Übergang
+die Ressource	die Ressource
+vorziehen	etw. (Akk) jdm./etw. (Dat) vorziehen
+womit	womit
+vermissen	jdn./etw. (Akk) vermissen
+die Scheibe	die Scheibe
+das Vorbild	das Vorbild
+subjektiv	subjektiv
+die Stille	die Stille
+die These	die These
+der Transport	der Transport
+senden	jdm. (Dat) etw. (Akk) senden
+verlängern	etw. (Akk) verlängern
+der Widerspruch	der Widerspruch
+übergehen	in etw. (Akk) / zu etw. übergehen
+verschließen	etw. (Akk) verschließen
+vollziehen	etw. (Akk) vollziehen
+die Revolution	die Revolution
+die Richtlinie	die Richtlinie
+der Stress	der Stress
+verurteilen	verurteilen
+verbleiben	verbleiben
+die Rückkehr	die Rückkehr
+teils	teils
+die Distanz	die Distanz
+zuwenden	jdm. (Dat) etw. (Akk) / sich jdm./etw. (Dat) zuwenden
+der Aufenthalt	der Aufenthalt
+abbrechen	etw. (Akk) abbrechen
+der Besitz	der Besitz
+der Alkohol	der Alkohol
+zusammenarbeiten	mit jdm. zusammenarbeiten
+der Ball	der Ball
+die Wüste	die Wüste
+dementsprechend	dementsprechend
+die Frist	die Frist
+einigermaßen	einigermaßen
+die Aussicht	die Aussicht
+das Ei	das Ei
+aufkommen	für etw. (Akk) aufkommen
+dynamisch	dynamisch
+bewahren	jdn./etw. (Akk) vor etw. (Dat) bewahren
+analog	analog
+dominieren	jdn./etw. (Akk) dominieren
+die Bemerkung	die Bemerkung
+die Anerkennung	die Anerkennung
+die Chemie	die Chemie
+zucken	mit etw. (Dat) zucken
+einschalten	etw. (Akk) einschalten
+einhalten	etw. (Akk) einhalten
+die Presse	die Presse
+potenziell	potenziell
+moralisch	moralisch
+der Höhepunkt	der Höhepunkt
+sich nähern	jdm./etw. (Dat) sich nähern
+das Kreuz	das Kreuz
+Münchner	Münchner
+hinweg	hinweg
+das Geschenk	das Geschenk
+der Horizont	der Horizont
+klettern	klettern
+die Notwendigkeit	die Notwendigkeit
+locker	locker
+die Gestaltung	die Gestaltung
+indisch	indisch
+identifizieren	jdn./etw. (Akk) mit jdm./etw. identifizieren
+gewährleisten	jdm. (Dat) etw. (Akk) gewährleisten
+das Heim	das Heim
+heimlich	heimlich
+die Konferenz	die Konferenz
+kommunikativ	kommunikativ
+küssen	jdn. (Akk) küssen
+mehrfach	mehrfach
+kürzlich	kürzlich
+das Organ	das Organ
+scheiden	etw. (Akk) / sich lassen scheiden
+ausbreiten	etw. (Akk) / sich ausbreiten
+prinzipiell	prinzipiell
+streiten	mit jdm. über etw. (Akk) streiten
+die Rechtsprechung	die Rechtsprechung
+südlich	südlich
+angreifen	jdn./etw. (Akk) angreifen
+versterben	versterben
+vorwerfen	jdm. (Dat) etw. (Akk) vorwerfen
+ansteigen	ansteigen
+die Zeile	die Zeile
+worauf	worauf
+die Übung	die Übung
+winken	jdm. (Dat) winken
+problematisch	problematisch
+steil	steil
+der Ring	der Ring
+profitieren	von etw. (Dat) profitieren
+das Regal	das Regal
+zittern	vor etw./jdm. (Dat) zittern
+akut	akut
+zurückhalten	jdn./etw. (Akk) zurückhalten
+quasi	quasi
+der Vortrag	der Vortrag
+überschreiten	etw. (Akk) überschreiten
+dreimal	dreimal
+der Gehalt	der Gehalt
+blöd	blöd
+der Eingang	der Eingang
+die Freundschaft	die Freundschaft
+die Ferien	die Ferien
+die Fragestellung	die Fragestellung
+die Erscheinung	die Erscheinung
+einig	einig
+das Geheimnis	das Geheimnis
+der Flug	der Flug
+erlangen	etw. (Akk) erlangen
+beklagen	etw. (Akk) / sich über etw. (Akk) beklagen
+benennen	jdn./etw. (Akk) benennen
+der Besitzer	der Besitzer
+daraufhin	daraufhin
+die Ausführung	die Ausführung
+das Center	das Center
+das Frühstück	das Frühstück
+ausgeprägt	ausgeprägt
+erwidern	jdm. (Dat) etw. (Akk) erwidern
+erstaunen	jdn. (Akk) erstaunen
+danken	jdm. (Dat) für etw. danken
+ferner	ferner
+das Gehalt	das Gehalt
+die Miete	die Miete
+die Phantasie	die Phantasie
+die Hut	die Hut
+die Klage	die Klage
+der Hut	der Hut
+mitmachen	etw. (Akk) mitmachen
+jetzig	jetzig
+das Protein	das Protein
+losgehen	losgehen
+das Geräusch	das Geräusch
+der Geschmack	der Geschmack
+der Pass	der Pass
+das Öl	das Öl
+das Gold	das Gold
+kündigen	jdm. (Dat) / etw. (Akk) kündigen
+das Medikament	das Medikament
+korrigieren	jdn./etw. (Akk) korrigieren
+die Lehrerin	die Lehrerin
+markieren	etw. (Akk) markieren
+die Klinik	die Klinik
+hinausgehen	über etw. (Akk) hinausgehen
+die Interpretation	die Interpretation
+der Hafen	der Hafen
+die Prognose	die Prognose
+die Marke	die Marke
+wonach	wonach
+die Vorgabe	die Vorgabe
+verwandeln	jdn./etw. (Akk) in etw. (Akk) verwandeln
+vorerst	vorerst
+der Schreck	der Schreck
+transportieren	etw. (Akk) transportieren
+virtuell	virtuell
+schildern	jdm. (Dat) etw. (Akk) schildern
+die Abhängigkeit	die Abhängigkeit
+das Weihnachten	das Weihnachten
+zugänglich	zugänglich
+der Turm	der Turm
+wahnsinnig	wahnsinnig
+vorschreiben	jdm. (Dat) etw. (Akk) vorschreiben
+die Serie	die Serie
+widersprechen	jdm. (Dat) widersprechen
+seither	seither
+das Protokoll	das Protokoll
+die Wende	die Wende
+verweigern	jdm. (Dat) etw. (Akk) verweigern
+der Tee	der Tee
+verteidigen	verteidigen
+abholen	jdn./etw. (Akk) abholen
+die Überzeugung	die Überzeugung
+weggehen	weggehen
+blind	blind
+der Dialog	der Dialog
+einschließlich	einschließlich
+ausgleichen	etw. (Akk) ausgleichen
+einschlafen	einschlafen
+einigen	sich auf etw. (Akk) / mit jdm. einigen
+aufsetzen	etw. (Akk) aufsetzen
+aufbrechen	aufbrechen
+außerordentlich	außerordentlich
+der Arbeitsmarkt	der Arbeitsmarkt
+der Ärger	der Ärger
+andeuten	jdm. (Dat) etw. (Akk) andeuten
+eigenständig	eigenständig
+einleiten	etw. (Akk) einleiten
+die Betreuung	die Betreuung
+die Bombe	die Bombe
+dazwischen	dazwischen
+ausführlich	ausführlich
+ausgezeichnet	ausgezeichnet
+anbringen	etw. (Akk) an etw. (Dat) anbringen
+absetzen	etw. (Akk) absetzen
+der Austausch	der Austausch
+denkbar	denkbar
+beantragen	etw. (Akk) beantragen
+die Hitze	die Hitze
+das Gen	das Gen
+flüstern	jdm. (Dat) etw. (Akk) flüstern
+gleiten	gleiten
+intellektuell	intellektuell
+materiell	materiell
+der Maler	der Maler
+keinerlei	keinerlei
+die E-Mail	die E-Mail
+kontinuierlich	kontinuierlich
+das Gas	das Gas
+korrekt	korrekt
+der Leib	der Leib
+hinterher	hinterher
+jenseits	jenseits
+geistlich	geistlich
+hervorragend	hervorragend
+feucht	feucht
+die Entschuldigung	die Entschuldigung
+die Konzentration	die Konzentration
+etablieren	etw. (Akk) etablieren
+die Erhöhung	die Erhöhung
+die Kindheit	die Kindheit
+das Klavier	das Klavier
+konsequent	konsequent
+aussteigen	aus etw. (Dat) aussteigen
+mündlich	mündlich
+pressen	etw. (Akk) in/aus etw. pressen
+nebeneinander	nebeneinander
+der Pilot	der Pilot
+das Resultat	das Resultat
+trainieren	jdn./etw. (Akk) trainieren
+psychisch	psychisch
+unsicher	unsicher
+stellvertretend	stellvertretend
+der Stock	der Stock
+anfangs	anfangs
+die Milch	die Milch
+anmelden	jdn./etw. (Akk) anmelden
+der Riese	der Riese
+pädagogisch	pädagogisch
+merkwürdig	merkwürdig
+der Übersetzer	der Übersetzer
+die Umfrage	die Umfrage
+die Strafe	die Strafe
+das Ufer	das Ufer
+die Menschheit	die Menschheit
+austauschen	etw. (Akk) mit jdm. austauschen
+aufzeigen	jdm. (Dat) etw. (Akk) aufzeigen
+der Mord	der Mord
+bevorstehen	jdm. (Dat) bevorstehen
+die Großmutter	die Großmutter
+sich entspannen	sich entspannen
+furchtbar	furchtbar
+der Gesichtspunkt	der Gesichtspunkt
+beliebig	beliebig
+friedlich	friedlich
+das Dutzend	das Dutzend
+fliehen	vor jdm./etw. (Dat) fliehen
+die Ernährung	die Ernährung
+evangelisch	evangelisch
+eingreifen	in etw. (Akk) eingreifen
+das Baby	das Baby
+die Differenz	die Differenz
+die Dunkelheit	die Dunkelheit
+das Eis	das Eis
+die City	die City
+der Empfang	der Empfang
+genetisch	genetisch
+derzeitig	derzeitig
+der Empfänger	der Empfänger
+der Franzose	der Franzose
+die Herkunft	die Herkunft
+auswärtig	auswärtig
+der Onkel	der Onkel
+der Konkurrent	der Konkurrent
+das Potenzial, das Potential	das Potenzial, das Potential
+nachhaltig	nachhaltig
+methodisch	methodisch
+das Muster	das Muster
+der Protest	der Protest
+der Reiz	der Reiz
+restlich	restlich
+der Hunger	der Hunger
+die Note	die Note
+reinigen	etw. (Akk) reinigen
+die Last	die Last
+null	null
+das Lebensjahr	das Lebensjahr
+putzen	etw. (Akk) putzen
+neugierig	neugierig
+die Mischung	die Mischung
+die Hochzeit	die Hochzeit
+das Medium	das Medium
+der Nachfolger	der Nachfolger
+resultieren	aus etw. (Dat) resultieren
+jederzeit	jederzeit
+die Konjunktur	die Konjunktur
+der Rohstoff	der Rohstoff
+die Sicherung	die Sicherung
+verdächtig	verdächtig
+die Verarbeitung	die Verarbeitung
+das Turnier	das Turnier
+der Schuss	der Schuss
+die Verteilung	die Verteilung
+die Übernahme	die Übernahme
+sperren	jdn./etw. (Akk) sperren
+die Veröffentlichung	die Veröffentlichung
+der Witz	der Witz
+wunderschön	wunderschön
+anfallen	jdn. (Akk) anfallen
+umstritten	umstritten
+selbe	selbe
+sechzehn	sechzehn
+der Sachverhalt	der Sachverhalt
+verdeutlichen	jdm. (Dat) etw. (Akk) verdeutlichen
+der Sieger	der Sieger
+das Taxi	das Taxi
+umgeben	jdn./etw. (Akk) mit etw. umgeben
+wiegen	jdn./etw. (Akk) wiegen
+die Wiedervereinigung	die Wiedervereinigung
+der Abschied	der Abschied
+anführen	jdn./etw. (Akk) anführen
+die Strahlung	die Strahlung
+die Statistik	die Statistik
+der Bewerber	der Bewerber
+bestreiten	etw. (Akk) bestreiten
+effektiv	effektiv
+die Benutzung	die Benutzung
+Berner	Berner
+eindringen	in etw. (Akk) eindringen
+entfallen	jdm. (Dat) entfallen
+der Ertrag	der Ertrag
+der Flur	der Flur
+die Herstellung	die Herstellung
+gründlich	gründlich
+der Held	der Held
+das Defizit	das Defizit
+das Format	das Format
+einsam	einsam
+die Beurteilung	die Beurteilung
+die Einschränkung	die Einschränkung
+herein, rein	herein, rein
+heuer	heuer
+beauftragen	jdn. (Akk) mit etw. beauftragen
+aushalten	etw. (Akk) aushalten
+dringen	auf etw. (Akk) / in etw. (Akk) dringen
+ausbrechen	aus etw. (Dat) ausbrechen
+einschließen	jdn./etw. (Akk) in etw. einschließen
+der Christ	der Christ
+die Küste	die Küste
+jemals	jemals
+die Kleidung	die Kleidung
+die Kneipe	die Kneipe
+notieren	sich (Dat) etw. (Akk) notieren
+die Kette	die Kette
+japanisch	japanisch
+kleben	etw. (Akk) an etw. kleben
+die Messung	die Messung
+die Kammer	die Kammer
+das Messer	das Messer
+der Kaiser	der Kaiser
+nebenbei	nebenbei
+das Motto	das Motto
+der Kritiker	der Kritiker
+das Japanisch	das Japanisch
+nervös	nervös
+konstant	konstant
+der Moslem	der Moslem
+der Nutzer	der Nutzer
+jahrelang	jahrelang
+mitunter	mitunter
+logisch	logisch
+langweilig	langweilig
+liberal	liberal
+unzählig	unzählig
+reizen	jdn. (Akk) reizen
+das Top	das Top
+der Saal	der Saal
+der Quadratmeter	der Quadratmeter
+die Schwäche	die Schwäche
+der Passagier	der Passagier
+die Premiere	die Premiere
+die Verbreitung	die Verbreitung
+spontan	spontan
+die Probe	die Probe
+das Tuch	das Tuch
+die Überraschung	die Überraschung
+top	top
+übergeben	jdm. (Dat) etw. (Akk) / sich übergeben
+schief	schief
+das Tennis	das Tennis
+der Sektor	der Sektor
+peinlich	peinlich
+das Symptom	das Symptom
+der Sprung	der Sprung
+optisch	optisch
+organisch	organisch
+verlegen	etw. (Akk) verlegen
+die Übersetzung	die Übersetzung
+beibringen	jdm. (Dat) etw. (Akk) beibringen
+das Zelt	das Zelt
+die Wiese	die Wiese
+verschaffen	jdm. (Dat) etw. (Akk) / sich (Dat) verschaffen
+die Wärme	die Wärme
+zurücktreten	von etw. (Dat) zurücktreten
+abhalten	jdn. (Akk) von etw. (Dat) abhalten
+befestigen	etw. (Akk) an etw. (Dat) befestigen
+sich bedanken	bei jdm. für etw. sich bedanken
+die Auflösung	die Auflösung
+der Anhänger	der Anhänger
+werben	für etw. / um jdn. werben
+verringern	etw. (Akk) verringern
+wertvoll	wertvoll
+wütend	wütend
+die Werbung	die Werbung
+die Vorlage	die Vorlage
+zumeist	zumeist
+die Aufklärung	die Aufklärung
+vertreiben	jdn./etw. (Akk) aus etw. vertreiben
+ausfüllen	etw. (Akk) ausfüllen
+die Anzeige	die Anzeige
+das Virus	das Virus
+das Vorhaben	das Vorhaben
+biegen	etw. (Akk) biegen
+die Einigung	die Einigung
+abstellen	etw. (Akk) abstellen
+erregen	jdn./etw. (Akk) erregen
+haften	für etw. (Akk) / an etw. (Dat) haften
+extra	extra
+deutschsprachig	deutschsprachig
+dastehen	dastehen
+das Bündnis	das Bündnis
+der Dialekt	der Dialekt
+der Bube	der Bube
+flexibel	flexibel
+die Gleichung	die Gleichung
+erwischen	jdn. (Akk) bei etw. erwischen
+die Geste	die Geste
+die Durchführung	die Durchführung
+die Bestellung	die Bestellung
+fort	fort
+besorgen	jdm. (Dat) etw. (Akk) / sich (Dat) besorgen
+das Gedächtnis	das Gedächtnis
+die Burg	die Burg
+bescheiden	bescheiden
+dauerhaft	dauerhaft
+beschleunigen	etw. (Akk) beschleunigen
+die Einsicht	die Einsicht
+das Gefängnis	das Gefängnis
+kirchlich	kirchlich
+die Mitteilung	die Mitteilung
+die Meldung	die Meldung
+herrlich	herrlich
+die Nahrung	die Nahrung
+die Infrastruktur	die Infrastruktur
+der Schein	der Schein
+schleppen	etw. (Akk) schleppen
+die Philosophie	die Philosophie
+der Schnitt	der Schnitt
+nachfolgend	nachfolgend
+nachfolgen	jdm. (Dat) nachfolgen
+der Offizier	der Offizier
+der Nebel	der Nebel
+die Mission	die Mission
+klug	klug
+die Oma	die Oma
+der Katalog	der Katalog
+hocken	hocken
+die Schnittstelle	die Schnittstelle
+nachgehen	jdm./etw. (Dat) nachgehen
+die Sehnsucht	die Sehnsucht
+die Schulden	die Schulden
+die Herrschaft	die Herrschaft
+die Realisierung	die Realisierung
+abspielen	etw. (Akk) / sich abspielen
+unterbringen	jdn./etw. (Akk) in etw. (Dat) unterbringen
+ablösen	jdn./etw. (Akk) ablösen
+unangenehm	unangenehm
+vorläufig	vorläufig
+das Stadion	das Stadion
+verfügbar	verfügbar
+der Tipp	der Tipp
+die Wurzel	die Wurzel
+die Wunde	die Wunde
+vergrößern	etw. (Akk) vergrößern
+stoppen	jdn./etw. (Akk) stoppen
+abbilden	jdn./etw. (Akk) abbilden
+der Skandal	der Skandal
+das Wiedersehen	das Wiedersehen
+abdecken	etw. (Akk) abdecken
+verkünden	jdm. (Dat) etw. (Akk) verkünden
+wiedersehen	jdn./etw. (Akk) wiedersehen
+zugunsten	zugunsten
+das Zeugnis	das Zeugnis
+süß	süß
+vernichten	jdn./etw. (Akk) vernichten
+übereinstimmen	mit jdm./etw. (Dat) übereinstimmen
+verwirren	jdn. (Akk) verwirren
+der Zeuge	der Zeuge
+achtzehn	achtzehn
+angewiesen	angewiesen
+die Bundesliga	die Bundesliga
+basieren	auf etw. (Dat) basieren
+abzeichnen	etw. (Akk) / sich abzeichnen
+der Befehl	der Befehl
+die Bereitschaft	die Bereitschaft
+der Bogen	der Bogen
+die Ehre	die Ehre
+anstrengend	anstrengend
+die Anpassung	die Anpassung
+abweichen	von etw. (Dat) abweichen
+sich abspielen	sich abspielen
+divers	divers
+demnächst	demnächst
+Celsius	Celsius
+die Beschwerde	die Beschwerde
+das Anliegen	das Anliegen
+das Eigentum	das Eigentum
+infolge	infolge
+das Gelände	das Gelände
+formal	formal
+klinisch	klinisch
+der Geliebte, die Geliebte	der Geliebte, die Geliebte
+der Anblick	der Anblick
+entgegenkommen	jdm. (Dat) entgegenkommen
+kreativ	kreativ
+behindert	behindert
+das Arbeitsamt	das Arbeitsamt
+die Feststellung	die Feststellung
+die Droge	die Droge
+der Knochen	der Knochen
+isolieren	jdn./etw. (Akk) von etw. isolieren
+die Geschwister	die Geschwister
+einmalig	einmalig
+die Formulierung	die Formulierung
+heutzutage	heutzutage
+die Show	die Show
+der Mörder	der Mörder
+die Mode	die Mode
+stetig	stetig
+der Einzelfall	der Einzelfall
+der Lohn	der Lohn
+der Magen	der Magen
+die Stiftung	die Stiftung
+gültig	gültig
+das Kunstwerk	das Kunstwerk
+die Inszenierung	die Inszenierung
+sexuell	sexuell
+schwingen	etw. (Akk) schwingen
+die Kiste	die Kiste
+schuldig	schuldig
+die Öffnung	die Öffnung
+die Reflexion	die Reflexion
+der Kapitän	der Kapitän
+der Lastkraftwagen, der LKW	der Lastkraftwagen, der LKW
+die Rente	die Rente
+das Gramm	das Gramm
+das Lebewesen	das Lebewesen
+der Erreger	der Erreger
+der Kontext	der Kontext
+die Epoche	die Epoche
+das Rathaus	das Rathaus
+nützlich	nützlich
+super	super
+die Partie	die Partie
+vergeblich	vergeblich
+die Zone	die Zone
+unklar	unklar
+verwirklichen	etw. (Akk) / sich verwirklichen
+verhandeln	mit jdm. über etw. verhandeln
+die Wechselwirkung	die Wechselwirkung
+verbrennen	jdm. (Dat) etw. (Akk) / etw. (Akk) verbrennen
+der Zins	der Zins
+nunmehr	nunmehr
+die Unterscheidung	die Unterscheidung
+elegant	elegant
+der Anstieg	der Anstieg
+hinfahren	hinfahren
+anklagen	jdn. (Akk) wegen etw. (Gen) anklagen
+die Agentur	die Agentur
+die Akademie	die Akademie
+organisatorisch	organisatorisch
+verknüpfen	etw. (Akk) mit etw. verknüpfen
+untereinander	untereinander
+der Teller	der Teller
+verzeichnen	etw. (Akk) verzeichnen
+tauchen	tauchen
+der Wähler	der Wähler
+übersehen	jdn./etw. (Akk) übersehen
+der Zettel	der Zettel
+die Anfrage	die Anfrage
+auskommen	mit jdm./etw. (Dat) auskommen
+das Dokument	das Dokument
+bürgerlich	bürgerlich
+empfindlich	empfindlich
+die Version	die Version
+die Aufführung	die Aufführung
+der Buchstabe	der Buchstabe
+entwerfen	etw. (Akk) entwerfen
+betrieblich	betrieblich
+aufklären	jdn. (Akk) über etw. aufklären
+bedauern	etw. (Akk) bedauern
+ruhen	ruhen
+auftragen	jdm. (Dat) etw. (Akk) / etw. (Akk) auftragen
+aufwachen	aufwachen
+anwesend	anwesend
+ausschalten	etw. (Akk) ausschalten
+einheimisch	einheimisch
+die Einzelheit	die Einzelheit
+die Auflage	die Auflage
+der Bär	der Bär
+ausscheiden	aus etw. (Dat) ausscheiden
+backen	jdm. (Dat) etw. (Akk) backen
+befriedigen	jdn./etw. (Akk) befriedigen
+das Bedenken	das Bedenken
+die Fusion	die Fusion
+einschätzen	jdn./etw. (Akk) einschätzen
+fröhlich	fröhlich
+meinetwegen	meinetwegen
+konventionell	konventionell
+versagen	jdm. (Dat) etw. (Akk) / --- versagen
+der Ausbau	der Ausbau
+erschließen	jdm. (Dat) etw. (Akk) erschließen
+das Labor	das Labor
+der Landkreis	der Landkreis
+der Finanzminister	der Finanzminister
+formen	etw. (Akk) formen
+der Geruch	der Geruch
+der Führer	der Führer
+kriechen	kriechen
+die Erfüllung	die Erfüllung
+lenken	etw. (Akk) lenken
+die Kollegin	die Kollegin
+erziehen	jdn. (Akk) zu etw. erziehen
+jagen	jdn./etw. (Akk) jagen
+der Komponist	der Komponist
+palästinensisch	palästinensisch
+der Kerl	der Kerl
+der Abbau	der Abbau
+letztendlich	letztendlich
+die Kurve	die Kurve
+der Profi	der Profi
+großzügig	großzügig
+psychologisch	psychologisch
+beschädigen	etw. (Akk) beschädigen
+die Pflege	die Pflege
+bekämpfen	etw. (Akk) bekämpfen
+reiten	etw. (Akk) reiten
+heimisch	heimisch
+professionell	professionell
+kombinieren	etw. (Akk) mit etw. kombinieren
+nördlich	nördlich
+qualitativ	qualitativ
+das Möbel	das Möbel
+das Mittelalter	das Mittelalter
+linear	linear
+reichlich	reichlich
+der Rock	der Rock
+der Posten	der Posten
+der Ofen	der Ofen
+veranstalten	etw. (Akk) veranstalten
+der Schrank	der Schrank
+das Nerv	das Nerv
+schwanger	schwanger
+der Rücktritt	der Rücktritt
+motivieren	jdn. (Akk) zu etw. motivieren
+das Märchen	das Märchen
+die Moderne	die Moderne
+der Vorhang	der Vorhang
+extern	extern
+untergehen	untergehen
+umbringen	jdn. (Akk) / sich umbringen
+mühsam	mühsam
+der Winkel	der Winkel
+die Unsicherheit	die Unsicherheit
+die Plattform	die Plattform
+vermehrt	vermehrt
+der Status	der Status
+strukturell	strukturell
+der Topf	der Topf
+womöglich	womöglich
+sozialistisch	sozialistisch
+spazieren	spazieren
+versammeln	jdn./etw. (Akk) versammeln
+der Tanz	der Tanz
+das Zitat	das Zitat
+das Gleichgewicht	das Gleichgewicht
+verzweifeln	an jdm./etw. (Dat) verzweifeln
+verdanken	jdm. (Dat) etw. (Akk) verdanken
+die Sekretärin	die Sekretärin
+der Staub	der Staub
+der Sportler	der Sportler
+stumm	stumm
+das Regime	das Regime
+die Solidarität	die Solidarität
+die Stabilität	die Stabilität
+der Überblick	der Überblick
+wandeln	etw. (Akk) / sich wandeln
+das Abenteuer	das Abenteuer
+die Allianz	die Allianz
+die Abgrenzung	die Abgrenzung
+zusehen	jdm. (Dat) bei etw. zusehen
+beträchtlich	beträchtlich
+aktivieren	etw. (Akk) aktivieren
+die Begeisterung	die Begeisterung
+berufen	jdn. (Akk) zu etw. / sich auf etw. berufen
+bewältigen	etw. (Akk) bewältigen
+der Akteur	der Akteur
+der Investor	der Investor
+aufsuchen	jdn./etw. (Akk) aufsuchen
+zusammenkommen	mit jdm. zusammenkommen
+der Ausgleich	der Ausgleich
+zusammenleben	mit jdm. zusammenleben
+abziehen	jdm. (Dat) etw. (Akk) / etw. (Akk) abziehen
+alltäglich	alltäglich
+zulässig	zulässig
+die Armut	die Armut
+sich bewähren	sich bewähren
+der Akt	der Akt
+blühen	blühen
+beinhalten	etw. (Akk) beinhalten
+der Bezirk	der Bezirk
+bereitstellen	jdm. (Dat) etw. (Akk) bereitstellen
+ausstellen	etw. (Akk) ausstellen
+dauernd	dauernd
+sich erholen	von etw. (Dat) sich erholen
+einseitig	einseitig
+einverstanden	einverstanden
+diskret	diskret
+die Eröffnung	die Eröffnung
+sich erstrecken	über etw. (Akk) sich erstrecken
+Dresdner	Dresdner
+die Empfehlung	die Empfehlung
+das Chinesisch	das Chinesisch
+der Durchmesser	der Durchmesser
+einreichen	etw. (Akk) bei jdm. einreichen
+erfreuen	jdn. (Akk) / sich an etw. (Dat) erfreuen
+die Diagnose	die Diagnose
+die Einladung	die Einladung
+charakteristisch	charakteristisch
+einschlagen	etw. (Akk) einschlagen
+dankbar	dankbar
+erschießen	jdn. (Akk) erschießen
+ersparen	jdm. (Dat) etw. (Akk) ersparen
+der Fels, der Felsen	der Fels, der Felsen
+ertragen	etw. (Akk) ertragen
+detailliert	detailliert
+das Dunkel	das Dunkel
+chinesisch	chinesisch
+die Großstadt	die Großstadt
+der Hügel	der Hügel
+mechanisch	mechanisch
+fließend	fließend
+gestehen	jdm. (Dat) etw. (Akk) gestehen
+der Hang	der Hang
+gleichwohl	gleichwohl
+die Fülle	die Fülle
+kostenlos	kostenlos
+das Gebirge	das Gebirge
+die Flüssigkeit	die Flüssigkeit
+lauter	lauter
+löschen	etw. (Akk) löschen
+das Gras	das Gras
+männlich	männlich
+das Geschäftsjahr	das Geschäftsjahr
+herkömmlich	herkömmlich
+der Ingenieur	der Ingenieur
+konfrontieren	jdn. (Akk) mit etw. konfrontieren
+hinzu	hinzu
+das Fräulein	das Fräulein
+der Kongress	der Kongress
+der Friedhof	der Friedhof
+die Front	die Front
+infizieren	jdn. (Akk) mit etw. infizieren
+medial	medial
+strahlen	strahlen
+oftmals	oftmals
+die Orientierung	die Orientierung
+schweben	schweben
+der Stolz	der Stolz
+samt	samt
+physisch	physisch
+siebzehn	siebzehn
+polnisch	polnisch
+präzise	präzise
+die Teilnahme	die Teilnahme
+symbolisch	symbolisch
+der Nachweis	der Nachweis
+neunzig	neunzig
+der Senat	der Senat
+der Muskel	der Muskel
+örtlich	örtlich
+der Rhythmus	der Rhythmus
+monatlich	monatlich
+die Steuerung	die Steuerung
+das Polnisch	das Polnisch
+die Rücksicht	die Rücksicht
+der Personenkraftwagen, der PKW	der Personenkraftwagen, der PKW
+die Vorsicht	die Vorsicht
+sogleich	sogleich
+veranlassen	jdn. (Akk) zu etw. / etw. (Akk) veranlassen
+telefonieren	mit jdm. telefonieren
+die Vertretung	die Vertretung
+die Wahrscheinlichkeit	die Wahrscheinlichkeit
+verpassen	jdm. (Dat) etw. (Akk) / etw. (Akk) verpassen
+vorangehen	jdm. (Dat) vorangehen
+voraus	voraus
+vermeintlich	vermeintlich
+die Vereinigung	die Vereinigung
+unterschreiben	etw. (Akk) unterschreiben
+das Universum	das Universum
+überstehen	etw. (Akk) überstehen
+trösten	jdn. (Akk) trösten
+treu	treu
+die Unterhaltung	die Unterhaltung
+weitermachen	mit etw. weitermachen
+weitergeben	jdm. (Dat) etw. (Akk) weitergeben
+vorig	vorig
+die Unterlagen	die Unterlagen
+die Wange	die Wange
+wach	wach
+verhaften	jdn. (Akk) verhaften
+verkehren	mit jdm. verkehren
+die Volkshochschule	die Volkshochschule
+ärztlich	ärztlich
+anrichten	etw. (Akk) anrichten
+anstehen	anstehen
+ausdehnen	etw. (Akk) / sich ausdehnen
+die Anordnung	die Anordnung
+abschneiden	etw. (Akk) / bei etw. abschneiden
+die Abstimmung	die Abstimmung
+aufschreiben	jdm. (Dat) etw. (Akk) aufschreiben
+die Ablehnung	die Ablehnung
+die Zeichnung	die Zeichnung
+die Zwiebel	die Zwiebel
+die Zunahme	die Zunahme
+aufrufen	jdn. (Akk) zu etw. aufrufen
+alternativ	alternativ
+der Aufsatz	der Aufsatz
+anordnen	etw. (Akk) anordnen
+die Anregung	die Anregung
+aufspringen	auf etw. (Akk) aufspringen
+abheben	etw. (Akk) / sich von jdm. abheben
+aufwendig	aufwendig
+zustehen	jdm. (Dat) zustehen
+das Werkzeug	das Werkzeug
+zulegen	sich (Dat) etw. (Akk) / --- zulegen
+allenfalls	allenfalls
+agieren	agieren
+der Betrachter	der Betrachter
+der Backofen	der Backofen
+beabsichtigen	etw. (Akk) beabsichtigen
+der Befund	der Befund
+besorgt	besorgt
+das Betriebssystem	das Betriebssystem
+ausnutzen	jdn./etw. (Akk) ausnutzen
+der Beobachter	der Beobachter
+ausweichen	jdm./etw. (Dat) ausweichen
+der Bildschirm	der Bildschirm
+die Brille	die Brille
+bergen	etw. (Akk) bergen
+die Datenverarbeitung	die Datenverarbeitung
+sich begeben	an/zu etw. (Dat) sich begeben
+die Bemühung	die Bemühung
+die Bakterie	die Bakterie
+beeinträchtigen	etw. (Akk) beeinträchtigen
+beseitigen	etw. (Akk) beseitigen
+begehen	etw. (Akk) begehen
+ausprobieren	etw. (Akk) ausprobieren
+die Blüte	die Blüte
+der Berater	der Berater
+chronisch	chronisch
+bemerkenswert	bemerkenswert
+demonstrieren	etw. (Akk) / gegen/für etw. demonstrieren
+emotional	emotional
+düster	düster
+das Ensemble	das Ensemble
+durcheinander	durcheinander
+dreizehn	dreizehn
+fressen	etw. (Akk) fressen
+charakterisieren	jdn./etw. (Akk) charakterisieren
+erwecken	etw. (Akk) erwecken
+einlassen	jdn. (Akk) / sich auf etw. einlassen
+die Enttäuschung	die Enttäuschung
+gemütlich	gemütlich
+die Faust	die Faust
+die Eintragung	die Eintragung
+erschweren	jdm. (Dat) etw. (Akk) erschweren
+flüchten	vor jdm./etw. (Dat) flüchten
+dokumentieren	etw. (Akk) dokumentieren
+erwachen	erwachen
+erschöpfen	jdn./etw. (Akk) / sich erschöpfen
+das Festival	das Festival
+das Gemüse	das Gemüse
+die Galerie	die Galerie
+erforschen	etw. (Akk) erforschen
+effizient	effizient
+der Eigentümer	der Eigentümer
+das Lokal	das Lokal
+der Lärm	der Lärm
+erreichbar	erreichbar
+intelligent	intelligent
+der Liter	der Liter
+gespannt	gespannt
+der Jazz	der Jazz
+gewissermaßen	gewissermaßen
+die Höhle	die Höhle
+der Hass	der Hass
+gießen	etw. (Akk) gießen
+die Innenstadt	die Innenstadt
+der Konsument	der Konsument
+der Großvater	der Großvater
+landwirtschaftlich	landwirtschaftlich
+lauschen	jdm./etw. (Dat) lauschen
+locken	jdn. (Akk) locken
+hervorgehen	aus etw. (Dat) hervorgehen
+hinüber	hinüber
+irren	sich irren
+gleichen	jdm./etw. (Dat) gleichen
+die Kohle	die Kohle
+die Genehmigung	die Genehmigung
+das Kloster	das Kloster
+die Grundschule	die Grundschule
+grüßen	jdn. (Akk) grüßen
+loswerden	jdn./etw. (Akk) loswerden
+nass	nass
+der Maßstab	der Maßstab
+die Münze	die Münze
+realistisch	realistisch
+pakistanisch	pakistanisch
+das Praktikum	das Praktikum
+der Stamm	der Stamm
+spiegeln	etw. (Akk) / sich in etw. spiegeln
+die Sportart	die Sportart
+mobil	mobil
+schweizerisch	schweizerisch
+sicherstellen	etw. (Akk) sicherstellen
+stehlen	jdm. (Dat) etw. (Akk) stehlen
+der Schuldner	der Schuldner
+motorisch	motorisch
+der Rückgang	der Rückgang
+maßgeblich	maßgeblich
+das Netzwerk	das Netzwerk
+philosophisch	philosophisch
+die Malerei	die Malerei
+operativ	operativ
+der Sack	der Sack
+sachlich	sachlich
+die Materie	die Materie
+überflüssig	überflüssig
+zueinander	zueinander
+die Überprüfung	die Überprüfung
+die Zunge	die Zunge
+unterdessen	unterdessen
+die Versammlung	die Versammlung
+der Streifen	der Streifen
+unsichtbar	unsichtbar
+die Vermutung	die Vermutung
+die Tasse	die Tasse
+der Teppich	der Teppich
+der Unsinn	der Unsinn
+überwachen	jdn./etw. (Akk) überwachen
+die Wirtschaftspolitik	die Wirtschaftspolitik
+voraussichtlich	voraussichtlich
+die Wäsche	die Wäsche
+das Verbot	das Verbot
+wovon	wovon
+verbindlich	verbindlich
+das Zeug	das Zeug
+die Werkstatt	die Werkstatt
+umwandeln	etw. (Akk) in etw. umwandeln
+der Teufel	der Teufel
+überziehen	etw. (Akk) überziehen
+die Anweisung	die Anweisung
+auffällig	auffällig
+zwischendurch	zwischendurch
+die Architektur	die Architektur
+das Antibiotikum	das Antibiotikum
+zusammenstellen	etw. (Akk) zusammenstellen
+abwenden	etw. (Akk) von jdm. / sich von jdm. abwenden
+auswerten	etw. (Akk) auswerten
+der Ausgang	der Ausgang
+zurücklegen	etw. (Akk) zurücklegen
+der Ausflug	der Ausflug
+der Aufstieg	der Aufstieg
+das Atom	das Atom
+die Ausstattung	die Ausstattung
+anscheinend	anscheinend
+der Anzug	der Anzug
+aufbewahren	etw. (Akk) aufbewahren
+abschließend	abschließend
+der Bayer	der Bayer
+ansiedeln	jdn. (Akk) / sich ansiedeln
+der Zwang	der Zwang
+zusagen	jdm. (Dat) / etw. (Akk) zusagen
+zwangsläufig	zwangsläufig
+aufrecht	aufrecht
+aufschlagen	etw. (Akk) aufschlagen
+beschaffen	jdm. (Dat) etw. (Akk) / sich (Dat) beschaffen
+die Biologie	die Biologie
+erhoffen	sich (Dat) etw. (Akk) von jdm. erhoffen
+erhältlich	erhältlich
+endlos	endlos
+die Besonderheit	die Besonderheit
+die Entdeckung	die Entdeckung
+der Dirigent	der Dirigent
+die Butter	die Butter
+die Breite	die Breite
+berufstätig	berufstätig
+beleben	etw. (Akk) beleben
+der Betracht	der Betracht
+die Erfindung	die Erfindung
+entfalten	etw. (Akk) / sich entfalten
+die Bearbeitung	die Bearbeitung
+einsehen	etw. (Akk) einsehen
+die Differenzierung	die Differenzierung
+blond	blond
+drastisch	drastisch
+eilen	eilen
+erleiden	etw. (Akk) erleiden
+der Champion	der Champion
+der Ersatz	der Ersatz
+fixieren	etw. (Akk) fixieren
+gleichsam	gleichsam
+das Fieber	das Fieber
+der Geheimdienst	der Geheimdienst
+explizit	explizit
+fotografisch	fotografisch
+der Grenzwert	der Grenzwert
+das Gepäck	das Gepäck
+der Gesetzgeber	der Gesetzgeber
+freigeben	etw. (Akk) freigeben
+das Handwerk	das Handwerk
+fachlich	fachlich
+der Helfer	der Helfer
+hervorrufen	etw. (Akk) hervorrufen
+gleichmäßig	gleichmäßig
+die Feuerwehr	die Feuerwehr
+festnehmen	jdn. (Akk) festnehmen
+die Gebühr	die Gebühr
+das Gerücht	das Gerücht
+der Generalsekretär	der Generalsekretär
+die Gliederung	die Gliederung
+das Grab	das Grab
+die Fluggesellschaft	die Fluggesellschaft
+das Heft	das Heft
+hassen	jdn./etw. (Akk) hassen
+hinnehmen	etw. (Akk) hinnehmen
+klingeln	klingeln
+der Kompromiss	der Kompromiss
+lagern	etw. (Akk) lagern
+die Leidenschaft	die Leidenschaft
+die Leiche	die Leiche
+die Kartoffel	die Kartoffel
+die Konstruktion	die Konstruktion
+inwieweit	inwieweit
+industriell	industriell
+der Kreislauf	der Kreislauf
+die Kugel	die Kugel
+der Klang	der Klang
+die Leistungsfähigkeit	die Leistungsfähigkeit
+die Liga	die Liga
+die Königin	die Königin
+der Jäger	der Jäger
+kommentieren	etw. (Akk) kommentieren
+identisch	identisch
+jegliche	jegliche
+die Kuh	die Kuh
+die Lieferung	die Lieferung
+seufzen	seufzen
+der Nachwuchs	der Nachwuchs
+die Party	die Party
+die Schwangerschaft	die Schwangerschaft
+permanent	permanent
+das Milligramm	das Milligramm
+der Parteitag	der Parteitag
+die Schauspielerin	die Schauspielerin
+der Planet	der Planet
+das Olympia	das Olympia
+die Skala	die Skala
+regnen	regnen
+rauschen	rauschen
+regelrecht	regelrecht
+plädieren	auf etw. (Akk) / für etw. plädieren
+der Salon	der Salon
+illegal	illegal
+rutschen	rutschen
+der Käse	der Käse
+der Nacken	der Nacken
+die Intelligenz	die Intelligenz
+der Palästinenser	der Palästinenser
+olympisch	olympisch
+der Priester	der Priester
+mild	mild
+unverzüglich	unverzüglich
+starr	starr
+das Tagebuch	das Tagebuch
+die Tafel	die Tafel
+tödlich	tödlich
+das Talent	das Talent
+das Spektrum	das Spektrum
+die Unterschrift	die Unterschrift
+unterstreichen	etw. (Akk) unterstreichen
+der Schweiß	der Schweiß
+unverändert	unverändert
+steuerlich	steuerlich
+die Problematik	die Problematik
+das Vergnügen	das Vergnügen
+der Ursprung	der Ursprung
+verfallen	jdm./etw. (Dat) verfallen
+strecken	etw. (Akk) / sich strecken
+umarmen	jdn. (Akk) umarmen
+das Tempo	das Tempo
+unwahrscheinlich	unwahrscheinlich
+spezialisieren	sich auf etw. (Akk) spezialisieren
+die Spalte	die Spalte
+das Verbrechen	das Verbrechen
+die Steckdose	die Steckdose
+spürbar	spürbar
+auflegen	etw. (Akk) auflegen
+die Zusammensetzung	die Zusammensetzung
+die Zerstörung	die Zerstörung
+die Abschreibung	die Abschreibung
+die Unruhe	die Unruhe
+die Villa	die Villa
+die Aufregung	die Aufregung
+der Zinssatz	der Zinssatz
+die Rezession	die Rezession
+der Vermieter	der Vermieter
+weitaus	weitaus
+verschärfen	etw. (Akk) / sich verschärfen
+vertraglich	vertraglich
+sowjetisch	sowjetisch
+die Achse	die Achse
+zurückgeben	jdm. (Dat) etw. (Akk) zurückgeben
+amtlich	amtlich
+anstelle	anstelle
+die Zulassung	die Zulassung
+die Anwesenheit	die Anwesenheit
+woran	woran
+die Verhaltensweise	die Verhaltensweise
+der Vormittag	der Vormittag
+die Verordnung	die Verordnung
+vernehmen	jdn./etw. (Akk) vernehmen
+vermindern	etw. (Akk) / sich vermindern
+die Vernunft	die Vernunft
+blass	blass
+das Wohnzimmer	das Wohnzimmer
+die Autobahn	die Autobahn
+die Batterie	die Batterie
+brüllen	brüllen
+der Chor	der Chor
+das Design	das Design
+außergewöhnlich	außergewöhnlich
+durchziehen	etw. (Akk) durchziehen
+das Ehepaar	das Ehepaar
+das Chaos	das Chaos
+die Erholung	die Erholung
+erlassen	jdm. (Dat) etw. (Akk) / etw. (Akk) erlassen
+bedeutsam	bedeutsam
+die Chefin	die Chefin
+belgisch	belgisch
+aufreißen	etw. (Akk) aufreißen
+der Chip	der Chip
+auslegen	jdm. (Dat) etw. (Akk) / etw. (Akk) auslegen
+aufrichten	jdn./etw. (Akk) / sich aufrichten
+der Durchschnitt	der Durchschnitt
+der Einbruch	der Einbruch
+der Dolmetscher	der Dolmetscher
+einlegen	etw. (Akk) einlegen
+der Eintritt	der Eintritt
+elementar	elementar
+fotografieren	jdn./etw. (Akk) fotografieren
+der Europäer	der Europäer
+die Germanistik	die Germanistik
+die Geduld	die Geduld
+die Haustür	die Haustür
+die Fabrik	die Fabrik
+die Gunst	die Gunst
+der Innenminister	der Innenminister
+der General	der General
+die Hypothese	die Hypothese
+gänzlich	gänzlich
+die Furcht	die Furcht
+flüchtig	flüchtig
+gestatten	jdm. (Dat) etw. (Akk) gestatten
+der Handwerker	der Handwerker
+das Gutachten	das Gutachten
+hervorheben	etw. (Akk) hervorheben
+das Gremium	das Gremium
+das Glied	das Glied
+der Graf	der Graf
+der Italiener	der Italiener
+herausnehmen	jdm. (Dat) etw. (Akk) / etw. (Akk) herausnehmen
+der Islam	der Islam
+das Gewehr	das Gewehr
+das Getränk	das Getränk
+naturwissenschaftlich	naturwissenschaftlich
+der Parkplatz	der Parkplatz
+die Konzeption	die Konzeption
+der Kommentar	der Kommentar
+lügen	jdn. (Akk) an / --- lügen
+das Magazin	das Magazin
+nachträglich	nachträglich
+der Kasten	der Kasten
+das Menschenrecht	das Menschenrecht
+die Maus	die Maus
+minimal	minimal
+der Mythos	der Mythos
+namens	namens
+die Minderheit	die Minderheit
+die Kassette	die Kassette
+der Mieter	der Mieter
+kognitiv	kognitiv
+die Naturwissenschaft	die Naturwissenschaft
+langjährig	langjährig
+operieren	jdn. (Akk) operieren
+die Kreativität	die Kreativität
+der Marktanteil	der Marktanteil
+das Ministerium	das Ministerium
+das Militär	das Militär
+mutmaßlich	mutmaßlich
+schlank	schlank
+der Regierungschef	der Regierungschef
+der Spezialist	der Spezialist
+das Präparat	das Präparat
+die Übersicht	die Übersicht
+therapeutisch	therapeutisch
+strikt	strikt
+strukturieren	etw. (Akk) strukturieren
+der Stellvertreter	der Stellvertreter
+das Ticket	das Ticket
+die Provinz	die Provinz
+sich schämen	für/wegen etw. (Gen) sich schämen
+die Rahmenbedingung	die Rahmenbedingung
+quantitativ	quantitativ
+die Scheidung	die Scheidung
+servieren	jdm. (Dat) etw. (Akk) servieren
+die Schönheit	die Schönheit
+die Partnerschaft	die Partnerschaft
+die Periode	die Periode
+schulisch	schulisch
+der Tunnel	der Tunnel
+umsonst	umsonst
+die Subvention	die Subvention
+die Steigerung	die Steigerung
+die Säule	die Säule
+zielen	auf jdn./etw. (Akk) zielen
+vorbeugen	etw. (Dat) vorbeugen
+zutrauen	jdm. (Dat) etw. (Akk) zutrauen
+die Vorlesung	die Vorlesung
+zurückweisen	jdn./etw. (Akk) zurückweisen
+verdoppeln	etw. (Akk) / sich verdoppeln
+vereinfachen	etw. (Akk) vereinfachen
+die Uniform	die Uniform
+wehen	wehen
+vorlesen	jdm. (Dat) etw. (Akk) vorlesen
+die Weiterbildung	die Weiterbildung
+willkommen	willkommen
+das Unrecht	das Unrecht
+die Zielsetzung	die Zielsetzung
+unglücklich	unglücklich
+vorzeitig	vorzeitig
+der Zucker	der Zucker
+zuverlässig	zuverlässig
+verwundern	jdn. (Akk) verwundern
+verdrängen	jdn./etw. (Akk) verdrängen
+die Volkswirtschaft	die Volkswirtschaft
+zuführen	jdm. (Dat) etw. (Akk) zuführen
+zerreißen	etw. (Akk) zerreißen
+unterdrücken	jdn./etw. (Akk) unterdrücken
+wodurch	wodurch
+der Block	der Block
+der Assistent	der Assistent
+anmerken	jdm. (Dat) etw. (Akk) anmerken
+der Apfel	der Apfel
+bitter	bitter
+die Auswertung	die Auswertung
+ausnehmen	jdn./etw. (Akk) ausnehmen
+ästhetisch	ästhetisch
+das Abkommen	das Abkommen
+die Beschränkung	die Beschränkung
+der Absolvent	der Absolvent
+beten	zu jdm. / für jdn./etw. beten
+beiseite	beiseite
+aneinander	aneinander
+die Abwehr	die Abwehr
+die Arbeitskraft	die Arbeitskraft
+abgrenzen	etw. (Akk) von etw. / sich abgrenzen
+aufziehen	jdn./etw. (Akk) aufziehen
+ablenken	jdn. (Akk) von etw. ablenken
+abschalten	etw. (Akk) abschalten
+abreißen	etw. (Akk) abreißen
+die Bar	die Bar
+sich benehmen	sich benehmen
+die Bekämpfung	die Bekämpfung
+die Bedrohung	die Bedrohung
+die Frequenz	die Frequenz
+der Fachbereich	der Fachbereich
+flüssig	flüssig
+bremsen	jdn./etw. (Akk) bremsen
+das Datum	das Datum
+daheim	daheim
+dulden	etw. (Akk) dulden
+sich erkundigen	bei jdm. nach etw. sich erkundigen
+der Erzähler	der Erzähler
+einholen	jdn./etw. (Akk) einholen
+die Fassung	die Fassung
+der Flügel	der Flügel
+bohren	in etw. (Akk/Dat) bohren
+die Fachleute	die Fachleute
+fällig	fällig
+der Fakt, das Fakt	der Fakt, das Fakt
+das Forum	das Forum
+braten	jdm. (Dat) etw. (Akk) braten
+die Frucht	die Frucht
+die Erhaltung	die Erhaltung
+der Missbrauch	der Missbrauch
+das Metall	das Metall
+glänzend	glänzend
+durchgehen	etw. (Akk) durchgehen
+der Gipfel	der Gipfel
+einstig	einstig
+der Hörer	der Hörer
+interkulturell	interkulturell
+die Linse	die Linse
+die Jahreszeit	die Jahreszeit
+installieren	etw. (Akk) installieren
+ländlich	ländlich
+nachdenklich	nachdenklich
+folglich	folglich
+hässlich	hässlich
+fünfundzwanzig	fünfundzwanzig
+harmlos	harmlos
+die Gerechtigkeit	die Gerechtigkeit
+der Großteil	der Großteil
+das Darlehen	das Darlehen
+das Industrieland	das Industrieland
+die Lücke	die Lücke
+die Jagd	die Jagd
+die Jacke	die Jacke
+hochwertig	hochwertig
+die Motivation	die Motivation
+die Lampe	die Lampe
+loslassen	jdn./etw. (Akk) loslassen
+der Indianer	der Indianer
+konzipieren	etw. (Akk) konzipieren
+der Therapeut	der Therapeut
+seitens	seitens
+die Option	die Option
+repräsentieren	jdn./etw. (Akk) repräsentieren
+der Respekt	der Respekt
+die Rose	die Rose
+schreiten	schreiten
+der Rucksack	der Rucksack
+die Reichweite	die Reichweite
+der Sozialdemokrat	der Sozialdemokrat
+optimistisch	optimistisch
+täuschen	jdn. (Akk) / sich in jdm. täuschen
+der Ordner	der Ordner
+die Tablette	die Tablette
+die Tageszeitung	die Tageszeitung
+protestieren	gegen etw. protestieren
+die Pistole	die Pistole
+die Reparatur	die Reparatur
+der Physiker	der Physiker
+spannen	etw. (Akk) spannen
+schräg	schräg
+schmutzig	schmutzig
+schimpfen	mit jdm. / über jdn./etw. (Akk) schimpfen
+der Sänger	der Sänger
+der Ozean	der Ozean
+die Verknüpfung	die Verknüpfung
+überfordern	jdn. (Akk) überfordern
+der Abfall	der Abfall
+vergleichsweise	vergleichsweise
+der Zuwachs	der Zuwachs
+umstellen	etw. (Akk) umstellen
+wegnehmen	jdm. (Dat) etw. (Akk) wegnehmen
+zurückgreifen	auf jdn./etw. (Akk) zurückgreifen
+die Währung	die Währung
+das Vorfeld	das Vorfeld
+angehören	etw./jdm. (Dat) angehören
+die Akte	die Akte
+der Umzug	der Umzug
+der Vorgänger	der Vorgänger
+absurd	absurd
+wofür	wofür
+unerwartet	unerwartet
+vorherrschen	vorherrschen
+der Weltmeister	der Weltmeister
+verfassen	etw. (Akk) verfassen
+vertiefen	etw. (Akk) / sich in etw. vertiefen
+der Veranstalter	der Veranstalter
+die Wut	die Wut
+die Zuordnung	die Zuordnung
+anderthalb	anderthalb
+eh	eh
+der Aufsichtsrat	der Aufsichtsrat
+der Gemeinderat	der Gemeinderat
+die Anleihe	die Anleihe
+der Einblick	der Einblick
+gentechnisch	gentechnisch
+die Arbeitszeit	die Arbeitszeit
+die Fahne	die Fahne
+die Erfassung	die Erfassung
+die Feier	die Feier
+die Beachtung	die Beachtung
+der Araber	der Araber
+das Diplom	das Diplom
+festsetzen	etw. (Akk) festsetzen
+der Ausgangspunkt	der Ausgangspunkt
+anvertrauen	jdm. (Dat) etw. (Akk) anvertrauen
+die Fassade	die Fassade
+der Frühling	der Frühling
+der Ausweis	der Ausweis
+die Fakultät	die Fakultät
+aufräumen	etw. (Akk) aufräumen
+der Engel	der Engel
+antun	jdm. (Dat) etw. (Akk) antun
+entgehen	jdm. (Dat) entgehen
+die Ausrichtung	die Ausrichtung
+mahnen	jdn. (Akk) zu etw. mahnen
+der Koch	der Koch
+die Laune	die Laune
+die Kerze	die Kerze
+das Nahrungsmittel	das Nahrungsmittel
+die Landesregierung	die Landesregierung
+hilflos	hilflos
+nirgendwo	nirgendwo
+die Koralle	die Koralle
+die Krankenkasse	die Krankenkasse
+ostdeutsch	ostdeutsch
+das Gewebe	das Gewebe
+der Prinz	der Prinz
+die Kommune	die Kommune
+der Jurist	der Jurist
+inszenieren	etw. (Akk) inszenieren
+herausgeben	jdm. (Dat) etw. (Akk) / etw. (Akk) herausgeben
+niederländisch	niederländisch
+der Gruß	der Gruß
+das Niederländisch	das Niederländisch
+Kölner	Kölner
+der Kunststoff	der Kunststoff
+der Philosoph	der Philosoph
+großartig	großartig
+östlich	östlich
+das Riff	das Riff
+das Schwein	das Schwein
+verbrauchen	etw. (Akk) verbrauchen
+die Verbindlichkeit	die Verbindlichkeit
+schleichen	schleichen
+unerträglich	unerträglich
+solid	solid
+der Spruch	der Spruch
+trocknen	etw. (Akk) / sich trocknen
+die Stellungnahme	die Stellungnahme
+die Relation	die Relation
+das Profil	das Profil
+reflektieren	etw. (Akk) reflektieren
+die Schlange	die Schlange
+segeln	segeln
+vernachlässigen	jdn./etw. (Akk) vernachlässigen
+unterstellen	jdm. (Dat) etw. (Akk) unterstellen
+streben	nach etw. (Dat) streben
+die Selbstständigkeit	die Selbstständigkeit
+überholen	jdn./etw. (Akk) überholen
+technologisch	technologisch
+die Siedlung	die Siedlung
+der Strahl	der Strahl
+die Strömung	die Strömung
+radioaktiv	radioaktiv
+das Weib	das Weib
+das Volumen	das Volumen
+der Bestandteil	der Bestandteil
+vorbeigehen	an jdm./etw. (Dat) vorbeigehen
+übertreiben	etw. (Akk) übertreiben
+letztlich	letztlich
+der Zuhörer	der Zuhörer
+das Vitamin	das Vitamin
+fangen	jdn./etw. (Akk) fangen
+der Zugriff	der Zugriff
+zweifellos	zweifellos
+die Ermittlung	die Ermittlung
+westdeutsch	westdeutsch
+vortragen	jdm. (Dat) etw. (Akk) vortragen
+jdn. zu etw. einladen	jdn. zu etw. einladen
+
+# --- below here: known forms that the ranked list never named ---
+
+hereinkommen	hereinkommen
+herauskommen	herauskommen
+gucken	gucken
+angucken	jdn./etw. (Akk) / sich (Dat) etw. (Akk) angucken
+ärger	jdn. (Akk) / sich über jdn./etw. ärger
+spaziergang	spaziergang

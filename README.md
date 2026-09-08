@@ -132,7 +132,21 @@ other.
 
 ## The known set
 
-`data/known_words.txt` plus `data/function_words.txt`. The second exists
+`data/known_words.txt` plus `data/function_words.txt`.
+
+The **study list** — what to learn and in what order — is built from two
+halves that each hold one of those answers. `words_4000.txt` is curated and
+ranked but names words in their bare shape; `final_result.txt` knows the form
+the matcher speaks (`etw./jdn. (Akk) haben`, not `haben`) in an order of its
+own. They join on `final_result`'s first column, which is exactly what
+`words_4000` lists — 4,095 of 4,096 lines match outright.
+
+```
+python main.py build-study-list      # writes data/study_list.txt
+```
+
+Merging also collapses duplicates: a word that appears both bare and under a
+pattern keeps the pattern, since that is the more informative unit. The second exists
 because the first is 771 entries of almost entirely content nouns — without it
 `der`, `weil` and `nicht` count as unknown and the roadmap wastes its opening
 on articles. Regenerate it with `function-words`, then strike anything you

@@ -1,6 +1,7 @@
 from .add_video import AddVideoCommand
 from .build_corpus import BuildCorpusCommand
 from .build_roadmap import BuildRoadmapCommand
+from .build_study_list import BuildStudyListCommand
 from .export_subtitles import ExportSubtitlesCommand
 from .fill_gaps import FillGapsCommand
 from .review import ReviewCommand
@@ -9,6 +10,6 @@ from .status import StatusCommand
 
 __all__ = [
     "AddVideoCommand", "BuildCorpusCommand", "BuildRoadmapCommand",
-    "ExportSubtitlesCommand", "FillGapsCommand", "ReviewCommand",
-    "ServeCommand", "StatusCommand",
+    "BuildStudyListCommand", "ExportSubtitlesCommand", "FillGapsCommand",
+    "ReviewCommand", "ServeCommand", "StatusCommand",
 ]

@@ -68,13 +68,14 @@ class Settings:
     # starting known set; `priority_words` supplies the teaching-order ranking.
     known_words: Path = ROOT / "data" / "known_words.txt"
     function_words: Path = ROOT / "data" / "function_words.txt"
-    priority_words: Path = ROOT / "data" / "old_data" / "words_4000.txt"
-
-    # The list you actually mean to learn, when studying towards one.  Two
-    # tab-separated columns: a lemma, then the blueprint it belongs to.  The
-    # second column is what the matcher and `phrase_table` speak, so it
-    # resolves straight into units.
-    goal_words: Path = ROOT / "data" / "final_result.txt"
+    # The study list is built from two halves and used everywhere.
+    #   order_words  supplies the ranking — curated, most useful first
+    #   form_words   supplies the shape the matcher speaks
+    # `build-study-list` joins them into `goal_words`, which is what the
+    # roadmap reads for both what to learn and in what order.
+    order_words: Path = ROOT / "data" / "old_data" / "words_4000.txt"
+    form_words: Path = ROOT / "data" / "final_result.txt"
+    goal_words: Path = ROOT / "data" / "study_list.txt"
 
     # Tatoeba German-English export.  Human-written sentences with human
     # translations — the primary source of examples.  Local files, nothing

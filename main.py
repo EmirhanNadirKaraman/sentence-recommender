@@ -7,8 +7,8 @@ from pathlib import Path
 
 from commands import (
     AddVideoCommand, BuildCorpusCommand, BuildRoadmapCommand,
-    ExportSubtitlesCommand, FillGapsCommand, ReviewCommand, ServeCommand,
-    StatusCommand,
+    BuildStudyListCommand, ExportSubtitlesCommand, FillGapsCommand,
+    ReviewCommand, ServeCommand, StatusCommand,
 )
 from context import Application
 from db import Database, WordRepository
@@ -77,6 +77,9 @@ def _parser() -> argparse.ArgumentParser:
     serve.add_argument("--no-browser", action="store_true",
                        help="do not open a browser window")
 
+    sub.add_parser("build-study-list",
+                   help="merge the ranking and the form dictionary into "
+                        "data/study_list.txt")
     sub.add_parser("status", help="what is built and what is due")
     sub.add_parser("function-words", help="regenerate the closed-class review file")
     return parser
@@ -109,6 +112,8 @@ def main() -> int:
         ReviewCommand().run(app, args.limit, tuple(args.source))
     elif args.command == "serve":
         ServeCommand().run(app, args.port, not args.no_browser)
+    elif args.command == "build-study-list":
+        BuildStudyListCommand().run(app)
     elif args.command == "status":
         StatusCommand().run(app)
     elif args.command == "function-words":
