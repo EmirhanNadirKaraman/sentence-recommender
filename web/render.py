@@ -148,6 +148,23 @@ button:hover { border-color: var(--target); }
 .stage .de { font-size: 17px; color: var(--ink-2); margin: 12px 0 0;
   min-height: 1.6em; }
 
+/* Per-sentence corrections. Quiet: these are for the exception, not the
+   reading, and should not compete with the sentence above them. */
+.tools { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
+.tools button, .tools .link {
+  font: 400 13px var(--sans); padding: 4px 10px; border-radius: 3px;
+  color: var(--ink-2); background: transparent;
+  border: 1px solid var(--faint); text-decoration: none; cursor: pointer;
+}
+.tools button:hover, .tools .link:hover { color: var(--ink);
+  border-color: var(--rail); }
+.boxes { display: grid; gap: 2px; margin: 22px 0; }
+.box { display: grid; grid-template-columns: 1.4rem 1fr auto; gap: 10px;
+  align-items: baseline; padding: 7px 4px;
+  border-bottom: 1px solid var(--faint); }
+.box .de { font-size: 17px; }
+.box .quiet { font-size: 13px; }
+
 /* Adding a video: a form that reaches out to YouTube and writes, so it says
    so before you press it and reports what happened after. */
 .note.said { padding: 12px 15px; border-left: 3px solid var(--target);

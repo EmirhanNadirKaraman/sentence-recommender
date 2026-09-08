@@ -6,10 +6,11 @@ from .llm_corrector import LLMCorrector
 from .filter import SentenceFilter
 from .analyzer import UnitAnalyzer
 from .store import CorpusStore
+from .overrides import SentenceOverrides
 
 __all__ = [
     "RawLine", "Sentence", "SUBTITLE", "TATOEBA", "GENERATED",
     "SubtitleSource", "TatoebaSource",
     "SentenceCorrector", "MergeCorrector", "LLMCorrector",
-    "SentenceFilter", "UnitAnalyzer", "CorpusStore",
+    "SentenceFilter", "UnitAnalyzer", "CorpusStore", "SentenceOverrides",
 ]

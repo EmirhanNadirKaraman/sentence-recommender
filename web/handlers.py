@@ -159,7 +159,7 @@ class Viewer:
             f"<h1>{scope.index.readable:,} sentences you can already read</h1>"
             f"<p class='note'>{lede}</p>"
             + self._stage(scope, unit)
-            + self._deck(scope, unit) +
+            + self._deck(scope, unit, source) +
             "<h2>The new thing</h2>"
             f"<p class='de'>{escape(unit.key)}</p>"
             f"<p class='en'>{kind}, appearing in {occurrences:,} sentence"
@@ -198,7 +198,7 @@ class Viewer:
             for c in self._cues(video_id)
         ]}
 
-    def _deck(self, scope: Scope, unit: Unit) -> str:
+    def _deck(self, scope: Scope, unit: Unit, source: str = "") -> str:
         """Every sentence using `unit`, readable ones first, stepped in place.
 
         Strictly-i+1 sentences come first because the ranking sorts on how
@@ -219,7 +219,8 @@ class Viewer:
                f"data-at='{s.timing.start:.2f}'" if s.timing else "")
             + ">"
             f"{sentence(s.text, s.translation, s.surface_of(unit), lead=True)}"
-            f"{self._also_new(s, unit, known)}</div>"
+            f"{self._also_new(s, unit, known)}"
+            f"{self._sentence_tools(s.text, source, '/')}</div>"
             for i, s in enumerate(options)
         )
         if len(options) == 1:
@@ -250,6 +251,110 @@ class Viewer:
         shown = ", ".join(escape(k) for k in rest[:4])
         more = f" and {len(rest) - 4} more" if len(rest) > 4 else ""
         return f"<p class='also'>Also new: {shown}{more}</p>"
+
+    @staticmethod
+    def _sentence_tools(text: str, source: str, back: str) -> str:
+        """Per-sentence corrections, for when the analyser got it wrong.
+
+        Kept small and quiet: these are for the exception, not the reading.
+        """
+        fields = (f"<input type='hidden' name='text' value='{escape(text)}'>"
+                  f"<input type='hidden' name='src' value='{escape(source)}'>"
+                  f"<input type='hidden' name='back' value='{escape(back)}'>")
+        return (
+            "<div class='tools'>"
+            f"<form method='post' action='/hide'>{fields}"
+            "<button name='action' value='hide'>Drop this sentence</button>"
+            "</form>"
+            f"<a class='link' href='/fix?text={quote(text, safe='')}"
+            f"&src={quote(source)}&back={quote(back, safe='')}'>Fix its words</a>"
+            "</div>"
+        )
+
+    def fix(self, query: dict) -> str:
+        """A sentence's units, as a list you can correct.
+
+        The analyser decides these from a parse; when it decides wrongly there
+        is no threshold that helps, only saying what the sentence actually
+        contains.
+        """
+        source = self.source(query)
+        text = query.get("text", "")
+        back = query.get("back") or "/"
+        found = next((s for s in self.scope(source).sentences if s.text == text),
+                     None)
+        if found is None:
+            return layout("Fix", "<h1>No such sentence</h1><p class='empty'>It "
+                          "may have been dropped already.</p>", "/roadmap", source)
+
+        known = self.known
+        boxes = "".join(
+            "<label class='box'>"
+            f"<input type='checkbox' name='unit' value='{escape(u.kind)}|{escape(u.key)}'"
+            " checked>"
+            f"<span class='de'>{escape(u.key)}</span>"
+            f"<span class='quiet'>{'pattern' if u.is_pattern else 'word'}"
+            f"{' · known' if u in known else ''}</span></label>"
+            for u in sorted(found.units, key=lambda x: (x.kind, x.key))
+        ) or "<p class='empty'>The analyser found nothing in this sentence.</p>"
+
+        body = (
+            "<h1>What is in this sentence?</h1>"
+            f"<p class='de lead'>{escape(text)}</p>"
+            "<p class='note'>Uncheck anything that is not really here, and add "
+            "what is missing. Corrections are kept by sentence text, so "
+            "rebuilding the corpus does not lose them.</p>"
+            f"<form method='post' action='/fix'>"
+            f"<input type='hidden' name='text' value='{escape(text)}'>"
+            f"<input type='hidden' name='src' value='{escape(source)}'>"
+            f"<input type='hidden' name='back' value='{escape(back)}'>"
+            f"<div class='boxes'>{boxes}</div>"
+            "<div class='bar'>"
+            "<input type='text' name='add' autocomplete='off' "
+            "placeholder='words to add, separated by commas'>"
+            "<button class='go' name='action' value='save'>Save</button>"
+            "<button name='action' value='reset'>Use the analyser's answer"
+            "</button></div></form>"
+        )
+        return layout("Fix", body, "/roadmap", source)
+
+    def save_fix(self, form: dict) -> str:
+        """Store a correction, or throw one away, and go back to the reading."""
+        text = form.get("text", "")
+        back = form.get("back") or "/"
+        source = form.get("src", "")
+        target = f"{back}{'&' if '?' in back else '?'}src={quote(source)}"
+        if not text:
+            return target
+
+        if form.get("action") == "reset":
+            self.app.overrides.clear_units(text)
+        else:
+            kept: dict[Unit, str] = {}
+            for raw in form.get("unit", "").split("\x00"):
+                if "|" in raw:
+                    kind, key = raw.split("|", 1)
+                    kept[Unit(kind, key)] = ""
+            for word in form.get("add", "").split(","):
+                word = word.strip()
+                if word:
+                    # Added by hand, so a word — a pattern is not something
+                    # anyone types from memory.
+                    kept[Unit.lemma(word)] = word
+            self.app.overrides.set_units(text, kept)
+        self._scopes.clear()          # the corpus in memory is now out of date
+        self._stuck.clear()
+        return target
+
+    def hide_sentence(self, form: dict) -> str:
+        text = form.get("text", "")
+        back = form.get("back") or "/"
+        source = form.get("src", "")
+        if text:
+            self.app.overrides.hide(text)
+            self._scopes.clear()
+            self._stuck.clear()
+        return f"{back}{'&' if '?' in back else '?'}src={quote(source)}"
 
     @staticmethod
     def _kind_picker(only: str, source: str) -> str:
@@ -471,6 +576,8 @@ class Viewer:
             + (f"<div class='actions'><a class='link' href='/watch?src={quote(source)}"
                f"&kind={quote(kind)}&key={quote(key, safe='')}&i={i}'>"
                f"Watch at {_clock(s.timing.start)}</a></div>" if s.timing else "")
+            + self._sentence_tools(
+                s.text, source, f"/unit/{kind}/{quote(key, safe='')}")
             + "</div></div>"
             for i, s in enumerate(found)
         )

@@ -10,7 +10,7 @@ from __future__ import annotations
 from functools import cached_property
 
 from config import Settings
-from corpus import CorpusStore, SentenceFilter, UnitAnalyzer
+from corpus import CorpusStore, SentenceFilter, SentenceOverrides, UnitAnalyzer
 from db import Database, PatternRepository, WordRepository
 from roadmap import ExampleIndex, KnownSet, UnitPriority
 from srs import CardStore, PromptBuilder, SM2Scheduler
@@ -52,11 +52,38 @@ class Application:
             min_words or self.settings.min_tokens, self.settings.max_tokens
         )
 
+    @cached_property
+    def overrides(self) -> SentenceOverrides:
+        return SentenceOverrides(self.settings.state_path)
+
     def corpus(self, *builds: str, teachable_only: bool = True):
-        """Cached sentences from the named builds, or from all of them."""
-        return self.corpus_store.load(
+        """Cached sentences from the named builds, with reader corrections.
+
+        Corrections are applied on the way out rather than baked into the
+        cache, so rebuilding the corpus cannot lose them.
+        """
+        sentences = self.corpus_store.load(
             *(builds or self.corpus_store.builds()), teachable_only=teachable_only
         )
+        return self._apply_overrides(sentences)
+
+    def _apply_overrides(self, sentences: list) -> list:
+        hidden = self.overrides.hidden()
+        corrected = self.overrides.corrected()
+        if not hidden and not corrected:
+            return sentences
+        out = []
+        for sentence in sentences:
+            if sentence.text in hidden:
+                continue
+            fix = corrected.get(sentence.text)
+            if fix is not None:
+                sentence = sentence.with_units(
+                    frozenset(fix),
+                    tuple((unit, surface) for unit, surface in fix.items() if surface),
+                )
+            out.append(sentence)
+        return out
 
     def example_index(self, *builds: str) -> ExampleIndex:
         return ExampleIndex(self.corpus(*builds))

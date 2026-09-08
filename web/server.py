@@ -75,13 +75,19 @@ def _make_handler(viewer: Viewer):
         def do_POST(self) -> None:                # noqa: N802
             length = int(self.headers.get("Content-Length") or 0)
             body = self.rfile.read(length).decode("utf-8")
-            form = {k: v[0] for k, v in parse_qs(body).items()}
+            # Joined rather than truncated: a set of checkboxes posts one name
+            # many times, and keeping only the first silently drops the rest.
+            form = {k: "\x00".join(v) for k, v in parse_qs(body).items()}
             posted = urlparse(self.path).path.rstrip("/")
             try:
                 if posted == "/known":
                     self._redirect(viewer.mark_known(form))
                 elif posted == "/add-video":
                     self._redirect(viewer.add_video(form))
+                elif posted == "/hide":
+                    self._redirect(viewer.hide_sentence(form))
+                elif posted == "/fix":
+                    self._redirect(viewer.save_fix(form))
                 else:
                     self._send(_missing(self.path), status=404)
             except Exception as error:            # noqa: BLE001
@@ -100,6 +106,8 @@ def _make_handler(viewer: Viewer):
                 return viewer.next_up(query), 200
             if path == "/roadmap":
                 return viewer.roadmap(query), 200
+            if path == "/fix":
+                return viewer.fix(query), 200
             if path == "/subtitles":
                 return viewer.subtitles(query), 200
             if path == "/blocked":
