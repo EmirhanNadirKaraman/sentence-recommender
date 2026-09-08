@@ -12,9 +12,9 @@ from functools import cached_property
 from config import Settings
 from corpus import CorpusStore, SentenceFilter, UnitAnalyzer
 from db import Database, PatternRepository, WordRepository
-from roadmap import ExampleIndex, KnownSet
+from roadmap import ExampleIndex, KnownSet, UnitPriority
 from srs import CardStore, PromptBuilder, SM2Scheduler
-from vocab import KnownStore, Unit, WordListLoader
+from vocab import GoalList, KnownStore, Unit, WordListLoader
 
 
 class Application:
@@ -89,9 +89,21 @@ class Application:
             {Unit.lemma(lemma) for lemma in lemmas} | self.marked_known.units()
         )
 
-    def priority_surfaces(self) -> list[str]:
-        """The frequency-ordered word list that ranks what to teach next."""
-        return list(WordListLoader().load(self.settings.priority_words).surfaces)
+    @cached_property
+    def goal_units(self) -> tuple[Unit, ...]:
+        """The list you mean to learn, in the order it was written.
+
+        Serves twice over: as the destination when building towards a list,
+        and as the teaching-order ranking otherwise. One authored ordering
+        covering both words and patterns is what lets the two be compared at
+        all — see `roadmap.priority`.
+        """
+        with Database(self.settings.database) as db:
+            patterns = PatternRepository(db, self.settings.language).canonicals()
+        return GoalList(self.settings.goal_words).units(patterns)
+
+    def priority(self) -> UnitPriority:
+        return UnitPriority.build(self.goal_units)
 
     def _surfaces(self) -> list[str]:
         loader = WordListLoader()

@@ -97,7 +97,7 @@ class Viewer:
             sentences = self.app.corpus(*self._builds(source))
             known = self.app.known_set()
             index = CorpusIndex(sentences, known)
-            priority = UnitPriority.build(self.app.priority_surfaces(), sentences)
+            priority = self.app.priority()
             self._scopes[source] = Scope(
                 sentences=sentences,
                 index=index,

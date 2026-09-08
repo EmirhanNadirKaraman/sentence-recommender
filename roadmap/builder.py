@@ -3,13 +3,17 @@
 At every step the builder looks at the units that are the single unknown in
 some sentence, and picks the one worth teaching next:
 
-    score = gain + priority_weight * priority
+    score = gain + priority_weight * priority   (+ a bonus, if it is a goal)
 
 `gain` counts sentences the step moves forward — those it makes fully readable
 now, plus those it brings down to one unknown (the lookahead).  `priority`
 comes from UnitPriority and breaks the many ties: corpus gains are small, so
 without it the walk would wander into rare vocabulary that happens to unlock
 one more sentence.
+
+With a goal list the walk has a destination instead of just a direction. A
+goal outscores anything that is not one, so the walk teaches goals whenever a
+goal is i+1, and falls back to ordinary steps only to unblock the next one.
 """
 from __future__ import annotations
 
@@ -19,6 +23,11 @@ from roadmap.priority import UnitPriority
 from roadmap.step import RoadmapStep
 from vocab.entry import Unit
 
+# Large enough that no combination of gain and priority can outweigh it: gains
+# run to a few dozen and priority contributes at most `priority_weight`. A
+# goal that is reachable is always taken before a step that is not a goal.
+GOAL_BONUS = 10_000.0
+
 
 class RoadmapBuilder:
     def __init__(
@@ -26,10 +35,16 @@ class RoadmapBuilder:
         index: CorpusIndex,
         priority: UnitPriority,
         priority_weight: float = 3.0,
+        goals: frozenset[Unit] = frozenset(),
     ) -> None:
         self._index = index
         self._priority = priority
         self._weight = priority_weight
+        self._goals = goals
+
+    @property
+    def goals(self) -> frozenset[Unit]:
+        return self._goals
 
     def build(self, max_steps: int | None = None) -> list[RoadmapStep]:
         steps: list[RoadmapStep] = []
@@ -47,15 +62,20 @@ class RoadmapBuilder:
 
         Lets a reader be shown what is i+1 *right now* — recomputed against
         whatever they have marked known since — rather than a position in a
-        sequence planned earlier. `exclude` passes over units the reader has
-        set aside without claiming to know them.
+        sequence planned earlier.  `exclude` passes over units the reader has
+        set aside without claiming to know them; `kinds`, when given, narrows
+        to one sort of unit, since grammar and vocabulary are not always what
+        you want on the same day.
         """
-        return self._next_step(position, exclude)
+        return self._next_step(position, exclude, kinds)
 
-    def _next_step(self, position: int,
-                   exclude: frozenset = frozenset()) -> RoadmapStep | None:
-        candidates = {u: p for u, p in self._index.candidates().items()
-                      if u not in exclude}
+    def _next_step(self, position: int, exclude: frozenset = frozenset(),
+                   kinds: frozenset = frozenset()) -> RoadmapStep | None:
+        candidates = {
+            unit: positions
+            for unit, positions in self._index.candidates().items()
+            if unit not in exclude and (not kinds or unit.kind in kinds)
+        }
         if not candidates:
             return None
         unit, sentences, gain, score = max(
@@ -76,7 +96,10 @@ class RoadmapBuilder:
 
     def _score(self, unit: Unit, positions: list[int]) -> tuple[int, float]:
         gain = len(positions) + self._index.unlocks(unit)
-        return gain, gain + self._weight * self._priority.of(unit)
+        score = gain + self._weight * self._priority.of(unit)
+        if unit in self._goals:
+            score += GOAL_BONUS
+        return gain, score
 
     def _example(self, positions: list[int]) -> Sentence:
         """The simplest sentence teaching this unit — fewest units wins."""

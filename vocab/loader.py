@@ -11,6 +11,7 @@ database is C-locale and `lower()` there folds ASCII only.
 """
 from __future__ import annotations
 
+import sys
 import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
@@ -41,6 +42,16 @@ class WordListLoader:
     """Reads a vocabulary file into a `WordList`."""
 
     def load(self, path: Path) -> WordList:
+        """The file's entries, or an empty list if it is not there.
+
+        A missing vocabulary file degrades rather than stops: the priority
+        list only ranks teaching order, and losing it costs ordering quality,
+        not correctness. Moving one out of the way should not take the whole
+        roadmap down with it.
+        """
+        if not path.exists():
+            print(f"warning: no vocabulary file at {path}", file=sys.stderr)
+            return WordList(path=path, surfaces=())
         seen: dict[str, None] = {}
         for raw in path.read_text(encoding="utf-8").splitlines():
             line = raw.split("#", 1)[0].strip()

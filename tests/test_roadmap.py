@@ -8,7 +8,6 @@ produce a plausible-looking roadmap.
 from __future__ import annotations
 
 import unittest
-from collections import Counter
 
 from corpus.sentence import Sentence
 from roadmap import CorpusIndex, KnownSet, RoadmapBuilder, UnitPriority
@@ -76,7 +75,7 @@ class RoadmapBuilderTest(unittest.TestCase):
         ]
         known = KnownSet({Unit.lemma("ich")})
         index = CorpusIndex(sentences, known)
-        priority = UnitPriority({}, Counter())
+        priority = UnitPriority.build(())
         plan = RoadmapBuilder(index, priority, priority_weight=0.0).build()
         self.assertEqual(plan[0].unit, Unit.lemma("b"))
         self.assertEqual(plan[0].gain, 2)          # readable now + one unlocked
@@ -85,14 +84,17 @@ class RoadmapBuilderTest(unittest.TestCase):
         sentences = [sentence("one", "ich", "rare"), sentence("two", "ich", "common")]
         known = KnownSet({Unit.lemma("ich")})
         index = CorpusIndex(sentences, known)
-        priority = UnitPriority({"common": 0, "rare": 999}, Counter())
+        priority = UnitPriority.build(
+            [Unit.lemma("common")] + [Unit.lemma(f"x{i}") for i in range(998)]
+            + [Unit.lemma("rare")]
+        )
         plan = RoadmapBuilder(index, priority, priority_weight=3.0).build()
         self.assertEqual(plan[0].unit, Unit.lemma("common"))
 
     def test_stops_when_nothing_is_i_plus_one(self) -> None:
         sentences = [sentence("hard", "a", "b", "c")]
         index = CorpusIndex(sentences, KnownSet())
-        plan = RoadmapBuilder(index, UnitPriority({}, Counter())).build()
+        plan = RoadmapBuilder(index, UnitPriority.build(())).build()
         self.assertEqual(plan, [])
 
     def test_every_step_teaches_exactly_one_new_thing(self) -> None:
@@ -104,19 +106,71 @@ class RoadmapBuilderTest(unittest.TestCase):
         known = KnownSet({Unit.lemma("ich")})
         index = CorpusIndex(sentences, known)
         seen = set(known.units)
-        for step in RoadmapBuilder(index, UnitPriority({}, Counter())).build():
+        for step in RoadmapBuilder(index, UnitPriority.build(())).build():
             self.assertEqual(step.sentence.units - seen, {step.unit})
             seen.add(step.unit)
 
 
 class UnitPriorityTest(unittest.TestCase):
-    def test_both_kinds_land_on_the_same_scale(self) -> None:
-        """A pattern scored at zero would hand every word a flat handicap."""
-        priority = UnitPriority({"und": 0, "selten": 999}, Counter({"P": 40, "Q": 1}))
+    """One authored ordering ranks both kinds.
+
+    Words and patterns compete for the same roadmap slots, so ranking them by
+    unrelated measures made the comparison arbitrary. They now share a list.
+    """
+
+    def test_both_kinds_are_ranked_by_the_same_list(self) -> None:
+        priority = UnitPriority.build(
+            [Unit.lemma("und"), Unit.pattern("P"), Unit.lemma("selten")]
+        )
         self.assertAlmostEqual(priority.of(Unit.lemma("und")), 1.0)
-        self.assertAlmostEqual(priority.of(Unit.pattern("P")), 1.0)
-        self.assertLess(priority.of(Unit.pattern("Q")), 0.1)
+        self.assertGreater(priority.of(Unit.pattern("P")),
+                           priority.of(Unit.lemma("selten")))
+
+    def test_a_unit_absent_from_the_list_scores_nothing(self) -> None:
+        priority = UnitPriority.build([Unit.lemma("und")])
         self.assertEqual(priority.of(Unit.lemma("unlisted")), 0.0)
+        self.assertEqual(priority.of(Unit.pattern("unlisted")), 0.0)
+
+    def test_the_first_mention_sets_the_rank(self) -> None:
+        """A lemma recurs under several blueprints; the earliest one counts."""
+        priority = UnitPriority.build(
+            [Unit.lemma("haben"), Unit.lemma("x"), Unit.lemma("haben")]
+        )
+        self.assertAlmostEqual(priority.of(Unit.lemma("haben")), 1.0)
+
+
+class GoalRoadmapTest(unittest.TestCase):
+    """With a goal list the walk has a destination, not just a direction."""
+
+    def setUp(self) -> None:
+        self.sentences = [
+            sentence("a", "ich", "gain1", "gain2"),   # two easy non-goals
+            sentence("b", "ich", "gain1"),
+            sentence("c", "ich", "gain2"),
+            sentence("d", "ich", "goal"),             # the thing we want
+        ]
+        self.known = KnownSet({Unit.lemma("ich")})
+
+    def plan(self, goals: frozenset):
+        index = CorpusIndex(self.sentences, KnownSet(self.known.units))
+        return RoadmapBuilder(index, UnitPriority.build(()), 0.0, goals).build()
+
+    def test_a_goal_is_taken_before_a_higher_scoring_step(self) -> None:
+        """`gain1` unlocks more, but `goal` is what we set out to learn."""
+        without = self.plan(frozenset())
+        self.assertNotEqual(without[0].unit, Unit.lemma("goal"))
+
+        with_goal = self.plan(frozenset({Unit.lemma("goal")}))
+        self.assertEqual(with_goal[0].unit, Unit.lemma("goal"))
+
+    def test_ordinary_steps_still_run_once_no_goal_is_reachable(self) -> None:
+        plan = self.plan(frozenset({Unit.lemma("goal")}))
+        self.assertGreater(len(plan), 1)
+        self.assertEqual(plan[0].unit, Unit.lemma("goal"))
+
+    def test_a_goal_the_corpus_never_isolates_is_simply_not_reached(self) -> None:
+        plan = self.plan(frozenset({Unit.lemma("absent")}))
+        self.assertNotIn(Unit.lemma("absent"), {s.unit for s in plan})
 
 
 if __name__ == "__main__":

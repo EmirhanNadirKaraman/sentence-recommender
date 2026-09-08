@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from corpus.sentence import GENERATED
 from generation import LLMClient, SentenceGenerator
-from roadmap import ExampleIndex, RoadmapStore, UnitPriority
+from roadmap import ExampleIndex, RoadmapStore
 
 # How much of the known vocabulary to put in the prompt.  The whole set runs to
 # thousands of words; the most frequent few hundred is what a simple sentence
@@ -37,7 +37,7 @@ class FillGapsCommand:
 
         sentences = app.corpus(*builds)
         examples = ExampleIndex(sentences)
-        priority = UnitPriority.build(app.priority_surfaces(), sentences)
+        priority = app.priority()
         known = app.known_set()
         generator = SentenceGenerator(client, app.analyzer)
 
