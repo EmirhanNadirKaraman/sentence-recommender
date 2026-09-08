@@ -20,6 +20,7 @@ second acts on that evidence.  See `_verb_lemma`, `_lemma_corrections` and
 """
 from __future__ import annotations
 
+import re
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -32,6 +33,15 @@ _MATCHER_DIR = Path(__file__).resolve().parents[1] / "matcher"
 _OVERRIDES = Path(__file__).resolve().parents[1] / "data" / "lemma_overrides.txt"
 
 VERB_TAGS = ("VV", "VA", "VM")
+
+# The matcher falls back to trigram similarity when nothing matches outright,
+# and reports the score in `match_type`. Measured over the subtitle corpus,
+# everything below a perfect score is guesswork: 0.62 turned "Epsteins" into
+# "der Stein" and "alles" into "die Halle". A score of 1.00 means the trigram
+# sets matched exactly — an inflection, not a guess — and covers 65% of fuzzy
+# matches. The rest are dropped.
+FUZZY_SCORE = re.compile(r"fuzzy \(([0-9.]+)\)")
+MIN_FUZZY = 1.0
 
 # A German infinitive ends in -en or -n.  A verb lemma that already looks like
 # one is almost certainly right, and must not be "corrected" — this is the
@@ -195,11 +205,29 @@ class UnitAnalyzer:
             surfaces.setdefault(unit, token.text)
         for phrase in self.matcher.extract_phrases(doc, self._language):
             entry = phrase["dictionary_entry"]
-            if entry in self._patterns:
-                unit = Unit.pattern(entry)
-                units.add(unit)
-                surfaces.setdefault(unit, " ".join(phrase["sentence_phrase"]))
+            if entry not in self._patterns or not self._trustworthy(phrase, doc):
+                continue
+            unit = Unit.pattern(entry)
+            units.add(unit)
+            surfaces.setdefault(unit, " ".join(phrase["sentence_phrase"]))
         return frozenset(units), tuple(surfaces.items())
+
+    @staticmethod
+    def _trustworthy(phrase, doc) -> bool:
+        """Is this pattern match evidence, or a guess?
+
+        Two ways it is not. A weak trigram score means the matcher found
+        nothing and settled for something shaped alike — that is where
+        "Epsteins" became "der Stein". And a match sitting entirely on proper
+        nouns is matching a name: "Merkel" is not the verb "merken", and
+        "Bayern" is not "der Bayer". Names are excluded from the word side
+        already; this is the same rule for the pattern side.
+        """
+        score = FUZZY_SCORE.search(phrase["match_type"])
+        if score and float(score.group(1)) < MIN_FUZZY:
+            return False
+        tags = {doc[i].tag_ for i in phrase["indices"] if i < len(doc)}
+        return not (tags and tags <= {"NE"})
 
     def _verb_lemma(self, token) -> str:
         """`token`'s lemma, with an inflected verb folded into its infinitive.
