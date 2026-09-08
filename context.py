@@ -47,8 +47,10 @@ class Application:
             patterns, self.settings.language, self.settings.analysis_processes
         )
 
-    def filter(self) -> SentenceFilter:
-        return SentenceFilter(self.settings.min_tokens, self.settings.max_tokens)
+    def filter(self, min_words: int | None = None) -> SentenceFilter:
+        return SentenceFilter(
+            min_words or self.settings.min_tokens, self.settings.max_tokens
+        )
 
     def corpus(self, *builds: str, teachable_only: bool = True):
         """Cached sentences from the named builds, or from all of them."""

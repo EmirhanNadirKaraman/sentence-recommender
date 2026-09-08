@@ -16,9 +16,13 @@ class StatusCommand:
         if not builds:
             print("  (none — run `build-corpus tatoeba`)")
 
-        steps = RoadmapStore(settings.state_path).count()
+        roadmaps = RoadmapStore(settings.state_path).sources()
         total, due = app.card_store.counts(datetime.now())
-        print(f"roadmap: {steps} steps")
+        print("roadmaps:")
+        for name, count in sorted(roadmaps.items()):
+            print(f"  {name:<12} {count:>7} steps")
+        if not roadmaps:
+            print("  (none — run `build-roadmap`)")
         print(f"cards:   {total} scheduled, {due} due now")
 
         for path in (settings.known_words, settings.function_words):

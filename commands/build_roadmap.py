@@ -4,6 +4,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from roadmap import CorpusIndex, RoadmapBuilder, RoadmapStore, UnitPriority
+from roadmap.store import ALL
 
 
 class BuildRoadmapCommand:
@@ -28,14 +29,15 @@ class BuildRoadmapCommand:
         builder = RoadmapBuilder(index, priority, settings.priority_weight)
 
         plan = builder.build(max_steps=steps)
-        RoadmapStore(settings.state_path).save(plan)
+        label = "+".join(sorted(builds)) if builds else ALL
+        RoadmapStore(settings.state_path).save(plan, label)
 
         now = datetime.now()
         for step in plan:
             app.card_store.add(app.scheduler.new_card(step.unit, now))
 
         readable = index.readable
-        print(f"roadmap: {len(plan)} steps · {readable} sentences fully readable "
+        print(f"roadmap [{label}]: {len(plan)} steps · {readable} sentences fully readable "
               f"at the end · {len(plan)} cards ready")
         for step in plan[:10]:
             print(f"  {step.describe()}   {step.sentence.text}")

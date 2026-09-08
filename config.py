@@ -81,8 +81,10 @@ class Settings:
     # Local mutable state (SRS cards, generated roadmap).
     state_path: Path = ROOT / "data" / "state.sqlite3"
 
-    # Sentence acceptance band, in tokens.
-    min_tokens: int = 4
+    # Sentence acceptance band, in words. Four-word sentences carry too little
+    # context to learn a word from; the floor is a taste setting, so
+    # `build-corpus --min-words` overrides it.
+    min_tokens: int = 5
     max_tokens: int = 25
 
     # Local model, reached over Tailscale.  Endpoint comes from LLM_BASE_URL

@@ -29,7 +29,7 @@ class BuildCorpusCommand:
     """
 
     def run(self, app, source: str, limit: int | None = None,
-            corrector: str = "merge") -> None:
+            corrector: str = "merge", min_words: int | None = None) -> None:
         settings = app.settings
         started = time.time()
         build = f"{source}:llm" if source == "subtitle" and corrector == "llm" else source
@@ -38,7 +38,7 @@ class BuildCorpusCommand:
         print(f"{build}: {len(sentences)} sentences from source "
               f"({time.time() - started:.0f}s)")
 
-        sentence_filter = app.filter()
+        sentence_filter = app.filter(min_words)
         kept, dropped = sentence_filter.split(sentences)
         print(f"  filtered to {len(kept)}  (rejected {dict(sentence_filter.rejected)})")
         if limit:

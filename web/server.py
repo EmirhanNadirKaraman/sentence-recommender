@@ -70,7 +70,7 @@ def _make_handler(viewer: Viewer):
 
         def _route(self, path: str, query: dict) -> tuple[str, int]:
             if path == "/":
-                return viewer.overview(query), 200
+                return viewer.next_up(query), 200
             if path == "/roadmap":
                 return viewer.roadmap(query), 200
             if path == "/review":

@@ -1,115 +1,211 @@
-"""HTML for the local viewer.
+"""The look of the local viewer.
 
-Server-rendered and form-driven — no JavaScript, so there is nothing to load,
-bundle or debug. Everything is one file of markup helpers because the site is
-half a dozen pages, not an application.
+The palette and structure come from a German school exercise book: cool
+squared paper, königsblau fountain-pen ink for the text, and the red margin
+rule down the left. That last one is load-bearing rather than decorative — it
+separates the rail carrying step numbers from the reading column, which is
+exactly what a margin is for. Red also means one thing here, the same thing it
+means on returned schoolwork: a correction.
+
+Typographic register carries the pedagogy. German is set in Literata, a
+reading face; the interface and the English translations are in Atkinson
+Hyperlegible. The German is the material; everything else is scaffolding.
 """
 from __future__ import annotations
 
 from html import escape
 
+FONTS = ("https://fonts.googleapis.com/css2?"
+         "family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400"
+         "&family=Atkinson+Hyperlegible:wght@400;700&display=swap")
+
 STYLE = """
 :root {
-  --bg: #fbfaf8; --panel: #fff; --ink: #1a1a19; --muted: #6b6a66;
-  --line: #e5e3de; --accent: #3a5a8c; --pattern: #7a4a8c; --ok: #2f7a4f;
-  --warn: #a8632a;
+  --paper:   #eef1f6;
+  --surface: #f8fafd;
+  --ink:     #1b2a4a;
+  --ink-2:   #5d6d8c;
+  --rail:    #c0392b;
+  --target:  #4a55a8;
+  --faint:   #ccd7e8;
+  --serif: Literata, Charter, "Iowan Old Style", Georgia, serif;
+  --sans: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #17171a; --panel: #1f1f23; --ink: #ececea; --muted: #96958f;
-    --line: #32323a; --accent: #8fb0e0; --pattern: #c39ad6; --ok: #6fc494;
-    --warn: #e0a06a;
+    --paper: #0f1626; --surface: #161f33; --ink: #dce5f6; --ink-2: #8b9bbd;
+    --rail: #e2685c; --target: #9fabf2; --faint: #263149;
   }
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--ink);
-  font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
-a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; }
-header { border-bottom: 1px solid var(--line); background: var(--panel);
-  position: sticky; top: 0; z-index: 5; }
-nav { max-width: 940px; margin: 0 auto; padding: 12px 20px;
-  display: flex; gap: 20px; align-items: baseline; flex-wrap: wrap; }
-nav .brand { font-weight: 650; letter-spacing: -0.01em; margin-right: 8px; }
-nav a { color: var(--muted); font-size: 14px; }
-nav a.on { color: var(--ink); font-weight: 600; }
-main { max-width: 940px; margin: 0 auto; padding: 28px 20px 64px; }
-h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.015em; }
-h2 { font-size: 16px; margin: 32px 0 12px; }
-.sub { color: var(--muted); margin: 0 0 24px; font-size: 14px; }
-.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px; margin-bottom: 28px; }
-.stat { background: var(--panel); border: 1px solid var(--line);
-  border-radius: 10px; padding: 14px 16px; }
-.stat .n { font-size: 24px; font-weight: 650; letter-spacing: -0.02em;
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 400 15px/1.5 var(--sans);
+  text-rendering: optimizeLegibility;
+}
+a { color: inherit; text-decoration-color: var(--faint);
+    text-underline-offset: 3px; }
+a:hover { text-decoration-color: var(--target); }
+:focus-visible { outline: 2px solid var(--target); outline-offset: 3px; }
+
+.masthead { border-bottom: 1px solid var(--faint); }
+.masthead .inner {
+  max-width: 47rem; margin: 0 auto; padding: 14px 24px;
+  display: flex; gap: 22px; align-items: baseline; flex-wrap: wrap;
+}
+.masthead .name { font: italic 400 16px/1 var(--serif); margin-right: 6px; }
+.masthead a { font-size: 14px; color: var(--ink-2); text-decoration: none; }
+.masthead a.here { color: var(--ink); text-decoration: underline;
+  text-decoration-color: var(--rail); text-decoration-thickness: 2px; }
+
+main { max-width: 47rem; margin: 0 auto; padding: 40px 24px 96px; }
+
+h1 { font: 400 21px/1.3 var(--sans); margin: 0 0 6px; }
+h2 { font: 400 15px/1.3 var(--sans); color: var(--ink-2);
+     margin: 40px 0 14px; }
+.note { color: var(--ink-2); font-size: 14px; margin: 0 0 30px; max-width: 34rem; }
+
+/* German is always the serif; English always the sans, one step down. */
+.de { font: 400 19px/1.6 var(--serif); margin: 0; }
+.de.lead { font-size: 30px; line-height: 1.42; }
+.en { font: 400 14px/1.5 var(--sans); color: var(--ink-2); margin: 6px 0 0; }
+
+/* The one unknown thing: marked when shown, ruled when withheld. */
+.target { color: var(--target); text-decoration: underline;
+  text-decoration-thickness: 2px; text-underline-offset: 5px;
+  text-decoration-color: var(--target); }
+.blank { display: inline-block; min-width: 7ch;
+  border-bottom: 2px solid var(--target); }
+
+/* The ledger: a rail of step numbers, one continuous margin rule beside it. */
+.ledger { position: relative; --rail-w: 4.75rem; }
+.ledger::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: var(--rail-w);
+  width: 1px; background: var(--rail); opacity: .55;
+}
+.entry { display: grid; grid-template-columns: var(--rail-w) 1fr; }
+.entry .rail {
+  text-align: right; padding: 18px 18px 0 0;
+  font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums;
+}
+.entry .rail .kind { display: block; font-size: 11.5px; opacity: .75; }
+.entry .body { padding: 18px 0 18px 22px; border-bottom: 1px solid var(--faint); }
+.entry:last-child .body { border-bottom: 0; }
+.entry .unit { font: 600 17px/1.35 var(--serif); }
+.entry .unit a { text-decoration: none; }
+.entry .unit a:hover { text-decoration: underline;
+  text-decoration-color: var(--target); }
+.entry .de { margin-top: 5px; }
+
+/* Figures: no tiles, no borders — just numbers given room. */
+.figures { display: flex; gap: 40px; flex-wrap: wrap;
+  margin: 44px 0 0; padding-top: 22px; border-top: 1px solid var(--faint); }
+.figures div { min-width: 0; }
+.figures .n { font: 400 22px/1.1 var(--serif);
   font-variant-numeric: tabular-nums; }
-.stat .k { color: var(--muted); font-size: 13px; margin-top: 2px; }
-.row { background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
-  padding: 12px 16px; margin-bottom: 8px; display: flex; gap: 14px;
-  align-items: baseline; }
-.row .pos { color: var(--muted); font-variant-numeric: tabular-nums;
-  font-size: 13px; min-width: 42px; }
-.row .body { flex: 1; min-width: 0; }
-.unit { font-weight: 600; }
-.de { margin-top: 3px; }
-.en { color: var(--muted); font-size: 14px; margin-top: 1px; }
-.tag { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
-  padding: 2px 7px; border-radius: 999px; border: 1px solid var(--line);
-  color: var(--muted); white-space: nowrap; }
-.tag.pattern { color: var(--pattern); border-color: currentColor; }
-.tag.word { color: var(--accent); border-color: currentColor; }
-form.inline { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-input[type=text] { flex: 1; min-width: 200px; padding: 9px 12px; font: inherit;
-  background: var(--panel); color: var(--ink);
-  border: 1px solid var(--line); border-radius: 8px; }
-button { padding: 9px 16px; font: inherit; border-radius: 8px; cursor: pointer;
-  border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
-button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-.pager { display: flex; gap: 10px; align-items: center; margin-top: 20px;
-  color: var(--muted); font-size: 14px; }
-.cloze { font-size: 19px; line-height: 1.7; margin: 6px 0; }
-.blank { border-bottom: 2px solid var(--accent); padding: 0 26px; }
-.empty { color: var(--muted); padding: 28px 0; }
-.verdict { padding: 12px 16px; border-radius: 10px; margin-bottom: 18px;
-  border: 1px solid var(--line); background: var(--panel); }
-.verdict.ok { color: var(--ok); } .verdict.no { color: var(--warn); }
+.figures .k { font-size: 13px; color: var(--ink-2); margin-top: 3px; }
+
+form.bar { display: flex; gap: 10px; margin: 0 0 26px; flex-wrap: wrap; }
+input[type=text], select {
+  font: 400 15px var(--sans); padding: 8px 11px; color: var(--ink);
+  background: var(--surface); border: 1px solid var(--faint); border-radius: 3px;
+}
+input[type=text] { flex: 1; min-width: 190px; }
+input[type=text]::placeholder { color: var(--ink-2); opacity: .8; }
+button {
+  font: 400 15px var(--sans); padding: 8px 15px; cursor: pointer;
+  color: var(--ink); background: var(--surface);
+  border: 1px solid var(--faint); border-radius: 3px;
+}
+button.go { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+button:hover { border-color: var(--target); }
+
+/* Source switch: quiet, and it says what it is switching. */
+.switch { display: flex; gap: 16px; align-items: baseline; margin: 0 0 28px;
+  font-size: 14px; color: var(--ink-2); flex-wrap: wrap; }
+.switch a { text-decoration: none; }
+.switch a.on { color: var(--ink); text-decoration: underline;
+  text-decoration-color: var(--rail); text-decoration-thickness: 2px;
+  text-underline-offset: 4px; }
+
+/* Review: the answer sits on a ruled line, as it would on a worksheet. */
+.prompt { margin: 26px 0 30px; }
+.prompt .de { margin-bottom: 16px; }
+.answer { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap;
+  margin-top: 26px; }
+.answer input[type=text] {
+  font: 400 19px var(--serif); border: 0; border-bottom: 2px solid var(--ink);
+  border-radius: 0; background: transparent; padding: 4px 2px; min-width: 12rem;
+}
+.mark { font: 400 17px/1.4 var(--serif); margin: 0 0 26px;
+  padding-left: 14px; border-left: 3px solid var(--rail); }
+.mark.right { border-left-color: var(--target); }
+
+.pager { display: flex; gap: 18px; align-items: baseline; margin-top: 30px;
+  font-size: 14px; color: var(--ink-2); }
+.quiet { color: var(--ink-2); }
+.rows { width: 100%; border-collapse: collapse; font-size: 14px; }
+.rows td, .rows th { text-align: left; padding: 9px 12px 9px 0;
+  border-bottom: 1px solid var(--faint); font-weight: 400; }
+.rows th { color: var(--ink-2); font-size: 13px; }
+.rows td.n, .rows th.n { text-align: right; font-variant-numeric: tabular-nums; }
+.empty { color: var(--ink-2); padding: 34px 0; font-size: 15px; max-width: 32rem; }
 code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-td, th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
-th { color: var(--muted); font-weight: 500; font-size: 13px; }
-td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 620px) {
+  .ledger { --rail-w: 3.1rem; }
+  .entry .body { padding-left: 14px; }
+  .de.lead { font-size: 24px; }
+  .figures { gap: 26px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 """
 
-NAV = (("/", "Overview"), ("/roadmap", "Roadmap"), ("/review", "Review"),
-       ("/subtitles", "Subtitles"))
+NAV = (("/", "Next"), ("/roadmap", "Roadmap"), ("/review", "Review"),
+       ("/subtitles", "Videos"))
 
 
-def layout(title: str, body: str, active: str = "/") -> str:
+def layout(title: str, body: str, here: str = "/", source: str = "") -> str:
+    suffix = f"?src={source}" if source else ""
     links = "".join(
-        f'<a href="{href}" class="{"on" if href == active else ""}">{escape(label)}</a>'
+        f'<a href="{href}{suffix}" class="{"here" if href == here else ""}">'
+        f"{escape(label)}</a>"
         for href, label in NAV
     )
     return (
         "<!doctype html><html lang='en'><head><meta charset='utf-8'>"
         "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-        f"<title>{escape(title)} · sentence-recommender</title>"
+        f"<title>{escape(title)}</title>"
+        "<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>"
+        f"<link rel='stylesheet' href='{FONTS}'>"
         f"<style>{STYLE}</style></head><body>"
-        f"<header><nav><span class='brand'>sentence-recommender</span>{links}</nav></header>"
+        "<header class='masthead'><div class='inner'>"
+        f"<span class='name'>i+1</span>{links}</div></header>"
         f"<main>{body}</main></body></html>"
     )
 
 
-def stat(number, label: str) -> str:
-    return f"<div class='stat'><div class='n'>{number}</div><div class='k'>{escape(label)}</div></div>"
+def mark(text: str, surface: str | None) -> str:
+    """The sentence with its one new word marked.
+
+    Escaped first, then the escaped surface is wrapped, so a word containing
+    markup characters cannot break out. Falls back to the plain sentence when
+    the surface is unknown or has been rewritten past matching.
+    """
+    safe = escape(text)
+    if not surface:
+        return safe
+    needle = escape(surface)
+    if needle not in safe:
+        return safe
+    return safe.replace(needle, f"<span class='target'>{needle}</span>", 1)
 
 
-def tag(kind: str) -> str:
-    name = "pattern" if kind == "pattern" else "word"
-    return f"<span class='tag {name}'>{name}</span>"
-
-
-def sentence_block(text: str, translation: str | None) -> str:
-    out = f"<div class='de'>{escape(text)}</div>"
+def sentence(text: str, translation: str | None, surface: str | None = None,
+             lead: bool = False) -> str:
+    size = " lead" if lead else ""
+    out = f"<p class='de{size}'>{mark(text, surface)}</p>"
     if translation:
-        out += f"<div class='en'>{escape(translation)}</div>"
+        out += f"<p class='en'>{escape(translation)}</p>"
     return out

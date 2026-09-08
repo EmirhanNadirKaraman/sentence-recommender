@@ -40,8 +40,9 @@ python main.py function-words             regenerate the closed-class review fil
 python main.py build-corpus tatoeba       analyse and cache a source (~7 min)
 python main.py build-corpus subtitle      the smaller subtitle corpus (~15 s)
 python main.py build-corpus subtitle --corrector llm    repair subtitles with the local model
+python main.py build-corpus subtitle --min-words 7       raise the length floor
 python main.py build-roadmap --steps 200  run the greedy walk
-python main.py build-roadmap --source subtitle:llm      study real video subtitles only
+python main.py build-roadmap --source subtitle          study video subtitles only
 python main.py fill-gaps                  generate the examples the corpus lacks
 python main.py export-subtitles --source subtitle:llm   corrected subtitles as WebVTT
 python main.py review                     terminal SRS session
@@ -153,9 +154,19 @@ Without it, generation is skipped and everything else works.
 ## The local viewer
 
 `python main.py serve` opens a page at `127.0.0.1:8765` with four views:
-the overview, the roadmap (searchable and filterable by words or patterns),
-a per-unit page listing every sentence in the corpus that uses it, and a
-review session that grades and reschedules cards exactly as the CLI does.
+what to learn next, the roadmap (searchable, filterable by words or
+patterns), a per-unit page listing every sentence that uses it, and a review
+session that grades and reschedules cards exactly as the CLI does.
+
+Roadmaps are stored per source, so the page can switch between studying the
+video subtitles and studying everything without rebuilding either. The
+examples shown beside a card come from whichever you have selected.
+
+The palette and structure come from a German school exercise book — cool
+squared paper, königsblau ink, and the red margin rule dividing the rail of
+step numbers from the reading column. German is set in a reading face and
+English in a legibility face, one step down: the German is the material,
+the English is scaffolding.
 
 Server-rendered from the standard library — no framework, no JavaScript, no
 build step. It binds to localhost only and has no authentication, so it must

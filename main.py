@@ -31,6 +31,8 @@ def _parser() -> argparse.ArgumentParser:
              "with the local model and caches as 'subtitle:llm'",
     )
     corpus.add_argument("--limit", type=int, help="analyse only the first N sentences")
+    corpus.add_argument("--min-words", type=int,
+                        help="shortest sentence to keep (default 5)")
 
     plan = sub.add_parser("build-roadmap", help="run the greedy i+1 walk")
     plan.add_argument("--steps", type=int, help="stop after N steps")
@@ -79,7 +81,8 @@ def main() -> int:
     args = _parser().parse_args()
     app = Application()
     if args.command == "build-corpus":
-        BuildCorpusCommand().run(app, args.source, args.limit, args.corrector)
+        BuildCorpusCommand().run(app, args.source, args.limit,
+                                 args.corrector, args.min_words)
     elif args.command == "build-roadmap":
         BuildRoadmapCommand().run(app, args.steps, tuple(args.source))
     elif args.command == "export-subtitles":

@@ -75,10 +75,16 @@ class CorpusStore:
         conn.execute("PRAGMA foreign_keys = ON")
         return conn
 
-    def builds(self) -> dict[str, int]:
+    def builds(self, teachable_only: bool = False) -> dict[str, int]:
+        """Build name -> how many sentences it holds.
+
+        `teachable_only` counts what the roadmap can actually use, leaving out
+        the rows a subtitle build keeps purely so the overlay has no gaps.
+        """
+        where = " WHERE teachable = 1" if teachable_only else ""
         with self._connect() as conn:
             return dict(conn.execute(
-                "SELECT build, count(*) FROM sentences GROUP BY build"
+                f"SELECT build, count(*) FROM sentences{where} GROUP BY build"
             ))
 
     def save(self, sentences: list[Sentence], build: str) -> None:
