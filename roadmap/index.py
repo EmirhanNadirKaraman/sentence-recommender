@@ -85,7 +85,15 @@ class CorpusIndex:
         return len(self._pending[unit])
 
     def learn(self, unit: Unit) -> None:
-        """Mark `unit` known and move every sentence containing it down one state."""
+        """Mark `unit` known and move every sentence containing it down a state.
+
+        Learning something already known is a no-op rather than a second
+        decrement. Without that guard a caller that forgets to check drives
+        unknown counts below zero — silently, since nothing downstream
+        inspects the sign — and the frontier stops meaning anything.
+        """
+        if unit in self._units:
+            return
         self._known.learn(unit)
         self._units.add(unit)
         for position in self._by_unit[unit]:

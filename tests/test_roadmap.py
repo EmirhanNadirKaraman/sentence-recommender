@@ -116,3 +116,41 @@ class UnitPriorityTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LearningTwiceTest(unittest.TestCase):
+    """Learning the same unit twice must not shift the counts twice.
+
+    The web viewer marks units known as they are read, and a unit can be
+    marked again — from another page, or after a reload. A second decrement
+    drives unknown counts negative, which nothing downstream checks for, so
+    the frontier quietly stops meaning anything.
+    """
+
+    def setUp(self) -> None:
+        self.sentences = [
+            sentence("a", "ich", "haus"),
+            sentence("b", "ich", "haus", "baum"),
+        ]
+        self.index = CorpusIndex(self.sentences, KnownSet({Unit.lemma("ich")}))
+
+    def test_relearning_changes_nothing(self) -> None:
+        self.index.learn(Unit.lemma("haus"))
+        after_once = [self.index.unknown_count(i) for i in range(2)]
+        readable_once = self.index.readable
+
+        self.index.learn(Unit.lemma("haus"))
+
+        self.assertEqual([self.index.unknown_count(i) for i in range(2)], after_once)
+        self.assertEqual(self.index.readable, readable_once)
+
+    def test_counts_never_go_negative(self) -> None:
+        for _ in range(4):
+            self.index.learn(Unit.lemma("haus"))
+        self.assertTrue(all(self.index.unknown_count(i) >= 0 for i in range(2)))
+
+    def test_learning_something_already_known_is_a_no_op(self) -> None:
+        """`ich` was known from the start; learning it must not shift anything."""
+        before = [self.index.unknown_count(i) for i in range(2)]
+        self.index.learn(Unit.lemma("ich"))
+        self.assertEqual([self.index.unknown_count(i) for i in range(2)], before)
