@@ -144,7 +144,9 @@ button:hover { border-color: var(--target); }
 .mark.right { border-left-color: var(--target); }
 
 /* Alternative i+1 sentences for the same unit, stepped through in place. */
-.deck { min-height: 5.6rem; }
+.deck { min-height: 7.2rem; }
+.also { font: 400 13.5px/1.5 var(--sans); color: var(--ink-2); margin: 10px 0 0; }
+.also.clear { color: var(--target); }
 .stepper { display: flex; gap: 12px; align-items: center; margin-top: 14px;
   font-size: 14px; color: var(--ink-2); }
 .stepper button { padding: 4px 12px; font-size: 16px; line-height: 1.2; }

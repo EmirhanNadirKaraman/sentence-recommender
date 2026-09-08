@@ -160,39 +160,54 @@ class Viewer:
         return layout("i+1", body, "/", source)
 
     def _deck(self, scope: Scope, unit: Unit) -> str:
-        """Every sentence where `unit` is the only unknown, one at a time.
+        """Every sentence using `unit`, readable ones first, stepped in place.
 
-        These are the frontier sentences the index already tracks, so the set
-        is exactly "i+1, and this is the thing missing". Rendered together and
-        stepped through in place, because reloading the page to read another
-        example of the same word breaks the reading.
+        Strictly-i+1 sentences come first because the ranking sorts on how
+        much *else* is unknown, and there are often only one or two of them —
+        `etw. (Akk) können` appears in 131 subtitle sentences but is the sole
+        unknown in one. Stopping there would leave nothing to step through, so
+        the rest follow, each saying what else in it is new. That keeps the
+        i+1 claim honest while still letting the whole set be read without
+        leaving the page.
         """
-        options = sorted(
-            (scope.index.sentence(p) for p in
-             scope.index.candidates().get(unit, ())),
-            key=lambda s: (len(s.units), len(s.text)),
-        )[:DECK_SIZE]
+        known = self.known
+        options = scope.examples.examples(unit, known, limit=DECK_SIZE)
         if not options:
             return ""
         slides = "".join(
             f"<div class='slide'{'' if i == 0 else ' hidden'}>"
             f"{sentence(s.text, s.translation, s.surface_of(unit), lead=True)}"
-            "</div>"
+            f"{self._also_new(s, unit, known)}</div>"
             for i, s in enumerate(options)
         )
         if len(options) == 1:
             return f"<div class='deck' id='deck'>{slides}</div>"
+        readable = sum(1 for s in options if not (s.units - known - {unit}))
         return (
             f"<div class='deck' id='deck'>{slides}</div>"
             "<div class='stepper'>"
             "<button type='button' id='prev' aria-label='Previous sentence'>"
             "&#8592;</button>"
-            f"<span class='count'><span id='at'>1</span> of {len(options)}</span>"
+            f"<span class='count'><span id='at'>1</span> of {len(options)}"
+            "</span>"
             "<button type='button' id='next' aria-label='Next sentence'>"
             "&#8594;</button>"
-            "<span class='hint'>or use the arrow keys</span></div>"
+            "<span class='hint'>arrow keys &nbsp;&nbsp; "
+            + (f"{readable} of them need only this"
+               if readable != 1 else "one of them needs only this")
+            + "</span></div>"
             + _DECK_SCRIPT
         )
+
+    @staticmethod
+    def _also_new(sentence_, unit: Unit, known: frozenset[Unit]) -> str:
+        """What else in this sentence is unknown — why it is harder than i+1."""
+        rest = sorted(u.key for u in sentence_.units - known - {unit})
+        if not rest:
+            return "<p class='also clear'>Nothing else here is new.</p>"
+        shown = ", ".join(escape(k) for k in rest[:4])
+        more = f" and {len(rest) - 4} more" if len(rest) > 4 else ""
+        return f"<p class='also'>Also new: {shown}{more}</p>"
 
     @staticmethod
     def _kind_picker(only: str, source: str) -> str:
