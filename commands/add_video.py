@@ -7,7 +7,9 @@ from __future__ import annotations
 
 import re
 
+from corpus import CorpusUpdater
 from ingest import VideoIngestor
+from roadmap import RoadmapRefresher
 
 # A YouTube id is eleven characters. Accepting a full URL as well, because
 # that is what a browser hands you.
@@ -30,9 +32,18 @@ class AddVideoCommand:
         print(f"  {landed.title}")
         print(f"  {landed.lines} subtitle lines, {landed.language}, "
               f"{landed.source} captions")
-        print("\nThe catalogue has it; this project's own cache does not yet.")
-        print("  python main.py build-corpus subtitle")
-        print("  python main.py build-roadmap --source subtitle")
+
+        print("analysing the new video…", flush=True)
+        caught = CorpusUpdater(app).catch_up()
+        print(f"  {caught.teachable} sentences to study from, "
+              f"{caught.context} more for the overlay")
+
+        rebuilt = RoadmapRefresher(app).refresh(touching="subtitle")
+        for label, steps in sorted(rebuilt.items()):
+            print(f"  roadmap [{label}]: {steps} steps")
+        if not rebuilt:
+            print("  no roadmap over the subtitles yet — "
+                  "`build-roadmap --source subtitle --goals --list-only`")
 
     @staticmethod
     def _identify(video: str) -> str:

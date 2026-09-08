@@ -87,12 +87,27 @@ class CorpusStore:
                 f"SELECT build, count(*) FROM sentences{where} GROUP BY build"
             ))
 
+    def video_ids(self, build: str) -> set[str]:
+        """Which videos a build already holds, so the rest can be skipped."""
+        with self._connect() as conn:
+            return {row[0] for row in conn.execute(
+                "SELECT DISTINCT video_id FROM sentences"
+                " WHERE build = ? AND video_id IS NOT NULL", (build,))}
+
+    def append(self, sentences: list[Sentence], build: str) -> None:
+        """Add to a build without disturbing what is already in it."""
+        self._write(sentences, build)
+
     def save(self, sentences: list[Sentence], build: str) -> None:
         with self._connect() as conn:
             conn.execute(
                 "DELETE FROM sentence_units WHERE sentence_id IN"
                 " (SELECT id FROM sentences WHERE build = ?)", (build,))
             conn.execute("DELETE FROM sentences WHERE build = ?", (build,))
+        self._write(sentences, build)
+
+    def _write(self, sentences: list[Sentence], build: str) -> None:
+        with self._connect() as conn:
             for sentence in sentences:
                 cursor = conn.execute(
                     "INSERT INTO sentences"

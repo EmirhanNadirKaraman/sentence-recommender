@@ -702,10 +702,8 @@ class Viewer:
         said = ""
         if query.get("added"):
             said = (f"<p class='note said'>Added "
-                    f"<strong>{escape(query['added'])}</strong>. Rebuild the "
-                    "corpus to study it: <code>build-corpus subtitle</code> "
-                    "then <code>build-roadmap --source subtitle --goals</code>."
-                    "</p>")
+                    f"<strong>{escape(query['added'])}</strong>. "
+                    "Analysed and folded into the roadmap already.</p>")
         elif query.get("problem"):
             said = (f"<p class='note said bad'>{escape(query['problem'])}</p>")
         return (
@@ -741,7 +739,18 @@ class Viewer:
             return f"/subtitles?problem={quote(str(refused))}"
         except Exception as error:               # noqa: BLE001 — report, don't 500
             return f"/subtitles?problem={quote(f'{type(error).__name__}: {error}')}"
-        return f"/subtitles?added={quote(f'{landed.title} ({landed.lines} lines)')}"
+
+        # Finish the job rather than telling them to. Only the new video is
+        # analysed, and only roadmaps over the subtitles are rebuilt.
+        from corpus import CorpusUpdater
+        from roadmap import RoadmapRefresher
+        caught = CorpusUpdater(self.app).catch_up()
+        rebuilt = RoadmapRefresher(self.app).refresh(touching="subtitle")
+        self._scopes.clear()          # what is in memory no longer matches
+        self._stuck.clear()
+        done = (f"{landed.title} — {caught.teachable} sentences added"
+                + (f", roadmap now {max(rebuilt.values())} steps" if rebuilt else ""))
+        return f"/subtitles?added={quote(done)}"
 
     # --- bits -------------------------------------------------------------
 
