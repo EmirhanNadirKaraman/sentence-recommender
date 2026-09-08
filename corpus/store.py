@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS sentences (
     source_ids  TEXT NOT NULL DEFAULT '',
     video_id    TEXT,
     start_time  REAL,
-    end_time    REAL
+    end_time    REAL,
+    teachable   INTEGER NOT NULL DEFAULT 1
 );
 CREATE INDEX IF NOT EXISTS ix_sentences_build ON sentences(build);
 CREATE TABLE IF NOT EXISTS sentence_units (
@@ -64,7 +65,8 @@ class CorpusStore:
         """
         existing = {row[1] for row in conn.execute("PRAGMA table_info(sentences)")}
         for column, kind in (("video_id", "TEXT"), ("start_time", "REAL"),
-                             ("end_time", "REAL")):
+                             ("end_time", "REAL"),
+                             ("teachable", "INTEGER NOT NULL DEFAULT 1")):
             if column not in existing:
                 conn.execute(f"ALTER TABLE sentences ADD COLUMN {column} {kind}")
 
@@ -89,12 +91,12 @@ class CorpusStore:
                 cursor = conn.execute(
                     "INSERT INTO sentences"
                     " (build, origin, text, translation, raw_text, source_ids,"
-                    "  video_id, start_time, end_time)"
-                    " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    "  video_id, start_time, end_time, teachable)"
+                    " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     (build, sentence.origin, sentence.text, sentence.translation,
                      sentence.raw_text,
                      ",".join(str(i) for i in sentence.source_ids),
-                     *self._timing_row(sentence)),
+                     *self._timing_row(sentence), int(sentence.teachable)),
                 )
                 conn.executemany(
                     "INSERT INTO sentence_units (sentence_id, kind, key, surface)"
@@ -108,15 +110,19 @@ class CorpusStore:
         timing = sentence.timing
         return (timing.video_id, timing.start, timing.end) if timing else (None, None, None)
 
-    def load(self, *builds: str) -> list[Sentence]:
+    def load(self, *builds: str, teachable_only: bool = True) -> list[Sentence]:
+        """Cached sentences.  By default only the ones worth studying from —
+        pass `teachable_only=False` for the full transcript, which is what an
+        overlay needs."""
         if not builds:
             return []          # `WHERE build IN ()` is not valid SQL
         placeholders = ",".join("?" * len(builds))
+        teachable = " AND teachable = 1" if teachable_only else ""
         with self._connect() as conn:
             rows = conn.execute(
                 "SELECT id, origin, text, translation, raw_text, source_ids,"
-                " video_id, start_time, end_time"
-                f" FROM sentences WHERE build IN ({placeholders})", builds,
+                " video_id, start_time, end_time, teachable"
+                f" FROM sentences WHERE build IN ({placeholders}){teachable}", builds,
             ).fetchall()
             units: dict[int, set[Unit]] = {}
             surfaces: dict[int, list[tuple[Unit, str]]] = {}
@@ -142,7 +148,8 @@ class CorpusStore:
                     Timing(video_id, start_time, end_time)
                     if video_id is not None and start_time is not None else None
                 ),
+                teachable=bool(teachable_flag),
             )
             for sid, origin, text, translation, raw_text, source_ids,
-                video_id, start_time, end_time in rows
+                video_id, start_time, end_time, teachable_flag in rows
         ]

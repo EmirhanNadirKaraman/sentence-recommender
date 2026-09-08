@@ -39,7 +39,7 @@ class BuildCorpusCommand:
               f"({time.time() - started:.0f}s)")
 
         sentence_filter = app.filter()
-        kept = sentence_filter.apply(sentences)
+        kept, dropped = sentence_filter.split(sentences)
         print(f"  filtered to {len(kept)}  (rejected {dict(sentence_filter.rejected)})")
         if limit:
             kept = kept[:limit]
@@ -47,6 +47,13 @@ class BuildCorpusCommand:
 
         print(f"  analysing with {settings.analysis_processes} processes…", flush=True)
         analysed = app.analyzer.analyze_all(kept)
+
+        # Subtitle builds keep what the filter set aside, unanalysed. Those
+        # sentences are not worth studying from, but they were still said, and
+        # an overlay assembled only from the survivors has holes in it.
+        if source == "subtitle" and dropped:
+            analysed = analysed + [s.as_context() for s in dropped]
+            print(f"  keeping {len(dropped)} more for the overlay only")
 
         app.corpus_store.save(analysed, build=build)
         units = len({u for s in analysed for u in s.units})

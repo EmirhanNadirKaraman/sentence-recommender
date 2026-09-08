@@ -118,3 +118,29 @@ class WebVTTWriterTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ContextSentenceTest(unittest.TestCase):
+    """Sentences the learning filter drops are still part of the overlay."""
+
+    def test_a_context_sentence_is_marked_not_teachable(self) -> None:
+        sentence = Sentence(text="Zu lang für den Kurs.").as_context()
+        self.assertFalse(sentence.teachable)
+        self.assertTrue(Sentence(text="Normal.").teachable)
+
+    def test_the_filter_hands_back_both_halves(self) -> None:
+        from corpus import SentenceFilter
+        kept, dropped = SentenceFilter(4, 6).split([
+            Sentence(text="Das ist ein guter Satz."),
+            Sentence(text="Kurz."),
+        ])
+        self.assertEqual([s.text for s in kept], ["Das ist ein guter Satz."])
+        self.assertEqual([s.text for s in dropped], ["Kurz."])
+
+    def test_context_sentences_close_the_gaps_in_an_export(self) -> None:
+        cues = WebVTTWriter().render([
+            Sentence(text="Erster.").with_timing(Timing("v", 0.0, 2.0)),
+            Sentence(text="Ausgefiltert.").with_timing(Timing("v", 2.0, 4.0)).as_context(),
+            Sentence(text="Dritter.").with_timing(Timing("v", 4.0, 6.0)),
+        ])
+        self.assertIn("Ausgefiltert.", cues)

@@ -50,9 +50,11 @@ class Application:
     def filter(self) -> SentenceFilter:
         return SentenceFilter(self.settings.min_tokens, self.settings.max_tokens)
 
-    def corpus(self, *builds: str):
+    def corpus(self, *builds: str, teachable_only: bool = True):
         """Cached sentences from the named builds, or from all of them."""
-        return self.corpus_store.load(*(builds or self.corpus_store.builds()))
+        return self.corpus_store.load(
+            *(builds or self.corpus_store.builds()), teachable_only=teachable_only
+        )
 
     def example_index(self, *builds: str) -> ExampleIndex:
         return ExampleIndex(self.corpus(*builds))

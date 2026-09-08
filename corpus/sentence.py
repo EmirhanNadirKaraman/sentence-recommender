@@ -54,6 +54,7 @@ class Sentence:
     units: frozenset[Unit] = field(default_factory=frozenset)
     surfaces: tuple[tuple[Unit, str], ...] = ()
     timing: "Timing | None" = None
+    teachable: bool = True          # False: kept for the overlay, not for study
 
     @property
     def original(self) -> str:
@@ -72,6 +73,10 @@ class Sentence:
 
     def with_timing(self, timing: "Timing") -> "Sentence":
         return replace(self, timing=timing)
+
+    def as_context(self) -> "Sentence":
+        """The same sentence, marked as background rather than study material."""
+        return replace(self, teachable=False)
 
     def surface_of(self, unit: Unit) -> str | None:
         """How `unit` is written in this sentence — "hat" for the lemma "haben".

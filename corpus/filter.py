@@ -41,6 +41,19 @@ class SentenceFilter:
     def apply(self, sentences: list[Sentence]) -> list[Sentence]:
         return [s for s in sentences if self.keep(s)]
 
+    def split(self, sentences: list[Sentence]) -> tuple[list[Sentence], list[Sentence]]:
+        """Both halves: what to teach from, and what was set aside.
+
+        The rejects are not waste for a subtitle build. This filter decides
+        what is worth *learning* from — a sentence can be too long, or too
+        short, or a near-duplicate, and still be part of what was said. An
+        overlay built only from the survivors has holes in it.
+        """
+        kept, dropped = [], []
+        for sentence in sentences:
+            (kept if self.keep(sentence) else dropped).append(sentence)
+        return kept, dropped
+
     def _reject_reason(self, sentence: Sentence) -> str | None:
         text = sentence.text.strip()
         if not text:

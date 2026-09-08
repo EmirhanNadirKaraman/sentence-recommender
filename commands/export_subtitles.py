@@ -15,7 +15,11 @@ from alignment import WebVTTWriter
 class ExportSubtitlesCommand:
     def run(self, app, out_dir: Path, builds: tuple[str, ...] = (),
             translation: bool = False) -> None:
-        sentences = app.corpus(*(builds or ("subtitle",)))
+        # teachable_only=False: the overlay wants everything that was said,
+        # not only what the learning filter kept.
+        sentences = app.corpus_store.load(
+            *(builds or ("subtitle",)), teachable_only=False
+        )
         if not sentences:
             raise SystemExit(
                 "no cached subtitle corpus — run `build-corpus subtitle` first"
