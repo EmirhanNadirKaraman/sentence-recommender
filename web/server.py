@@ -76,11 +76,14 @@ def _make_handler(viewer: Viewer):
             length = int(self.headers.get("Content-Length") or 0)
             body = self.rfile.read(length).decode("utf-8")
             form = {k: v[0] for k, v in parse_qs(body).items()}
+            posted = urlparse(self.path).path.rstrip("/")
             try:
-                if urlparse(self.path).path.rstrip("/") == "/known":
+                if posted == "/known":
                     self._redirect(viewer.mark_known(form))
+                elif posted == "/add-video":
+                    self._redirect(viewer.add_video(form))
                 else:
-                    self._send(viewer.grade(form))
+                    self._send(_missing(self.path), status=404)
             except Exception as error:            # noqa: BLE001
                 _report(error, self.path)
                 self._send(_oops(error), status=500)
@@ -97,8 +100,6 @@ def _make_handler(viewer: Viewer):
                 return viewer.next_up(query), 200
             if path == "/roadmap":
                 return viewer.roadmap(query), 200
-            if path == "/review":
-                return viewer.review(query), 200
             if path == "/subtitles":
                 return viewer.subtitles(query), 200
             if path == "/blocked":

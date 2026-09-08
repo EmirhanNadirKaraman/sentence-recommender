@@ -21,7 +21,6 @@ from roadmap.store import ALL, RoadmapStore
 from vocab.entry import LEMMA, PATTERN, Unit
 from web import watch as video
 from web.render import layout, sentence
-from web.review import ReviewSection
 
 PAGE_SIZE = 40
 
@@ -55,7 +54,6 @@ class Viewer:
         self._known = None
         self._scopes: dict[str, Scope] = {}
         self._store = RoadmapStore(app.settings.state_path)
-        self._review = ReviewSection(self)
         # Units set aside without claiming to know them. Session-only: the
         # card in the review queue is the durable record, this just stops the
         # page offering the same thing again.
@@ -554,16 +552,59 @@ class Viewer:
                  else "<p class='empty'>No aligned subtitles yet.</p>")
         body = ("<h1>Videos</h1><p class='note'>Corrected subtitles re-timed to "
                 "the video clock. Open a word from the roadmap to watch it being "
-                "said.</p>" + table)
+                "said.</p>"
+                + self._add_video_form(query)
+                + f"<h2>{len(by_video)} in the catalogue</h2>" + table)
         return layout("Videos", body, "/subtitles", source)
 
-    # --- review delegates -------------------------------------------------
+    @staticmethod
+    def _add_video_form(query: dict) -> str:
+        """Paste a video in. Says what it is about to do, because unlike every
+        other button here this one reaches out to YouTube and then writes to
+        the shared catalogue."""
+        said = ""
+        if query.get("added"):
+            said = (f"<p class='note said'>Added "
+                    f"<strong>{escape(query['added'])}</strong>. Rebuild the "
+                    "corpus to study it: <code>build-corpus subtitle</code> "
+                    "then <code>build-roadmap --source subtitle --goals</code>."
+                    "</p>")
+        elif query.get("problem"):
+            said = (f"<p class='note said bad'>{escape(query['problem'])}</p>")
+        return (
+            said +
+            "<form class='bar' method='post' action='/add-video'>"
+            "<input type='text' name='video' autocomplete='off' "
+            "placeholder='a YouTube link, or just the video id'>"
+            "<button class='go' type='submit'>Add to catalogue</button>"
+            "</form>"
+            "<p class='note'>Fetches the German subtitles and writes them to "
+            "the shared catalogue. Takes up to a minute, and the page waits.</p>"
+        )
 
-    def review(self, query: dict, verdict: str = "") -> str:
-        return self._review.page(query, verdict)
+    def add_video(self, form: dict) -> str:
+        """Scrape one video, and say where to go next either way.
 
-    def grade(self, form: dict) -> str:
-        return self._review.grade(form)
+        Returns a URL rather than a page: a write wants a redirect after it,
+        so a refresh does not scrape the same video twice.
+        """
+        from commands.add_video import AddVideoCommand
+        from ingest import VideoIngestor
+
+        given = (form.get("video") or "").strip()
+        if not given:
+            return "/subtitles?problem=Paste+a+video+link+or+id+first."
+        try:
+            video_id = AddVideoCommand._identify(given)
+            ingestor = VideoIngestor(self.app.settings, self.app.analyzer)
+            if ingestor.already_have(video_id):
+                return f"/subtitles?problem={quote(video_id + ' is already in the catalogue.')}"
+            landed = ingestor.add(video_id)
+        except SystemExit as refused:            # the ingestor's own reasons
+            return f"/subtitles?problem={quote(str(refused))}"
+        except Exception as error:               # noqa: BLE001 — report, don't 500
+            return f"/subtitles?problem={quote(f'{type(error).__name__}: {error}')}"
+        return f"/subtitles?added={quote(f'{landed.title} ({landed.lines} lines)')}"
 
     # --- bits -------------------------------------------------------------
 

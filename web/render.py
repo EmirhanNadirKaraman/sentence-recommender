@@ -148,6 +148,12 @@ button:hover { border-color: var(--target); }
 .stage .de { font-size: 17px; color: var(--ink-2); margin: 12px 0 0;
   min-height: 1.6em; }
 
+/* Adding a video: a form that reaches out to YouTube and writes, so it says
+   so before you press it and reports what happened after. */
+.note.said { padding: 12px 15px; border-left: 3px solid var(--target);
+  background: var(--surface); max-width: none; }
+.note.said.bad { border-left-color: var(--rail); }
+
 /* Alternative i+1 sentences for the same unit, stepped through in place. */
 .deck { min-height: 7.2rem; }
 .also { font: 400 13.5px/1.5 var(--sans); color: var(--ink-2); margin: 10px 0 0; }
@@ -215,7 +221,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1
 """
 
 NAV = (("/", "Next"), ("/roadmap", "Roadmap"), ("/blocked", "Blocked"),
-       ("/review", "Review"), ("/subtitles", "Videos"))
+       ("/subtitles", "Videos"))
 
 
 def layout(title: str, body: str, here: str = "/", source: str = "") -> str:

@@ -164,10 +164,14 @@ Without it, generation is skipped and everything else works.
 
 ## The local viewer
 
-`python main.py serve` opens a page at `127.0.0.1:8765` with four views:
-what to learn next, the roadmap (searchable, filterable by words or
-patterns), a per-unit page listing every sentence that uses it, and a review
-session that grades and reschedules cards exactly as the CLI does.
+`python main.py serve` opens a page at `127.0.0.1:8765`: what to learn next,
+the roadmap (searchable, filterable by words or patterns), where the roadmap
+stops and what to go find material for, and the videos — with a box to paste
+a new one into.
+
+Reviewing lives on the command line only (`python main.py review`). In the
+browser, the way you tell it you know something is the button on the thing
+itself.
 
 Roadmaps are stored per source, so the page can switch between studying the
 video subtitles and studying everything without rebuilding either. The
