@@ -30,9 +30,19 @@ model; tested only against a scripted client.
 
 ### 2. Add more videos
 
-Coverage scales with corpus size, and steeply: every extra video creates fresh
-chances for a unit to stand alone in a sentence. This is the option with no
-new code — the scraper in `language-app` already produces what is needed.
+Coverage scales with corpus size, and steeply. Measured both ways:
+
+```
+subtitles only :  5% of unknown units reached,    317 of 2,045 sentences readable
+everything     : 81% of unknown units reached, 246,337 of 257,636 readable
+```
+
+That gap is the real cost of leaving Tatoeba out. Its sentences read worse,
+but 33,335 steps against 240 is not a small difference — worth revisiting if
+the subtitle corpus stays this thin.
+
+`python main.py add-video <id>` scrapes a video straight into the catalogue,
+borrowing language-app's own scraper.
 
 The **Blocked** page is the shopping list. It runs the walk to exhaustion and
 ranks what is stranded by how often it appears, with the closest sentence and

@@ -1,4 +1,4 @@
-from .connection import Database
+from .connection import Database, WritableDatabase
 from .word_repo import WordRepository, PatternRepository
 
-__all__ = ["Database", "WordRepository", "PatternRepository"]
+__all__ = ["Database", "WritableDatabase", "WordRepository", "PatternRepository"]

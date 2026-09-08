@@ -40,6 +40,7 @@ below means `.venv/bin/python`.
 
 ```
 python main.py serve                      browse the results at localhost:8765
+python main.py add-video <ID_OR_URL>      scrape a YouTube video into the catalogue
 python main.py status                     what is built, what is due
 python main.py function-words             regenerate the closed-class review file
 python main.py build-corpus tatoeba       analyse and cache a source (~7 min)
@@ -209,5 +210,22 @@ srs/          SM-2 scheduling and review       generation/  local-model fallback
 matcher/      vendored phrase_finder           commands/    one class per CLI verb
 ```
 
-The Postgres database is read-only throughout — it belongs to `language-app`.
-All state written by this project lives in `data/state.sqlite3`.
+The Postgres database is read-only throughout — it belongs to `language-app`
+— with exactly one exception: `add-video` writes a scraped video into its
+tables, because that is where this project reads sentences from and a second
+copy would drift. That path uses `WritableDatabase`, a separate class so the
+exception is visible at the call site, and it commits only once the whole
+video has landed.
+
+`add-video` borrows language-app's own scraper rather than reimplementing it,
+by path (`ingest/video.py` holds the path). It needs `yt-dlp`, `langdetect`,
+`python-dotenv` and `scrapetube` on top of the usual requirements. After a
+video lands, rebuild this project's cache to see it:
+
+```
+python main.py add-video https://www.youtube.com/watch?v=...
+python main.py build-corpus subtitle
+python main.py build-roadmap --source subtitle
+```
+
+All other state written by this project lives in `data/state.sqlite3`.

@@ -6,8 +6,9 @@ import argparse
 from pathlib import Path
 
 from commands import (
-    BuildCorpusCommand, BuildRoadmapCommand, ExportSubtitlesCommand,
-    FillGapsCommand, ReviewCommand, ServeCommand, StatusCommand,
+    AddVideoCommand, BuildCorpusCommand, BuildRoadmapCommand,
+    ExportSubtitlesCommand, FillGapsCommand, ReviewCommand, ServeCommand,
+    StatusCommand,
 )
 from context import Application
 from db import Database, WordRepository
@@ -22,6 +23,14 @@ SOURCE_HELP = (
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="sentence-recommender")
     sub = parser.add_subparsers(dest="command", required=True)
+
+    video = sub.add_parser(
+        "add-video",
+        help="scrape a YouTube video's subtitles into the catalogue",
+    )
+    video.add_argument("video", metavar="ID_OR_URL",
+                       help="a YouTube video id, or any URL containing one")
+    video.add_argument("--language", help="subtitle language (default: de)")
 
     corpus = sub.add_parser("build-corpus", help="analyse and cache a sentence source")
     corpus.add_argument("source", choices=["tatoeba", "subtitle"])
@@ -80,7 +89,9 @@ def function_words(app: Application) -> None:
 def main() -> int:
     args = _parser().parse_args()
     app = Application()
-    if args.command == "build-corpus":
+    if args.command == "add-video":
+        AddVideoCommand().run(app, args.video, args.language)
+    elif args.command == "build-corpus":
         BuildCorpusCommand().run(app, args.source, args.limit,
                                  args.corrector, args.min_words)
     elif args.command == "build-roadmap":
