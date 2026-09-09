@@ -1063,7 +1063,6 @@ ein	ein
 zu	zu
 im	im
 auf	auf
-werden	werden
 ich	ich
 am	am
 auch	auch
@@ -1074,10 +1073,8 @@ für	für
 sondern	sondern
 in	in
 von	von
-haben	haben
 der, die, das	der, die, das
 und	und
-sein	sein
 er	er
 es	es
 sie	sie
@@ -1092,8 +1089,6 @@ bei	bei
 ja	ja
 dann	dann
 da	da
-sein	sein
-können	können
 dies	dies
 als	als
 wir	wir
@@ -1112,34 +1107,24 @@ wenn	wenn
 das Jahr	das Jahr
 um	um
 durch	durch
-geben	geben
 wie	wie
 das Mal	das Mal
 hier	hier
-müssen	müssen
 nur	nur
 du	du
 bis	bis
-gehen	gehen
 jetzt	jetzt
 wieder	wieder
 neu	neu
-sagen	sagen
 groß	groß
 was	was
-wollen	wollen
 mehr	mehr
 ganz	ganz
 oder	oder
-wissen	wissen
-kommen	kommen
 doch	doch
-sollen	sollen
 über	über
 mal	mal
-sehen	sehen
 lang	lang
-stehen	stehen
 zwei	zwei
 denn	denn
 viel	viel
@@ -1149,9 +1134,7 @@ damit	damit
 die Zeit	die Zeit
 weil	weil
 oben	oben
-lassen	lassen
 das Beispiel	das Beispiel
-machen	machen
 wo	wo
 selbst, selber	selbst, selber
 eigentlich	eigentlich
@@ -1165,7 +1148,6 @@ das Kind	das Kind
 der Aspekt	der Aspekt
 der Mensch	der Mensch
 sehr	sehr
-bleiben	bleiben
 drei	drei
 gegen	gegen
 nein	nein
@@ -1183,44 +1165,31 @@ beide	beide
 nichts, nix	nichts, nix
 der Tag	der Tag
 zwischen	zwischen
-sondern	sondern
 klein	klein
 ohne	ohne
 einfach	einfach
-liegen	liegen
 dort	dort
 vielleicht	vielleicht
 denken	denken
 genannt	genannt
 das Haus	das Haus
-halten	halten
 möglichst	möglichst
 gleich	gleich
 möglich	möglich
 alt	alt
 die Frage	die Frage
 welch	welch
-nennen	nennen
-tun	tun
 der Deutscher	der Deutscher
-sprechen	sprechen
-finden	finden
 das Land	das Land
 seit	seit
-glauben	glauben
 während	während
 eben, ebend	eben, ebend
-führen	führen
 der Mann	der Mann
 dazu	dazu
 erstmal	erstmal
 solch	solch
-heißen	heißen
-zeigen	zeigen
 natürlich	natürlich
-mögen	mögen
 gar	gar
-dürfen	dürfen
 letzt	letzt
 spät	spät
 etwa	etwa
@@ -1232,24 +1201,17 @@ hoch	hoch
 der Fall	der Fall
 die Hand	die Hand
 erst	erst
-leben	leben
 einmal	einmal
-nehmen	nehmen
 die Arbeit	die Arbeit
 einige	einige
-fahren	fahren
 zwar	zwar
 wer	wer
-bringen	bringen
-meinen	meinen
 eigen	eigen
 bereits	bereits
 schön	schön
-fragen	fragen
 bisschen	bisschen
 jung	jung
 später	später
-spielen	spielen
 der Teil, das Teil	der Teil, das Teil
 das Problem	das Problem
 der Herr	der Herr
@@ -1259,33 +1221,24 @@ genau	genau
 weiter	weiter
 vier	vier
 darauf	darauf
-gelten	gelten
 kennenlernen	kennenlernen
 wirklich	wirklich
 die Welt	die Welt
-stellen	stellen
 jedoch	jedoch
 das Ende	das Ende
-kennen	kennen
 kurz	kurz
-arbeiten	arbeiten
 die Million	die Million
 oft	oft
 sowie	sowie
 die Schule	die Schule
-folgen	folgen
 stark	stark
 richtig	richtig
-brauchen	brauchen
 dafür	dafür
 recht	recht
-bestehen	bestehen
 das Recht	das Recht
-lernen	lernen
 kurzem	kurzem
 die Woche	die Woche
 denen	denen
-bekommen	bekommen
 der Grund	der Grund
 verschieden	verschieden
 bestimmt	bestimmt
@@ -1298,41 +1251,29 @@ das Leben	das Leben
 das Auge	das Auge
 davon	davon
 überhaupt	überhaupt
-setzen	setzen
 die Mutter	die Mutter
 besser	besser
 die Seite	die Seite
 schnell	schnell
 wohl	wohl
-verstehen	verstehen
 der Vater	der Vater
 gern, gerne	gern, gerne
-sich setzen	sich setzen
 nächst	nächst
-versuchen	versuchen
-verdienen	verdienen
-schreiben	schreiben
 die Art	die Art
 besonders	besonders
 der Bereich	der Bereich
-erzählen	erzählen
 politisch	politisch
 allein, alleine	allein, alleine
 neben	neben
-beginnen	beginnen
-erklären	erklären
-laufen	laufen
 der Weg	der Weg
 das Geld	das Geld
 kaum	kaum
 schwer	schwer
-entsprechen	entsprechen
 warum	warum
 klar	klar
 die Sache	die Sache
 das Wort	das Wort
 fünf	fünf
-ziehen	ziehen
 beziehungsweise	beziehungsweise
 der Name	der Name
 die Stunde	die Stunde
@@ -1340,18 +1281,12 @@ die Gesellschaft	die Gesellschaft
 na	na
 darüber	darüber
 der Kopf	der Kopf
-schütteln	schütteln
-sitzen	sitzen
 die Geschichte	die Geschichte
 einzeln	einzeln
 wegen	wegen
-gehören	gehören
 sogar	sogar
 deshalb	deshalb
-scheinen	scheinen
-fallen	fallen
 damals	damals
-legen	legen
 das Bild	das Bild
 die Mark	die Mark
 sonst	sonst
@@ -1359,23 +1294,14 @@ bekannt	bekannt
 das Paar	das Paar
 hinter	hinter
 die Möglichkeit	die Möglichkeit
-weiter	weiter
 leicht	leicht
 die Stelle	die Stelle
-entstehen	entstehen
 das Unternehmen	das Unternehmen
 das Buch	das Buch
 ein paar	ein paar
-suchen	suchen
-treffen	treffen
 die Form	die Form
-handeln	handeln
-erhalten	erhalten
-vorstellen	vorstellen
 daran	daran
 das Wasser	das Wasser
-erreichen	erreichen
-tragen	tragen
 der Sinn	der Sinn
 die Familie	die Familie
 die Aufgabe	die Aufgabe
@@ -1396,7 +1322,6 @@ morgens	morgens
 rund	rund
 zehn	zehn
 morgen	morgen
-schaffen	schaffen
 deutlich	deutlich
 die Nacht	die Nacht
 obwohl	obwohl
@@ -1411,34 +1336,26 @@ der Blick	der Blick
 gegenüber	gegenüber
 Sinne	Sinne
 der Staat	der Staat
-lesen	lesen
 früh	früh
 nachts	nachts
 schlecht	schlecht
 das Thema	das Thema
 unterschiedlich	unterschiedlich
 der Raum	der Raum
-verlieren	verlieren
 das System	das System
 der Platz	der Platz
 mehrere	mehrere
-darstellen	darstellen
 der Wert	der Wert
 zunächst	zunächst
 die Uhr	die Uhr
 die Zahl	die Zahl
 früher	früher
 gemeinsam	gemeinsam
-erkennen	erkennen
-aussehen	aussehen
 nahe, nah	nahe, nah
 voll	voll
 einzig	einzig
-entwickeln	entwickeln
-reden	reden
 die Minute	die Minute
 die Straße	die Straße
-erscheinen	erscheinen
 die Gruppe	die Gruppe
 die Eltern	die Eltern
 der Anfang	der Anfang
@@ -1446,20 +1363,16 @@ nämlich	nämlich
 direkt	direkt
 der Ort	der Ort
 offen	offen
-Moment	Moment
+Moment	der Moment
 dadurch	dadurch
 das Gesicht	das Gesicht
 irgendwie	irgendwie
-erwarten	erwarten
 best	best
-wohnen	wohnen
 jener	jener
 international	international
 naja	naja
 rot	rot
 die Sprache	die Sprache
-bilden	bilden
-anfangen	anfangen
 bisher	bisher
 sozial	sozial
 der Moment	der Moment
@@ -1469,18 +1382,14 @@ ab	ab
 besonder	besonder
 das Interesse	das Interesse
 die Bedeutung	die Bedeutung
-helfen	helfen
 der Text	der Text
 jemand	jemand
 die Folge	die Folge
-vergehen	vergehen
-betreffen	betreffen
 die Tür	die Tür
 die Milliarde	die Milliarde
 öffentlich	öffentlich
 manchmal	manchmal
 ach	ach
-warten	warten
 der Krieg	der Krieg
 gewiss	gewiss
 der Schüler	der Schüler
@@ -1490,91 +1399,62 @@ her	her
 das Gespräch	das Gespräch
 niemand	niemand
 der Meter	der Meter
-erinnern	erinnern
 die Wohnung	die Wohnung
 das Stück	das Stück
 die Regierung	die Regierung
 die Weise	die Weise
-gewinnen	gewinnen
 sechs	sechs
 halb	halb
-sich erinnern	sich erinnern
-bieten	bieten
 europäisch	europäisch
-schließen	schließen
 wahrscheinlich	wahrscheinlich
 das Jahrhundert	das Jahrhundert
 dagegen	dagegen
 ziemlich	ziemlich
-studieren	studieren
 ebenso	ebenso
 wesentlich	wesentlich
-ergeben	ergeben
 der Lehrer	der Lehrer
 ähnlich	ähnlich
 der Begriff	der Begriff
 der Punkt	der Punkt
 die Funktion	die Funktion
 der Boden	der Boden
-verbinden	verbinden
-fühlen	fühlen
 der Preis	der Preis
 der Sohn	der Sohn
 danach	danach
-fehlen	fehlen
-ebenso	ebenso
-sich interessieren	sich interessieren
-ansehen	ansehen
 häufig	häufig
-bedeuten	bedeuten
-interessieren	interessieren
 die Situation	die Situation
 die Kunst	die Kunst
 die Abbildung	die Abbildung
 gering	gering
 die Angst	die Angst
 die Information	die Information
-nutzen	nutzen
-anbieten	anbieten
-steigen	steigen
 das Werk	das Werk
 plötzlich	plötzlich
 schwierig	schwierig
 acht	acht
 die Politik	die Politik
-sich ergeben	sich ergeben
 außerdem	außerdem
 die Richtung	die Richtung
 inzwischen	inzwischen
-schauen	schauen
 die Stimme	die Stimme
 die Musik	die Musik
 das Programm	das Programm
 der Rahmen	der Rahmen
 völlig	völlig
 schwarz	schwarz
-vergleichen	vergleichen
 sofort	sofort
 der Schritt	der Schritt
-einsetzen	einsetzen
 der Gott	der Gott
 der Absatz	der Absatz
 bald	bald
-ausgehen	ausgehen
-wachsen	wachsen
 persönlich	persönlich
 genug	genug
 manch	manch
-ändern	ändern
 der Beruf	der Beruf
-geschehen	geschehen
-Gott	Gott
+Gott	der Gott
 das Auto	das Auto
 die Regel	die Regel
-beschreiben	beschreiben
 die Beziehung	die Beziehung
-sich verlassen	sich verlassen
-verlassen	verlassen
 praktisch	praktisch
 der Markt	der Markt
 das Gefühl	das Gefühl
@@ -1583,42 +1463,28 @@ endlich	endlich
 der Tisch	der Tisch
 innerhalb	innerhalb
 das Spiel	das Spiel
-bezeichnen	bezeichnen
 der Präsident	der Präsident
 modern	modern
-sich befinden	sich befinden
 tief	tief
-wirken	wirken
-annehmen	annehmen
 die Zukunft	die Zukunft
 die Erfahrung	die Erfahrung
-planen	planen
 die Partei	die Partei
 insbesondere	insbesondere
 tatsächlich	tatsächlich
-kriegen	kriegen
 die Bank	die Bank
 die Tochter	die Tochter
 das Mädchen	das Mädchen
-passieren	passieren
 interessant	interessant
 zusätzlich	zusätzlich
-rufen	rufen
-öffnen	öffnen
 die Kirche	die Kirche
 ebenfalls	ebenfalls
 hin	hin
 das Verhältnis	das Verhältnis
-zunehmen	zunehmen
 der Doktor	der Doktor
 gestern	gestern
 der Gedanke	der Gedanke
-fordern	fordern
 der Film	der Film
-gefallen	gefallen
 nachdem	nachdem
-bestimmen	bestimmen
-aufnehmen	aufnehmen
 wirtschaftlich	wirtschaftlich
 aufgrund	aufgrund
 der Zusammenhang	der Zusammenhang
@@ -1626,82 +1492,59 @@ jedenfalls	jedenfalls
 gleichzeitig	gleichzeitig
 amerikanisch	amerikanisch
 die Firma	die Firma
-treten	treten
 bevor	bevor
 der Student	der Student
 die Entscheidung	die Entscheidung
-verändern	verändern
 der Prozess	der Prozess
 bitte	bitte
-übernehmen	übernehmen
 der Arm	der Arm
 grün	grün
 zusammen	zusammen
 die Kraft	die Kraft
-lachen	lachen
 trotz	trotz
-schlagen	schlagen
 relativ	relativ
 der September	der September
 der Betrieb	der Betrieb
 bloß	bloß
 wobei	wobei
 die Zeitung	die Zeitung
-kaufen	kaufen
 das Angebot	das Angebot
 das Gesetz	das Gesetz
 die Grenze	die Grenze
 wann	wann
-gelingen	gelingen
-betrachten	betrachten
 sieben	sieben
 speziell	speziell
 die Chance	die Chance
-verwenden	verwenden
-sich enthalten	sich enthalten
 der Satz	der Satz
 jeweils	jeweils
 gesamt	gesamt
-erfolgen	erfolgen
 zuhause	zuhause
-wählen	wählen
 das Zuhause	das Zuhause
-enthalten	enthalten
 der Erfolg	der Erfolg
 weiß	weiß
-entscheiden	entscheiden
 pro	pro
-stattfinden	stattfinden
 entscheidend	entscheidend
 technisch	technisch
-feststellen	feststellen
 das Mitglied	das Mitglied
 beispielsweise	beispielsweise
 unten	unten
-bewegen	bewegen
 das Internet	das Internet
 insgesamt	insgesamt
-dienen	dienen
 die Leistung	die Leistung
-erfahren	erfahren
 langsam	langsam
 eng	eng
 die Lage	die Lage
 vorher	vorher
 das Pro	das Pro
-vergessen	vergessen
-Lage	Lage
+Lage	die Lage
 verschwinden	verschwinden
 das Projekt	das Projekt
 die Kultur	die Kultur
 darum	darum
 das Auftreten	das Auftreten
 trotzdem	trotzdem
-sich verhalten	sich verhalten
 das Verhalten	das Verhalten
 der Arzt	der Arzt
-stimmen	stimmen
-berichten	berichten
 das Zimmer	das Zimmer
 rein	rein
 der Körper	der Körper
@@ -1714,8 +1557,6 @@ englisch	englisch
 sowohl	sowohl
 ständig	ständig
 der Zug	der Zug
-auftreten	auftreten
-trinken	trinken
 zudem	zudem
 der Chef	der Chef
 die Lösung	die Lösung
@@ -1724,94 +1565,66 @@ das Fenster	das Fenster
 der Junge	der Junge
 das Produkt	das Produkt
 selten	selten
-rechnen	rechnen
 französisch	französisch
 das Studium	das Studium
-erleben	erleben
 die Höhe	die Höhe
 der Vergleich	der Vergleich
 falsch	falsch
 die Idee	die Idee
 die Luft	die Luft
 das Englisch	das Englisch
-beobachten	beobachten
 das Französisch	das Französisch
 wissenschaftlich	wissenschaftlich
 die Meinung	die Meinung
 leider	leider
-holen	holen
 fremd	fremd
 die Natur	die Natur
 wahr	wahr
 das Bett	das Bett
-unterscheiden	unterscheiden
-sterben	sterben
 die Wirtschaft	die Wirtschaft
-werfen	werfen
 irgendwo	irgendwo
 zumindest	zumindest
 der Spaß	der Spaß
 das Modell	das Modell
 das Geschäft	das Geschäft
 normal	normal
-essen	essen
-leisten	leisten
 die Bewegung	die Bewegung
 das Mittel	das Mittel
 der Kunde	der Kunde
-reichen	reichen
 das Tier	das Tier
 privat	privat
 tot	tot
-verlangen	verlangen
 der Mitarbeiter	der Mitarbeiter
 der Tod	der Tod
 das Dorf	das Dorf
-sich freuen	sich freuen
-hängen	hängen
 der Bruder	der Bruder
-hoffen	hoffen
-freuen	freuen
 die Angabe	die Angabe
 die Verfügung	die Verfügung
 der Gast	der Gast
-teilen	teilen
-wünschen	wünschen
 die Sicherheit	die Sicherheit
 positiv	positiv
 der Dank	der Dank
-vorliegen	vorliegen
 der Kollege	der Kollege
 außer	außer
 fest	fest
-bauen	bauen
-Verfügung	Verfügung
+Verfügung	die Verfügung
 das Gebiet	das Gebiet
-zählen	zählen
 der Einsatz	der Einsatz
 der Unterschied	der Unterschied
 die Anwendung	die Anwendung
-ankommen	ankommen
-bezahlen	bezahlen
 die Vorstellung	die Vorstellung
 der Kontakt	der Kontakt
-sorgen	sorgen
 das Fach	das Fach
 zentral	zentral
 die Menge	die Menge
 die Verbindung	die Verbindung
 der Sommer	der Sommer
-stecken	stecken
-dauern	dauern
-beziehen	beziehen
 fertig	fertig
 der Anspruch	der Anspruch
 weder	weder
 das Herz	das Herz
-spüren	spüren
 statt	statt
 die Antwort	die Antwort
-bitten	bitten
 die Ausbildung	die Ausbildung
 breit	breit
 hart	hart
@@ -1819,7 +1632,6 @@ unbedingt	unbedingt
 das Alter	das Alter
 der Kilometer	der Kilometer
 grundsätzlich	grundsätzlich
-erhöhen	erhöhen
 der Vertrag	der Vertrag
 die Hilfe	die Hilfe
 der Dollar	der Dollar
@@ -1827,9 +1639,7 @@ das Verfahren	das Verfahren
 zuerst	zuerst
 das Theater	das Theater
 die Gefahr	die Gefahr
-besuchen	besuchen
 die Kosten	die Kosten
-melden	melden
 die Polizei	die Polizei
 der Computer	der Computer
 inner	inner
@@ -1843,45 +1653,33 @@ historisch	historisch
 der Stoff	der Stoff
 die Mitte	die Mitte
 lieber	lieber
-vorkommen	vorkommen
 aha	aha
-betonen	betonen
 das Glück	das Glück
 dennoch	dennoch
 zugleich	zugleich
 sodass	sodass
 die Maßnahme	die Maßnahme
 der Westen	der Westen
-erfüllen	erfüllen
 der Patient	der Patient
 zuletzt	zuletzt
 knapp	knapp
 die Ordnung	die Ordnung
-besitzen	besitzen
 der Beginn	der Beginn
 das Wochenende	das Wochenende
 der Professor	der Professor
-beteiligen	beteiligen
 der Osten	der Osten
 aktuell	aktuell
-sich eignen	sich eignen
 derzeit	derzeit
 danke	danke
 die Reise	die Reise
 übrig	übrig
-umfassen	umfassen
 indem	indem
-unterstützen	unterstützen
 die Einheit	die Einheit
-schlafen	schlafen
 das Institut	das Institut
-merken	merken
 nochmals	nochmals
-passen	passen
 die Bevölkerung	die Bevölkerung
 die Erde	die Erde
 die Schwester	die Schwester
-richten	richten
 irgendwas	irgendwas
 die Ebene	die Ebene
 zuvor	zuvor
@@ -1889,24 +1687,18 @@ die Wahl	die Wahl
 lieb	lieb
 die Bedingung	die Bedingung
 das Lächeln	das Lächeln
-Nähe	Nähe
+Nähe	die Nähe
 die Struktur	die Struktur
-lösen	lösen
 das Prinzip	das Prinzip
 das Risiko	das Risiko
 daraus	daraus
-lächeln	lächeln
-beschäftigen	beschäftigen
 der Vorteil	der Vorteil
 das Haar	das Haar
 schlimm	schlimm
 miteinander	miteinander
-antworten	antworten
-trennen	trennen
 der Autor	der Autor
 teilweise	teilweise
 schlimmer	schlimmer
-einstellen	einstellen
 deswegen	deswegen
 der Sonntag	der Sonntag
 meistens	meistens
@@ -1914,29 +1706,21 @@ dunkel	dunkel
 die Größe	die Größe
 die Medien	die Medien
 die Untersuchung	die Untersuchung
-bestätigen	bestätigen
 die Veränderung	die Veränderung
 überall	überall
 die Daten	die Daten
 die Organisation	die Organisation
-aufbauen	aufbauen
 der Einfluss	der Einfluss
 die Macht	die Macht
-lieben	lieben
 die Wirkung	die Wirkung
 der Montag	der Montag
 die Nähe	die Nähe
 laut	laut
 der Brief	der Brief
-genügen	genügen
-durchführen	durchführen
 durchaus	durchaus
 weltweit	weltweit
-verkaufen	verkaufen
-drücken	drücken
 der Sport	der Sport
 der Augenblick	der Augenblick
-untersuchen	untersuchen
 geboren	geboren
 die Diskussion	die Diskussion
 die Liebe	die Liebe
@@ -1944,25 +1728,18 @@ menschlich	menschlich
 die Technik	die Technik
 erfolgreich	erfolgreich
 der Versuch	der Versuch
-eingehen	eingehen
 andererseits	andererseits
 zahlreich	zahlreich
-erlauben	erlauben
 die Methode	die Methode
 der Kreis	der Kreis
 offenbar	offenbar
 die Forderung	die Forderung
-recht	recht
 die Rede	die Rede
-blicken	blicken
 konkret	konkret
 regelmäßig	regelmäßig
 ehemalig	ehemalig
 stets	stets
-versprechen	versprechen
 die Tätigkeit	die Tätigkeit
-benutzen	benutzen
-entdecken	entdecken
 die Krankheit	die Krankheit
 der Eindruck	der Eindruck
 die Voraussetzung	die Voraussetzung
@@ -1970,38 +1747,27 @@ der Kampf	der Kampf
 jeweilig	jeweilig
 längst	längst
 die Schwierigkeit	die Schwierigkeit
-ausreichen	ausreichen
-treiben	treiben
 kalt	kalt
 zwölf	zwölf
-überzeugen	überzeugen
-behandeln	behandeln
 aktiv	aktiv
 das Schweigen	das Schweigen
-drohen	drohen
 der Künstler	der Künstler
 staatlich	staatlich
 die Region	die Region
 lediglich	lediglich
 unmittelbar	unmittelbar
 somit	somit
-drehen	drehen
-verdienen	verdienen
-kosten	kosten
 Schweizer	Schweizer
 erforderlich	erforderlich
 das Konzept	das Konzept
 der Mund	der Mund
-Franken	Franken
+Franken	der Franken
 heutig	heutig
 der Wunsch	der Wunsch
 unabhängig	unabhängig
 kulturell	kulturell
-klingen	klingen
 der Artikel	der Artikel
 die Reaktion	die Reaktion
-schweigen	schweigen
-reagieren	reagieren
 bewusst	bewusst
 ruhig	ruhig
 die Linie	die Linie
@@ -2020,11 +1786,8 @@ der Jugendliche, die Jugendliche	der Jugendliche, die Jugendliche
 der Gegensatz	der Gegensatz
 finanziell	finanziell
 der Inhalt	der Inhalt
-fliegen	fliegen
 die Farbe	die Farbe
 der Himmel	der Himmel
-überraschen	überraschen
-betreiben	betreiben
 die Bibliothek	die Bibliothek
 weiterhin	weiterhin
 Berliner	Berliner
@@ -2037,73 +1800,50 @@ das Papier	das Papier
 die Erinnerung	die Erinnerung
 echt	echt
 das Maß	das Maß
-heben	heben
 teuer	teuer
 neun	neun
-schicken	schicken
 der Kurs	der Kurs
 der Umstand	der Umstand
 die Sekunde	die Sekunde
-ermöglichen	ermöglichen
-vertreten	vertreten
 die Sonne	die Sonne
 irgendein	irgendein
-stoßen	stoßen
 das Bein	das Bein
-herstellen	herstellen
 vorne, vorn	vorne, vorn
-leiden	leiden
-wechseln	wechseln
 erneut	erneut
 toll	toll
-singen	singen
 hundert	hundert
 nötig	nötig
-verhindern	verhindern
-liefern	liefern
 die Grundlage	die Grundlage
-benötigen	benötigen
 die Wirklichkeit	die Wirklichkeit
 die Küche	die Küche
 die Wissenschaft	die Wissenschaft
 die Hälfte	die Hälfte
 wenigstens	wenigstens
-überlegen	überlegen
-reisen	reisen
 zurzeit	zurzeit
-stammen	stammen
 der Garten	der Garten
-zahlen	zahlen
 der Druck	der Druck
 der Zustand	der Zustand
-abschließen	abschließen
 das Meer	das Meer
 der Zeitpunkt	der Zeitpunkt
 circa, zirka (ca.)	circa, zirka (ca.)
-kochen	kochen
 der Plan	der Plan
 das Essen	das Essen
 der Hinweis	der Hinweis
-aufgeben	aufgeben
 individuell	individuell
 der Auftrag	der Auftrag
 der Baum	der Baum
-greifen	greifen
 der Dienst	der Dienst
 der Gegenstand	der Gegenstand
 gesellschaftlich	gesellschaftlich
 die Freude	die Freude
 üblich	üblich
 leer	leer
-verzichten	verzichten
 irgendwelche	irgendwelche
 absolut	absolut
 täglich	täglich
 entweder	entweder
 die Gemeinde	die Gemeinde
 mittlerweile	mittlerweile
-betragen	betragen
-erwähnen	erwähnen
 wiederum	wiederum
 der November	der November
 die Position	die Position
@@ -2112,26 +1852,18 @@ die Forschung	die Forschung
 soweit	soweit
 der Wald	der Wald
 rasch	rasch
-einrichten	einrichten
 die Bundesrepublik	die Bundesrepublik
 die Praxis	die Praxis
-angeben	angeben
 zwanzig	zwanzig
 blau	blau
 ungefähr	ungefähr
 national	national
-verfügen	verfügen
-festhalten	festhalten
 sicherlich	sicherlich
-geraten	geraten
 die Haut	die Haut
 das Glas	das Glas
-begründen	begründen
 die Maschine	die Maschine
 die Nummer	die Nummer
-vorbereiten	vorbereiten
 der Finger	der Finger
-wiederholen	wiederholen
 verantwortlich	verantwortlich
 das Russisch	das Russisch
 der Titel	der Titel
@@ -2149,8 +1881,6 @@ die Umwelt	die Umwelt
 der Verein	der Verein
 die Freundin	die Freundin
 der Haushalt	der Haushalt
-schützen	schützen
-stören	stören
 der Dienstag	der Dienstag
 typisch	typisch
 das Material	das Material
@@ -2158,19 +1888,16 @@ die Tatsache	die Tatsache
 der Wagen	der Wagen
 die Unterstützung	die Unterstützung
 die Schulter	die Schulter
-berücksichtigen	berücksichtigen
 bislang	bislang
 zuständig	zuständig
 der Hund	der Hund
 erheblich	erheblich
 irgendwann	irgendwann
-feiern	feiern
 die Umgebung	die Umgebung
 der Rest	der Rest
 die Produktion	die Produktion
 die Sorge	die Sorge
 der Soldat	der Soldat
-vermitteln	vermitteln
 das Fernsehen	das Fernsehen
 okay	okay
 ernst	ernst
@@ -2179,19 +1906,13 @@ das Volk	das Volk
 das Zeichen	das Zeichen
 der Schaden	der Schaden
 zufrieden	zufrieden
-behaupten	behaupten
-herrschen	herrschen
 der Mittwoch	der Mittwoch
 die Energie	die Energie
 der Zweck	der Zweck
 der Angriff	der Angriff
 der Grad, das Grad	der Grad, das Grad
-schieben	schieben
 die Öffentlichkeit	die Öffentlichkeit
-gründen	gründen
 der Schutz	der Schutz
-ausschließen	ausschließen
-erheben	erheben
 der Anteil	der Anteil
 der Job	der Job
 der Besuch	der Besuch
@@ -2199,76 +1920,48 @@ der Wind	der Wind
 der Antrag	der Antrag
 die Erklärung	die Erklärung
 übrigens	übrigens
-diskutieren	diskutieren
 der Beschäftigte, die Beschäftigte	der Beschäftigte, die Beschäftigte
 der Unterricht	der Unterricht
 das Amt	das Amt
-auftauchen	auftauchen
-anwenden	anwenden
-verfolgen	verfolgen
 der Gang	der Gang
-beeinflussen	beeinflussen
-funktionieren	funktionieren
 das Feld	das Feld
 außerhalb	außerhalb
 die Einrichtung	die Einrichtung
 der Lauf	der Lauf
 dick	dick
 das Zentrum	das Zentrum
-ablehnen	ablehnen
 der Anschlag	der Anschlag
-einfallen	einfallen
 warm	warm
 das Ausland	das Ausland
-zurückkommen	zurückkommen
-zwingen	zwingen
-fördern	fördern
-existieren	existieren
-entfernen	entfernen
 traditionell	traditionell
-wenden	wenden
-empfinden	empfinden
 die Erkenntnis	die Erkenntnis
-fassen	fassen
 die Spur	die Spur
 die Behandlung	die Behandlung
 das Hotel	das Hotel
-ansprechen	ansprechen
 schwach	schwach
 der Fehler	der Fehler
 das Publikum	das Publikum
 krank	krank
 angesichts	angesichts
 niedrig	niedrig
-sichern	sichern
 die Analyse	die Analyse
-beachten	beachten
 die Hochschule	die Hochschule
 link	link
 die Studie	die Studie
 bereit	bereit
-schneiden	schneiden
 der Vorsitzende, die Vorsitzende	der Vorsitzende, die Vorsitzende
 die Freizeit	die Freizeit
 der Partner	der Partner
 die Freiheit	die Freiheit
 der Faktor	der Faktor
 die Kritik	die Kritik
-sich kümmern	sich kümmern
 die See	die See
-informieren	informieren
 anschließend	anschließend
-sinken	sinken
-ankündigen	ankündigen
 negativ	negativ
 der Berg	der Berg
-prägen	prägen
 die GmbH	die GmbH
-organisieren	organisieren
-nicken	nicken
 der Typ	der Typ
 der See	der See
-vermeiden	vermeiden
 leise	leise
 gesetzlich	gesetzlich
 die Gegend	die Gegend
@@ -2279,79 +1972,51 @@ der Sprecher	der Sprecher
 sowieso	sowieso
 österreichisch	österreichisch
 die Verantwortung	die Verantwortung
-verletzen	verletzen
 die Fähigkeit	die Fähigkeit
 beruflich	beruflich
 heraus, raus	heraus, raus
-empfehlen	empfehlen
 die Aufnahme	die Aufnahme
-aufstehen	aufstehen
-verstärken	verstärken
 per	per
 das Opfer	das Opfer
 die Wahrheit	die Wahrheit
 der Urlaub	der Urlaub
-einladen	einladen
 einerseits	einerseits
 glücklich	glücklich
-vorsehen	vorsehen
 das Gebäude	das Gebäude
-eröffnen	eröffnen
-begreifen	begreifen
 die Karte	die Karte
 das Jahrzehnt	das Jahrzehnt
 die Prüfung	die Prüfung
 die Regelung	die Regelung
 sozusagen	sozusagen
 offiziell	offiziell
-beschließen	beschließen
 der Gesellschafter	der Gesellschafter
 der Bezug	der Bezug
-leiten	leiten
 die Ausstellung	die Ausstellung
-beschränken	beschränken
-konzentrieren	konzentrieren
 streng	streng
 die Kontrolle	die Kontrolle
 der Norden	der Norden
 selbstverständlich	selbstverständlich
 die Hoffnung	die Hoffnung
 die Bitte	die Bitte
-abhängen	abhängen
-schätzen	schätzen
-prüfen	prüfen
 das Schiff	das Schiff
-anlegen	anlegen
-sich unterhalten	sich unterhalten
-sich bemühen	sich bemühen
 das Ohr	das Ohr
 ober	ober
 komplex	komplex
 die Tat	die Tat
-schreien	schreien
 der Gewinn	der Gewinn
-verpflichten	verpflichten
 das Band	das Band
-festlegen	festlegen
 die Einstellung	die Einstellung
 der Bericht	der Bericht
-brechen	brechen
 der Band	der Band
-definieren	definieren
 der König	der König
 der Mai	der Mai
-zurückkehren	zurückkehren
-orientieren	orientieren
 der Sieg	der Sieg
-weitergehen	weitergehen
-beitragen	beitragen
 die Band	die Band
 das Gericht	das Gericht
 dahin	dahin
 insofern	insofern
 der Bund	der Bund
 der Traum	der Traum
-einnehmen	einnehmen
 die Vergangenheit	die Vergangenheit
 der Direktor	der Direktor
 fein	fein
@@ -2367,13 +2032,9 @@ ursprünglich	ursprünglich
 der Rand	der Rand
 der Amerikaner	der Amerikaner
 ausschließlich	ausschließlich
-laut	laut
-übertragen	übertragen
-Vergangenheit	Vergangenheit
-präsentieren	präsentieren
+Vergangenheit	die Vergangenheit
 hingegen	hingegen
 der Verlust	der Verlust
-abgeben	abgeben
 tätig	tätig
 mithilfe	mithilfe
 bisherig	bisherig
@@ -2385,61 +2046,44 @@ derselbe, dieselbe, dasselbe	derselbe, dieselbe, dasselbe
 die Ehe	die Ehe
 der Winter	der Winter
 geistig	geistig
-abnehmen	abnehmen
 die Ursache	die Ursache
 der Zuschauer	der Zuschauer
 diesmal	diesmal
-anschauen	anschauen
 die Anzahl	die Anzahl
 jährlich	jährlich
-verteilen	verteilen
-füllen	füllen
 böse	böse
-bemerken	bemerken
 die Aktiengesellschaft, die AG	die Aktiengesellschaft, die AG
 die Pflanze	die Pflanze
 der Samstag	der Samstag
 die Störung	die Störung
-sich vornehmen	sich vornehmen
 die Generation	die Generation
 die Eigenschaft	die Eigenschaft
-aufweisen	aufweisen
 der Vorschlag	der Vorschlag
 der Januar	der Januar
-messen	messen
 intensiv	intensiv
-heiraten	heiraten
 hereinkommen, reinkommen	hereinkommen, reinkommen
 der Vertreter	der Vertreter
 derjenige, diejenige, dasjenige	derjenige, diejenige, dasjenige
 die Bildung	die Bildung
 weitgehend	weitgehend
-erzielen	erzielen
 der Zentimeter	der Zentimeter
 die Nachricht	die Nachricht
-nachdenken	nachdenken
 frisch	frisch
 die Insel	die Insel
 das Instrument	das Instrument
-verbessern	verbessern
 der Abstand	der Abstand
 der Leiter	der Leiter
 der Geist	der Geist
 heftig	heftig
 das Semester	das Semester
 der Stand	der Stand
-auslösen	auslösen
 der Dezember	der Dezember
 der Abschluss	der Abschluss
-sammeln	sammeln
-durchsetzen	durchsetzen
 gefährlich	gefährlich
 los	los
 nachher	nachher
-formulieren	formulieren
 vollständig	vollständig
 die Tradition	die Tradition
-kämpfen	kämpfen
 das Interview	das Interview
 außen	außen
 militärisch	militärisch
@@ -2448,22 +2092,17 @@ solange	solange
 automatisch	automatisch
 der Donnerstag	der Donnerstag
 die Leiter	die Leiter
-ersetzen	ersetzen
 wieso	wieso
 die Basis	die Basis
 berühmt	berühmt
 die Bühne	die Bühne
-ausmachen	ausmachen
 das Museum	das Museum
 vorbei	vorbei
 falls	falls
 offensichtlich	offensichtlich
 das Element	das Element
-drängen	drängen
 theoretisch	theoretisch
 die Mama	die Mama
-verbringen	verbringen
-warnen	warnen
 scharf	scharf
 die Nutzung	die Nutzung
 die Dame	die Dame
@@ -2475,61 +2114,41 @@ der Hof	der Hof
 die Gelegenheit	die Gelegenheit
 der Terror	der Terror
 das Verständnis	das Verständnis
-anrufen	anrufen
 der Bürgermeister	der Bürgermeister
-erfassen	erfassen
 eins	eins
 die Ecke	die Ecke
 auseinander	auseinander
-gestalten	gestalten
 die Auseinandersetzung	die Auseinandersetzung
-regeln	regeln
-hinweisen	hinweisen
-zulassen	zulassen
-am	am
-binden	binden
 die Ansicht	die Ansicht
-anziehen	anziehen
 der Herbst	der Herbst
 die Definition	die Definition
 hallo	hallo
 das Kriterium	das Kriterium
 die Bahn	die Bahn
-beenden	beenden
 der Jude	der Jude
 die Zusammenarbeit	die Zusammenarbeit
-aufhören	aufhören
 die Masse	die Masse
 hell	hell
 die Veranstaltung	die Veranstaltung
 die Nation	die Nation
 britisch	britisch
 still	still
-scheitern	scheitern
-teilnehmen	teilnehmen
 das Hobby	das Hobby
-reduzieren	reduzieren
 elf	elf
 der Bau	der Bau
 die Änderung	die Änderung
-äußern	äußern
 hinten	hinten
 die Ausnahme	die Ausnahme
-angehen	angehen
 das Flugzeug	das Flugzeug
 der Stein	der Stein
 das Foto	das Foto
 die Phase	die Phase
 der Ton	der Ton
 froh	froh
-einführen	einführen
 italienisch	italienisch
 das Italienisch	das Italienisch
 die Landschaft	die Landschaft
-gelangen	gelangen
 der Konflikt	der Konflikt
-begleiten	begleiten
-versichern	versichern
 die Lust	die Lust
 die Mehrheit	die Mehrheit
 kritisch	kritisch
@@ -2542,96 +2161,66 @@ der Kaffee	der Kaffee
 die Aktivität	die Aktivität
 das Fest	das Fest
 das Dach	das Dach
-besetzen	besetzen
 die Rechnung	die Rechnung
 das Schloss	das Schloss
-pflegen	pflegen
 der Nachmittag	der Nachmittag
-begrenzen	begrenzen
 riesig	riesig
-akzeptieren	akzeptieren
-produzieren	produzieren
-reißen	reißen
-erweisen	erweisen
 die Mannschaft	die Mannschaft
 der Stern	der Stern
-verweisen	verweisen
 die Runde	die Runde
 günstig	günstig
-fürchten	fürchten
 der Laden	der Laden
 hauptsächlich	hauptsächlich
 der Experte	der Experte
 rechts	rechts
-springen	springen
 der Meister	der Meister
 möglicherweise	möglicherweise
-bestellen	bestellen
 dreißig	dreißig
 die Mauer	die Mauer
 die Gestalt	die Gestalt
 dicht	dicht
-erweitern	erweitern
 reich	reich
 die Figur	die Figur
-überprüfen	überprüfen
-ermitteln	ermitteln
 mittler	mittler
-starten	starten
 gegenwärtig	gegenwärtig
 das Büro	das Büro
 nett	nett
 der Frieden	der Frieden
 der Umgang	der Umgang
-berechnen	berechnen
-zerstören	zerstören
 zeitlich	zeitlich
-aufstellen	aufstellen
 die Industrie	die Industrie
-kritisieren	kritisieren
 ansonsten	ansonsten
 die Branche	die Branche
 der Zugang	der Zugang
 die Stellung	die Stellung
-ablaufen	ablaufen
 der Vorgang	der Vorgang
 niemals	niemals
 die Darstellung	die Darstellung
 das Wachstum	das Wachstum
 die Dauer	die Dauer
-üben	üben
 die Szene	die Szene
 das Lager	das Lager
 die Strecke	die Strecke
 das Blut	das Blut
-eintreten	eintreten
-erwerben	erwerben
 der Schatten	der Schatten
 die Lehre	die Lehre
 die Gewalt	die Gewalt
 der Rat	der Rat
 die Institution	die Institution
-zurückgehen	zurückgehen
-ausdrücken	ausdrücken
-anschließen	anschließen
 die Spitze	die Spitze
 der Konzern	der Konzern
 die Katze	die Katze
-ergänzen	ergänzen
 online	online
 das Pferd	das Pferd
 spezifisch	spezifisch
 der Fußball	der Fußball
 die Weltmeisterschaft	die Weltmeisterschaft
-streichen	streichen
-schießen	schießen
 gemäß	gemäß
 die Konsequenz	die Konsequenz
 der Stuhl	der Stuhl
 das Feuer	das Feuer
 westlich	westlich
 grau	grau
-bedürfen	bedürfen
 der Ausländer	der Ausländer
 gesund	gesund
 die Aktion	die Aktion
@@ -2642,7 +2231,6 @@ der Juli	der Juli
 elektrisch	elektrisch
 das Tor	das Tor
 freilich	freilich
-behalten	behalten
 die Nase	die Nase
 die Ausgabe	die Ausgabe
 der Anlass	der Anlass
@@ -2652,13 +2240,11 @@ der Trainer	der Trainer
 freundlich	freundlich
 das Telefon	das Telefon
 die Führung	die Führung
-belegen	belegen
 der Club	der Club
 der Nachbar	der Nachbar
 egal	egal
 total	total
 der Terrorismus	der Terrorismus
-umgehen	umgehen
 extrem	extrem
 die Stufe	die Stufe
 das Bundesland	das Bundesland
@@ -2666,24 +2252,13 @@ der Fluss	der Fluss
 chemisch	chemisch
 herauskommen, rauskommen	herauskommen, rauskommen
 die Geschwindigkeit	die Geschwindigkeit
-lauten	lauten
 das Gut	das Gut
-stürzen	stürzen
-absehen	absehen
-betreten	betreten
 der Zweifel	der Zweifel
-überleben	überleben
-auffallen	auffallen
-verlaufen	verlaufen
-hören	hören
 der Effekt	der Effekt
 die Medizin	die Medizin
 äußerst	äußerst
-vermuten	vermuten
 die Software	die Software
-beweisen	beweisen
 die Belastung	die Belastung
-zukommen	zukommen
 einst	einst
 elektronisch	elektronisch
 abgesehen	abgesehen
@@ -2691,11 +2266,7 @@ unbekannt	unbekannt
 die Vorschrift	die Vorschrift
 der Umfang	der Umfang
 der Bus	der Bus
-ausüben	ausüben
 die Anforderung	die Anforderung
-realisieren	realisieren
-erzeugen	erzeugen
-brennen	brennen
 biologisch	biologisch
 abhängig	abhängig
 endgültig	endgültig
@@ -2703,26 +2274,20 @@ stolz	stolz
 künstlerisch	künstlerisch
 sichtbar	sichtbar
 die Messe	die Messe
-verbergen	verbergen
 ohnehin	ohnehin
 sobald	sobald
 die Kommission	die Kommission
 das Fahrrad	das Fahrrad
 das Bad	das Bad
 der Mangel	der Mangel
-landen	landen
 allzu	allzu
 der Richter	der Richter
-begegnen	begegnen
 der Anbieter	der Anbieter
 Wiener	Wiener
 tausend	tausend
 der Terrorist	der Terrorist
-verbreiten	verbreiten
 das Urteil	das Urteil
-retten	retten
 das Krankenhaus	das Krankenhaus
-senken	senken
 der Schmerz	der Schmerz
 umgekehrt	umgekehrt
 die Schuld	die Schuld
@@ -2731,19 +2296,14 @@ die Jugend	die Jugend
 das Fleisch	das Fleisch
 der Juni	der Juni
 schuld	schuld
-packen	packen
 die Stimmung	die Stimmung
 der Wein	der Wein
 selbstständig	selbstständig
 die Welle	die Welle
-schütteln	schütteln
 doppelt	doppelt
-schenken	schenken
 die Tasche	die Tasche
 die Decke	die Decke
-erfordern	erfordern
 jüdisch	jüdisch
-erschrecken	erschrecken
 der Fisch	der Fisch
 der Wettbewerb	der Wettbewerb
 sämtlich	sämtlich
@@ -2751,45 +2311,34 @@ die Tante	die Tante
 vermutlich	vermutlich
 die Temperatur	die Temperatur
 zweimal	zweimal
-unterrichten	unterrichten
 arbeitslos	arbeitslos
 der Leser	der Leser
 die Auswirkung	die Auswirkung
 das Bedürfnis	das Bedürfnis
 das Wetter	das Wetter
 die Ware	die Ware
-beurteilen	beurteilen
-erleichtern	erleichtern
 religiös	religiös
 schriftlich	schriftlich
 mächtig	mächtig
-zurückziehen	zurückziehen
 die Alternative	die Alternative
-anerkennen	anerkennen
 die Haltung	die Haltung
 ökonomisch	ökonomisch
 die Waffe	die Waffe
-genießen	genießen
 rechtlich	rechtlich
-wahrnehmen	wahrnehmen
 die Ahnung	die Ahnung
 angeblich	angeblich
 die Quelle	die Quelle
-belasten	belasten
 der Manager	der Manager
-nachweisen	nachweisen
 das Loch	das Loch
 kräftig	kräftig
 das Kleid	das Kleid
 anhand	anhand
-fließen	fließen
 damalig	damalig
 der Regen	der Regen
 der Spieler	der Spieler
 die Brust	die Brust
 billig	billig
 die Religion	die Religion
-kontrollieren	kontrollieren
 die Länge	die Länge
 die Koalition	die Koalition
 daneben	daneben
@@ -2804,7 +2353,6 @@ der Wissenschaftler	der Wissenschaftler
 woher	woher
 der Vorwurf	der Vorwurf
 der April	der April
-verursachen	verursachen
 das Bier	das Bier
 die Summe	die Summe
 der Tourist	der Tourist
@@ -2813,13 +2361,7 @@ die Verwendung	die Verwendung
 der Strom	der Strom
 der Test	der Test
 zurück	zurück
-aussprechen	aussprechen
-bedienen	bedienen
-vorschlagen	vorschlagen
-unterbrechen	unterbrechen
-vertrauen	vertrauen
 das Vertrauen	das Vertrauen
-beherrschen	beherrschen
 der Umsatz	der Umsatz
 der Termin	der Termin
 die Realität	die Realität
@@ -2829,37 +2371,28 @@ die Krise	die Krise
 die Pause	die Pause
 das Phänomen	das Phänomen
 leid	leid
-leuchten	leuchten
 die Suche	die Suche
 regional	regional
 das Parlament	das Parlament
 freiwillig	freiwillig
 die Perspektive	die Perspektive
-mitnehmen	mitnehmen
 das Merkmal	das Merkmal
 der März	der März
 das Lied	das Lied
-rücken	rücken
 das Konzert	das Konzert
 heilig	heilig
 ideal	ideal
 mitten	mitten
 mittels	mittels
-einschränken	einschränken
 die Botschaft	die Botschaft
 davor	davor
 das Brot	das Brot
-verabschieden	verabschieden
-ausrichten	ausrichten
-zusammenfassen	zusammenfassen
 drüben	drüben
 angenehm	angenehm
-töten	töten
 der Fortschritt	der Fortschritt
 die Formel	die Formel
 überwiegend	überwiegend
 der Weltkrieg	der Weltkrieg
-vorlegen	vorlegen
 unmöglich	unmöglich
 christlich	christlich
 bedeutend	bedeutend
@@ -2868,56 +2401,37 @@ der Aufbau	der Aufbau
 der Arbeitgeber	der Arbeitgeber
 der August	der August
 die Flasche	die Flasche
-bedingen	bedingen
 die Bestimmung	die Bestimmung
-verbieten	verbieten
 die Pflicht	die Pflicht
 der Teilnehmer	der Teilnehmer
-waschen	waschen
 der Wille	der Wille
 aufmerksam	aufmerksam
 die Nachfrage	die Nachfrage
-ausbilden	ausbilden
 die Mühe	die Mühe
-fortsetzen	fortsetzen
-klappen	klappen
 der Studiengang	der Studiengang
-starren	starren
 medizinisch	medizinisch
 angemessen	angemessen
-anhalten	anhalten
 die Debatte	die Debatte
-beantworten	beantworten
-integrieren	integrieren
 sonstig	sonstig
 der Gegner	der Gegner
 die Weile	die Weile
 global	global
 das Kilogramm	das Kilogramm
-mitbringen	mitbringen
 die Hauptstadt	die Hauptstadt
 sprachlich	sprachlich
-unternehmen	unternehmen
 der Geburtstag	der Geburtstag
 die Gegenwart	die Gegenwart
 die Fremdsprache	die Fremdsprache
 körperlich	körperlich
 räumlich	räumlich
-zeichnen	zeichnen
 die Adresse	die Adresse
-einkaufen	einkaufen
 keineswegs	keineswegs
 dünn	dünn
-beruhigen	beruhigen
-verstecken	verstecken
-auflösen	auflösen
-anstreben	anstreben
 die Verwaltung	die Verwaltung
 hinauf	hinauf
 die Heimat	die Heimat
 derartig	derartig
 der Käufer	der Käufer
-hingehen	hingehen
 die Konkurrenz	die Konkurrenz
 die Hinsicht	die Hinsicht
 das Kino	das Kino
@@ -2925,27 +2439,19 @@ der Hals	der Hals
 der Ablauf	der Ablauf
 der Betrag	der Betrag
 gelb	gelb
-ausführen	ausführen
 der Schwerpunkt	der Schwerpunkt
 schmal	schmal
 vorsichtig	vorsichtig
 der Kauf	der Kauf
-erläutern	erläutern
-fügen	fügen
 entfernt	entfernt
-vereinbaren	vereinbaren
 gucken, kucken	gucken, kucken
 die Mathematik	die Mathematik
 wohin	wohin
-verraten	verraten
-mitteilen	mitteilen
 arabisch	arabisch
 weich	weich
 der Streit	der Streit
-schwimmen	schwimmen
 die Verhandlung	die Verhandlung
 die Schicht	die Schicht
-malen	malen
 die Gemeinschaft	die Gemeinschaft
 ehrlich	ehrlich
 das Gegenteil	das Gegenteil
@@ -2954,77 +2460,54 @@ der Minister	der Minister
 der Nachteil	der Nachteil
 das Management	das Management
 der Millimeter	der Millimeter
-betreuen	betreuen
 der Sitz	der Sitz
-deuten	deuten
 empirisch	empirisch
-enden	enden
 ewig	ewig
 der Erwachsene, die Erwachsene	der Erwachsene, die Erwachsene
 der Kanzler	der Kanzler
-probieren	probieren
 der Fahrer	der Fahrer
 höchstens	höchstens
 der Handel	der Handel
 das Drittel	das Drittel
 der Arbeitnehmer	der Arbeitnehmer
 seitdem	seitdem
-begeistern	begeistern
 die Gewerkschaft	die Gewerkschaft
 spanisch	spanisch
 weshalb	weshalb
-übersetzen	übersetzen
-anzeigen	anzeigen
 der Beamte, die Beamte	der Beamte, die Beamte
 arm	arm
 trocken	trocken
-auffordern	auffordern
-steuern	steuern
 der Verdacht	der Verdacht
 vielfältig	vielfältig
 der Start	der Start
 der Vogel	der Vogel
-umsetzen	umsetzen
 der Widerstand	der Widerstand
 unheimlich	unheimlich
-auswählen	auswählen
-sparen	sparen
 wunderbar	wunderbar
 traurig	traurig
 der Tourismus	der Tourismus
 die Tabelle	die Tabelle
-weinen	weinen
-wagen	wagen
 das Spanisch	das Spanisch
-umdrehen	umdrehen
 gegenseitig	gegenseitig
 entsprechend	entsprechend
 gewaltig	gewaltig
 das Steuer	das Steuer
 grundlegend	grundlegend
-eintragen	eintragen
 türkisch	türkisch
-begrüßen	begrüßen
 der Polizist	der Polizist
 der Schriftsteller	der Schriftsteller
 sportlich	sportlich
 normalerweise	normalerweise
-verheiraten	verheiraten
 die Investition	die Investition
-enttäuschen	enttäuschen
 die Planung	die Planung
 der Bundestag	der Bundestag
 die Therapie	die Therapie
-stützen	stützen
 die Überlegung	die Überlegung
-träumen	träumen
 die Steuer	die Steuer
 die Stärke	die Stärke
-achten	achten
 die Einnahme	die Einnahme
 das Bewusstsein	das Bewusstsein
 die Verletzung	die Verletzung
-veröffentlichen	veröffentlichen
 der Abgeordnete, die Abgeordnete	der Abgeordnete, die Abgeordnete
 die Beschreibung	die Beschreibung
 katholisch	katholisch
@@ -3032,42 +2515,33 @@ die Erkrankung	die Erkrankung
 die Fläche	die Fläche
 die Armee	die Armee
 der Verkehr	der Verkehr
-ansetzen	ansetzen
 der Anschluss	der Anschluss
-zugeben	zugeben
 das Boot	das Boot
-voraussetzen	voraussetzen
 das Gehirn	das Gehirn
 die Gesundheit	die Gesundheit
 euer	euer
 die Atmosphäre	die Atmosphäre
 die Auswahl	die Auswahl
-befürchten	befürchten
 beinahe	beinahe
 zumal	zumal
 der Bahnhof	der Bahnhof
 ordentlich	ordentlich
 der Wechsel	der Wechsel
 einander	einander
-bevorzugen	bevorzugen
 der Flughafen	der Flughafen
 die Stirn	die Stirn
 der PC	der PC
-aufwachsen	aufwachsen
 die Strategie	die Strategie
 der Alltag	der Alltag
 der Bundeskanzler	der Bundeskanzler
 äußere	äußere
 langfristig	langfristig
-zusammenhängen	zusammenhängen
 der Auftritt	der Auftritt
 die Demokratie	die Demokratie
 demokratisch	demokratisch
 die Saison	die Saison
 die Post	die Post
-desto	desto
 die Physik	die Physik
-zuhören	zuhören
 der Standort	der Standort
 der Verlag	der Verlag
 der Zeitraum	der Zeitraum
@@ -3075,7 +2549,6 @@ sauber	sauber
 inhaltlich	inhaltlich
 der Park	der Park
 perfekt	perfekt
-kennzeichnen	kennzeichnen
 der Pfarrer	der Pfarrer
 fünfzehn	fünfzehn
 das Schicksal	das Schicksal
@@ -3094,23 +2567,19 @@ hinsichtlich	hinsichtlich
 die Kombination	die Kombination
 die Fotografie	die Fotografie
 das Fahrzeug	das Fahrzeug
-gefährden	gefährden
 der Forscher	der Forscher
 spätestens	spätestens
-zitieren	zitieren
 das Radio	das Radio
 literarisch	literarisch
 der Beweis	der Beweis
 maximal	maximal
 das HGB	das HGB
-entschuldigen	entschuldigen
 Aids	Aids
 dahinter	dahinter
 das Detail	das Detail
 bayrisch	bayrisch
 die Kasse	die Kasse
 grob	grob
-erledigen	erledigen
 der Organismus	der Organismus
 die Kategorie	die Kategorie
 parallel	parallel
@@ -3122,27 +2591,17 @@ die Dimension	die Dimension
 das Gewicht	das Gewicht
 das Frühjahr	das Frühjahr
 enorm	enorm
-gewähren	gewähren
-erstellen	erstellen
 die Beratung	die Beratung
 flach	flach
 die Beschäftigung	die Beschäftigung
-aussetzen	aussetzen
 die Verbesserung	die Verbesserung
-anpassen	anpassen
 der Unfall	der Unfall
 der Februar	der Februar
-unter	unter
-beraten	beraten
 die Verpflichtung	die Verpflichtung
 der Bundesrat	der Bundesrat
-beeindrucken	beeindrucken
 die Betrachtung	die Betrachtung
-ausgeben	ausgeben
-tanzen	tanzen
 vergleichbar	vergleichbar
 der Bedarf	der Bedarf
-wandern	wandern
 das Abitur	das Abitur
 die Bewertung	die Bewertung
 das Wesen	das Wesen
@@ -3151,26 +2610,19 @@ die Arbeitslosigkeit	die Arbeitslosigkeit
 die Kompetenz	die Kompetenz
 die Bezeichnung	die Bezeichnung
 das Vermögen	das Vermögen
-aufheben	aufheben
-befragen	befragen
 kompliziert	kompliziert
 optimal	optimal
-zuordnen	zuordnen
 die Treppe	die Treppe
 der Journalist	der Journalist
 die Beteiligung	die Beteiligung
-sich befassen	sich befassen
 das Lebensmittel	das Lebensmittel
 der Strand	der Strand
 kurzfristig	kurzfristig
 der Spiegel	der Spiegel
 die Beobachtung	die Beobachtung
-klären	klären
-speichern	speichern
 massiv	massiv
 allmählich	allmählich
 der Star	der Star
-sich entschließen	sich entschließen
 gegebenenfalls	gegebenenfalls
 das Teilchen	das Teilchen
 der Nutzen	der Nutzen
@@ -3180,7 +2632,6 @@ nahezu	nahezu
 die Taste	die Taste
 das Signal	das Signal
 der Ruf	der Ruf
-lehren	lehren
 strategisch	strategisch
 der Standard	der Standard
 die CD	die CD
@@ -3189,9 +2640,6 @@ müde	müde
 gerecht	gerecht
 der Geschäftsführer	der Geschäftsführer
 der Gebrauch	der Gebrauch
-garantieren	garantieren
-sich engagieren	sich engagieren
-steigern	steigern
 der Russe	der Russe
 die Brücke	die Brücke
 die Oberfläche	die Oberfläche
@@ -3204,25 +2652,18 @@ kühl	kühl
 lokal	lokal
 der Anwalt	der Anwalt
 generell	generell
-berechtigen	berechtigen
 physikalisch	physikalisch
 der Vordergrund	der Vordergrund
 der Grundsatz	der Grundsatz
-mischen	mischen
 nackt	nackt
 das Rennen	das Rennen
 umfangreich	umfangreich
 konservativ	konservativ
 die Komponente	die Komponente
-rühren	rühren
-versorgen	versorgen
 digital	digital
 das Reich	das Reich
 spannend	spannend
 das Viertel	das Viertel
-anstellen	anstellen
-anhören	anhören
-aufführen	aufführen
 der Verkauf	der Verkauf
 der Schuh	der Schuh
 das Seminar	das Seminar
@@ -3231,11 +2672,9 @@ sechzig	sechzig
 die Truppe	die Truppe
 die Technologie	die Technologie
 touristisch	touristisch
-bedenken	bedenken
 die Versicherung	die Versicherung
 das Umfeld	das Umfeld
 der Schlag	der Schlag
-vereinigen	vereinigen
 die Sendung	die Sendung
 das Vorjahr	das Vorjahr
 der Verbraucher	der Verbraucher
@@ -3245,11 +2684,6 @@ der Schlaf	der Schlaf
 das Erlebnis	das Erlebnis
 die Bilanz	die Bilanz
 der Sender	der Sender
-beruhen	beruhen
-investieren	investieren
-einbringen	einbringen
-wecken	wecken
-herausstellen	herausstellen
 die Spannung	die Spannung
 vielfach	vielfach
 der Kredit	der Kredit
@@ -3258,17 +2692,12 @@ israelisch	israelisch
 ausgerechnet	ausgerechnet
 die Karriere	die Karriere
 die Kamera	die Kamera
-bewirken	bewirken
 das Grundstück	das Grundstück
 komplett	komplett
-befreien	befreien
-sich verlieben	sich verlieben
-aufpassen	aufpassen
 das Plus	das Plus
 einheitlich	einheitlich
 das TV	das TV
 das Quartal	das Quartal
-finanzieren	finanzieren
 der Rechner	der Rechner
 der Bewohner	der Bewohner
 die Erziehung	die Erziehung
@@ -3281,12 +2710,10 @@ die Identität	die Identität
 momentan	momentan
 plus	plus
 das Rad	das Rad
-rechtfertigen	rechtfertigen
 die Geburt	die Geburt
 das Einkommen	das Einkommen
 zukünftig	zukünftig
 der Verlauf	der Verlauf
-antreten	antreten
 der Schnee	der Schnee
 die Sitzung	die Sitzung
 siebzig	siebzig
@@ -3300,11 +2727,7 @@ die Reform	die Reform
 die Herausforderung	die Herausforderung
 die Niederlage	die Niederlage
 der Schauspieler	der Schauspieler
-aufsteigen	aufsteigen
 der Mittag	der Mittag
-besprechen	besprechen
-testen	testen
-einziehen	einziehen
 islamisch	islamisch
 der Charakter	der Charakter
 hoffentlich	hoffentlich
@@ -3318,48 +2741,32 @@ die Tiefe	die Tiefe
 schade	schade
 statistisch	statistisch
 das Restaurant	das Restaurant
-riechen	riechen
-ausstatten	ausstatten
-berühren	berühren
 die Träne	die Träne
 der Außenminister	der Außenminister
-vorhaben	vorhaben
 das Arzneimittel	das Arzneimittel
-vorgeben	vorgeben
-zögern	zögern
 die Annahme	die Annahme
 zugrunde	zugrunde
 die Zustimmung	die Zustimmung
 der Zufall	der Zufall
-unterliegen	unterliegen
 tja	tja
 der Benutzer	der Benutzer
 die Trauer	die Trauer
 der Vorstand	der Vorstand
 zufällig	zufällig
-aufhalten	aufhalten
 der Bescheid	der Bescheid
 das Argument	das Argument
-ableiten	ableiten
 der Angehörige, die Angehörige	der Angehörige, die Angehörige
-verschieben	verschieben
-überlassen	überlassen
 die Blume	die Blume
 indes	indes
-erteilen	erteilen
 dramatisch	dramatisch
 die Fraktion	die Fraktion
 juristisch	juristisch
 das Grundgesetz	das Grundgesetz
-einräumen	einräumen
-entlassen	entlassen
 die Bundeswehr	die Bundeswehr
 demnach	demnach
 das Individuum	das Individuum
 innen	innen
-empfangen	empfangen
 die Existenz	die Existenz
-ergreifen	ergreifen
 bezüglich	bezüglich
 der Händler	der Händler
 fern	fern
@@ -3375,7 +2782,6 @@ vierzehn	vierzehn
 die Versorgung	die Versorgung
 die Umsetzung	die Umsetzung
 vernünftig	vernünftig
-regieren	regieren
 der Papa	der Papa
 der Sand	der Sand
 seltsam	seltsam
@@ -3383,10 +2789,8 @@ stattdessen	stattdessen
 die Opposition	die Opposition
 die Tendenz	die Tendenz
 der Musiker	der Musiker
-stärken	stärken
 das Motiv	das Motiv
 komisch	komisch
-trauen	trauen
 der Verkäufer	der Verkäufer
 unglaublich	unglaublich
 das Training	das Training
@@ -3395,39 +2799,24 @@ das Personal	das Personal
 die Station	die Station
 der Wandel	der Wandel
 das Ausmaß	das Ausmaß
-sich wehren	sich wehren
-widmen	widmen
-ahnen	ahnen
 die Angelegenheit	die Angelegenheit
-weisen	weisen
-aufgehen	aufgehen
 zufolge	zufolge
 derart	derart
-zugehen	zugehen
 die Auskunft	die Auskunft
 der Fleck	der Fleck
-sich ausziehen	sich ausziehen
-zurückführen	zurückführen
 vorwiegend	vorwiegend
-aussuchen	aussuchen
-ausziehen	ausziehen
 das Wunder	das Wunder
 die Begründung	die Begründung
 das Engagement	das Engagement
 durchschnittlich	durchschnittlich
-erarbeiten	erarbeiten
 die Entfernung	die Entfernung
-analysieren	analysieren
 mathematisch	mathematisch
-schalten	schalten
 radikal	radikal
 der Koffer	der Koffer
-sich lohnen	sich lohnen
 griechisch	griechisch
 der Unternehmer	der Unternehmer
 systematisch	systematisch
 stabil	stabil
-verarbeiten	verarbeiten
 das Immunsystem	das Immunsystem
 das Griechisch	das Griechisch
 das Video	das Video
@@ -3437,20 +2826,14 @@ die Seele	die Seele
 gefangen	gefangen
 der Schlüssel	der Schlüssel
 der Schreibtisch	der Schreibtisch
-versehen	versehen
 die Unternehmung	die Unternehmung
 die Vereinbarung	die Vereinbarung
 verrückt	verrückt
 die Handlung	die Handlung
 vertraut	vertraut
-einbeziehen	einbeziehen
 die Ferne	die Ferne
-ausfallen	ausfallen
 wozu	wozu
-abwarten	abwarten
 das Café	das Café
-sich wundern	sich wundern
-abbauen	abbauen
 die Erzählung	die Erzählung
 erstaunlich	erstaunlich
 ehe	ehe
@@ -3459,7 +2842,6 @@ glatt	glatt
 winzig	winzig
 das Gedicht	das Gedicht
 die Äußerung	die Äußerung
-einbauen	einbauen
 ernsthaft	ernsthaft
 der Angestellte, die Angestellte	der Angestellte, die Angestellte
 die Datei	die Datei
@@ -3468,7 +2850,6 @@ aufeinander	aufeinander
 golden	golden
 dorthin	dorthin
 die Dienstleistung	die Dienstleistung
-ordnen	ordnen
 die Vielzahl	die Vielzahl
 der Träger	der Träger
 die Tonne	die Tonne
@@ -3477,19 +2858,15 @@ der Kanton	der Kanton
 der Keller	der Keller
 die Gründung	die Gründung
 der Verwandte, die Verwandte	der Verwandte, die Verwandte
-interpretieren	interpretieren
 die Operation	die Operation
 die Qualifikation	die Qualifikation
 scheinbar	scheinbar
-raten	raten
 sanft	sanft
 hübsch	hübsch
 umso	umso
 das Konto	das Konto
 die Variante	die Variante
-vergeben	vergeben
 städtisch	städtisch
-schmecken	schmecken
 die Vielfalt	die Vielfalt
 die Sammlung	die Sammlung
 die Aufwendungen	die Aufwendungen
@@ -3497,53 +2874,30 @@ akademisch	akademisch
 die Berechnung	die Berechnung
 die Zahlung	die Zahlung
 wirksam	wirksam
-ablegen	ablegen
 ärgern	ärgern
 achtzig	achtzig
-neigen	neigen
-aufregen	aufregen
 der Bestand	der Bestand
-zusammensetzen	zusammensetzen
-beugen	beugen
 der Arbeiter	der Arbeiter
 der Entwurf	der Entwurf
-ausweisen	ausweisen
 der Bauch	der Bauch
 der Aufwand	der Aufwand
 beliebt	beliebt
-bereiten	bereiten
-abstimmen	abstimmen
 das Entwicklungsland	das Entwicklungsland
-anregen	anregen
-ausbauen	ausbauen
-entziehen	entziehen
 der Kern	der Kern
 die Hose	die Hose
 hierfür	hierfür
 der Impuls	der Impuls
 herzlich	herzlich
-bedecken	bedecken
 etliche	etliche
-mangeln	mangeln
-sich gewöhnen	sich gewöhnen
-klopfen	klopfen
-erfinden	erfinden
-herkommen	herkommen
 die Finanzierung	die Finanzierung
 experimentell	experimentell
-grinsen	grinsen
 das Kapital	das Kapital
-rauchen	rauchen
 rechtzeitig	rechtzeitig
-klagen	klagen
 die Fachhochschule	die Fachhochschule
 der Fernseher	der Fernseher
-faszinieren	faszinieren
 primär	primär
 der Motor	der Motor
 der Rang	der Rang
-erbringen	erbringen
-rollen	rollen
 der Zahn	der Zahn
 die Republik	die Republik
 das Salz	das Salz
@@ -3551,104 +2905,72 @@ ungewöhnlich	ungewöhnlich
 der Wahlkampf	der Wahlkampf
 der Schilling	der Schilling
 die Wolke	die Wolke
-zustimmen	zustimmen
-atmen	atmen
 vorübergehend	vorübergehend
 die Behinderung	die Behinderung
-vorübergehen	vorübergehen
 übel	übel
 der Stil	der Stil
 der Regisseur	der Regisseur
 zustande	zustande
-vereinen	vereinen
 verständlich	verständlich
 bequem	bequem
 die Anstrengung	die Anstrengung
-absolvieren	absolvieren
 die Vermittlung	die Vermittlung
-versetzen	versetzen
-laden	laden
 die Kooperation	die Kooperation
 der Einwohner	der Einwohner
 der Bord	der Bord
 das Symbol	das Symbol
 die Trennung	die Trennung
 der Eingriff	der Eingriff
-überwinden	überwinden
 ökologisch	ökologisch
 der Dichter	der Dichter
 der Fan	der Fan
-errichten	errichten
 die Hütte	die Hütte
-lehnen	lehnen
 die Stasi	die Stasi
 der Täter	der Täter
 die Übertragung	die Übertragung
-herausfinden	herausfinden
 das Handy	das Handy
 schlicht	schlicht
 Hamburger	Hamburger
 Frankfurter	Frankfurter
 die Tour	die Tour
-qualifizieren	qualifizieren
 die Berücksichtigung	die Berücksichtigung
-bedrohen	bedrohen
 die Verfassung	die Verfassung
-sich bewerben	sich bewerben
-aufmachen	aufmachen
-verleihen	verleihen
 vorhin	vorhin
 der Architekt	der Architekt
-bewerten	bewerten
-bearbeiten	bearbeiten
 ausdrücklich	ausdrücklich
 attraktiv	attraktiv
-vermögen	vermögen
 die Aufmerksamkeit	die Aufmerksamkeit
-sich auswirken	sich auswirken
 abstrakt	abstrakt
 der Beschluss	der Beschluss
-aufbringen	aufbringen
 die Absicht	die Absicht
-vorgehen	vorgehen
 die Zeitschrift	die Zeitschrift
 vollkommen	vollkommen
 unendlich	unendlich
 weiblich	weiblich
 der Griff	der Griff
 der Feind	der Feind
-eintreffen	eintreffen
 das Geschlecht	das Geschlecht
 die Erweiterung	die Erweiterung
-erlernen	erlernen
 geheim	geheim
 der Flüchtling	der Flüchtling
 die Bindung	die Bindung
-decken	decken
 das Business	das Business
 der Ehegatte	der Ehegatte
 der Gläubiger	der Gläubiger
-differenzieren	differenzieren
 der Halt	der Halt
 die Einschätzung	die Einschätzung
 die Bibel	die Bibel
 die Entstehung	die Entstehung
 das Gewissen	das Gewissen
-entnehmen	entnehmen
-zutreffen	zutreffen
 voneinander	voneinander
 die Flucht	die Flucht
 die Börse	die Börse
 dumm	dumm
-einsteigen	einsteigen
 das Marketing	das Marketing
 die Nebenwirkung	die Nebenwirkung
-murmeln	murmeln
 der Kindergarten	der Kindergarten
 die Infektion	die Infektion
-hinterlassen	hinterlassen
 das Orchester	das Orchester
-loben	loben
 der Mantel	der Mantel
 der Nationalsozialist, der Nazi	der Nationalsozialist, der Nazi
 der Kontinent	der Kontinent
@@ -3659,46 +2981,33 @@ indirekt	indirekt
 intern	intern
 das Elektron	das Elektron
 das Paket	das Paket
-registrieren	registrieren
 mehrmals	mehrmals
 quer	quer
 lebendig	lebendig
 die Kündigung	die Kündigung
 relevant	relevant
-rennen	rennen
 die Oper	die Oper
 das Vorgehen	das Vorgehen
 der Übergang	der Übergang
 die Ressource	die Ressource
-vorziehen	vorziehen
 womit	womit
-vermissen	vermissen
 die Scheibe	die Scheibe
 das Vorbild	das Vorbild
 subjektiv	subjektiv
 die Stille	die Stille
 die These	die These
 der Transport	der Transport
-senden	senden
-verlängern	verlängern
 der Widerspruch	der Widerspruch
-übergehen	übergehen
-verschließen	verschließen
-vollziehen	vollziehen
 die Revolution	die Revolution
 die Richtlinie	die Richtlinie
 der Stress	der Stress
 verurteilen	verurteilen
-verbleiben	verbleiben
 die Rückkehr	die Rückkehr
 teils	teils
 die Distanz	die Distanz
-zuwenden	zuwenden
 der Aufenthalt	der Aufenthalt
-abbrechen	abbrechen
 der Besitz	der Besitz
 der Alkohol	der Alkohol
-zusammenarbeiten	zusammenarbeiten
 der Ball	der Ball
 die Wüste	die Wüste
 dementsprechend	dementsprechend
@@ -3706,67 +3015,44 @@ die Frist	die Frist
 einigermaßen	einigermaßen
 die Aussicht	die Aussicht
 das Ei	das Ei
-aufkommen	aufkommen
 dynamisch	dynamisch
-bewahren	bewahren
 analog	analog
-dominieren	dominieren
 die Bemerkung	die Bemerkung
 die Anerkennung	die Anerkennung
 die Chemie	die Chemie
-zucken	zucken
-einschalten	einschalten
-einhalten	einhalten
 die Presse	die Presse
 potenziell	potenziell
 moralisch	moralisch
 der Höhepunkt	der Höhepunkt
-sich nähern	sich nähern
 das Kreuz	das Kreuz
 Münchner	Münchner
 hinweg	hinweg
 das Geschenk	das Geschenk
 der Horizont	der Horizont
-klettern	klettern
 die Notwendigkeit	die Notwendigkeit
 locker	locker
 die Gestaltung	die Gestaltung
 indisch	indisch
-identifizieren	identifizieren
-gewährleisten	gewährleisten
 das Heim	das Heim
 heimlich	heimlich
 die Konferenz	die Konferenz
 kommunikativ	kommunikativ
-küssen	küssen
 mehrfach	mehrfach
 kürzlich	kürzlich
 das Organ	das Organ
-scheiden	scheiden
-ausbreiten	ausbreiten
 prinzipiell	prinzipiell
-streiten	streiten
 die Rechtsprechung	die Rechtsprechung
 südlich	südlich
-angreifen	angreifen
-versterben	versterben
-vorwerfen	vorwerfen
-ansteigen	ansteigen
 die Zeile	die Zeile
 worauf	worauf
 die Übung	die Übung
-winken	winken
 problematisch	problematisch
 steil	steil
 der Ring	der Ring
-profitieren	profitieren
 das Regal	das Regal
-zittern	zittern
 akut	akut
-zurückhalten	zurückhalten
 quasi	quasi
 der Vortrag	der Vortrag
-überschreiten	überschreiten
 dreimal	dreimal
 der Gehalt	der Gehalt
 blöd	blöd
@@ -3778,18 +3064,12 @@ die Erscheinung	die Erscheinung
 einig	einig
 das Geheimnis	das Geheimnis
 der Flug	der Flug
-erlangen	erlangen
-beklagen	beklagen
-benennen	benennen
 der Besitzer	der Besitzer
 daraufhin	daraufhin
 die Ausführung	die Ausführung
 das Center	das Center
 das Frühstück	das Frühstück
 ausgeprägt	ausgeprägt
-erwidern	erwidern
-erstaunen	erstaunen
-danken	danken
 ferner	ferner
 das Gehalt	das Gehalt
 die Miete	die Miete
@@ -3797,79 +3077,53 @@ die Phantasie	die Phantasie
 die Hut	die Hut
 die Klage	die Klage
 der Hut	der Hut
-mitmachen	mitmachen
 jetzig	jetzig
 das Protein	das Protein
-losgehen	losgehen
 das Geräusch	das Geräusch
 der Geschmack	der Geschmack
 der Pass	der Pass
 das Öl	das Öl
 das Gold	das Gold
-kündigen	kündigen
 das Medikament	das Medikament
-korrigieren	korrigieren
 die Lehrerin	die Lehrerin
-markieren	markieren
 die Klinik	die Klinik
-hinausgehen	hinausgehen
 die Interpretation	die Interpretation
 der Hafen	der Hafen
 die Prognose	die Prognose
 die Marke	die Marke
 wonach	wonach
 die Vorgabe	die Vorgabe
-verwandeln	verwandeln
 vorerst	vorerst
 der Schreck	der Schreck
-transportieren	transportieren
 virtuell	virtuell
-schildern	schildern
 die Abhängigkeit	die Abhängigkeit
 das Weihnachten	das Weihnachten
 zugänglich	zugänglich
 der Turm	der Turm
 wahnsinnig	wahnsinnig
-vorschreiben	vorschreiben
 die Serie	die Serie
-widersprechen	widersprechen
 seither	seither
 das Protokoll	das Protokoll
 die Wende	die Wende
-verweigern	verweigern
 der Tee	der Tee
 verteidigen	verteidigen
-abholen	abholen
 die Überzeugung	die Überzeugung
-weggehen	weggehen
 blind	blind
 der Dialog	der Dialog
 einschließlich	einschließlich
-ausgleichen	ausgleichen
-einschlafen	einschlafen
-einigen	einigen
-aufsetzen	aufsetzen
-aufbrechen	aufbrechen
 außerordentlich	außerordentlich
 der Arbeitsmarkt	der Arbeitsmarkt
 der Ärger	der Ärger
-andeuten	andeuten
 eigenständig	eigenständig
-einleiten	einleiten
 die Betreuung	die Betreuung
 die Bombe	die Bombe
 dazwischen	dazwischen
 ausführlich	ausführlich
 ausgezeichnet	ausgezeichnet
-anbringen	anbringen
-absetzen	absetzen
 der Austausch	der Austausch
 denkbar	denkbar
-beantragen	beantragen
 die Hitze	die Hitze
 das Gen	das Gen
-flüstern	flüstern
-gleiten	gleiten
 intellektuell	intellektuell
 materiell	materiell
 der Maler	der Maler
@@ -3886,25 +3140,20 @@ hervorragend	hervorragend
 feucht	feucht
 die Entschuldigung	die Entschuldigung
 die Konzentration	die Konzentration
-etablieren	etablieren
 die Erhöhung	die Erhöhung
 die Kindheit	die Kindheit
 das Klavier	das Klavier
 konsequent	konsequent
-aussteigen	aussteigen
 mündlich	mündlich
-pressen	pressen
 nebeneinander	nebeneinander
 der Pilot	der Pilot
 das Resultat	das Resultat
-trainieren	trainieren
 psychisch	psychisch
 unsicher	unsicher
 stellvertretend	stellvertretend
 der Stock	der Stock
 anfangs	anfangs
 die Milch	die Milch
-anmelden	anmelden
 der Riese	der Riese
 pädagogisch	pädagogisch
 merkwürdig	merkwürdig
@@ -3913,21 +3162,15 @@ die Umfrage	die Umfrage
 die Strafe	die Strafe
 das Ufer	das Ufer
 die Menschheit	die Menschheit
-austauschen	austauschen
-aufzeigen	aufzeigen
 der Mord	der Mord
-bevorstehen	bevorstehen
 die Großmutter	die Großmutter
-sich entspannen	sich entspannen
 furchtbar	furchtbar
 der Gesichtspunkt	der Gesichtspunkt
 beliebig	beliebig
 friedlich	friedlich
 das Dutzend	das Dutzend
-fliehen	fliehen
 die Ernährung	die Ernährung
 evangelisch	evangelisch
-eingreifen	eingreifen
 das Baby	das Baby
 die Differenz	die Differenz
 die Dunkelheit	die Dunkelheit
@@ -3951,17 +3194,14 @@ der Reiz	der Reiz
 restlich	restlich
 der Hunger	der Hunger
 die Note	die Note
-reinigen	reinigen
 die Last	die Last
 null	null
 das Lebensjahr	das Lebensjahr
-putzen	putzen
 neugierig	neugierig
 die Mischung	die Mischung
 die Hochzeit	die Hochzeit
 das Medium	das Medium
 der Nachfolger	der Nachfolger
-resultieren	resultieren
 jederzeit	jederzeit
 die Konjunktur	die Konjunktur
 der Rohstoff	der Rohstoff
@@ -3972,32 +3212,23 @@ das Turnier	das Turnier
 der Schuss	der Schuss
 die Verteilung	die Verteilung
 die Übernahme	die Übernahme
-sperren	sperren
 die Veröffentlichung	die Veröffentlichung
 der Witz	der Witz
 wunderschön	wunderschön
-anfallen	anfallen
 umstritten	umstritten
 selbe	selbe
 sechzehn	sechzehn
 der Sachverhalt	der Sachverhalt
-verdeutlichen	verdeutlichen
 der Sieger	der Sieger
 das Taxi	das Taxi
-umgeben	umgeben
-wiegen	wiegen
 die Wiedervereinigung	die Wiedervereinigung
 der Abschied	der Abschied
-anführen	anführen
 die Strahlung	die Strahlung
 die Statistik	die Statistik
 der Bewerber	der Bewerber
-bestreiten	bestreiten
 effektiv	effektiv
 die Benutzung	die Benutzung
 Berner	Berner
-eindringen	eindringen
-entfallen	entfallen
 der Ertrag	der Ertrag
 der Flur	der Flur
 die Herstellung	die Herstellung
@@ -4010,20 +3241,13 @@ die Beurteilung	die Beurteilung
 die Einschränkung	die Einschränkung
 herein, rein	herein, rein
 heuer	heuer
-beauftragen	beauftragen
-aushalten	aushalten
-dringen	dringen
-ausbrechen	ausbrechen
-einschließen	einschließen
 der Christ	der Christ
 die Küste	die Küste
 jemals	jemals
 die Kleidung	die Kleidung
 die Kneipe	die Kneipe
-notieren	notieren
 die Kette	die Kette
 japanisch	japanisch
-kleben	kleben
 die Messung	die Messung
 die Kammer	die Kammer
 das Messer	das Messer
@@ -4042,7 +3266,6 @@ logisch	logisch
 langweilig	langweilig
 liberal	liberal
 unzählig	unzählig
-reizen	reizen
 das Top	das Top
 der Saal	der Saal
 der Quadratmeter	der Quadratmeter
@@ -4055,7 +3278,6 @@ die Probe	die Probe
 das Tuch	das Tuch
 die Überraschung	die Überraschung
 top	top
-übergeben	übergeben
 schief	schief
 das Tennis	das Tennis
 der Sektor	der Sektor
@@ -4064,56 +3286,37 @@ das Symptom	das Symptom
 der Sprung	der Sprung
 optisch	optisch
 organisch	organisch
-verlegen	verlegen
 die Übersetzung	die Übersetzung
-beibringen	beibringen
 das Zelt	das Zelt
 die Wiese	die Wiese
-verschaffen	verschaffen
 die Wärme	die Wärme
-zurücktreten	zurücktreten
-abhalten	abhalten
-befestigen	befestigen
-sich bedanken	sich bedanken
 die Auflösung	die Auflösung
 der Anhänger	der Anhänger
-werben	werben
-verringern	verringern
 wertvoll	wertvoll
 wütend	wütend
 die Werbung	die Werbung
 die Vorlage	die Vorlage
 zumeist	zumeist
 die Aufklärung	die Aufklärung
-vertreiben	vertreiben
-ausfüllen	ausfüllen
 die Anzeige	die Anzeige
 das Virus	das Virus
 das Vorhaben	das Vorhaben
-biegen	biegen
 die Einigung	die Einigung
-abstellen	abstellen
-erregen	erregen
-haften	haften
 extra	extra
 deutschsprachig	deutschsprachig
-dastehen	dastehen
 das Bündnis	das Bündnis
 der Dialekt	der Dialekt
 der Bube	der Bube
 flexibel	flexibel
 die Gleichung	die Gleichung
-erwischen	erwischen
 die Geste	die Geste
 die Durchführung	die Durchführung
 die Bestellung	die Bestellung
 fort	fort
-besorgen	besorgen
 das Gedächtnis	das Gedächtnis
 die Burg	die Burg
 bescheiden	bescheiden
 dauerhaft	dauerhaft
-beschleunigen	beschleunigen
 die Einsicht	die Einsicht
 das Gefängnis	das Gefängnis
 kirchlich	kirchlich
@@ -4123,27 +3326,20 @@ herrlich	herrlich
 die Nahrung	die Nahrung
 die Infrastruktur	die Infrastruktur
 der Schein	der Schein
-schleppen	schleppen
 die Philosophie	die Philosophie
 der Schnitt	der Schnitt
 nachfolgend	nachfolgend
-nachfolgen	nachfolgen
 der Offizier	der Offizier
 der Nebel	der Nebel
 die Mission	die Mission
 klug	klug
 die Oma	die Oma
 der Katalog	der Katalog
-hocken	hocken
 die Schnittstelle	die Schnittstelle
-nachgehen	nachgehen
 die Sehnsucht	die Sehnsucht
 die Schulden	die Schulden
 die Herrschaft	die Herrschaft
 die Realisierung	die Realisierung
-abspielen	abspielen
-unterbringen	unterbringen
-ablösen	ablösen
 unangenehm	unangenehm
 vorläufig	vorläufig
 das Stadion	das Stadion
@@ -4151,34 +3347,21 @@ verfügbar	verfügbar
 der Tipp	der Tipp
 die Wurzel	die Wurzel
 die Wunde	die Wunde
-vergrößern	vergrößern
-stoppen	stoppen
-abbilden	abbilden
 der Skandal	der Skandal
 das Wiedersehen	das Wiedersehen
-abdecken	abdecken
-verkünden	verkünden
-wiedersehen	wiedersehen
 zugunsten	zugunsten
 das Zeugnis	das Zeugnis
 süß	süß
-vernichten	vernichten
-übereinstimmen	übereinstimmen
-verwirren	verwirren
 der Zeuge	der Zeuge
 achtzehn	achtzehn
 angewiesen	angewiesen
 die Bundesliga	die Bundesliga
-basieren	basieren
-abzeichnen	abzeichnen
 der Befehl	der Befehl
 die Bereitschaft	die Bereitschaft
 der Bogen	der Bogen
 die Ehre	die Ehre
 anstrengend	anstrengend
 die Anpassung	die Anpassung
-abweichen	abweichen
-sich abspielen	sich abspielen
 divers	divers
 demnächst	demnächst
 Celsius	Celsius
@@ -4191,14 +3374,12 @@ formal	formal
 klinisch	klinisch
 der Geliebte, die Geliebte	der Geliebte, die Geliebte
 der Anblick	der Anblick
-entgegenkommen	entgegenkommen
 kreativ	kreativ
 behindert	behindert
 das Arbeitsamt	das Arbeitsamt
 die Feststellung	die Feststellung
 die Droge	die Droge
 der Knochen	der Knochen
-isolieren	isolieren
 die Geschwister	die Geschwister
 einmalig	einmalig
 die Formulierung	die Formulierung
@@ -4215,7 +3396,6 @@ gültig	gültig
 das Kunstwerk	das Kunstwerk
 die Inszenierung	die Inszenierung
 sexuell	sexuell
-schwingen	schwingen
 die Kiste	die Kiste
 schuldig	schuldig
 die Öffnung	die Öffnung
@@ -4235,73 +3415,45 @@ die Partie	die Partie
 vergeblich	vergeblich
 die Zone	die Zone
 unklar	unklar
-verwirklichen	verwirklichen
-verhandeln	verhandeln
 die Wechselwirkung	die Wechselwirkung
-verbrennen	verbrennen
 der Zins	der Zins
 nunmehr	nunmehr
 die Unterscheidung	die Unterscheidung
 elegant	elegant
 der Anstieg	der Anstieg
-hinfahren	hinfahren
-anklagen	anklagen
 die Agentur	die Agentur
 die Akademie	die Akademie
 organisatorisch	organisatorisch
-verknüpfen	verknüpfen
 untereinander	untereinander
 der Teller	der Teller
-verzeichnen	verzeichnen
-tauchen	tauchen
 der Wähler	der Wähler
-übersehen	übersehen
 der Zettel	der Zettel
 die Anfrage	die Anfrage
-auskommen	auskommen
 das Dokument	das Dokument
 bürgerlich	bürgerlich
 empfindlich	empfindlich
 die Version	die Version
 die Aufführung	die Aufführung
 der Buchstabe	der Buchstabe
-entwerfen	entwerfen
 betrieblich	betrieblich
-aufklären	aufklären
-bedauern	bedauern
-ruhen	ruhen
-auftragen	auftragen
-aufwachen	aufwachen
 anwesend	anwesend
-ausschalten	ausschalten
 einheimisch	einheimisch
 die Einzelheit	die Einzelheit
 die Auflage	die Auflage
 der Bär	der Bär
-ausscheiden	ausscheiden
-backen	backen
-befriedigen	befriedigen
 das Bedenken	das Bedenken
 die Fusion	die Fusion
-einschätzen	einschätzen
 fröhlich	fröhlich
 meinetwegen	meinetwegen
 konventionell	konventionell
-versagen	versagen
 der Ausbau	der Ausbau
-erschließen	erschließen
 das Labor	das Labor
 der Landkreis	der Landkreis
 der Finanzminister	der Finanzminister
-formen	formen
 der Geruch	der Geruch
 der Führer	der Führer
-kriechen	kriechen
 die Erfüllung	die Erfüllung
-lenken	lenken
 die Kollegin	die Kollegin
-erziehen	erziehen
-jagen	jagen
 der Komponist	der Komponist
 palästinensisch	palästinensisch
 der Kerl	der Kerl
@@ -4311,13 +3463,9 @@ die Kurve	die Kurve
 der Profi	der Profi
 großzügig	großzügig
 psychologisch	psychologisch
-beschädigen	beschädigen
 die Pflege	die Pflege
-bekämpfen	bekämpfen
-reiten	reiten
 heimisch	heimisch
 professionell	professionell
-kombinieren	kombinieren
 nördlich	nördlich
 qualitativ	qualitativ
 das Möbel	das Möbel
@@ -4327,18 +3475,14 @@ reichlich	reichlich
 der Rock	der Rock
 der Posten	der Posten
 der Ofen	der Ofen
-veranstalten	veranstalten
 der Schrank	der Schrank
 das Nerv	das Nerv
 schwanger	schwanger
 der Rücktritt	der Rücktritt
-motivieren	motivieren
 das Märchen	das Märchen
 die Moderne	die Moderne
 der Vorhang	der Vorhang
 extern	extern
-untergehen	untergehen
-umbringen	umbringen
 mühsam	mühsam
 der Winkel	der Winkel
 die Unsicherheit	die Unsicherheit
@@ -4350,12 +3494,9 @@ der Topf	der Topf
 womöglich	womöglich
 sozialistisch	sozialistisch
 spazieren	spazieren
-versammeln	versammeln
 der Tanz	der Tanz
 das Zitat	das Zitat
 das Gleichgewicht	das Gleichgewicht
-verzweifeln	verzweifeln
-verdanken	verdanken
 die Sekretärin	die Sekretärin
 der Staub	der Staub
 der Sportler	der Sportler
@@ -4364,55 +3505,33 @@ das Regime	das Regime
 die Solidarität	die Solidarität
 die Stabilität	die Stabilität
 der Überblick	der Überblick
-wandeln	wandeln
 das Abenteuer	das Abenteuer
 die Allianz	die Allianz
 die Abgrenzung	die Abgrenzung
-zusehen	zusehen
 beträchtlich	beträchtlich
-aktivieren	aktivieren
 die Begeisterung	die Begeisterung
-berufen	berufen
-bewältigen	bewältigen
 der Akteur	der Akteur
 der Investor	der Investor
-aufsuchen	aufsuchen
-zusammenkommen	zusammenkommen
 der Ausgleich	der Ausgleich
-zusammenleben	zusammenleben
-abziehen	abziehen
 alltäglich	alltäglich
 zulässig	zulässig
 die Armut	die Armut
-sich bewähren	sich bewähren
 der Akt	der Akt
-blühen	blühen
-beinhalten	beinhalten
 der Bezirk	der Bezirk
-bereitstellen	bereitstellen
-ausstellen	ausstellen
 dauernd	dauernd
-sich erholen	sich erholen
 einseitig	einseitig
 einverstanden	einverstanden
 diskret	diskret
 die Eröffnung	die Eröffnung
-sich erstrecken	sich erstrecken
 Dresdner	Dresdner
 die Empfehlung	die Empfehlung
 das Chinesisch	das Chinesisch
 der Durchmesser	der Durchmesser
-einreichen	einreichen
-erfreuen	erfreuen
 die Diagnose	die Diagnose
 die Einladung	die Einladung
 charakteristisch	charakteristisch
-einschlagen	einschlagen
 dankbar	dankbar
-erschießen	erschießen
-ersparen	ersparen
 der Fels, der Felsen	der Fels, der Felsen
-ertragen	ertragen
 detailliert	detailliert
 das Dunkel	das Dunkel
 chinesisch	chinesisch
@@ -4420,7 +3539,6 @@ die Großstadt	die Großstadt
 der Hügel	der Hügel
 mechanisch	mechanisch
 fließend	fließend
-gestehen	gestehen
 der Hang	der Hang
 gleichwohl	gleichwohl
 die Fülle	die Fülle
@@ -4428,24 +3546,19 @@ kostenlos	kostenlos
 das Gebirge	das Gebirge
 die Flüssigkeit	die Flüssigkeit
 lauter	lauter
-löschen	löschen
 das Gras	das Gras
 männlich	männlich
 das Geschäftsjahr	das Geschäftsjahr
 herkömmlich	herkömmlich
 der Ingenieur	der Ingenieur
-konfrontieren	konfrontieren
 hinzu	hinzu
 das Fräulein	das Fräulein
 der Kongress	der Kongress
 der Friedhof	der Friedhof
 die Front	die Front
-infizieren	infizieren
 medial	medial
-strahlen	strahlen
 oftmals	oftmals
 die Orientierung	die Orientierung
-schweben	schweben
 der Stolz	der Stolz
 samt	samt
 physisch	physisch
@@ -4467,102 +3580,59 @@ die Rücksicht	die Rücksicht
 der Personenkraftwagen, der PKW	der Personenkraftwagen, der PKW
 die Vorsicht	die Vorsicht
 sogleich	sogleich
-veranlassen	veranlassen
-telefonieren	telefonieren
 die Vertretung	die Vertretung
 die Wahrscheinlichkeit	die Wahrscheinlichkeit
-verpassen	verpassen
-vorangehen	vorangehen
 voraus	voraus
 vermeintlich	vermeintlich
 die Vereinigung	die Vereinigung
-unterschreiben	unterschreiben
 das Universum	das Universum
-überstehen	überstehen
-trösten	trösten
 treu	treu
 die Unterhaltung	die Unterhaltung
-weitermachen	weitermachen
-weitergeben	weitergeben
 vorig	vorig
 die Unterlagen	die Unterlagen
 die Wange	die Wange
 wach	wach
-verhaften	verhaften
-verkehren	verkehren
 die Volkshochschule	die Volkshochschule
 ärztlich	ärztlich
-anrichten	anrichten
-anstehen	anstehen
-ausdehnen	ausdehnen
 die Anordnung	die Anordnung
-abschneiden	abschneiden
 die Abstimmung	die Abstimmung
-aufschreiben	aufschreiben
 die Ablehnung	die Ablehnung
 die Zeichnung	die Zeichnung
 die Zwiebel	die Zwiebel
 die Zunahme	die Zunahme
-aufrufen	aufrufen
 alternativ	alternativ
 der Aufsatz	der Aufsatz
-anordnen	anordnen
 die Anregung	die Anregung
-aufspringen	aufspringen
-abheben	abheben
 aufwendig	aufwendig
-zustehen	zustehen
 das Werkzeug	das Werkzeug
-zulegen	zulegen
 allenfalls	allenfalls
-agieren	agieren
 der Betrachter	der Betrachter
 der Backofen	der Backofen
-beabsichtigen	beabsichtigen
 der Befund	der Befund
 besorgt	besorgt
 das Betriebssystem	das Betriebssystem
-ausnutzen	ausnutzen
 der Beobachter	der Beobachter
-ausweichen	ausweichen
 der Bildschirm	der Bildschirm
 die Brille	die Brille
-bergen	bergen
 die Datenverarbeitung	die Datenverarbeitung
-sich begeben	sich begeben
 die Bemühung	die Bemühung
 die Bakterie	die Bakterie
-beeinträchtigen	beeinträchtigen
-beseitigen	beseitigen
-begehen	begehen
-ausprobieren	ausprobieren
 die Blüte	die Blüte
 der Berater	der Berater
 chronisch	chronisch
 bemerkenswert	bemerkenswert
-demonstrieren	demonstrieren
 emotional	emotional
 düster	düster
 das Ensemble	das Ensemble
 durcheinander	durcheinander
 dreizehn	dreizehn
-fressen	fressen
-charakterisieren	charakterisieren
-erwecken	erwecken
-einlassen	einlassen
 die Enttäuschung	die Enttäuschung
 gemütlich	gemütlich
 die Faust	die Faust
 die Eintragung	die Eintragung
-erschweren	erschweren
-flüchten	flüchten
-dokumentieren	dokumentieren
-erwachen	erwachen
-erschöpfen	erschöpfen
 das Festival	das Festival
 das Gemüse	das Gemüse
 die Galerie	die Galerie
-erforschen	erforschen
 effizient	effizient
 der Eigentümer	der Eigentümer
 das Lokal	das Lokal
@@ -4575,23 +3645,15 @@ der Jazz	der Jazz
 gewissermaßen	gewissermaßen
 die Höhle	die Höhle
 der Hass	der Hass
-gießen	gießen
 die Innenstadt	die Innenstadt
 der Konsument	der Konsument
 der Großvater	der Großvater
 landwirtschaftlich	landwirtschaftlich
-lauschen	lauschen
-locken	locken
-hervorgehen	hervorgehen
 hinüber	hinüber
-irren	irren
-gleichen	gleichen
 die Kohle	die Kohle
 die Genehmigung	die Genehmigung
 das Kloster	das Kloster
 die Grundschule	die Grundschule
-grüßen	grüßen
-loswerden	loswerden
 nass	nass
 der Maßstab	der Maßstab
 die Münze	die Münze
@@ -4599,12 +3661,9 @@ realistisch	realistisch
 pakistanisch	pakistanisch
 das Praktikum	das Praktikum
 der Stamm	der Stamm
-spiegeln	spiegeln
 die Sportart	die Sportart
 mobil	mobil
 schweizerisch	schweizerisch
-sicherstellen	sicherstellen
-stehlen	stehlen
 der Schuldner	der Schuldner
 motorisch	motorisch
 der Rückgang	der Rückgang
@@ -4616,7 +3675,6 @@ operativ	operativ
 der Sack	der Sack
 sachlich	sachlich
 die Materie	die Materie
-verlegen	verlegen
 überflüssig	überflüssig
 zueinander	zueinander
 die Überprüfung	die Überprüfung
@@ -4629,7 +3687,6 @@ die Vermutung	die Vermutung
 die Tasse	die Tasse
 der Teppich	der Teppich
 der Unsinn	der Unsinn
-überwachen	überwachen
 die Wirtschaftspolitik	die Wirtschaftspolitik
 voraussichtlich	voraussichtlich
 die Wäsche	die Wäsche
@@ -4638,37 +3695,25 @@ wovon	wovon
 verbindlich	verbindlich
 das Zeug	das Zeug
 die Werkstatt	die Werkstatt
-umwandeln	umwandeln
 der Teufel	der Teufel
-überziehen	überziehen
 die Anweisung	die Anweisung
 auffällig	auffällig
 zwischendurch	zwischendurch
 die Architektur	die Architektur
 das Antibiotikum	das Antibiotikum
-zusammenstellen	zusammenstellen
-abwenden	abwenden
-auswerten	auswerten
 der Ausgang	der Ausgang
-zurücklegen	zurücklegen
 der Ausflug	der Ausflug
 der Aufstieg	der Aufstieg
 das Atom	das Atom
 die Ausstattung	die Ausstattung
 anscheinend	anscheinend
 der Anzug	der Anzug
-aufbewahren	aufbewahren
 abschließend	abschließend
 der Bayer	der Bayer
-ansiedeln	ansiedeln
 der Zwang	der Zwang
-zusagen	zusagen
 zwangsläufig	zwangsläufig
 aufrecht	aufrecht
-aufschlagen	aufschlagen
-beschaffen	beschaffen
 die Biologie	die Biologie
-erhoffen	erhoffen
 erhältlich	erhältlich
 endlos	endlos
 die Besonderheit	die Besonderheit
@@ -4677,20 +3722,14 @@ der Dirigent	der Dirigent
 die Butter	die Butter
 die Breite	die Breite
 berufstätig	berufstätig
-beleben	beleben
 der Betracht	der Betracht
 die Erfindung	die Erfindung
-entfalten	entfalten
 die Bearbeitung	die Bearbeitung
-einsehen	einsehen
 die Differenzierung	die Differenzierung
 blond	blond
 drastisch	drastisch
-eilen	eilen
-erleiden	erleiden
 der Champion	der Champion
 der Ersatz	der Ersatz
-fixieren	fixieren
 gleichsam	gleichsam
 das Fieber	das Fieber
 der Geheimdienst	der Geheimdienst
@@ -4699,14 +3738,11 @@ fotografisch	fotografisch
 der Grenzwert	der Grenzwert
 das Gepäck	das Gepäck
 der Gesetzgeber	der Gesetzgeber
-freigeben	freigeben
 das Handwerk	das Handwerk
 fachlich	fachlich
 der Helfer	der Helfer
-hervorrufen	hervorrufen
 gleichmäßig	gleichmäßig
 die Feuerwehr	die Feuerwehr
-festnehmen	festnehmen
 die Gebühr	die Gebühr
 das Gerücht	das Gerücht
 der Generalsekretär	der Generalsekretär
@@ -4714,11 +3750,7 @@ die Gliederung	die Gliederung
 das Grab	das Grab
 die Fluggesellschaft	die Fluggesellschaft
 das Heft	das Heft
-hassen	hassen
-hinnehmen	hinnehmen
-klingeln	klingeln
 der Kompromiss	der Kompromiss
-lagern	lagern
 die Leidenschaft	die Leidenschaft
 die Leiche	die Leiche
 die Kartoffel	die Kartoffel
@@ -4732,12 +3764,10 @@ die Leistungsfähigkeit	die Leistungsfähigkeit
 die Liga	die Liga
 die Königin	die Königin
 der Jäger	der Jäger
-kommentieren	kommentieren
 identisch	identisch
 jegliche	jegliche
 die Kuh	die Kuh
 die Lieferung	die Lieferung
-seufzen	seufzen
 der Nachwuchs	der Nachwuchs
 die Party	die Party
 die Schwangerschaft	die Schwangerschaft
@@ -4748,13 +3778,9 @@ die Schauspielerin	die Schauspielerin
 der Planet	der Planet
 das Olympia	das Olympia
 die Skala	die Skala
-regnen	regnen
-rauschen	rauschen
 regelrecht	regelrecht
-plädieren	plädieren
 der Salon	der Salon
 illegal	illegal
-rutschen	rutschen
 der Käse	der Käse
 der Nacken	der Nacken
 die Intelligenz	die Intelligenz
@@ -4770,24 +3796,18 @@ tödlich	tödlich
 das Talent	das Talent
 das Spektrum	das Spektrum
 die Unterschrift	die Unterschrift
-unterstreichen	unterstreichen
 der Schweiß	der Schweiß
 unverändert	unverändert
 steuerlich	steuerlich
 die Problematik	die Problematik
 das Vergnügen	das Vergnügen
 der Ursprung	der Ursprung
-verfallen	verfallen
-strecken	strecken
-umarmen	umarmen
 das Tempo	das Tempo
 unwahrscheinlich	unwahrscheinlich
-spezialisieren	spezialisieren
 die Spalte	die Spalte
 das Verbrechen	das Verbrechen
 die Steckdose	die Steckdose
 spürbar	spürbar
-auflegen	auflegen
 die Zusammensetzung	die Zusammensetzung
 die Zerstörung	die Zerstörung
 die Abschreibung	die Abschreibung
@@ -4798,11 +3818,9 @@ der Zinssatz	der Zinssatz
 die Rezession	die Rezession
 der Vermieter	der Vermieter
 weitaus	weitaus
-verschärfen	verschärfen
 vertraglich	vertraglich
 sowjetisch	sowjetisch
 die Achse	die Achse
-zurückgeben	zurückgeben
 amtlich	amtlich
 anstelle	anstelle
 die Zulassung	die Zulassung
@@ -4811,36 +3829,26 @@ woran	woran
 die Verhaltensweise	die Verhaltensweise
 der Vormittag	der Vormittag
 die Verordnung	die Verordnung
-vernehmen	vernehmen
-vermindern	vermindern
 die Vernunft	die Vernunft
 blass	blass
 das Wohnzimmer	das Wohnzimmer
 die Autobahn	die Autobahn
 die Batterie	die Batterie
-brüllen	brüllen
 der Chor	der Chor
 das Design	das Design
 außergewöhnlich	außergewöhnlich
-durchziehen	durchziehen
 das Ehepaar	das Ehepaar
 das Chaos	das Chaos
 die Erholung	die Erholung
-erlassen	erlassen
 bedeutsam	bedeutsam
 die Chefin	die Chefin
 belgisch	belgisch
-aufreißen	aufreißen
 der Chip	der Chip
-auslegen	auslegen
-aufrichten	aufrichten
 der Durchschnitt	der Durchschnitt
 der Einbruch	der Einbruch
 der Dolmetscher	der Dolmetscher
-einlegen	einlegen
 der Eintritt	der Eintritt
 elementar	elementar
-fotografieren	fotografieren
 der Europäer	der Europäer
 die Germanistik	die Germanistik
 die Geduld	die Geduld
@@ -4853,15 +3861,12 @@ die Hypothese	die Hypothese
 gänzlich	gänzlich
 die Furcht	die Furcht
 flüchtig	flüchtig
-gestatten	gestatten
 der Handwerker	der Handwerker
 das Gutachten	das Gutachten
-hervorheben	hervorheben
 das Gremium	das Gremium
 das Glied	das Glied
 der Graf	der Graf
 der Italiener	der Italiener
-herausnehmen	herausnehmen
 der Islam	der Islam
 das Gewehr	das Gewehr
 das Getränk	das Getränk
@@ -4869,7 +3874,6 @@ naturwissenschaftlich	naturwissenschaftlich
 der Parkplatz	der Parkplatz
 die Konzeption	die Konzeption
 der Kommentar	der Kommentar
-lügen	lügen
 das Magazin	das Magazin
 nachträglich	nachträglich
 der Kasten	der Kasten
@@ -4884,7 +3888,6 @@ der Mieter	der Mieter
 kognitiv	kognitiv
 die Naturwissenschaft	die Naturwissenschaft
 langjährig	langjährig
-operieren	operieren
 die Kreativität	die Kreativität
 der Marktanteil	der Marktanteil
 das Ministerium	das Ministerium
@@ -4897,15 +3900,12 @@ das Präparat	das Präparat
 die Übersicht	die Übersicht
 therapeutisch	therapeutisch
 strikt	strikt
-strukturieren	strukturieren
 der Stellvertreter	der Stellvertreter
 das Ticket	das Ticket
 die Provinz	die Provinz
-sich schämen	sich schämen
 die Rahmenbedingung	die Rahmenbedingung
 quantitativ	quantitativ
 die Scheidung	die Scheidung
-servieren	servieren
 die Schönheit	die Schönheit
 die Partnerschaft	die Partnerschaft
 die Periode	die Periode
@@ -4915,16 +3915,8 @@ umsonst	umsonst
 die Subvention	die Subvention
 die Steigerung	die Steigerung
 die Säule	die Säule
-zielen	zielen
-vorbeugen	vorbeugen
-zutrauen	zutrauen
 die Vorlesung	die Vorlesung
-zurückweisen	zurückweisen
-verdoppeln	verdoppeln
-vereinfachen	vereinfachen
 die Uniform	die Uniform
-wehen	wehen
-vorlesen	vorlesen
 die Weiterbildung	die Weiterbildung
 willkommen	willkommen
 das Unrecht	das Unrecht
@@ -4933,69 +3925,47 @@ unglücklich	unglücklich
 vorzeitig	vorzeitig
 der Zucker	der Zucker
 zuverlässig	zuverlässig
-verwundern	verwundern
-verdrängen	verdrängen
 die Volkswirtschaft	die Volkswirtschaft
-zuführen	zuführen
-zerreißen	zerreißen
-unterdrücken	unterdrücken
 wodurch	wodurch
 der Block	der Block
 der Assistent	der Assistent
-anmerken	anmerken
 der Apfel	der Apfel
 bitter	bitter
 die Auswertung	die Auswertung
-ausnehmen	ausnehmen
 ästhetisch	ästhetisch
 das Abkommen	das Abkommen
 die Beschränkung	die Beschränkung
 der Absolvent	der Absolvent
-beten	beten
 beiseite	beiseite
 aneinander	aneinander
 die Abwehr	die Abwehr
 die Arbeitskraft	die Arbeitskraft
-abgrenzen	abgrenzen
-aufziehen	aufziehen
-ablenken	ablenken
-abschalten	abschalten
-abreißen	abreißen
 die Bar	die Bar
-sich benehmen	sich benehmen
 die Bekämpfung	die Bekämpfung
 die Bedrohung	die Bedrohung
 die Frequenz	die Frequenz
 der Fachbereich	der Fachbereich
 flüssig	flüssig
-bremsen	bremsen
 das Datum	das Datum
 daheim	daheim
-dulden	dulden
-sich erkundigen	sich erkundigen
 der Erzähler	der Erzähler
-einholen	einholen
 die Fassung	die Fassung
 der Flügel	der Flügel
-bohren	bohren
 die Fachleute	die Fachleute
 fällig	fällig
 der Fakt, das Fakt	der Fakt, das Fakt
 das Forum	das Forum
-braten	braten
 die Frucht	die Frucht
 die Erhaltung	die Erhaltung
 der Missbrauch	der Missbrauch
 das Metall	das Metall
 glänzend	glänzend
-durchgehen	durchgehen
 der Gipfel	der Gipfel
 einstig	einstig
 der Hörer	der Hörer
 interkulturell	interkulturell
 die Linse	die Linse
 die Jahreszeit	die Jahreszeit
-installieren	installieren
 ländlich	ländlich
 nachdenklich	nachdenklich
 folglich	folglich
@@ -5012,55 +3982,39 @@ die Jacke	die Jacke
 hochwertig	hochwertig
 die Motivation	die Motivation
 die Lampe	die Lampe
-loslassen	loslassen
 der Indianer	der Indianer
-konzipieren	konzipieren
 der Therapeut	der Therapeut
 seitens	seitens
 die Option	die Option
-repräsentieren	repräsentieren
 der Respekt	der Respekt
 die Rose	die Rose
-schreiten	schreiten
 der Rucksack	der Rucksack
 die Reichweite	die Reichweite
 der Sozialdemokrat	der Sozialdemokrat
 optimistisch	optimistisch
-täuschen	täuschen
 der Ordner	der Ordner
 die Tablette	die Tablette
 die Tageszeitung	die Tageszeitung
-protestieren	protestieren
 die Pistole	die Pistole
 die Reparatur	die Reparatur
 der Physiker	der Physiker
-spannen	spannen
 schräg	schräg
 schmutzig	schmutzig
-schimpfen	schimpfen
 der Sänger	der Sänger
 der Ozean	der Ozean
 die Verknüpfung	die Verknüpfung
-überfordern	überfordern
 der Abfall	der Abfall
 vergleichsweise	vergleichsweise
 der Zuwachs	der Zuwachs
-umstellen	umstellen
-wegnehmen	wegnehmen
-zurückgreifen	zurückgreifen
 die Währung	die Währung
 das Vorfeld	das Vorfeld
-angehören	angehören
 die Akte	die Akte
 der Umzug	der Umzug
 der Vorgänger	der Vorgänger
 absurd	absurd
 wofür	wofür
 unerwartet	unerwartet
-vorherrschen	vorherrschen
 der Weltmeister	der Weltmeister
-verfassen	verfassen
-vertiefen	vertiefen
 der Veranstalter	der Veranstalter
 die Wut	die Wut
 die Zuordnung	die Zuordnung
@@ -5078,19 +4032,13 @@ die Feier	die Feier
 die Beachtung	die Beachtung
 der Araber	der Araber
 das Diplom	das Diplom
-festsetzen	festsetzen
 der Ausgangspunkt	der Ausgangspunkt
-anvertrauen	anvertrauen
 die Fassade	die Fassade
 der Frühling	der Frühling
 der Ausweis	der Ausweis
 die Fakultät	die Fakultät
-aufräumen	aufräumen
 der Engel	der Engel
-antun	antun
-entgehen	entgehen
 die Ausrichtung	die Ausrichtung
-mahnen	mahnen
 der Koch	der Koch
 die Laune	die Laune
 die Kerze	die Kerze
@@ -5105,8 +4053,6 @@ das Gewebe	das Gewebe
 der Prinz	der Prinz
 die Kommune	die Kommune
 der Jurist	der Jurist
-inszenieren	inszenieren
-herausgeben	herausgeben
 niederländisch	niederländisch
 der Gruß	der Gruß
 das Niederländisch	das Niederländisch
@@ -5117,24 +4063,15 @@ großartig	großartig
 östlich	östlich
 das Riff	das Riff
 das Schwein	das Schwein
-verbrauchen	verbrauchen
 die Verbindlichkeit	die Verbindlichkeit
-schleichen	schleichen
 unerträglich	unerträglich
 solid	solid
 der Spruch	der Spruch
-trocknen	trocknen
 die Stellungnahme	die Stellungnahme
 die Relation	die Relation
 das Profil	das Profil
-reflektieren	reflektieren
 die Schlange	die Schlange
-segeln	segeln
-vernachlässigen	vernachlässigen
-unterstellen	unterstellen
-streben	streben
 die Selbstständigkeit	die Selbstständigkeit
-überholen	überholen
 technologisch	technologisch
 die Siedlung	die Siedlung
 der Strahl	der Strahl
@@ -5143,14 +4080,10 @@ radioaktiv	radioaktiv
 das Weib	das Weib
 das Volumen	das Volumen
 der Bestandteil	der Bestandteil
-vorbeigehen	vorbeigehen
-übertreiben	übertreiben
 letztlich	letztlich
 der Zuhörer	der Zuhörer
 das Vitamin	das Vitamin
-fangen	fangen
 der Zugriff	der Zugriff
 zweifellos	zweifellos
 die Ermittlung	die Ermittlung
 westdeutsch	westdeutsch
-vortragen	vortragen

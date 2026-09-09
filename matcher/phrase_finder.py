@@ -21,7 +21,15 @@ from pathlib import Path
 _DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 # Load German model
-nlp = spacy.load("de_core_news_sm")
+# The medium model, not the small one.  language-app — where this matcher
+# comes from — requires it and says so ("Real lemmatisation still requires
+# de_core_news_md or larger"); vendoring the code without the model left the
+# lemmatiser guessing.  Measured over the failures this project hand-patched,
+# `md` gets sixteen of twenty-one right where `sm` did not: `schreien` stays
+# `schreien` rather than becoming `schreie`, `gesamt` stays `gesamt` rather
+# than `samen`, and `erinnere` reaches `erinnern` so the reflexive pattern
+# can match at all.
+nlp = spacy.load("de_core_news_md")
 
 def load_verb_dictionary(file_path):
     """
@@ -53,6 +61,41 @@ _ARTICLES = {'der', 'die', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'einen', '
 
 verb_blueprint_map = load_verb_dictionary(_DATA_DIR / "final_result.txt")
 
+# Nouns reach the lookup below lemmatised and lower-cased, while the
+# dictionary spells them the way German writes them — `der Hut`, not
+# `der hut`.  Without a case-folded view the article retry can never hit,
+# and every noun in the corpus falls through to fuzzy matching instead,
+# which scores same-noun entries at 1.00 and so picks a gender arbitrarily.
+# Restricted to article forms because that is all the retry ever asks for,
+# and because folding the whole map would collide `Sie` with `sie`.
+_ARTICLE_FORMS = {key.casefold(): key for key in verb_blueprint_map
+                  if key.split(" ", 1)[0].lower() in ("der", "die", "das")}
+
+_GENDER_ARTICLE = {"Masc": "der", "Fem": "die", "Neut": "das"}
+
+
+def article_order(token):
+    """der/die/das for a noun, likeliest first.
+
+    Six nouns are listed under two genders and mean different things in
+    each — `die Steuer` is a tax and `das Steuer` a helm, `der Leiter` a
+    manager and `die Leiter` a ladder.  A fixed order picks the same one
+    every time and is therefore wrong about half of them.  The parser has
+    already read the gender off the noun and its determiner, so ask it
+    first; when it says nothing, fall back to the fixed order, which is all
+    the other 1,815 nouns ever need.
+    """
+    genders = list(token.morph.get("Gender"))
+    for child in token.children:
+        if child.dep_ == "det":
+            genders.extend(child.morph.get("Gender"))
+    likely = []
+    for gender in genders:
+        article = _GENDER_ARTICLE.get(gender)
+        if article and article not in likely:
+            likely.append(article)
+    return likely + [a for a in ("der", "die", "das") if a not in likely]
+
 def generate_trigrams(word):
     """
     Generate trigrams from a word.
@@ -67,6 +110,26 @@ def generate_trigrams(word):
         trigrams.add(padded_word[i:i+3])
     return trigrams
 
+def _base_words(dict_word):
+    """The word or words a dictionary key should be findable by.
+
+    An entry may name several spellings of one thing — `der Teil, das Teil`,
+    `gern, gerne`, `die Universität, die Uni` — and each has to be findable on
+    its own.  Indexing the key whole left the comma inside the base word, so
+    `Teil` scored 0.62 against `Teil,`, fell under the trustworthiness floor
+    and was thrown away: forty-three study-list entries could not be matched
+    by anything.  A key without a comma is unchanged, base word and all.
+    """
+    out = []
+    for part in dict_word.split(","):
+        words = part.split()
+        if not words:
+            continue
+        out.append(words[1] if len(words) > 1 and words[0].lower() in _ARTICLES
+                   else words[0])
+    return out or [dict_word]
+
+
 def _build_trigram_index(dictionary_map):
     """
     Build a trigram inverted index from the dictionary at load time.
@@ -78,17 +141,16 @@ def _build_trigram_index(dictionary_map):
     index = {}
     precomputed = {}
     for dict_word in dictionary_map:
-        words = dict_word.split()
-        if len(words) > 1:
-            base_word = words[1] if words[0].lower() in _ARTICLES else words[0]
-        else:
-            base_word = dict_word
-        tgs = frozenset(generate_trigrams(base_word.lower()))
-        precomputed[dict_word] = tgs
-        for tg in tgs:
-            if tg not in index:
-                index[tg] = []
-            index[tg].append(dict_word)
+        sets = []
+        for base_word in _base_words(dict_word):
+            tgs = frozenset(generate_trigrams(base_word.lower()))
+            sets.append(tgs)
+            for tg in tgs:
+                if tg not in index:
+                    index[tg] = []
+                if dict_word not in index[tg]:
+                    index[tg].append(dict_word)
+        precomputed[dict_word] = tuple(sets)
     return index, precomputed
 
 _trigram_index, _precomputed_trigrams = _build_trigram_index(verb_blueprint_map)
@@ -130,15 +192,18 @@ def find_best_match(target_word, threshold=0.6):
 
     for dict_word in candidates:
         # Use pre-computed trigrams instead of regenerating
-        dict_trigrams = _precomputed_trigrams[dict_word]
-        if not dict_trigrams:
-            continue
-        intersection = len(target_trigrams & dict_trigrams)
-        score = (2.0 * intersection) / (len(target_trigrams) + len(dict_trigrams))
+        # Best of the key's spellings, not a blend of them: `gern, gerne`
+        # should be a perfect match for `gern`, and pooling the two would
+        # dilute it below one.
+        for dict_trigrams in _precomputed_trigrams[dict_word]:
+            if not dict_trigrams:
+                continue
+            intersection = len(target_trigrams & dict_trigrams)
+            score = (2.0 * intersection) / (len(target_trigrams) + len(dict_trigrams))
 
-        if score > best_score:
-            best_score = score
-            best_match = dict_word
+            if score > best_score:
+                best_score = score
+                best_match = dict_word
 
     if best_score >= threshold:
         return best_match, best_score
@@ -231,10 +296,25 @@ def extract_german_logic(doc, overrides=None):
                                     consumed.add(great_grand.i)
                     components.append(f"{prep} {obj_in_prep}")
 
-            # Dictionary Lookup with Trigram Matching
-            # First try exact match
-            blueprint = verb_blueprint_map.get(full_verb)
+            # A verb used reflexively is looked up reflexively first.  The
+            # dictionary lists the two separately — `erinnern` is
+            # `jdn. (Akk) an etw. erinnern`, the thing you do *to* someone,
+            # while `sich erinnern` is `an jdn./etw. sich erinnern` — and
+            # asking for the bare lemma answered with the transitive entry
+            # every time.  "Sie interessiert sich für Musik" was credited to
+            # `jdn. (Akk) interessieren`, and "Ich erinnere mich" matched the
+            # transitive form so poorly (0.76) that the analyser threw it
+            # away, teaching nothing at all.  `components` already knows,
+            # since the constructed blueprint has needed it all along.
+            blueprint = None
             match_info = "exact"
+            if "sich" in components:
+                blueprint = verb_blueprint_map.get(f"sich {full_verb}")
+                if blueprint is not None:
+                    match_info = "exact (reflexive)"
+
+            if blueprint is None:
+                blueprint = verb_blueprint_map.get(full_verb)
 
             # If not found, try trigram similarity matching
             if blueprint is None:
@@ -265,19 +345,27 @@ def extract_german_logic(doc, overrides=None):
                     indices.append(child.i)
                     consumed.add(child.i)
 
-            # Dictionary Lookup with Trigram Matching for Nouns
-            # First try exact match (without article)
-            dictionary_entry = verb_blueprint_map.get(noun_lemma)
+            # A noun is looked up as a noun first.  The bare lemma is
+            # lower-cased, and German lower-cases its nouns straight onto
+            # verbs, adjectives and adverbs — `Leben`/`leben`, `Essen`/`essen`,
+            # `Weg`/`weg`, `Kosten`/`kosten`, `Arm`/`arm`.  Asking for the bare
+            # form first therefore answered with the wrong part of speech and
+            # stopped: "Das Essen war gut" matched `etw. (Akk) essen`, the verb
+            # *to eat*, and `das Essen` was never emitted by anything.  Eighty
+            # of the study list's nouns were unreachable for this reason.
+            dictionary_entry = None
             match_info = "exact"
+            for article in article_order(token):
+                key = _ARTICLE_FORMS.get(f"{article} {noun_lemma}".casefold())
+                if key is not None:
+                    dictionary_entry = verb_blueprint_map[key]
+                    match_info = "exact (with article)"
+                    break
 
-            # If not found, try with common articles
+            # No article form registered: the bare entry is then the right
+            # answer, and for most nouns the only one.
             if dictionary_entry is None:
-                for article in ['der', 'die', 'das']:
-                    article_form = f"{article} {noun_lemma}"
-                    if article_form in verb_blueprint_map:
-                        dictionary_entry = verb_blueprint_map[article_form]
-                        match_info = "exact (with article)"
-                        break
+                dictionary_entry = verb_blueprint_map.get(noun_lemma)
 
             # If still not found, try trigram similarity matching
             if dictionary_entry is None:
