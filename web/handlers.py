@@ -187,7 +187,12 @@ class Viewer:
         switch = self.switch(source, "/") + self.counting_switch(query, "/")
         picker = self._kind_picker(only, source)
 
-        planned = self._planned(source, only)
+        # The counting switch is a question the stored plan cannot answer: it
+        # was walked over the study list, and there is no stored plan for the
+        # wider count. Asking for one falls through to the live walk, which is
+        # slow and correct, rather than leaving the control on the page doing
+        # nothing.
+        planned = self._planned(source, only) if self.counting(query) else None
         if planned is not None:
             step, deck = planned
             readable, occurrences = step.readable, step.occurrences
@@ -267,6 +272,13 @@ class Viewer:
             deck = self._store.deck(label, step)
             # A step with nothing written against it is a step from before the
             # decks existed. Falling back beats an empty page.
+            if not deck:
+                return None
+            # Everything the reader has said about these sentences since the
+            # roadmap was built. Without this, "drop this sentence" and "fix
+            # its words" — rendered under every slide — would do nothing here
+            # until the next rebuild.
+            deck = self.app.apply_overrides(deck)
             return (step, deck) if deck else None
         return None
 

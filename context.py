@@ -78,7 +78,7 @@ class Application:
         something you set out to learn.
         """
         self.check_freshness()
-        sentences = self._apply_overrides(self.corpus_store.load(
+        sentences = self.apply_overrides(self.corpus_store.load(
             *(builds or self.corpus_store.builds()), teachable_only=teachable_only
         ))
         return self._narrow_to_list(sentences) if list_only else sentences
@@ -108,7 +108,15 @@ class Application:
             for s in sentences
         ]
 
-    def _apply_overrides(self, sentences: list) -> list:
+    def apply_overrides(self, sentences: list) -> list:
+        """What the reader has said about particular sentences, applied.
+
+        Public because the reading page needs it too: a deck stored with a
+        roadmap step predates every correction made since, and the two buttons
+        under each slide have to reach it somehow. Both are a query against
+        the overrides rather than anything to do with a corpus, so they can be
+        applied to stored sentences on the way out.
+        """
         hidden = self.overrides.hidden()
         corrected = self.overrides.corrected()
         if not hidden and not corrected:
