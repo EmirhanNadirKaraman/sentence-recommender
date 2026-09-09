@@ -20,7 +20,11 @@ from watchability import ENOUGH_LINES, watchability
 
 # Bump when scoring changes: the stored rows are only valid for
 # the code that wrote them.
-SCORE_VERSION = 2
+SCORE_VERSION = 3
+
+# How many next-best words to keep per video. The panel shows eight;
+# storing more would be paying to remember what nobody reads.
+NEXT_WORDS = 8
 from corpus.sentence import Sentence
 from db import Database
 from roadmap import (
@@ -755,7 +759,7 @@ class Viewer:
               "scores follow whatever you have marked known.</p>"
             + video.player(row["video"], 0)
             + self._scoreboard(row)
-            + self._to_follow(source, self._grouped(source)[row["video"]], row)
+            + self._to_follow(source, row)
             + f"<div class='pager'>{prev}{nxt}</div>"
             + self._reel_keys(source, here, len(ranked))
         )
@@ -774,8 +778,7 @@ class Viewer:
             f"<span><strong>{value}</strong> {label}</span>" for label, value in cells
         ) + "</div>")
 
-    def _to_follow(self, source: str, sentences: list, row: dict,
-                   limit: int = 8) -> str:
+    def _to_follow(self, source: str, row: dict, limit: int = 8) -> str:
         """The words that would make the most of *this* video readable.
 
         Not the roadmap's next step, which answers a different question —
@@ -789,12 +792,7 @@ class Viewer:
         both, and crediting either one would promise a gain that learning it
         does not deliver.
         """
-        known = self.known
-        gain: Counter = Counter()
-        for sentence in sentences:
-            missing = sentence.units - known
-            if len(missing) == 1:
-                gain[next(iter(missing))] += 1
+        gain = Counter({Unit(kind, key): n for kind, key, n in row.get("next", [])})
         if not gain:
             return ("<p class='note'>Nothing here is one word away — every "
                     "sentence you cannot read needs two or more.</p>")
@@ -818,7 +816,8 @@ class Viewer:
         return (f"<h2>Learn next to follow this one</h2>"
                 f"<p class='note'>{len(gain):,} words here are a single step "
                 f"away. <strong>{escape(best[0].key)}</strong> buys the most: "
-                f"{best[1]} sentences, taking you from {at:.0%} to "
+                f"{best[1]} sentence{'' if best[1] == 1 else 's'}, "
+                f"taking you from {at:.0%} to "
                 f"{(at + best[1] / total):.0%}.</p>"
                 f"<div class='ledger'>{entries}</div>")
 
@@ -888,23 +887,36 @@ class Viewer:
         return rows
 
     def _score_video(self, video_id: str, sentences: list, known, goals) -> dict:
-        """One video against one known set."""
+        """One video against one known set.
+
+        The next-best words fall out of the same pass: a sentence with one
+        unknown is both what makes the video teachable and the evidence for
+        which word to learn. Counting them and discarding which ones they
+        were is what forced the reel to load the whole corpus again to
+        rebuild an answer it had already computed.
+        """
         readable = teachable = 0
         unblocks: set = set()
+        gain: Counter = Counter()
         for sentence in sentences:
             missing = sentence.units - known
             if not missing:
                 readable += 1
             elif len(missing) == 1:
                 teachable += 1
-                unblocks |= missing & goals
+                unit = next(iter(missing))
+                gain[unit] += 1
+                if unit in goals:
+                    unblocks.add(unit)
         comprehension = readable / len(sentences)
         minutes = self._minutes().get(video_id)
         return {"video": video_id, "title": self._titles().get(video_id, ""),
                 "lines": len(sentences), "minutes": minutes,
                 "comprehension": comprehension, "i+1": teachable,
                 "teaches": len(unblocks),
-                "watch": watchability(comprehension, minutes, len(sentences))}
+                "watch": watchability(comprehension, minutes, len(sentences)),
+                # Enough to show, not the whole tail: the panel lists eight.
+                "next": [(u.kind, u.key, n) for u, n in gain.most_common(NEXT_WORDS)]}
 
     def _videos_with(self, source: str) -> dict:
         """Unit -> the videos that say it.

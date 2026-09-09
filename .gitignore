@@ -4,6 +4,10 @@ __pycache__/
 .venv/
 data/state.sqlite3
 
+# Imported once, kept, and read by nothing. Moved out of the working
+# database because it was half the bytes of every cold read.
+data/tatoeba.sqlite3
+
 # WAL sidecars — they come and go with the database, which is already ignored
 data/state.sqlite3-shm
 data/state.sqlite3-wal

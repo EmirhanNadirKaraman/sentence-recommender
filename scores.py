@@ -14,6 +14,7 @@ wrong about being fresh in only one direction, and it is the safe one.
 """
 from __future__ import annotations
 
+import json
 from datetime import datetime
 from pathlib import Path
 
@@ -30,6 +31,10 @@ CREATE TABLE IF NOT EXISTS video_score (
     teachable     INTEGER NOT NULL,
     teaches       INTEGER NOT NULL,
     watch         REAL NOT NULL,
+    -- The next-best words, as JSON: [[kind, key, sentences unlocked], ...].
+    -- A list rather than its own table because it is read whole, written
+    -- whole, and never queried across videos.
+    next_words    TEXT NOT NULL DEFAULT '[]',
     PRIMARY KEY (source, video_id)
 );
 CREATE TABLE IF NOT EXISTS video_score_meta (
@@ -40,7 +45,7 @@ CREATE TABLE IF NOT EXISTS video_score_meta (
 """
 
 COLUMNS = ("video_id", "title", "lines", "minutes", "comprehension",
-           "teachable", "teaches", "watch")
+           "teachable", "teaches", "watch", "next_words")
 
 
 class ScoreStore:
@@ -50,6 +55,20 @@ class ScoreStore:
         self._path = path
         with open_state(path) as conn:
             conn.executescript(SCHEMA)
+            self._add_missing_columns(conn)
+
+    @staticmethod
+    def _add_missing_columns(conn) -> None:
+        """Bring a table written by an older version up to the current shape.
+
+        `CREATE TABLE IF NOT EXISTS` does nothing to a table that already
+        exists, so a new column has to be added by hand or the first write
+        fails against a database that predates it.
+        """
+        have = {row[1] for row in conn.execute("PRAGMA table_info(video_score)")}
+        if "next_words" not in have:
+            conn.execute("ALTER TABLE video_score ADD COLUMN"
+                         " next_words TEXT NOT NULL DEFAULT '[]'")
 
     def load(self, source: str, stamp: str) -> list[dict] | None:
         """The stored scores, or None if they no longer describe you."""
@@ -68,10 +87,8 @@ class ScoreStore:
             conn.execute("DELETE FROM video_score WHERE source = ?", (source,))
             conn.executemany(
                 f"INSERT INTO video_score (source, {', '.join(COLUMNS)})"
-                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                [(source, r["video"], r["title"], r["lines"], r["minutes"],
-                  r["comprehension"], r["i+1"], r["teaches"], r["watch"])
-                 for r in rows])
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                [self._as_record(source, r) for r in rows])
             self._restamp(conn, source, stamp)
 
     def update(self, source: str, stamp: str, rows: list[dict]) -> None:
@@ -83,16 +100,14 @@ class ScoreStore:
         with open_state(self._path) as conn:
             conn.executemany(
                 f"INSERT INTO video_score (source, {', '.join(COLUMNS)})"
-                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
                 " ON CONFLICT(source, video_id) DO UPDATE SET"
                 " title = excluded.title, lines = excluded.lines,"
                 " minutes = excluded.minutes,"
                 " comprehension = excluded.comprehension,"
                 " teachable = excluded.teachable, teaches = excluded.teaches,"
-                " watch = excluded.watch",
-                [(source, r["video"], r["title"], r["lines"], r["minutes"],
-                  r["comprehension"], r["i+1"], r["teaches"], r["watch"])
-                 for r in rows])
+                " watch = excluded.watch, next_words = excluded.next_words",
+                [self._as_record(source, r) for r in rows])
             self._restamp(conn, source, stamp)
 
     def restamp(self, source: str, stamp: str) -> None:
@@ -114,8 +129,16 @@ class ScoreStore:
             (source, stamp, datetime.now().isoformat(timespec="seconds")))
 
     @staticmethod
+    def _as_record(source: str, row: dict) -> tuple:
+        return (source, row["video"], row["title"], row["lines"], row["minutes"],
+                row["comprehension"], row["i+1"], row["teaches"], row["watch"],
+                json.dumps(row.get("next", []), ensure_ascii=False))
+
+    @staticmethod
     def _as_row(record) -> dict:
-        video, title, lines, minutes, comprehension, teachable, teaches, watch = record
+        (video, title, lines, minutes, comprehension, teachable, teaches,
+         watch, next_words) = record
         return {"video": video, "title": title, "lines": lines,
                 "minutes": minutes, "comprehension": comprehension,
-                "i+1": teachable, "teaches": teaches, "watch": watch}
+                "i+1": teachable, "teaches": teaches, "watch": watch,
+                "next": [tuple(x) for x in json.loads(next_words)]}
