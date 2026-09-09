@@ -172,3 +172,11 @@ is the right trade.
 - **LLM subtitle correction is unexercised.** Parsing, chunking, fallback and
   the content check are tested against a stub over real HTTP; whether a model
   returns good German is unknown.
+- **A stored deck can outlive the sentences in it.** Each step of a roadmap
+  carries the sentences that teach it, named by text alone. Extending a
+  roadmap replays the stored steps and leaves their decks untouched, which is
+  right while a corpus only ever grows — but it moves the stamp to the corpus
+  that produced the extension, so decks written against the older one now sit
+  under a stamp vouching for them. Harmless until a rebuild *drops* sentences;
+  at that point the reading page can offer a sentence the corpus no longer
+  holds, and "Fix its words" on it will not find it.

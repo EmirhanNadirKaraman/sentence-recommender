@@ -25,24 +25,40 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from corpus.quality import well_formed
 from roadmap.builder import RoadmapBuilder
 from roadmap.index import CorpusIndex
 from roadmap.store import ALL, RoadmapStore, current_stamp
 
 GOALS = ":goals"
 LIST = ":list"
+GOOD = ":good"
 
 
-def read_label(label: str) -> tuple[tuple[str, ...], bool, bool]:
-    """A roadmap's name, back into the settings that made it."""
+def read_label(label: str) -> tuple[tuple[str, ...], bool, bool, bool]:
+    """A roadmap's name, back into the settings that made it.
+
+    Read off the end in the reverse of the order they are appended, so
+    `subtitle:good:list:goals` comes back as the `subtitle` corpus, counting
+    only the study list, aiming at it, and taught from well-formed sentences
+    alone.
+
+    `:good` used to be left on the front half, which made the corpus name
+    `subtitle:good` — a build that does not exist. Every refresh therefore
+    loaded nothing for the quality roadmap and skipped it, silently, which is
+    the one roadmap the reading page actually serves.
+    """
     goals = label.endswith(GOALS)
     if goals:
         label = label[: -len(GOALS)]
     list_only = label.endswith(LIST)
     if list_only:
         label = label[: -len(LIST)]
+    quality_only = label.endswith(GOOD)
+    if quality_only:
+        label = label[: -len(GOOD)]
     builds = () if label == ALL else tuple(label.split("+"))
-    return builds, list_only, goals
+    return builds, list_only, goals, quality_only
 
 
 class RoadmapRefresher:
@@ -76,10 +92,16 @@ class RoadmapRefresher:
         priority = self._app.priority()
 
         for label in sorted(self._store.sources()):
-            builds, list_only, goals = read_label(label)
+            builds, list_only, goals, quality_only = read_label(label)
             if touching and touching not in (builds or (ALL,)):
                 continue
             sentences = self._app.corpus(*builds, list_only=list_only)
+            # Before the count below, not after: the length recorded with the
+            # roadmap is the denominator the reading page shows progress
+            # against, and it has to be the slice the walk was actually
+            # given.
+            if quality_only:
+                sentences = [s for s in sentences if well_formed(s.text)]
             if not sentences:
                 continue
             index = CorpusIndex(sentences, known)

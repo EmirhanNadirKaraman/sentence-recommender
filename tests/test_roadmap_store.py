@@ -19,6 +19,7 @@ from roadmap.examples import DECK_SIZE, rank
 from roadmap.index import CorpusIndex
 from roadmap.known_set import KnownSet
 from roadmap.priority import UnitPriority
+from roadmap.refresh import read_label
 from roadmap.builder import RoadmapBuilder
 from roadmap.step import RoadmapStep
 from roadmap.store import RoadmapStore
@@ -218,6 +219,33 @@ class WalkDeckTest(unittest.TestCase):
         # Readable first, then by how much else is new in them.
         self.assertEqual(step_.examples[0].text, "Das Haus ist gross.")
         self.assertEqual(step_.examples[2].text, "Das Haus, der Baum, das Auto.")
+
+
+class LabelTest(unittest.TestCase):
+    """A roadmap's name is the only record of the settings that built it.
+
+    Reading it back wrongly fails silently: the corpus name comes out as a
+    build that does not exist, `corpus()` returns nothing, and the refresh
+    skips that roadmap without saying so.
+    """
+
+    def test_every_flag_is_read_back_off_the_end(self) -> None:
+        self.assertEqual(read_label("subtitle:good:list:goals"),
+                         (("subtitle",), True, True, True))
+
+    def test_the_quality_flag_does_not_end_up_in_the_corpus_name(self) -> None:
+        """`subtitle:good` is not a build, and asking for it loads nothing."""
+        builds, _, _, quality_only = read_label("subtitle:good:list:goals")
+        self.assertEqual(builds, ("subtitle",))
+        self.assertTrue(quality_only)
+
+    def test_a_plain_roadmap_carries_no_flags(self) -> None:
+        self.assertEqual(read_label("subtitle"), (("subtitle",), False, False, False))
+        self.assertEqual(read_label("all"), ((), False, False, False))
+
+    def test_the_flags_are_independent(self) -> None:
+        self.assertEqual(read_label("subtitle:list"), (("subtitle",), True, False, False))
+        self.assertEqual(read_label("subtitle:good"), (("subtitle",), False, False, True))
 
 
 if __name__ == "__main__":
