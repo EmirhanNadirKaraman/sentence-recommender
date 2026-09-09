@@ -8,6 +8,8 @@ make it untrustworthy.
 from __future__ import annotations
 
 import sqlite3
+
+from state import open_state
 from datetime import datetime
 from pathlib import Path
 
@@ -27,11 +29,11 @@ class KnownStore:
     def __init__(self, path: Path) -> None:
         self._path = path
         path.parent.mkdir(parents=True, exist_ok=True)
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             conn.executescript(SCHEMA)
 
     def add(self, unit: Unit) -> None:
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             conn.execute(
                 "INSERT OR IGNORE INTO known_units (kind, key, marked)"
                 " VALUES (?, ?, ?)",
@@ -39,15 +41,15 @@ class KnownStore:
             )
 
     def remove(self, unit: Unit) -> None:
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             conn.execute("DELETE FROM known_units WHERE kind = ? AND key = ?",
                          (unit.kind, unit.key))
 
     def units(self) -> set[Unit]:
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             return {Unit(kind, key) for kind, key in
                     conn.execute("SELECT kind, key FROM known_units")}
 
     def __len__(self) -> int:
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             return conn.execute("SELECT count(*) FROM known_units").fetchone()[0]

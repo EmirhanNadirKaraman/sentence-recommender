@@ -3,3 +3,10 @@ __pycache__/
 *.pyc
 .venv/
 data/state.sqlite3
+
+# WAL sidecars — they come and go with the database, which is already ignored
+data/state.sqlite3-shm
+data/state.sqlite3-wal
+
+# Derived: rebuilt whenever the vocabulary files or the analyser change
+data/resolved.json

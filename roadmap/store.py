@@ -7,6 +7,8 @@ Keeping both lets the viewer switch between them without a rebuild.
 from __future__ import annotations
 
 import sqlite3
+
+from state import open_state
 from pathlib import Path
 
 from corpus.sentence import Sentence
@@ -41,7 +43,7 @@ class RoadmapStore:
     def __init__(self, path: Path) -> None:
         self._path = path
         path.parent.mkdir(parents=True, exist_ok=True)
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             self._ensure_schema(conn)
 
     @staticmethod
@@ -59,13 +61,25 @@ class RoadmapStore:
 
     def sources(self) -> dict[str, int]:
         """Which roadmaps exist, and how long each is."""
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             return dict(conn.execute(
                 "SELECT source, count(*) FROM roadmap GROUP BY source"))
 
+    def append(self, steps: list[RoadmapStep], source: str = ALL) -> None:
+        """Add steps to a roadmap, leaving the ones already there alone.
+
+        What a reader has already been shown keeps its position: a new video
+        should lengthen the plan, not renumber it underneath them.
+        """
+        self._insert(steps, source)
+
     def save(self, steps: list[RoadmapStep], source: str = ALL) -> None:
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             conn.execute("DELETE FROM roadmap WHERE source = ?", (source,))
+        self._insert(steps, source)
+
+    def _insert(self, steps: list[RoadmapStep], source: str) -> None:
+        with open_state(self._path) as conn:
             conn.executemany(
                 f"INSERT INTO roadmap (source, {COLUMNS})"
                 " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -79,7 +93,7 @@ class RoadmapStore:
         query = (f"SELECT {COLUMNS} FROM roadmap WHERE source = ? ORDER BY position")
         if limit:
             query += f" LIMIT {int(limit)}"
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             rows = conn.execute(query, (source,)).fetchall()
         return [
             RoadmapStep(
@@ -100,7 +114,7 @@ class RoadmapStore:
         ]
 
     def count(self, source: str = ALL) -> int:
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             return conn.execute(
                 "SELECT count(*) FROM roadmap WHERE source = ?", (source,)
             ).fetchone()[0]

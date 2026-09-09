@@ -12,6 +12,8 @@ vanished on the next rebuild would be worse than no correction at all.
 from __future__ import annotations
 
 import sqlite3
+
+from state import open_state
 from datetime import datetime
 from pathlib import Path
 
@@ -42,23 +44,23 @@ class SentenceOverrides:
     def __init__(self, path: Path) -> None:
         self._path = path
         path.parent.mkdir(parents=True, exist_ok=True)
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             conn.executescript(SCHEMA)
 
     # --- hiding ----------------------------------------------------------
 
     def hide(self, text: str) -> None:
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             conn.execute(
                 "INSERT OR IGNORE INTO hidden_sentences (text, hidden)"
                 " VALUES (?, ?)", (text, datetime.now().isoformat()))
 
     def show(self, text: str) -> None:
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             conn.execute("DELETE FROM hidden_sentences WHERE text = ?", (text,))
 
     def hidden(self) -> set[str]:
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             return {row[0] for row in
                     conn.execute("SELECT text FROM hidden_sentences")}
 
@@ -70,7 +72,7 @@ class SentenceOverrides:
         An empty set is meaningful and kept: it says this sentence teaches
         nothing, which is different from having no opinion about it.
         """
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             conn.execute("DELETE FROM sentence_units_override WHERE text = ?",
                          (text,))
             conn.executemany(
@@ -84,14 +86,14 @@ class SentenceOverrides:
 
     def clear_units(self, text: str) -> None:
         """Forget the correction and go back to what the analyser said."""
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             conn.execute("DELETE FROM sentence_units_override WHERE text = ?",
                          (text,))
             conn.execute("DELETE FROM corrected_sentences WHERE text = ?", (text,))
 
     def corrected(self) -> dict[str, dict[Unit, str]]:
         """Every correction, as sentence text -> units and their surfaces."""
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             corrected = {row[0]: {} for row in
                          conn.execute("SELECT text FROM corrected_sentences")}
             for text, kind, key, surface in conn.execute(
@@ -101,7 +103,7 @@ class SentenceOverrides:
         return corrected
 
     def counts(self) -> tuple[int, int]:
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             hidden = conn.execute(
                 "SELECT count(*) FROM hidden_sentences").fetchone()[0]
             fixed = conn.execute(

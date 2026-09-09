@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import sqlite3
+
+from state import open_state
 from datetime import datetime
 from pathlib import Path
 
@@ -28,13 +30,13 @@ class CardStore:
     def __init__(self, path: Path) -> None:
         self._path = path
         path.parent.mkdir(parents=True, exist_ok=True)
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             conn.executescript(SCHEMA)
 
     def add(self, card: Card) -> None:
         """Insert a card, leaving an existing one for the same unit alone —
         rebuilding a roadmap must not reset review history."""
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             conn.execute(
                 "INSERT OR IGNORE INTO cards"
                 " (kind, key, due_date, interval_days, ease_factor, repetitions,"
@@ -42,8 +44,25 @@ class CardStore:
                 self._to_row(card),
             )
 
+    def add_many(self, cards: list[Card]) -> None:
+        """Insert many cards in one transaction.
+
+        `add` commits per call, which is a connection and an fsync each. A
+        roadmap mints one card per step, so at eighteen thousand steps that
+        alone outweighs the walk that produced them.
+        """
+        if not cards:
+            return
+        with open_state(self._path) as conn:
+            conn.executemany(
+                "INSERT OR IGNORE INTO cards"
+                " (kind, key, due_date, interval_days, ease_factor, repetitions,"
+                "  last_review) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                [self._to_row(card) for card in cards],
+            )
+
     def save(self, card: Card) -> None:
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             conn.execute(
                 "UPDATE cards SET due_date = ?, interval_days = ?, ease_factor = ?,"
                 " repetitions = ?, last_review = ? WHERE kind = ? AND key = ?",
@@ -56,12 +75,12 @@ class CardStore:
     def remove(self, unit: Unit) -> None:
         """Drop a unit's card — used when it is marked known, since there is
         nothing left to test."""
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             conn.execute("DELETE FROM cards WHERE kind = ? AND key = ?",
                          (unit.kind, unit.key))
 
     def due(self, now: datetime, limit: int = 20) -> list[Card]:
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             rows = conn.execute(
                 "SELECT card_id, kind, key, due_date, interval_days, ease_factor,"
                 " repetitions, last_review FROM cards WHERE due_date <= ?"
@@ -72,7 +91,7 @@ class CardStore:
 
     def counts(self, now: datetime) -> tuple[int, int]:
         """(total cards, cards due now)."""
-        with sqlite3.connect(self._path) as conn:
+        with open_state(self._path) as conn:
             total = conn.execute("SELECT count(*) FROM cards").fetchone()[0]
             due = conn.execute(
                 "SELECT count(*) FROM cards WHERE due_date <= ?", (now.isoformat(),)

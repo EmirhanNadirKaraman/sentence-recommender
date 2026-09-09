@@ -7,6 +7,7 @@ just to read cached cards.
 """
 from __future__ import annotations
 
+import sys
 from functools import cached_property
 
 from config import Settings
@@ -15,6 +16,7 @@ from db import Database, PatternRepository, WordRepository
 from roadmap import ExampleIndex, KnownSet, UnitPriority
 from srs import CardStore, PromptBuilder, SM2Scheduler
 from vocab import GoalList, KnownStore, Unit, WordListLoader
+from vocab.cache import ResolvedCache
 
 
 class Application:
@@ -27,7 +29,8 @@ class Application:
 
     @cached_property
     def corpus_store(self) -> CorpusStore:
-        return CorpusStore(self.settings.state_path)
+        return CorpusStore(self.settings.state_path,
+                           self.settings.ignored_builds)
 
     @cached_property
     def card_store(self) -> CardStore:
@@ -74,10 +77,26 @@ class Application:
         holding a word you do not know, because that word was never
         something you set out to learn.
         """
+        self.check_freshness()
         sentences = self._apply_overrides(self.corpus_store.load(
             *(builds or self.corpus_store.builds()), teachable_only=teachable_only
         ))
         return self._narrow_to_list(sentences) if list_only else sentences
+
+    @cached_property
+    def check_freshness(self):
+        """Say so when a cached build was made by rules that have changed.
+
+        Checked once per process and reported once. The alternative is what
+        this project did for a whole session: a page that looked right, was
+        not, and had nothing to indicate which.
+        """
+        for build, made_with in self.corpus_store.stale().items():
+            source = build.split(":")[0]
+            print(f"warning: corpus '{build}' was analysed by different rules "
+                  f"(fingerprint {made_with}) — rebuild it with "
+                  f"`python main.py build-corpus {source}`", file=sys.stderr)
+        return lambda: None
 
     def _narrow_to_list(self, sentences: list) -> list:
         goals = frozenset(self.goal_units)
@@ -118,6 +137,10 @@ class Application:
     # --- vocabulary ------------------------------------------------------
 
     @cached_property
+    def resolved(self) -> ResolvedCache:
+        return ResolvedCache(self.settings.state_path)
+
+    @cached_property
     def marked_known(self) -> KnownStore:
         return KnownStore(self.settings.state_path)
 
@@ -130,13 +153,29 @@ class Application:
         match its own occurrences; `word_table` is consulted as well because it
         covers surface forms spaCy lemmatises differently in isolation.
         """
+        return KnownSet(
+            {Unit.lemma(lemma) for lemma in self._known_lemmas()}
+            | self.marked_known.units()
+        )
+
+    def _known_lemmas(self) -> list[str]:
+        """The vocabulary files as lemmas, from cache when it still applies.
+
+        Only the files are cached. What the reader has marked known while
+        reading is added on top every time, because that changes constantly
+        and costs nothing to read.
+        """
+        files = [self.settings.known_words, self.settings.function_words]
+        cached = self.resolved.get("known", files)
+        if cached is not None:
+            return cached
         surfaces = self._surfaces()
         with Database(self.settings.database) as db:
             lemmas = WordRepository(db, self.settings.language).lemmas_for_surfaces(surfaces)
         lemmas |= self.analyzer.lemmas(surfaces)
-        return KnownSet(
-            {Unit.lemma(lemma) for lemma in lemmas} | self.marked_known.units()
-        )
+        out = sorted(lemmas)
+        self.resolved.put("known", files, out)
+        return out
 
     @cached_property
     def goal_units(self) -> tuple[Unit, ...]:
@@ -147,25 +186,21 @@ class Application:
         covering both words and patterns is what lets the two be compared at
         all — see `roadmap.priority`.
         """
+        # Both files stamp the cache: a correction added to `goal_lemmas`
+        # has to invalidate it, or editing the file would appear to do
+        # nothing at all.
+        files = [self.settings.goal_words, self.settings.goal_lemmas]
+        cached = self.resolved.get("goals", files)
+        if cached is not None:
+            return tuple(Unit(kind, key) for kind, key in cached)
         with Database(self.settings.database) as db:
             patterns = PatternRepository(db, self.settings.language).canonicals()
-        return GoalList(self.settings.goal_words).units(
-            patterns, self.analyzer.lemmatise_each
+        units = GoalList(self.settings.goal_words).units(
+            patterns, self.analyzer.lemmatise_each,
+            GoalList.corrections(self.settings.goal_lemmas),
         )
-
-    @cached_property
-    def producible(self) -> frozenset[Unit]:
-        """Every unit the analyser has ever emitted, across all cached builds.
-
-        A goal outside this set cannot be taught by any material, because
-        nothing the parser produces will ever equal it. `phrase_table` holds
-        a few of these — "sich (Akk) sich setzen" says *sich* twice, and
-        "der, die, das" is not a pattern the matcher emits — and because the
-        study list ranks them near the top they would head the blocked list
-        forever, sending you looking for video of a word that cannot be
-        matched.
-        """
-        return frozenset(u for s in self.corpus() for u in s.units)
+        self.resolved.put("goals", files, [[u.kind, u.key] for u in units])
+        return units
 
     def priority(self) -> UnitPriority:
         return UnitPriority.build(self.goal_units)

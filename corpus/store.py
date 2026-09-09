@@ -1,19 +1,23 @@
 """Local cache of the assembled corpus.
 
-Analysing the corpus costs real time — a minute for the subtitles, far longer
-for Tatoeba's 276k pairs — and none of it depends on anything the user does
-between runs.  So the result is cached here and rebuilt only when asked.
+Analysing the corpus costs real time — a couple of minutes for the subtitles
+— and none of it depends on anything the user does between runs.  So the
+result is cached here and rebuilt only when asked.
 
 This is the only file in the project that writes anything, and it writes to a
 local SQLite file.  The Postgres database is never touched.
 
 Rows are keyed by `build`, a label naming both the source and how it was
-assembled (`tatoeba`, `subtitle:merge`, `subtitle:llm`).  Without that key a
-Tatoeba run would overwrite a subtitle run.
+assembled (`subtitle`, `subtitle:llm`).  Without that key one way of
+assembling the subtitles would overwrite another.
 """
 from __future__ import annotations
 
 import sqlite3
+from datetime import datetime
+
+from fingerprint import analyser_fingerprint
+from state import open_state
 from pathlib import Path
 
 from alignment.timing import Timing
@@ -42,14 +46,24 @@ CREATE TABLE IF NOT EXISTS sentence_units (
     surface     TEXT
 );
 CREATE INDEX IF NOT EXISTS ix_units_sentence ON sentence_units(sentence_id);
+CREATE TABLE IF NOT EXISTS build_meta (
+    build       TEXT PRIMARY KEY,
+    fingerprint TEXT NOT NULL,
+    made_at     TEXT NOT NULL
+);
 """
 
 
 class CorpusStore:
     """Reads and writes cached corpus builds."""
 
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: Path, ignored: frozenset[str] = frozenset()) -> None:
         self._path = path
+        # Builds that exist in the file but are not studied from. Hidden here
+        # rather than deleted, so the rows survive and one setting brings them
+        # back. `load` still returns them if asked by name — only the "every
+        # build" default and the source picker skip them.
+        self._ignored = ignored
         path.parent.mkdir(parents=True, exist_ok=True)
         with self._connect() as conn:
             conn.executescript(SCHEMA)
@@ -71,7 +85,7 @@ class CorpusStore:
                 conn.execute(f"ALTER TABLE sentences ADD COLUMN {column} {kind}")
 
     def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self._path)
+        conn = open_state(self._path)
         conn.execute("PRAGMA foreign_keys = ON")
         return conn
 
@@ -83,9 +97,9 @@ class CorpusStore:
         """
         where = " WHERE teachable = 1" if teachable_only else ""
         with self._connect() as conn:
-            return dict(conn.execute(
-                f"SELECT build, count(*) FROM sentences{where} GROUP BY build"
-            ))
+            rows = conn.execute(
+                f"SELECT build, count(*) FROM sentences{where} GROUP BY build")
+            return {b: n for b, n in rows if b not in self._ignored}
 
     def video_ids(self, build: str) -> set[str]:
         """Which videos a build already holds, so the rest can be skipped."""
@@ -97,6 +111,7 @@ class CorpusStore:
     def append(self, sentences: list[Sentence], build: str) -> None:
         """Add to a build without disturbing what is already in it."""
         self._write(sentences, build)
+        self._stamp(build)
 
     def save(self, sentences: list[Sentence], build: str) -> None:
         with self._connect() as conn:
@@ -105,6 +120,29 @@ class CorpusStore:
                 " (SELECT id FROM sentences WHERE build = ?)", (build,))
             conn.execute("DELETE FROM sentences WHERE build = ?", (build,))
         self._write(sentences, build)
+        self._stamp(build)
+
+    def stale(self) -> dict[str, str]:
+        """Builds whose fingerprint no longer matches the rules in force.
+
+        Name -> the fingerprint it was made with. A build with no record at
+        all counts as stale: it predates this bookkeeping, so nothing can
+        vouch for it.
+        """
+        now = analyser_fingerprint()
+        with self._connect() as conn:
+            stored = dict(conn.execute("SELECT build, fingerprint FROM build_meta"))
+        return {b: stored.get(b, "unrecorded") for b in self.builds()
+                if stored.get(b) != now}
+
+    def _stamp(self, build: str) -> None:
+        with self._connect() as conn:
+            conn.execute(
+                "INSERT INTO build_meta (build, fingerprint, made_at)"
+                " VALUES (?, ?, ?) ON CONFLICT(build) DO UPDATE SET"
+                " fingerprint = excluded.fingerprint, made_at = excluded.made_at",
+                (build, analyser_fingerprint(), datetime.now().isoformat(timespec="seconds")),
+            )
 
     def _write(self, sentences: list[Sentence], build: str) -> None:
         with self._connect() as conn:
@@ -150,7 +188,7 @@ class CorpusStore:
             # Two million unit rows across forty thousand distinct units, so
             # nearly every one is a repeat. Interning them turns most of those
             # rows into a dict lookup instead of an object, which is most of
-            # the cost of loading the Tatoeba corpus.
+            # the cost of loading a large corpus.
             seen: dict[tuple[str, str], Unit] = {}
             for sid, kind, key, surface in conn.execute(
                 "SELECT su.sentence_id, su.kind, su.key, su.surface FROM sentence_units su"
