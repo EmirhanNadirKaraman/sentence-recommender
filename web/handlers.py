@@ -13,7 +13,13 @@ from datetime import datetime
 from html import escape
 from urllib.parse import quote
 
-from commands.difficulty import ENOUGH_LINES, watchability
+from fingerprint import analyser_fingerprint
+from scores import ScoreStore
+from watchability import ENOUGH_LINES, watchability
+
+# Bump when scoring changes: the stored rows are only valid for
+# the code that wrote them.
+SCORE_VERSION = 2
 from corpus.sentence import Sentence
 from db import Database
 from roadmap import (
@@ -67,6 +73,12 @@ class Viewer:
         # reader knows, so it survives marking a word known — the scores are
         # recomputed each load, the grouping is not.
         self._videos: dict[str, dict] = {}
+        # Scored rankings, in memory for this request and on disk between
+        # runs. `mark_known` drops the memory copy; the stored one is stamped,
+        # so it invalidates itself.
+        self._ranked: dict[str, list[dict]] = {}
+        self._unit_videos: dict[str, dict] = {}
+        self._scores = ScoreStore(app.settings.state_path)
         self._durations: dict[str, float] | None = None
         self._video_titles: dict[str, str] | None = None
 
@@ -462,6 +474,12 @@ class Viewer:
             for scope in self._scopes.values():
                 if unit not in scope.index.known:
                     scope.index.learn(unit)
+            # Last, and the order is the whole point: `_rescore` reads the
+            # known set, and reading it before `learn` scored every video
+            # against a vocabulary that did not yet contain the word just
+            # marked. It did the work and wrote back the numbers it started
+            # with.
+            self._rescore(unit)
         return f"{back}?src={quote(source)}" if source else back
 
     # --- the rest ---------------------------------------------------------
@@ -734,6 +752,7 @@ class Viewer:
               "scores follow whatever you have marked known.</p>"
             + video.player(row["video"], 0)
             + self._scoreboard(row)
+            + self._to_follow(source, self._grouped(source)[row["video"]], row)
             + f"<div class='pager'>{prev}{nxt}</div>"
             + self._reel_keys(source, here, len(ranked))
         )
@@ -751,6 +770,54 @@ class Viewer:
         return ("<div class='switch'>" + "".join(
             f"<span><strong>{value}</strong> {label}</span>" for label, value in cells
         ) + "</div>")
+
+    def _to_follow(self, source: str, sentences: list, row: dict,
+                   limit: int = 8) -> str:
+        """The words that would make the most of *this* video readable.
+
+        Not the roadmap's next step, which answers a different question —
+        what is most useful across everything you are learning. Here the
+        question is narrower and more satisfying: this video, right now, what
+        single word buys the most of it.
+
+        A word's gain is the number of sentences in which it is the *only*
+        unknown, because those are the ones that become readable the moment
+        you learn it. Sentences with two unknowns are not counted: they need
+        both, and crediting either one would promise a gain that learning it
+        does not deliver.
+        """
+        known = self.known
+        gain: Counter = Counter()
+        for sentence in sentences:
+            missing = sentence.units - known
+            if len(missing) == 1:
+                gain[next(iter(missing))] += 1
+        if not gain:
+            return ("<p class='note'>Nothing here is one word away — every "
+                    "sentence you cannot read needs two or more.</p>")
+
+        goals = frozenset(self.app.goal_units)
+        total = max(row["lines"], 1)
+        at = row["comprehension"]
+        entries = "".join(
+            "<div class='entry'><div class='rail'>+{:.0%}<span class='kind'>{}</span>"
+            "</div><div class='body'><div class='unit'>"
+            "<a href='/unit/{}/{}?src={}'>{}</a></div>"
+            "<p class='also'>{} more sentence{} in this video readable"
+            "{}</p></div></div>".format(
+                count / total,
+                "on your list" if unit in goals else "extra",
+                unit.kind, quote(unit.key, safe=""), quote(source),
+                escape(unit.key), count, "" if count == 1 else "s",
+                f" — {at:.0%} to {(at + count / total):.0%}" if count else "")
+            for unit, count in gain.most_common(limit))
+        best = gain.most_common(1)[0]
+        return (f"<h2>Learn next to follow this one</h2>"
+                f"<p class='note'>{len(gain):,} words here are a single step "
+                f"away. <strong>{escape(best[0].key)}</strong> buys the most: "
+                f"{best[1]} sentences, taking you from {at:.0%} to "
+                f"{(at + best[1] / total):.0%}.</p>"
+                f"<div class='ledger'>{entries}</div>")
 
     @staticmethod
     def _reel_keys(source: str, here: int, total: int) -> str:
@@ -776,33 +843,104 @@ class Viewer:
         `floor` is what the reel refuses to offer; the catalogue lists
         everything and lets the score speak, since a thin video is not
         hidden, it simply sinks.
+
+        Every video is scored and stored; `floor` filters on the way out.
+        Storing the filtered list instead would let whichever page asked
+        first decide what the other one sees — the catalogue would show the
+        reel's 713 rather than its own 893.
+
+        Read from the database when the stamp still matches, so a restart
+        costs nothing. When it does not, everything is scored once and
+        stored; marking a word takes the cheaper path in `mark_known`.
         """
-        known = self.known
-        goals = frozenset(self.app.goal_units)
-        out = []
-        for video_id, sentences in self._grouped(source).items():
-            if len(sentences) < floor:
-                continue
-            readable = teachable = 0
-            unblocks: set = set()
-            for sentence in sentences:
-                missing = sentence.units - known
-                if not missing:
-                    readable += 1
-                elif len(missing) == 1:
-                    teachable += 1
-                    unblocks |= missing & goals
-            comprehension = readable / len(sentences)
-            minutes = self._minutes().get(video_id)
-            out.append({
-                "video": video_id, "title": self._titles().get(video_id, ""),
+        rows = self._ranked.get(source)
+        if rows is None:
+            stamp = self._score_stamp()
+            rows = self._scores.load(source, stamp)
+            if rows is None:
+                known, goals = self.known, frozenset(self.app.goal_units)
+                rows = sorted(
+                    (self._score_video(v, s, known, goals)
+                     for v, s in self._grouped(source).items()),
+                    key=lambda r: -r["watch"])
+                self._scores.save(source, stamp, rows)
+            self._ranked[source] = rows
+        return [r for r in rows if r["lines"] >= floor]
+
+    def _score_video(self, video_id: str, sentences: list, known, goals) -> dict:
+        """One video against one known set."""
+        readable = teachable = 0
+        unblocks: set = set()
+        for sentence in sentences:
+            missing = sentence.units - known
+            if not missing:
+                readable += 1
+            elif len(missing) == 1:
+                teachable += 1
+                unblocks |= missing & goals
+        comprehension = readable / len(sentences)
+        minutes = self._minutes().get(video_id)
+        return {"video": video_id, "title": self._titles().get(video_id, ""),
                 "lines": len(sentences), "minutes": minutes,
                 "comprehension": comprehension, "i+1": teachable,
                 "teaches": len(unblocks),
-                "watch": watchability(comprehension, minutes, len(sentences)),
-            })
-        out.sort(key=lambda r: -r["watch"])
-        return out
+                "watch": watchability(comprehension, minutes, len(sentences))}
+
+    def _videos_with(self, source: str) -> dict:
+        """Unit -> the videos that say it.
+
+        The index that makes marking a word cheap: a word you have just
+        learned cannot change the score of a video that never says it.
+        """
+        if source not in self._unit_videos:
+            index: dict = defaultdict(set)
+            for video_id, sentences in self._grouped(source).items():
+                for sentence in sentences:
+                    for unit in sentence.units:
+                        index[unit].add(video_id)
+            self._unit_videos[source] = index
+        return self._unit_videos[source]
+
+    def _rescore(self, unit: Unit) -> None:
+        """Update only the videos that say `unit`.
+
+        Rescoring everything took sixty-eight seconds, which is not a price
+        worth paying for one word — and it is mostly wasted, since a video
+        that never says the word scores exactly as it did. The stamp still
+        guards correctness: if this ever misses a video, the fingerprint
+        stops matching and the next read rebuilds the lot.
+        """
+        known, goals = self.known, frozenset(self.app.goal_units)
+        stamp = self._score_stamp()
+        for source, rows in list(self._ranked.items()):
+            touched = self._videos_with(source).get(unit, set())
+            if not touched:
+                self._scores.restamp(source, stamp)
+                continue
+            # Every video, not the filtered view. `_ranked` once held only
+            # what cleared the reel's floor, so an update could write rows
+            # for videos the list had never heard of — and memory and disk
+            # then disagreed about which videos exist.
+            grouped = self._grouped(source)
+            fresh = {v: self._score_video(v, grouped[v], known, goals)
+                     for v in touched if v in grouped}
+            rows = sorted((fresh.get(r["video"], r) for r in rows),
+                          key=lambda r: -r["watch"])
+            self._ranked[source] = rows
+            self._scores.update(source, stamp, list(fresh.values()))
+
+    def _score_stamp(self) -> str:
+        """What the stored scores were computed against.
+
+        The analyser, because a rebuilt corpus says different things; the
+        known-set version, which the database bumps itself whenever a word is
+        marked; and `SCORE_VERSION`, because the scoring code is an input
+        too. Leaving that out already served stale rows once: a change to
+        which videos get scored left nine hundred rows that said seven
+        hundred, under a stamp that still matched.
+        """
+        return (f"{analyser_fingerprint()}|{SCORE_VERSION}"
+                f"|{self.app.marked_known.version()}")
 
     def _grouped(self, source: str) -> dict[str, list]:
         """Sentences by video. Cached: it does not depend on what you know."""

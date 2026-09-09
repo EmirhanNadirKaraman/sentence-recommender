@@ -19,44 +19,8 @@ from collections import defaultdict
 
 from db import Database
 
-# What a video should be to watch without touching anything. Long enough to
-# settle into, short enough to finish on a run; the corpus median is 11.1
-# minutes, so this is where the material already is.
-IDEAL_MINUTES = 10
-SHORT_MINUTES = 0.06          # cost per minute under
-LONG_MINUTES = 0.03           # cost per minute over — a long video is only
-                              # a commitment, a short one is an interruption
-
-# Comprehension for watching, not studying. Below this you are decoding
-# rather than listening; at the very top there is nothing left to pick up.
-COMFORTABLE = 0.95
-
-# A video of five captioned lines scores wonderfully on comprehension for the
-# same reason an empty page does. Below this it is not easy, it is empty.
-ENOUGH_LINES = 40
-
-
-def watchability(comprehension: float, minutes: float | None,
-                 lines: int = ENOUGH_LINES) -> float:
-    """How well this plays with your hands full.
-
-    Three bands multiplied. Comprehension decides whether you can follow it
-    while running — below comfortable it drops off sharply, because a video
-    you cannot follow is not a harder video, it is a different activity.
-    Length is a gentler preference either side of ten minutes. And a video of
-    five captioned lines scores wonderfully for the same reason an empty page
-    does, so it is damped by how much is actually in it.
-    """
-    follow = min(comprehension / COMFORTABLE, 1.0)
-    follow *= follow                      # squared: half-understood is far
-                                          # worse than half as good
-    if minutes is None:
-        length = 0.7
-    elif minutes < IDEAL_MINUTES:
-        length = max(0.0, 1 - (IDEAL_MINUTES - minutes) * SHORT_MINUTES)
-    else:
-        length = max(0.0, 1 - (minutes - IDEAL_MINUTES) * LONG_MINUTES)
-    return round(follow * length * min(lines / ENOUGH_LINES, 1.0), 4)
+from watchability import (COMFORTABLE, ENOUGH_LINES, IDEAL_MINUTES,
+                          LONG_MINUTES, SHORT_MINUTES, watchability)
 
 
 class DifficultyCommand:
