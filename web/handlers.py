@@ -11,6 +11,7 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import datetime
 from html import escape
+from threading import Lock
 from urllib.parse import quote
 
 from fingerprint import analyser_fingerprint
@@ -78,6 +79,8 @@ class Viewer:
         # so it invalidates itself.
         self._ranked: dict[str, list[dict]] = {}
         self._unit_videos: dict[str, dict] = {}
+        # One scoring pass at a time; the rest wait and find it done.
+        self._scoring = Lock()
         self._scores = ScoreStore(app.settings.state_path)
         self._durations: dict[str, float] | None = None
         self._video_titles: dict[str, str] | None = None
@@ -844,6 +847,11 @@ class Viewer:
         everything and lets the score speak, since a thin video is not
         hidden, it simply sinks.
 
+        Serialised, because the server answers requests on threads and this
+        is expensive exactly when the cache is empty. Two page loads on a
+        cold start would each load the corpus and score every video — a
+        gigabyte and a minute apiece, twice, to produce the same rows.
+
         Every video is scored and stored; `floor` filters on the way out.
         Storing the filtered list instead would let whichever page asked
         first decide what the other one sees — the catalogue would show the
@@ -855,17 +863,29 @@ class Viewer:
         """
         rows = self._ranked.get(source)
         if rows is None:
-            stamp = self._score_stamp()
-            rows = self._scores.load(source, stamp)
-            if rows is None:
-                known, goals = self.known, frozenset(self.app.goal_units)
-                rows = sorted(
-                    (self._score_video(v, s, known, goals)
-                     for v, s in self._grouped(source).items()),
-                    key=lambda r: -r["watch"])
-                self._scores.save(source, stamp, rows)
-            self._ranked[source] = rows
+            with self._scoring:
+                # Checked again inside the lock: by the time a waiting
+                # request gets in, the one it was waiting for has usually
+                # already done the work, and repeating it is the whole thing
+                # the lock exists to prevent.
+                rows = self._ranked.get(source)
+                if rows is None:
+                    rows = self._compute(source)
+                    self._ranked[source] = rows
         return [r for r in rows if r["lines"] >= floor]
+
+    def _compute(self, source: str) -> list[dict]:
+        """Stored scores if they still describe you, otherwise scored afresh."""
+        stamp = self._score_stamp()
+        rows = self._scores.load(source, stamp)
+        if rows is not None:
+            return rows
+        known, goals = self.known, frozenset(self.app.goal_units)
+        rows = sorted((self._score_video(v, s, known, goals)
+                       for v, s in self._grouped(source).items()),
+                      key=lambda r: -r["watch"])
+        self._scores.save(source, stamp, rows)
+        return rows
 
     def _score_video(self, video_id: str, sentences: list, known, goals) -> dict:
         """One video against one known set."""
