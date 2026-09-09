@@ -17,6 +17,7 @@ goal is i+1, and falls back to ordinary steps only to unblock the next one.
 """
 from __future__ import annotations
 
+from corpus.quality import score as quality, variety
 from corpus.sentence import Sentence
 from roadmap.index import CorpusIndex
 from roadmap.priority import UnitPriority
@@ -46,14 +47,29 @@ class RoadmapBuilder:
     def goals(self) -> frozenset[Unit]:
         return self._goals
 
-    def build(self, max_steps: int | None = None) -> list[RoadmapStep]:
+    def build(self, max_steps: int | None = None, first_position: int = 1,
+              on_progress=None, every: int = 500) -> list[RoadmapStep]:
+        """The walk, from wherever the index currently stands.
+
+        `first_position` numbers the steps for a walk that continues an
+        existing roadmap rather than starting one, so the returned steps can
+        be appended to it without renumbering what the reader has already
+        worked through.
+
+        `on_progress(steps, readable)` is called every `every` steps. A walk
+        over a large corpus runs for minutes with nothing to show for itself,
+        which makes a slow one indistinguishable from a stuck one; this is
+        the only way to tell from outside that it is still moving.
+        """
         steps: list[RoadmapStep] = []
         while max_steps is None or len(steps) < max_steps:
-            step = self._next_step(len(steps) + 1)
+            step = self._next_step(first_position + len(steps))
             if step is None:
                 break
             steps.append(step)
             self._index.learn(step.unit)
+            if on_progress and len(steps) % every == 0:
+                on_progress(len(steps), self._index.readable)
         return steps
 
     def peek(self, position: int = 1, exclude: frozenset = frozenset(),
@@ -71,20 +87,22 @@ class RoadmapBuilder:
 
     def _next_step(self, position: int, exclude: frozenset = frozenset(),
                    kinds: frozenset = frozenset()) -> RoadmapStep | None:
-        candidates = {
-            unit: positions
-            for unit, positions in self._index.candidates().items()
-            if unit not in exclude and (not kinds or unit.kind in kinds)
-        }
-        if not candidates:
+        # One pass, keeping the best rather than materialising every score:
+        # the frontier runs to thousands of units and this is the innermost
+        # loop of the whole walk. `key` still breaks ties reproducibly, and
+        # `>` keeps the first of equals exactly as `max` did.
+        best: tuple[Unit, set[int], int, float] | None = None
+        for unit, positions in self._index.candidates().items():
+            if not positions or unit in exclude:
+                continue
+            if kinds and unit.kind not in kinds:
+                continue
+            gain, score = self._score(unit, positions)
+            if best is None or (score, unit.key) > (best[3], best[0].key):
+                best = (unit, positions, gain, score)
+        if best is None:
             return None
-        unit, sentences, gain, score = max(
-            (
-                (unit, positions, *self._score(unit, positions))
-                for unit, positions in candidates.items()
-            ),
-            key=lambda row: (row[3], row[0].key),   # key breaks ties reproducibly
-        )
+        unit, sentences, gain, score = best
         return RoadmapStep(
             position=position,
             unit=unit,
@@ -94,16 +112,33 @@ class RoadmapBuilder:
             now_readable=len(sentences),
         )
 
-    def _score(self, unit: Unit, positions: list[int]) -> tuple[int, float]:
+    def _score(self, unit: Unit, positions: set[int]) -> tuple[int, float]:
         gain = len(positions) + self._index.unlocks(unit)
         score = gain + self._weight * self._priority.of(unit)
         if unit in self._goals:
             score += GOAL_BONUS
         return gain, score
 
-    def _example(self, positions: list[int]) -> Sentence:
-        """The simplest sentence teaching this unit — fewest units wins."""
-        return min(
+    def _example(self, positions: set[int]) -> Sentence:
+        """The best sentence teaching this unit.
+
+        It used to take the fewest units and then the shortest text, which
+        under study-list counting is a tie on the first key and therefore
+        "the shortest sentence above the five-word floor" — seventy percent
+        of the roadmap came out at 5-7 words, much of it `Ja, gern.`
+
+        Ranked by `corpus.quality` instead. Measured over the whole walk,
+        seventy-six percent of steps had a better sentence already among
+        their candidates, a median of twelve of them, so this changes what is
+        shown without touching what is learned: the candidates are the same,
+        so coverage cannot move.
+
+        Ties break on word variety, then on the text itself. Not on length:
+        that was the first attempt, and it quietly rebuilt the bias the score
+        exists to remove — half the roadmap landed on the shortest length the
+        score still called perfect.
+        """
+        return max(
             (self._index.sentence(p) for p in positions),
-            key=lambda s: (len(s.units), len(s.text)),
+            key=lambda s: (quality(s.text), variety(s.text), s.text),
         )

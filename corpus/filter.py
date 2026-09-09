@@ -12,8 +12,43 @@ from collections import Counter
 from corpus.sentence import Sentence
 from vocab.loader import normalize
 
-LEFTOVER_ARTIFACT = re.compile(r"[\[\]<>_♪*…]|--|\.\.\.")
+# `–` and `—` are the dash subtitles use to mark a change of speaker, so a
+# line carrying one is two people talking, not one sentence.
+LEFTOVER_ARTIFACT = re.compile(r"[\[\]<>_♪*…–—]|--|\.\.\.| - ")
+
+# Pictographs and emoji. Captions are full of them and they are not words.
+PICTOGRAPH = re.compile(
+    "[\U0001F000-\U0001FAFF\u2600-\u27BF\u2B00-\u2BFF\uFE0F\u2190-\u21FF]")
+
+# A capitalised word said three times over is a caption artefact — a chant, a
+# name repeated by two speakers — not a sentence: "Frau Brust Frau Frau Güll."
+# German capitalises every noun, so capitalisation alone says nothing; the
+# repetition is what gives it away.
+NAME_CHANT = 3
 ALPHANUMERIC = re.compile(r"\W+", re.UNICODE)
+
+# Letters German is written with. Anything else — Thai, Cyrillic, Greek, CJK,
+# Arabic — is another language's script, not a German sentence.
+LATIN = re.compile(r"[A-Za-zÄÖÜäöüß]")
+LETTER = re.compile(r"[^\W\d_]", re.UNICODE)
+FOREIGN_SCRIPT = 0.2
+
+# Words that are English and are not also German. Deliberately excludes the
+# lookalikes — `war`, `hat`, `will`, `man`, `all`, `in`, `so`, `die` — which
+# would otherwise convict ordinary German sentences.
+ENGLISH = frozenset("""
+the and is are you your this that with have has not but they would could
+about from just there what for my his her she he of on to it at be by or if
+were been their don't it's i'm we're going know like think really because
+""".split())
+
+# Enough German to say the sentence is German even with English in it.
+GERMAN = frozenset("""
+der die das und ist sind ich nicht ein eine einen zu mit auf für dass aber
+sich es den dem wir sie du war haben hat wird werden kann auch noch schon
+wenn weil oder als wie so nur mal ja nein sehr mehr immer dann doch hier
+jetzt was mir mich dir dich ihm ihr uns euch von im am zum zur
+""".split())
 
 
 class SentenceFilter:
@@ -67,7 +102,58 @@ class SentenceFilter:
             return "length"
         if self._fingerprint(text) in self._seen:
             return "duplicate"
+        if self._not_german(text, words):
+            return "not german"
+        if PICTOGRAPH.search(text):
+            return "pictograph"
+        if self._repeats(words):
+            return "repeats itself"
         return None
+
+    @staticmethod
+    def _repeats(words: list[str]) -> bool:
+        """Whether the line is one thing said twice.
+
+        Subtitles repeat: the same caption arrives from two cues, or a
+        speaker echoes themselves — "Ich warte. Ich warte." Half the words
+        are then teaching nothing, and the sentence is chosen *because* it is
+        short. Two tests: the line is two identical halves, or one word
+        carries it by being said three times over.
+        """
+        plain = [ALPHANUMERIC.sub("", w.lower()) for w in words]
+        plain = [w for w in plain if w]
+        if not plain:
+            return True
+        half = len(plain) // 2
+        if half and plain[:half] == plain[half:half * 2]:
+            return True
+        return max(Counter(plain).values()) >= NAME_CHANT
+
+    @staticmethod
+    def _not_german(text: str, words: list[str]) -> bool:
+        """Whether this is a German sentence at all.
+
+        Subtitles carry whatever was on screen, and some of it is not German:
+        an English song lyric, a line of Thai. Analysed as German they yield
+        junk units, and one of them was chosen as the sentence teaching step
+        nine of the roadmap — "If I stand to be on my own…", offered as an
+        example of `jdm. (Dat) stehen`.
+
+        Two tests, both deliberately blunt. A fifth of the letters outside
+        the Latin alphabet means another script. Otherwise the sentence is
+        weighed: English marker words against German ones, and English has to
+        both appear at least twice and outnumber the German, so a German
+        sentence with a loanword or a brand name in it survives.
+        """
+        letters = LETTER.findall(text)
+        if letters:
+            foreign = sum(1 for c in letters if not LATIN.match(c))
+            if foreign / len(letters) > FOREIGN_SCRIPT:
+                return True
+        plain = [ALPHANUMERIC.sub("", w.lower()) for w in words]
+        english = sum(1 for w in plain if w in ENGLISH)
+        german = sum(1 for w in plain if w in GERMAN)
+        return english >= 2 and english > german
 
     @staticmethod
     def _fingerprint(text: str) -> str:
