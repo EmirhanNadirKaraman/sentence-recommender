@@ -1,9 +1,17 @@
 """What each page shows.
 
-The viewer answers "what is i+1 *right now*" from a live index rather than
-from a stored roadmap, so marking a word known takes effect on the next page
-load. The stored roadmap remains the planned curriculum for the CLI; this is
-the reader's moving position in it.
+The reading page is served from the stored roadmap when there is one whose
+stamp still holds: the step, the deck of sentences that teach it, and the
+video each came from were all decided during the walk, and reading them back
+costs a query instead of a corpus.
+
+Everything that depends on what the reader knows *now* is still worked out
+now — what else in a sentence is new, which words are already marked. Only
+the choice of which sentences to offer is settled in advance.
+
+Without a usable stored plan the page falls back to walking a live index,
+which is the same answer computed the slow way. Every other page still works
+that way.
 """
 from __future__ import annotations
 
@@ -30,16 +38,14 @@ from db import Database
 from roadmap import (
     CorpusIndex, ExampleIndex, KnownSet, RoadmapBuilder, UnitPriority,
 )
-from roadmap.store import ALL, RoadmapStore
+from roadmap.examples import DECK_SIZE
+from roadmap.step import RoadmapStep
+from roadmap.store import ALL, RoadmapStore, current_stamp
 from vocab.entry import LEMMA, PATTERN, Unit
 from web import watch as video
 from web.render import layout, sentence
 
 PAGE_SIZE = 40
-
-# How many alternative i+1 sentences to carry for one unit. Enough to find a
-# readable one, few enough that the page stays small.
-DECK_SIZE = 24
 
 # Ceiling on the exhaustive walk behind the blocked list, so a large corpus
 # cannot hang the page.
@@ -177,19 +183,16 @@ class Viewer:
 
     def next_up(self, query: dict) -> str:
         source = self.source(query)
-        scope = self.scope(source, self.counting(query))
         only = query.get("only") or ""
-        skip = set(self._passed)
-        if only == "word":
-            # Patterns are grammar, not vocabulary. Some days you want one and
-            # not the other, so they can be stepped over without being learned.
-            skip |= {u for u in scope.index.known_units_of_kind(PATTERN)}
-        step = scope.builder.peek(
-            exclude=frozenset(skip),
-            kinds=frozenset({LEMMA}) if only == "word" else frozenset(),
-        )
         switch = self.switch(source, "/") + self.counting_switch(query, "/")
         picker = self._kind_picker(only, source)
+
+        planned = self._planned(source, only)
+        if planned is not None:
+            step, deck = planned
+            readable, occurrences = step.readable, step.occurrences
+        else:
+            step, deck, readable, occurrences = self._walked(query, source, only)
 
         if step is None:
             body = (switch + picker + "<h1>Nothing left that is i+1</h1>"
@@ -198,8 +201,8 @@ class Viewer:
                     "<a href='/review'>review what you have</a>.</p>")
             return layout("i+1", body, "/", source)
 
-        unit, surface = step.unit, step.sentence.surface_of(step.unit)
-        occurrences = scope.examples.count(unit)
+        unit = step.unit
+        watchable = self._has_video(deck)
         # A pattern step is the confusing case: every word reads fine and only
         # the grammar is new, so say that rather than claiming a hidden word.
         if unit.is_pattern:
@@ -211,34 +214,97 @@ class Viewer:
             kind = "a word"
         body = (
             switch + picker +
-            f"<h1>{scope.index.readable:,} sentences you can already read</h1>"
+            f"<h1>{readable:,} sentences you can already read</h1>"
             f"<p class='note'>{lede}</p>"
-            + self._stage(scope, unit)
-            + self._deck(scope, unit, source) +
+            + self._stage(deck)
+            + self._deck(deck, unit, source) +
             "<h2>The new thing</h2>"
             f"<p class='de'>{escape(unit.key)}</p>"
             f"<p class='en'>{kind}, appearing in {occurrences:,} sentence"
             f"{'s' if occurrences != 1 else ''} here and opening {step.gain} "
             f"more</p>"
-            + self._actions(unit, source, "/", watchable=self._has_video(scope, unit))
+            + self._actions(unit, source, "/", watchable=watchable)
             + ("<h2>Transcript</h2><ol class='transcript' id='transcript'></ol>"
-               if self._has_video(scope, unit) else "")
+               if watchable else "")
             + video.merged_script()
         )
         return layout("i+1", body, "/", source)
 
-    def _stage(self, scope: Scope, unit: Unit) -> str:
+    def _planned(self, source: str,
+                 only: str) -> tuple[RoadmapStep, list[Sentence]] | None:
+        """The next step of the stored plan the reader has not taken, and its
+        deck.
+
+        This is the whole reason the page opens without a corpus: the walk
+        already decided which sentences teach this step, against what a reader
+        following the plan knows by the time they reach it. Reading them back
+        is one query.
+
+        What it costs is that the deck was chosen then and not now. A reader
+        who has marked words in a different order than the plan gets sentences
+        ranked for a slightly different vocabulary than their own — still
+        sentences that teach the step, just not necessarily the most readable
+        ones they could have been offered. What else is new in each is still
+        counted against what they know at this moment, so nothing on the page
+        claims to be i+1 when it is not.
+
+        None when there is nothing worth serving: no stored roadmap for this
+        corpus, one built before the decks existed, or one whose stamp no
+        longer matches the rules in force. The caller falls back to walking a
+        live index, which is the same answer computed the slow way.
+        """
+        label = self._stored_label(source, True)
+        if self._store.stamp(label) != current_stamp():
+            return None
+        known, skip = self.known, self._passed
+        for step in self._store.load(label):
+            if step.unit in known or step.unit in skip:
+                continue
+            # Patterns are grammar, not vocabulary. Some days you want one and
+            # not the other, so they can be stepped over without being learned.
+            if only == "word" and step.unit.is_pattern:
+                continue
+            deck = self._store.deck(label, step)
+            # A step with nothing written against it is a step from before the
+            # decks existed. Falling back beats an empty page.
+            return (step, deck) if deck else None
+        return None
+
+    def _walked(self, query: dict, source: str, only: str
+                ) -> tuple[RoadmapStep | None, list[Sentence], int, int]:
+        """The same answer, computed from a live index over the corpus.
+
+        The original behaviour, and still the honest one: it recomputes what
+        is i+1 against everything marked known this instant. It is kept as the
+        fallback, and it is what runs whenever the stored plan cannot be
+        trusted.
+        """
+        scope = self.scope(source, self.counting(query))
+        skip = set(self._passed)
+        if only == "word":
+            skip |= {u for u in scope.index.known_units_of_kind(PATTERN)}
+        step = scope.builder.peek(
+            exclude=frozenset(skip),
+            kinds=frozenset({LEMMA}) if only == "word" else frozenset(),
+        )
+        if step is None:
+            return None, [], scope.index.readable, 0
+        return (step,
+                scope.examples.examples(step.unit, self.known, limit=DECK_SIZE),
+                scope.index.readable,
+                scope.examples.count(step.unit))
+
+    @staticmethod
+    def _stage(deck: list[Sentence]) -> str:
         """The player, opened on the first sentence the deck will show.
 
         Rendered here rather than behind a link: the point of a subtitle
         corpus is that every sentence was said out loud, so hearing one should
         be the default rather than a second click. Returns nothing when no
-        example has a video — a generated sentence, or one whose timing was
-        never recorded.
+        sentence in the deck has a video — a generated one, or one whose
+        timing was never recorded.
         """
-        first = next((s for s in scope.examples.examples(unit, self.known,
-                                                         limit=DECK_SIZE)
-                      if s.timing), None)
+        first = next((s for s in deck if s.timing), None)
         return video.stage(first.timing.video_id, first.timing.start) if first else ""
 
     def transcript_json(self, video_id: str) -> dict:
@@ -254,8 +320,9 @@ class Viewer:
             for c in self._cues(video_id)
         ]}
 
-    def _deck(self, scope: Scope, unit: Unit, source: str = "") -> str:
-        """Every sentence using `unit`, readable ones first, stepped in place.
+    def _deck(self, options: list[Sentence], unit: Unit,
+              source: str = "") -> str:
+        """The sentences using `unit`, readable ones first, stepped in place.
 
         Strictly-i+1 sentences come first because the ranking sorts on how
         much *else* is unknown, and there are often only one or two of them —
@@ -266,7 +333,6 @@ class Viewer:
         leaving the page.
         """
         known = self.known
-        options = scope.examples.examples(unit, known, limit=DECK_SIZE)
         if not options:
             return ""
         slides = "".join(
@@ -452,9 +518,14 @@ class Viewer:
         )
 
     @staticmethod
-    def _has_video(scope: Scope, unit: Unit) -> bool:
-        return any(s.timing for s in scope.examples.examples(
-            unit, frozenset(), limit=40))
+    def _has_video(deck: list[Sentence]) -> bool:
+        """Whether the player and the transcript have anything to show.
+
+        Asked of the deck rather than of the corpus, so the answer matches
+        what is actually on the page: a "Watch it said" link beside sentences
+        that were never aligned to a video is an offer the page cannot keep.
+        """
+        return any(s.timing for s in deck)
 
     # --- marking ----------------------------------------------------------
 
