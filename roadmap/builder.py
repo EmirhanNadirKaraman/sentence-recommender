@@ -17,8 +17,11 @@ goal is i+1, and falls back to ordinary steps only to unblock the next one.
 """
 from __future__ import annotations
 
+from heapq import nsmallest
+
 from corpus.quality import score as quality, variety
 from corpus.sentence import Sentence
+from roadmap.examples import DECK_SIZE, rank
 from roadmap.index import CorpusIndex
 from roadmap.priority import UnitPriority
 from roadmap.step import RoadmapStep
@@ -110,7 +113,30 @@ class RoadmapBuilder:
             gain=gain,
             score=score,
             now_readable=len(sentences),
+            examples=self._deck(unit),
+            readable=self._index.readable,
+            occurrences=len(self._index.containing(unit)),
         )
+
+    def _deck(self, unit: Unit) -> tuple[Sentence, ...]:
+        """The sentences a reader will be stepped through for this unit.
+
+        Chosen during the walk rather than when the step is read, so the page
+        can be served from the stored roadmap with no corpus in memory. The
+        known set it ranks against is the walk's own at this step, which is
+        exactly what a reader following the plan knows when they arrive — so
+        the deck is the one they would have been given, not a stale one.
+
+        `nsmallest` rather than sorting: a common unit appears in a couple of
+        thousand sentences and only the first two dozen are ever shown. Like
+        `sorted`, it keeps the first of equals.
+        """
+        known = self._index.known
+        return tuple(nsmallest(
+            DECK_SIZE,
+            (self._index.sentence(p) for p in self._index.containing(unit)),
+            key=rank(unit, known),
+        ))
 
     def _score(self, unit: Unit, positions: set[int]) -> tuple[int, float]:
         gain = len(positions) + self._index.unlocks(unit)

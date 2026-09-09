@@ -27,7 +27,7 @@ from datetime import datetime
 
 from roadmap.builder import RoadmapBuilder
 from roadmap.index import CorpusIndex
-from roadmap.store import ALL, RoadmapStore
+from roadmap.store import ALL, RoadmapStore, current_stamp
 
 GOALS = ":goals"
 LIST = ":list"
@@ -99,10 +99,13 @@ class RoadmapRefresher:
                 if progress else None,
             )
 
+            # Stamped with what built it: the stored decks name their
+            # sentences by text alone, so a roadmap outlives the corpus that
+            # produced them without any outward sign.
             if rebuild:
-                self._store.save(fresh, label)
+                self._store.save(fresh, label, current_stamp())
             else:
-                self._store.append(fresh, label)
+                self._store.append(fresh, label, current_stamp())
             out[label] = len(fresh)
 
             # Only the new steps mint cards: the rest already have theirs,

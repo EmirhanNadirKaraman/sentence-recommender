@@ -86,6 +86,20 @@ class CorpusIndex:
         """
         return self._candidates
 
+    def containing(self, unit: Unit) -> set[int]:
+        """Every sentence with `unit` in it, readable or not.
+
+        `candidates` gives only the sentences where `unit` is the sole
+        unknown, which is what the walk scores on. A deck wants the rest too:
+        the median unit is the only unknown in one or two sentences, and a
+        deck of one cannot be stepped through.
+
+        The set is the index's own and must be treated as read-only, like the
+        ones `candidates` hands back. `get` rather than indexing, so asking
+        about an absent unit does not mint an entry for it.
+        """
+        return self._by_unit.get(unit, set())
+
     def unlocks(self, unit: Unit) -> int:
         """Sentences that would drop from two unknowns to one — the lookahead.
 
