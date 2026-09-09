@@ -8,7 +8,7 @@ class ServeCommand:
     def run(self, app, port: int = 8765, open_browser: bool = True) -> None:
         builds = app.corpus_store.builds(teachable_only=True)
         if not builds:
-            raise SystemExit("nothing built yet — run `build-corpus tatoeba` first")
+            raise SystemExit("nothing built yet — run `build-corpus subtitle` first")
 
         # Warm up before opening the socket. Loading the parser and resolving
         # the vocabulary takes seconds and is where the setup-dependent

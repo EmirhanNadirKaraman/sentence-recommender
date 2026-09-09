@@ -12,7 +12,6 @@ if TYPE_CHECKING:                      # avoids a cycle: alignment imports corpu
 # Where a sentence came from.  Origin decides how far it can be trusted and,
 # for generated sentences, whether it was ever verified at all.
 SUBTITLE = "subtitle"     # reassembled from the language-app subtitle corpus
-TATOEBA = "tatoeba"       # a human-written Tatoeba pair, with its translation
 GENERATED = "generated"   # synthesised by the local model to fill a gap
 
 

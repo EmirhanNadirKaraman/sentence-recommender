@@ -14,7 +14,7 @@ class StatusCommand:
         for name, count in sorted(builds.items()):
             print(f"  {name:<12} {count:>7} sentences")
         if not builds:
-            print("  (none — run `build-corpus tatoeba`)")
+            print("  (none — run `build-corpus subtitle`)")
 
         roadmaps = RoadmapStore(settings.state_path).sources()
         total, due = app.card_store.counts(datetime.now())

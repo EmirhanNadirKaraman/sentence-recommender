@@ -1,6 +1,5 @@
-from .sentence import RawLine, Sentence, SUBTITLE, TATOEBA, GENERATED
+from .sentence import RawLine, Sentence, SUBTITLE, GENERATED
 from .source import SubtitleSource
-from .tatoeba import TatoebaSource
 from .corrector import SentenceCorrector, MergeCorrector
 from .llm_corrector import LLMCorrector
 from .filter import SentenceFilter
@@ -10,8 +9,8 @@ from .overrides import SentenceOverrides
 from .updater import CorpusUpdater, Caught
 
 __all__ = [
-    "RawLine", "Sentence", "SUBTITLE", "TATOEBA", "GENERATED",
-    "SubtitleSource", "TatoebaSource",
+    "RawLine", "Sentence", "SUBTITLE", "GENERATED",
+    "SubtitleSource",
     "SentenceCorrector", "MergeCorrector", "LLMCorrector",
     "SentenceFilter", "UnitAnalyzer", "CorpusStore", "SentenceOverrides", "CorpusUpdater", "Caught",
 ]

@@ -1,9 +1,9 @@
 """Turning a due card into what the terminal actually shows.
 
 Every card carries several examples, not one.  A single sentence teaches a
-word in one grammatical shape; a handful shows the range, and with the Tatoeba
-translations underneath they stay readable even when the rest of the sentence
-is not yet fully known.
+word in one grammatical shape; a handful shows the range, and where a
+translation exists it goes underneath so the sentence stays readable even
+when the rest of it is not yet fully known.
 
   word     cloze — the examples with the word blanked out.  The learner types
            the missing word, which is checked automatically.

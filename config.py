@@ -76,17 +76,16 @@ class Settings:
     order_words: Path = ROOT / "data" / "old_data" / "words_4000.txt"
     form_words: Path = ROOT / "data" / "final_result.txt"
     goal_words: Path = ROOT / "data" / "study_list.txt"
-
-    # Tatoeba German-English export.  Human-written sentences with human
-    # translations — the primary source of examples.  Local files, nothing
-    # is downloaded.
-    tatoeba_sentences: Path = Path(
-        "/Users/emir/Documents/GitHub/FakeClozemaster/tatoeba_filler/good_sentences.csv")
-    tatoeba_links: Path = Path(
-        "/Users/emir/Documents/GitHub/FakeClozemaster/tatoeba_filler/good_sentence_ids.csv")
+    goal_lemmas: Path = ROOT / "data" / "goal_lemmas.txt"
 
     # Local mutable state (SRS cards, generated roadmap).
     state_path: Path = ROOT / "data" / "state.sqlite3"
+
+    # Cached builds the program no longer studies from.  Tatoeba's sentences
+    # were imported once and are kept — deleting them is irreversible now the
+    # importer is gone — but nothing reads them: this corpus is video
+    # subtitles, so that is what the roadmap and the blocked list mean.
+    ignored_builds: frozenset[str] = frozenset({"tatoeba"})
 
     # Sentence acceptance band, in words. Four-word sentences carry too little
     # context to learn a word from; the floor is a taste setting, so

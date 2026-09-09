@@ -14,7 +14,7 @@ import time
 
 from alignment import SubtitleAligner
 from corpus import (
-    LLMCorrector, MergeCorrector, SubtitleSource, TatoebaSource,
+    LLMCorrector, MergeCorrector, SubtitleSource,
 )
 from db import Database
 from generation import LLMClient
@@ -23,7 +23,6 @@ from generation import LLMClient
 class BuildCorpusCommand:
     """Builds one named corpus.
 
-      tatoeba        276k human-written German sentences with English translations
       subtitle       the language-app subtitle corpus, rejoined and re-split
       subtitle:llm   the same lines repaired by the local model
     """
@@ -62,12 +61,8 @@ class BuildCorpusCommand:
 
     def _collect(self, app, source: str, corrector: str):
         settings = app.settings
-        if source == "tatoeba":
-            return TatoebaSource(
-                settings.tatoeba_sentences, settings.tatoeba_links
-            ).sentences()
         if source != "subtitle":
-            raise SystemExit(f"unknown source {source!r} (expected tatoeba or subtitle)")
+            raise SystemExit(f"unknown source {source!r} (expected subtitle)")
 
         with Database(settings.database) as db:
             videos = SubtitleSource(db, settings.language).videos()

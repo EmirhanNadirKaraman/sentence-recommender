@@ -7,6 +7,7 @@ from pathlib import Path
 
 from commands import (
     AddVideoCommand, AddVideosCommand, BuildCorpusCommand, BuildRoadmapCommand,
+    CheckWordCommand, DifficultyCommand, QuizCommand, UnblockCommand,
     BuildStudyListCommand, ExportSubtitlesCommand, FillGapsCommand,
     HuntVideosCommand, ReviewCommand, ServeCommand, StatusCommand,
 )
@@ -48,6 +49,8 @@ def _parser() -> argparse.ArgumentParser:
     hunt.add_argument("--rounds", type=int, default=1,
                       help="how many times to repeat (default 1)")
     hunt.add_argument("--source", default="subtitle", help="corpus to grow")
+    hunt.add_argument("--quality", action="store_true",
+                      help="chase what a well-formed-only roadmap cannot reach")
     hunt.add_argument("--dry-run", action="store_true",
                       help="show what it would fetch, and stop")
 
@@ -62,7 +65,7 @@ def _parser() -> argparse.ArgumentParser:
                          help="list what would be fetched, and stop")
 
     corpus = sub.add_parser("build-corpus", help="analyse and cache a sentence source")
-    corpus.add_argument("source", choices=["tatoeba", "subtitle"])
+    corpus.add_argument("source", choices=["subtitle"])
     corpus.add_argument(
         "--corrector", choices=["merge", "llm"], default="merge",
         help="how to turn subtitle lines into sentences; 'llm' repairs them "
@@ -80,6 +83,8 @@ def _parser() -> argparse.ArgumentParser:
                       help="count only what data/study_list.txt names, so a "
                            "noun is not learned twice as both a bare word and "
                            "an article form")
+    plan.add_argument("--quality", action="store_true",
+                      help="teach only from well-formed sentences")
     plan.add_argument("--goals", action="store_true",
                       help="aim at the list in data/final_result.txt instead "
                            "of making as many sentences readable as possible")
@@ -113,6 +118,32 @@ def _parser() -> argparse.ArgumentParser:
     sub.add_parser("build-study-list",
                    help="merge the ranking and the form dictionary into "
                         "data/study_list.txt")
+    quiz = sub.add_parser(
+        "quiz", help="check the words the roadmap assumes you already know")
+    quiz.add_argument("--limit", type=int, default=40)
+    quiz.add_argument("--source", default="subtitle")
+
+    hard = sub.add_parser(
+        "difficulty", help="how hard each video is, and what it would teach")
+    hard.add_argument("--source", default="subtitle")
+    hard.add_argument("--limit", type=int, default=30)
+    hard.add_argument("--sort", default="yield",
+                      choices=["yield", "comprehension", "i+1", "lines",
+                               "unknown", "watch", "minutes"])
+
+    seed = sub.add_parser(
+        "unblock", help="the smallest vocabulary that gets the walk moving again")
+    seed.add_argument("--source", default="subtitle")
+    seed.add_argument("--limit", type=int, default=40)
+    seed.add_argument("--quality", action="store_true",
+                      help="only well-formed sentences, the ones worth learning from")
+    seed.add_argument("--everything", action="store_true",
+                      help="count every unit, not only the study list")
+
+    check = sub.add_parser(
+        "check", help="trace one word from the study list into the corpus")
+    check.add_argument("word")
+
     sub.add_parser("status", help="what is built and what is due")
     sub.add_parser("function-words", help="regenerate the closed-class review file")
     return parser
@@ -134,16 +165,25 @@ def main() -> int:
         AddVideosCommand().run(app, args.source, args.language, args.dry_run)
     elif args.command == "hunt":
         HuntVideosCommand().run(app, args.batch, args.rounds, args.source,
-                                args.dry_run)
+                                args.dry_run, args.quality)
     elif args.command == "add-channel":
         AddVideosCommand().run(app, args.channel, args.language, args.dry_run,
                                args.limit)
+    elif args.command == "quiz":
+        QuizCommand().run(app, args.limit, args.source)
+    elif args.command == "difficulty":
+        DifficultyCommand().run(app, args.source, args.limit, args.sort)
+    elif args.command == "unblock":
+        UnblockCommand().run(app, args.source, not args.everything, args.limit,
+                             args.quality)
+    elif args.command == "check":
+        CheckWordCommand().run(app, args.word)
     elif args.command == "build-corpus":
         BuildCorpusCommand().run(app, args.source, args.limit,
                                  args.corrector, args.min_words)
     elif args.command == "build-roadmap":
         BuildRoadmapCommand().run(app, args.steps, tuple(args.source),
-                                  args.goals, args.list_only)
+                                  args.goals, args.list_only, args.quality)
     elif args.command == "export-subtitles":
         ExportSubtitlesCommand().run(
             app, args.out, tuple(args.source), args.translation
