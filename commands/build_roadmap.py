@@ -11,7 +11,7 @@ from datetime import datetime
 
 from corpus.quality import well_formed
 from roadmap import CorpusIndex, RoadmapBuilder, RoadmapStore
-from roadmap.store import ALL
+from roadmap.store import ALL, current_stamp
 
 
 class BuildRoadmapCommand:
@@ -65,7 +65,10 @@ class BuildRoadmapCommand:
             label = f"{label}:list"
         if goals:
             label = f"{label}:goals"
-        RoadmapStore(settings.state_path).save(plan, label)
+        # Stamped with what built it, so the reading page can tell whether
+        # the decks stored with these steps still describe a corpus that
+        # exists — they name their sentences by text alone.
+        RoadmapStore(settings.state_path).save(plan, label, current_stamp())
 
         now = datetime.now()
         app.card_store.add_many(
