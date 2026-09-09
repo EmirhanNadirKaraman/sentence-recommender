@@ -70,25 +70,95 @@ only after the frontier is genuinely empty rather than as a general relaxation.
   `build-corpus subtitle --corrector llm`. Watch the fallback count on the
   first run; a high one means the prompt needs work, not the code.
 
-## The cache does not know when the analyser changed
+## The cache knows what made it  *(done)*
 
-A fix to `corpus/analyzer.py` changes how units are derived, but the cached
-corpus keeps whatever the old code produced, and nothing says so. A bad
-pattern match stayed visible for a whole session after being fixed, because
-the fix was verified against a live analysis and the cache was never rebuilt.
+`fingerprint.py` hashes everything that decides how a unit is derived — the
+matcher, the analyser, `final_result.txt`, `lemma_overrides.txt`, and the
+versions of spaCy and the German models — into a short digest. Every corpus
+build is stamped with it in `build_meta`, and the resolved vocabulary in
+`resolved.json` carries it alongside the file stamps, because the model
+resolves those files and changing it changes every lemma while the files
+themselves stay put.
 
-Stamp each build with a fingerprint of the analyser — the rules that decide
-units, not the whole file — and warn when what is cached was made by
-different rules. Cheap, and it turns a silent wrong answer into a line of
-output.
-
-Until then: after changing the analyser, rebuild every corpus.
+Loading a corpus whose stamp no longer matches prints:
 
 ```
-python main.py build-corpus subtitle       # seconds
-python main.py build-corpus tatoeba        # about seven minutes
-python main.py build-roadmap --source subtitle --goals
+warning: corpus 'subtitle' was analysed by different rules (fingerprint
+0df110bd…) — rebuild it with `python main.py build-corpus subtitle`
 ```
+
+Whole files are hashed rather than the rules picked out of them, so editing
+a comment raises a false alarm. That is the right way round: a warning you
+can dismiss costs a second, a stale cache you cannot see cost this project
+two afternoons.
+
+## Trigram identity is not word identity
+
+`_trustworthy` accepts a fuzzy match only at 1.00, on the assumption that a
+perfect trigram score means the same word. It does not:
+
+```
+Die meisten Menschen …   ->  der Meister   fuzzy (1.00)
+```
+
+*meisten* and *Meister* have identical trigram sets, so the match passes the
+floor and is emitted as a real unit. Every fuzzy match at 1.00 is trusted
+this way, and nothing downstream can tell the difference between this and a
+genuine hit. Worth measuring how many 1.00 matches are actually distinct
+words before deciding what to do — a length check would catch this one, but
+the honest fix may be to require an exact match for short words.
+
+## The determiner half of `article_order` is dead code
+
+`matcher/phrase_finder.py:article_order` picks which article to try first for
+a noun, so that `das Steuer` (a helm) and `die Steuer` (a tax) do not collapse
+into whichever the dictionary happens to list first. It reads the gender off
+the noun, and then — supposedly — off the noun's determiner as a second
+opinion:
+
+```python
+for child in token.children:
+    if child.dep_ == "det":
+        genders.extend(child.morph.get("Gender"))
+```
+
+**That loop never runs.** The German model uses the TIGER dependency scheme,
+where a determiner attaches as `nk`, not `det`:
+
+```
+Die Leiter steht an der Wand.
+   Die      DET   dep=nk   head=Leiter
+   Leiter   NOUN  dep=sb   head=steht
+```
+
+`extract_german_logic` two hundred lines above knows this — it collects
+children with `dep_ in ["det", "poss", "amod", "nk"]`. Only the new function
+got it wrong.
+
+Nothing is currently mis-resolved *because* of this: German nouns almost
+always carry their own `Gender`, so the first source answers and the dead
+fallback is never needed. It matters when a noun's morphology comes back
+empty, where the article silently falls back to fixed `der, die, das` order
+instead of asking the determiner sitting right next to it.
+
+The fix is to accept `nk` alongside `det`. It changes how nouns are matched,
+so it only takes effect after re-analysing the corpora:
+
+```
+python main.py build-corpus subtitle       # about two minutes
+python main.py build-corpus tatoeba        # about four minutes
+```
+
+### It will not fix `die Leiter`
+
+Worth writing down so nobody tries. In the sentence above, spaCy tags both the
+noun and its article `Gender=['Masc']` — it has decided *Leiter* is the
+manager, not the ladder, and propagated that to `Die`. Noun and determiner
+agree and both are wrong, so there is no second opinion to consult. Reading
+the determiner's *surface* instead ("die" implies feminine or plural) means
+reasoning about case and number for every noun in the corpus to rescue one
+word, and would guess wrong elsewhere. `die Leiter` stays stranded, and that
+is the right trade.
 
 ## Known limitations
 

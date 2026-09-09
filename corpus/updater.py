@@ -6,8 +6,7 @@ a newly added video contributes maybe a hundred and fifty of them. Since a
 video is either wholly in the cache or wholly absent, the ones already there
 can simply be skipped.
 
-Only subtitle builds work this way. Tatoeba arrives as one file with nothing
-to add incrementally.
+Only subtitle builds work this way, which is now the only kind there is.
 """
 from __future__ import annotations
 
