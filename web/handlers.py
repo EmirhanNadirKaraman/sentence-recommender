@@ -34,7 +34,7 @@ WALK_LIMIT = 5000
 PREFERRED = ("subtitle", "subtitle:llm", ALL)
 LABELS = {ALL: "everything", "subtitle": "video subtitles",
           "subtitle:llm": "video subtitles, model-corrected",
-          "tatoeba": "Tatoeba"}
+}
 
 
 @dataclass
@@ -112,8 +112,12 @@ class Viewer:
             self._scopes[key] = Scope(
                 sentences=sentences,
                 index=index,
+                # Aimed at the study list, not merely filtered by it: a
+                # goal outscores anything that is not one, so Next offers a
+                # word you meant to learn whenever one is i+1.
                 builder=RoadmapBuilder(index, priority,
-                                       self.app.settings.priority_weight),
+                                       self.app.settings.priority_weight,
+                                       frozenset(self.app.goal_units)),
                 examples=ExampleIndex(sentences),
                 priority=priority,
             )
@@ -202,7 +206,8 @@ class Viewer:
         Rendered here rather than behind a link: the point of a subtitle
         corpus is that every sentence was said out loud, so hearing one should
         be the default rather than a second click. Returns nothing when no
-        example has a video, which is every Tatoeba sentence.
+        example has a video — a generated sentence, or one whose timing was
+        never recorded.
         """
         first = next((s for s in scope.examples.examples(unit, self.known,
                                                          limit=DECK_SIZE)
@@ -455,7 +460,8 @@ class Viewer:
 
     def roadmap(self, query: dict) -> str:
         source = self.source(query)
-        steps = self._store.load(source)
+        label = self._stored_label(source, self.counting(query))
+        steps = self._store.load(label)
         needle = (query.get("q") or "").strip().lower()
         kind = query.get("kind") or ""
         if needle:
@@ -488,15 +494,42 @@ class Viewer:
         )
         listing = (f"<div class='ledger'>{entries}</div>" if window
                    else "<p class='empty'>Nothing here matches that.</p>")
-        body = (self.switch(source, "/roadmap") + "<h1>Roadmap</h1>"
+        body = (self.switch(source, "/roadmap")
+                + self.counting_switch(query, "/roadmap")
+                + "<h1>Roadmap</h1>"
                 f"<p class='note'>{len(steps):,} steps in the order they were "
-                "planned, saved by the last build. The marked word was the only "
+                f"planned, saved by the last build of <code>{escape(label)}</code>. The marked word was the only "
                 "unknown one in its sentence at that point — anything you have "
                 "learned since is labelled <em>known</em> in the rail.</p>"
                 f"{self._filters(needle, kind, source, query.get('hide', ''))}"
                 f"{self._hidden_note(hidden)}{listing}"
                 f"{self._pager(page, pages, needle, kind, source, query.get('hide', ''))}")
         return layout("Roadmap", body, "/roadmap", source)
+
+    def _stored_label(self, source: str, list_only: bool) -> str:
+        """The stored roadmap the switches are asking for.
+
+        A roadmap's name carries the settings that built it, so the two
+        switches name one directly: `subtitle` counting only the study list
+        is `subtitle:list:goals`. That is the goal-directed plan — the one
+        that teaches your list rather than merely filtering by it — so it is
+        preferred whenever it exists, and the plain walk is the fallback for
+        a corpus no goal roadmap has been built over.
+        """
+        stored = self._store.sources()
+        # Always the study-list plan, whatever the counting switch says. The
+        # roadmap answers one question — how do I learn the words on my list —
+        # and the wider walk answers a different one, in sixteen thousand
+        # steps of vocabulary nobody asked for.
+        #
+        # The well-formed plan wins where it exists: it teaches from sentences
+        # worth reading, at the price of the words this corpus only ever says
+        # badly. Falling back rather than requiring it, so the page still
+        # works before `build-roadmap --quality` has ever been run.
+        for wanted in (f"{source}:good:list:goals", f"{source}:list:goals"):
+            if wanted in stored:
+                return wanted
+        return source
 
     @staticmethod
     def _hidden_note(hidden: int) -> str:
@@ -579,6 +612,13 @@ class Viewer:
         # known_set() re-runs the parser over every word in the files, which
         # is seconds, and this page already has the answer.
         spare = CorpusIndex(scope.sentences, KnownSet(self.known))
+        # Replay the stored plan instead of deriving it again. Learning a unit
+        # is a dictionary update; *choosing* one scores every candidate on the
+        # frontier, and there are thousands of those. The walk below then only
+        # has to cover what the stored plan did not — which, since roadmaps are
+        # built to exhaustion, is usually nothing.
+        for step in self._store.load(self._stored_label(source, list_only)):
+            spare.learn(step.unit)
         RoadmapBuilder(spare, scope.priority, self.app.settings.priority_weight
                        ).build(max_steps=WALK_LIMIT)
         reached = spare.known
@@ -598,15 +638,18 @@ class Viewer:
 
         # Goals this corpus never says at all. Far more numerous than the
         # ones it says but cannot isolate, and the actual work — so they
-        # belong on the page you mine from, not only in the hunt. Anything
-        # the analyser has never emitted is left out: no video can fix it.
-        producible = self.app.producible
+        # belong on the page you mine from, not only in the hunt.
+        #
+        # Nothing is filtered out. This page answers one question: which words
+        # on the study list can these videos not teach me. A goal the analyser
+        # would never emit even if it were said belongs in that answer too —
+        # hiding it made the list shorter without making it truer.
         priority = scope.priority
         rows += [
             (unit, 0, 0, "", [])
             for unit in sorted(
                 (u for u in self.app.goal_units
-                 if u not in reached and u not in appearances and u in producible),
+                 if u not in reached and u not in appearances),
                 key=lambda u: -priority.of(u),
             )
         ]

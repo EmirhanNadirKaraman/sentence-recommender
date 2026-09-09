@@ -8,7 +8,7 @@
 # words_4000.txt, which is ranked; everything below is known to
 # final_result.txt but was never ranked, so it sits at the end.
 #
-# Generated 2026-09-08. Rebuild with:  python main.py build-study-list
+# Generated 2026-09-09. Rebuild with:  python main.py build-study-list
 
 ein	ein
 zu	zu
@@ -394,7 +394,7 @@ nämlich	nämlich
 direkt	direkt
 der Ort	der Ort
 offen	offen
-Moment	Moment
+Moment	der Moment
 dadurch	dadurch
 das Gesicht	das Gesicht
 irgendwie	irgendwie
@@ -410,7 +410,6 @@ bilden	etw. (Akk) bilden
 anfangen	mit etw. anfangen
 bisher	bisher
 sozial	sozial
-der Moment	der Moment
 wert	wert
 die Rolle	die Rolle
 ab	ab
@@ -515,7 +514,6 @@ manch	manch
 ändern	etw. (Akk) ändern
 der Beruf	der Beruf
 geschehen	jdm. (Dat) geschehen
-Gott	Gott
 das Auto	das Auto
 die Regel	die Regel
 beschreiben	jdm. (Dat) etw. (Akk) beschreiben
@@ -637,7 +635,6 @@ die Lage	die Lage
 vorher	vorher
 das Pro	das Pro
 vergessen	etw./jdn. (Akk) vergessen
-Lage	Lage
 verschwinden	verschwinden
 das Projekt	das Projekt
 die Kultur	die Kultur
@@ -732,7 +729,6 @@ der Kollege	der Kollege
 außer	außer
 fest	fest
 bauen	etw. (Akk) bauen
-Verfügung	Verfügung
 das Gebiet	das Gebiet
 zählen	zu etw. / etw. (Akk) zählen
 der Einsatz	der Einsatz
@@ -836,7 +832,7 @@ die Wahl	die Wahl
 lieb	lieb
 die Bedingung	die Bedingung
 das Lächeln	das Lächeln
-Nähe	Nähe
+Nähe	die Nähe
 die Struktur	die Struktur
 lösen	etw. (Akk) lösen
 das Prinzip	das Prinzip
@@ -872,7 +868,6 @@ die Macht	die Macht
 lieben	jdn./etw. (Akk) lieben
 die Wirkung	die Wirkung
 der Montag	der Montag
-die Nähe	die Nähe
 laut	laut
 der Brief	der Brief
 genügen	jdm. (Dat) genügen
@@ -937,7 +932,7 @@ Schweizer	Schweizer
 erforderlich	erforderlich
 das Konzept	das Konzept
 der Mund	der Mund
-Franken	Franken
+Franken	der Franken
 heutig	heutig
 der Wunsch	der Wunsch
 unabhängig	unabhängig
@@ -1313,7 +1308,6 @@ der Rand	der Rand
 der Amerikaner	der Amerikaner
 ausschließlich	ausschließlich
 übertragen	jdm. (Dat) etw. (Akk) übertragen
-Vergangenheit	Vergangenheit
 präsentieren	jdm. (Dat) etw. (Akk) präsentieren
 hingegen	hingegen
 der Verlust	der Verlust
@@ -1479,7 +1473,6 @@ kritisch	kritisch
 die Leitung	die Leitung
 der Kandidat	der Kandidat
 das BGB	das BGB
-der Franken	der Franken
 links	links
 der Kaffee	der Kaffee
 die Aktivität	die Aktivität

@@ -1,17 +1,24 @@
 from .add_video import AddVideoCommand
 from .add_videos import AddVideosCommand
 from .build_corpus import BuildCorpusCommand
+from .check_word import CheckWordCommand
+from .difficulty import DifficultyCommand
 from .build_roadmap import BuildRoadmapCommand
 from .build_study_list import BuildStudyListCommand
 from .export_subtitles import ExportSubtitlesCommand
 from .fill_gaps import FillGapsCommand
+from .unblock import UnblockCommand
 from .hunt_videos import HuntVideosCommand
+from .quiz import QuizCommand
 from .review import ReviewCommand
 from .serve import ServeCommand
 from .status import StatusCommand
 
 __all__ = [
     "AddVideoCommand", "AddVideosCommand", "BuildCorpusCommand", "BuildRoadmapCommand",
-    "BuildStudyListCommand", "ExportSubtitlesCommand", "FillGapsCommand",
-    "HuntVideosCommand", "ReviewCommand", "ServeCommand", "StatusCommand",
+    "BuildStudyListCommand", "CheckWordCommand", "DifficultyCommand",
+    "ExportSubtitlesCommand", "UnblockCommand",
+    "FillGapsCommand",
+    "HuntVideosCommand", "QuizCommand", "ReviewCommand", "ServeCommand",
+    "StatusCommand",
 ]

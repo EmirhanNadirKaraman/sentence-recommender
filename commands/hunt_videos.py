@@ -9,10 +9,13 @@ prints its own numbers rather than only a total.
 """
 from __future__ import annotations
 
+import re
+
 from collections import Counter
 
 from corpus import CorpusUpdater
 from ingest import VideoHunter, VideoIngestor
+from corpus.quality import well_formed
 from roadmap import CorpusIndex, RoadmapBuilder, RoadmapRefresher
 from vocab.entry import Unit
 
@@ -21,16 +24,45 @@ from vocab.entry import Unit
 WALK_LIMIT = 20_000
 
 
+# The slot markers a blueprint is built from; none of them is the word.
+_SLOTS = frozenset({"jdm.", "jdn.", "etw.", "sich", "etw./jdn.", "jdn./etw.",
+                    "jdm./etw.", "jds./etw.", "an", "auf", "in", "mit", "zu",
+                    "für", "über", "um", "bei", "aus", "von", "/", "als", "nach"})
+
+
+def _search_terms(unit) -> list[str]:
+    """Every word a goal could be found by — `Gläubiger`, not `der Gläubiger`.
+
+    Articles and case markers are dropped and the last word kept, which for a
+    verb blueprint is the verb and for an article-noun pair the noun.
+
+    A list, not one word, because an entry may name alternatives: `gucken,
+    kucken`, `heraus, raus`. The corpus saying either one satisfies the goal,
+    so all of them have to be checked. Taking only the last sent the hunt
+    after `kucken` — which nobody writes — in every round of a five-round
+    run, while `gucken` was in the corpus the whole time.
+    """
+    out = []
+    for part in unit.key.split(","):
+        key = re.sub(r"^\s*(der|die|das)\s+", "", part.strip())
+        key = re.sub(r"\s*\([^)]*\)\s*", " ", key)
+        words = [w for w in key.split() if w not in _SLOTS]
+        if words:
+            out.append(words[-1])
+    return out or [unit.key]
+
+
 class HuntVideosCommand:
     def run(self, app, batch: int = 10, rounds: int = 1,
-            source: str = "subtitle", dry_run: bool = False) -> None:
+            source: str = "subtitle", dry_run: bool = False,
+            quality_only: bool = False) -> None:
         ingestor = VideoIngestor(app.settings, app.analyzer)
         hunter = VideoHunter(ingestor)
 
         known = app.known_set()
         for round_number in range(1, rounds + 1):
             print(f"\n── round {round_number} of {rounds} " + "─" * 30)
-            stuck = self._stranded(app, source, known)
+            stuck = self._stranded(app, source, known, quality_only)
             if not stuck:
                 print("  nothing is stranded — the roadmap reaches everything.")
                 return
@@ -61,7 +93,7 @@ class HuntVideosCommand:
                 RoadmapRefresher(app).refresh(touching=source).items()
             ):
                 print(f"  roadmap [{label}]: {steps} steps")
-            after = self._stranded(app, source, known)
+            after = self._stranded(app, source, known, quality_only)
             closed = len(stuck) - len(after)
             print(f"  stranded: {len(stuck):,} → {len(after):,} "
                   f"({closed:,} fewer)" if closed >= 0
@@ -69,7 +101,8 @@ class HuntVideosCommand:
                        f"({-closed:,} more)")
 
     @staticmethod
-    def _stranded(app, source: str, known=None) -> list[tuple[Unit, int]]:
+    def _stranded(app, source: str, known=None, quality_only: bool = False
+                  ) -> list[tuple[Unit, int]]:
         """Every goal the roadmap cannot reach, most worth chasing first.
 
         Two kinds, and the second is much the larger. Some goals are in the
@@ -85,6 +118,8 @@ class HuntVideosCommand:
         sentences = app.corpus(source, list_only=True)
         if not sentences:
             raise SystemExit(f"no cached corpus for {source!r}")
+        if quality_only:
+            sentences = [s for s in sentences if well_formed(s.text)]
         spare = CorpusIndex(sentences, known or app.known_set())
         RoadmapBuilder(spare, app.priority(),
                        app.settings.priority_weight).build(max_steps=WALK_LIMIT)
@@ -98,15 +133,28 @@ class HuntVideosCommand:
 
         # Goals the corpus never says. Ordered by the study list, which is
         # the only ranking they have — nothing here has seen them.
+        #
+        # Skipping the ones whose word is already here. A goal can be
+        # unreachable for two quite different reasons, and only one of them
+        # is a shortage of material: `das Pro` is stranded because *Pro* only
+        # ever turns up as the preposition or inside `Pro-Account`, and `das
+        # stimmt` because the matcher sees the verb. No video fixes either,
+        # yet the hunt ranked `das Pro` first and spent a round fetching a
+        # CapCut tutorial. Twenty-three of the hundred and seven are like
+        # this. Full word boundaries, and case kept: *Bär* must not be
+        # satisfied by *Bären*.
+        # Presence only disqualifies a word when the pool is every sentence.
+        # Under the quality restriction a word can be said a hundred times and
+        # still be unreachable, because none of those sentences was worth
+        # learning from — and that is precisely what a new video can fix.
+        said = "" if quality_only else "\n".join(
+            s.text for s in app.corpus(source, list_only=False))
         priority = app.priority()
-        # Only what material could actually fix. A goal the analyser has never
-        # emitted anywhere cannot be taught by any video, and the study list
-        # ranks several of those near the top — they would head this queue for
-        # ever, sending the hunt after words that cannot be matched.
-        producible = app.producible
         missing = sorted(
             (u for u in app.goal_units
-             if u not in reached and u not in appearances and u in producible),
+             if u not in reached and u not in appearances
+             and not any(re.search(rf"(?<!\w){re.escape(w)}(?!\w)", said)
+                         for w in _search_terms(u))),
             key=lambda u: -priority.of(u),
         )
         return present + [(unit, 0) for unit in missing]

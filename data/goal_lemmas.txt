@@ -1,0 +1,38 @@
+# Goal entries the parser mis-lemmatises when it sees them alone.
+#
+# `GoalList` resolves each word in the study list into the lemma space the
+# corpus is analysed in, by running it through spaCy. A bare word carries no
+# sentence around it, which is where the parser is weakest: it returns
+# "schreie" for "schreien" and "samen" for "gesamt" — confidently, so
+# `lemma_overrides.txt` never fires (that one only helps where the parser
+# gives up and echoes the surface back).
+#
+# The result is a goal for a word that does not exist, which no sentence can
+# ever satisfy. Three of these showed up on the Blocked page; the rest
+# quietly became goals for a different word, which is worse, because nothing
+# reports it.
+#
+# One line per correction: the entry as the study list writes it, then the
+# unit to use instead. Listed rather than inferred — the parser's other
+# rewrites here are corrections ("im" to "in", "geboren" to "gebären"), and
+# no rule separates those from the damage.
+
+schreien	schreien
+rauschen	rauschen
+weinen	weinen
+klappen	klappen
+reisen	reisen
+hingehen	hingehen
+aufwachsen	aufwachsen
+vorherrschen	vorherrschen
+bisschen	bisschen
+besonder	besonder
+inner	inner
+euer	euer
+letzt	letzt
+gesamt	gesamt
+lieb	lieb
+bewusst	bewusst
+einverstanden	einverstanden
+jdn. zu etw. einladen	einladen
+ander	anderer

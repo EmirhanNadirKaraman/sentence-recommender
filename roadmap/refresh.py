@@ -1,9 +1,20 @@
-"""Rebuilding the roadmaps that already exist.
+"""Bringing the roadmaps that already exist up to date.
 
-After the corpus grows, every stored roadmap over it is out of date. They are
-cheap to redo — a subtitle walk is about a second — so rather than telling the
-reader which command to run, the ones already there are rebuilt under the same
-names and with the same settings they were built with.
+After the corpus grows, every stored roadmap over it is short: the new
+sentences teach things the old walk never had material for. The ones already
+there are extended under the same names and with the same settings they were
+built with.
+
+Extended, not rebuilt. A walk over ninety thousand subtitle sentences is
+minutes, and almost all of it re-derives steps the reader has already worked
+through — and worse, renumbers them, so the word that was step 400 yesterday
+is somewhere else today. Replaying the stored plan into the index costs a
+dictionary update per step and leaves the walk standing exactly where it
+stopped, so only the tail is actually computed.
+
+The trade is that the existing order is taken as settled. A new video can
+make an early step cheaper, and extending will not go back and reshuffle for
+it; `refresh(rebuild=True)` is there for when that is what you want.
 
 Those settings live in the name: `subtitle:llm:list:goals` is the
 `subtitle:llm` corpus, counting only the study list, aiming at it. The two
@@ -41,10 +52,17 @@ class RoadmapRefresher:
         self._app = app
         self._store = RoadmapStore(app.settings.state_path)
 
-    def refresh(self, touching: str | None = None) -> dict[str, int]:
-        """Rebuild every stored roadmap, or only those over `touching`.
+    def refresh(self, touching: str | None = None, rebuild: bool = False,
+                progress=None) -> dict[str, int]:
+        """Extend every stored roadmap, or only those over `touching`.
 
-        Returns name -> new step count, so a caller can say what changed.
+        Returns name -> how many steps it grew by, so a caller can say what
+        changed. `rebuild` discards each plan and walks again from the start,
+        which is what to do when the analyser changed rather than the corpus.
+
+        `progress(label, steps, readable)` is called as each walk advances.
+        A walk over a large corpus runs for minutes saying nothing, which
+        makes a slow one look exactly like a stuck one.
         """
         out: dict[str, int] = {}
         # Once, not once per roadmap: resolving the vocabulary runs the parser
@@ -53,6 +71,9 @@ class RoadmapRefresher:
         known = self._app.known_set()
         known_units = known.units
         goal_units = frozenset(self._app.goal_units)
+        # Also once: ranking the goal list is seconds, and every roadmap
+        # ranks it the same way.
+        priority = self._app.priority()
 
         for label in sorted(self._store.sources()):
             builds, list_only, goals = read_label(label)
@@ -62,17 +83,33 @@ class RoadmapRefresher:
             if not sentences:
                 continue
             index = CorpusIndex(sentences, known)
-            plan = RoadmapBuilder(
-                index, self._app.priority(),
+
+            done = [] if rebuild else self._store.load(label)
+            for step in done:
+                index.learn(step.unit)
+
+            fresh = RoadmapBuilder(
+                index, priority,
                 self._app.settings.priority_weight,
                 goal_units if goals else frozenset(),
-            ).build()
-            self._store.save(plan, label)
-            out[label] = len(plan)
+            ).build(
+                first_position=len(done) + 1,
+                on_progress=(lambda n, readable, label=label:
+                             progress(label, len(done) + n, readable))
+                if progress else None,
+            )
 
+            if rebuild:
+                self._store.save(fresh, label)
+            else:
+                self._store.append(fresh, label)
+            out[label] = len(fresh)
+
+            # Only the new steps mint cards: the rest already have theirs,
+            # from whichever run first planned them.
             now = datetime.now()
-            for step in plan:
-                if step.unit not in known_units:
-                    self._app.card_store.add(
-                        self._app.scheduler.new_card(step.unit, now))
+            self._app.card_store.add_many([
+                self._app.scheduler.new_card(step.unit, now)
+                for step in fresh if step.unit not in known_units
+            ])
         return out

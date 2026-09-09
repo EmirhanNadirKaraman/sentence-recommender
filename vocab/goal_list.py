@@ -50,7 +50,29 @@ class GoalList:
                 seen.setdefault(entry, None)
         return tuple(seen)
 
-    def units(self, patterns: frozenset[str], lemmatise=None) -> tuple[Unit, ...]:
+    @staticmethod
+    def corrections(path: Path) -> dict[str, str]:
+        """Entries the parser mis-lemmatises when it sees them alone.
+
+        Keyed on the entry as the study list writes it. Hand-checked rather
+        than derived: the parser's other rewrites of these same entries are
+        corrections — "im" to "in", "geboren" to "gebären" — and no rule
+        separates those from the damage.
+        """
+        out: dict[str, str] = {}
+        if not path.exists():
+            return out
+        for raw in path.read_text(encoding="utf-8").splitlines():
+            line = raw.split("#", 1)[0].strip()
+            if "\t" not in line:
+                continue
+            entry, fix = (part.strip() for part in line.split("\t", 1))
+            if entry and fix:
+                out[entry] = fix
+        return out
+
+    def units(self, patterns: frozenset[str], lemmatise=None,
+              corrections: dict[str, str] | None = None) -> tuple[Unit, ...]:
         """The goals as units, in list order.
 
         `patterns` is the registered pattern vocabulary — `phrase_table`'s
@@ -72,16 +94,25 @@ class GoalList:
         Without it the old literal reading is kept, so this stays usable
         without loading a parser.
         """
+        corrections = corrections or {}
         wanted: list[str] = []
+        settled: dict[int, str] = {}
         out: list[Unit] = []
         for entry in self.entries():
             if entry in patterns:
                 out.append(Unit.pattern(entry))
                 continue
+            fix = corrections.get(entry)
+            if fix is not None:
+                settled[len(wanted)] = fix
+                wanted.append(fix)
+                continue
             wanted.extend(self._alternatives(entry))
 
         if lemmatise is not None:
-            wanted = [lemma for lemma in lemmatise(wanted) if lemma]
+            lemmas = lemmatise(wanted)
+            wanted = [settled.get(i) or lemmas[i] for i in range(len(wanted))]
+            wanted = [lemma for lemma in wanted if lemma]
         seen: dict[Unit, None] = {}
         for unit in out + [Unit.lemma(word) for word in wanted]:
             seen.setdefault(unit, None)

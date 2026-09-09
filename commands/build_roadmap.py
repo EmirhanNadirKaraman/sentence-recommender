@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from corpus.quality import well_formed
 from roadmap import CorpusIndex, RoadmapBuilder, RoadmapStore
 from roadmap.store import ALL
 
@@ -16,10 +17,30 @@ from roadmap.store import ALL
 class BuildRoadmapCommand:
     """Produces the ordered sequence and an SRS card for every step."""
 
+    @staticmethod
+    def _report(steps: int, readable: int) -> None:
+        """Say where the walk has got to.
+
+        A walk over the larger corpora runs for minutes with nothing on the
+        screen, which makes a slow one look like a hung one. Flushed, because
+        this is usually being read through a pipe or a log.
+        """
+        print(f"  … {steps:,} steps · {readable:,} sentences readable",
+              flush=True)
+
     def run(self, app, steps: int | None = None, builds: tuple[str, ...] = (),
-            goals: bool = False, list_only: bool = False) -> None:
+            goals: bool = False, list_only: bool = False,
+            quality_only: bool = False) -> None:
         settings = app.settings
         sentences = app.corpus(*builds, list_only=list_only)
+        if quality_only:
+            # Teach only from sentences worth reading. Costs coverage —
+            # a word said once, badly, becomes unreachable — so the
+            # blocked list is the price and `hunt --quality` is how it
+            # gets paid down.
+            before = len(sentences)
+            sentences = [s for s in sentences if well_formed(s.text)]
+            print(f'well-formed only: {len(sentences):,} of {before:,} sentences')
         if not sentences:
             raise SystemExit(
                 "no cached corpus for "
@@ -36,8 +57,10 @@ class BuildRoadmapCommand:
         builder = RoadmapBuilder(index, app.priority(),
                                  settings.priority_weight, targets)
 
-        plan = builder.build(max_steps=steps)
+        plan = builder.build(max_steps=steps, on_progress=self._report)
         label = "+".join(sorted(builds)) if builds else ALL
+        if quality_only:
+            label = f"{label}:good"
         if list_only:
             label = f"{label}:list"
         if goals:
@@ -45,8 +68,8 @@ class BuildRoadmapCommand:
         RoadmapStore(settings.state_path).save(plan, label)
 
         now = datetime.now()
-        for step in plan:
-            app.card_store.add(app.scheduler.new_card(step.unit, now))
+        app.card_store.add_many(
+            [app.scheduler.new_card(step.unit, now) for step in plan])
 
         print(f"roadmap [{label}]: {len(plan)} steps · {index.readable} sentences "
               f"fully readable at the end · {len(plan)} cards ready")

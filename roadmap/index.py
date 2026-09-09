@@ -71,21 +71,30 @@ class CorpusIndex:
         """How many sentences have nothing unknown left in them."""
         return self._readable
 
-    def candidates(self) -> dict[Unit, list[int]]:
+    def candidates(self) -> dict[Unit, set[int]]:
         """Every unit that is the *only* unknown in at least one sentence.
 
         These are exactly the units learnable next: each turns the sentences
         listed against it from i+1 into fully readable.
+
+        The sets are the index's own and must be treated as read-only. They
+        used to be copied into lists on the way out, which at tens of
+        thousands of frontier sentences cost a fifth of the walk — once per
+        step, to hand back something the scorer only takes the length of.
+        Emptied entries are dropped as they empty, so a caller may still see
+        one and should skip it.
         """
-        return {
-            unit: list(positions)
-            for unit, positions in self._candidates.items()
-            if positions
-        }
+        return self._candidates
 
     def unlocks(self, unit: Unit) -> int:
-        """Sentences that would drop from two unknowns to one — the lookahead."""
-        return len(self._pending[unit])
+        """Sentences that would drop from two unknowns to one — the lookahead.
+
+        `get`, not indexing: this is asked about every candidate on every
+        step, and a defaultdict would mint an empty set for each one and then
+        iterate it forever after.
+        """
+        pending = self._pending.get(unit)
+        return len(pending) if pending else 0
 
     def learn(self, unit: Unit) -> None:
         """Mark `unit` known and move every sentence containing it down a state.
@@ -102,10 +111,10 @@ class CorpusIndex:
             count = self._unknown[position] - 1
             self._unknown[position] = count
             if count == 0:
-                self._candidates[unit].discard(position)
+                self._drop(self._candidates, unit, position)
                 self._readable += 1
             elif count == 1:
-                self._pending[unit].discard(position)
+                self._drop(self._pending, unit, position)
                 self._register(position, 1, drop_from_pending=True)
             elif count == 2:
                 self._register(position, 2)
@@ -121,7 +130,22 @@ class CorpusIndex:
         for remaining in self._sentences[position].units - self._units:
             if count == 1:
                 if drop_from_pending:
-                    self._pending[remaining].discard(position)
+                    self._drop(self._pending, remaining, position)
                 self._candidates[remaining].add(position)
             else:
                 self._pending[remaining].add(position)
+
+    @staticmethod
+    def _drop(mapping: dict, unit: Unit, position: int) -> None:
+        """Remove a sentence, and the unit's entry with it once it is empty.
+
+        Both maps are walked in full on every step. Left to grow they keep
+        every unit ever seen on the frontier, so the walk gets slower the
+        further it goes precisely because it is making progress.
+        """
+        positions = mapping.get(unit)
+        if positions is None:
+            return
+        positions.discard(position)
+        if not positions:
+            del mapping[unit]
