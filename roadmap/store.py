@@ -82,7 +82,8 @@ CREATE TABLE IF NOT EXISTS roadmap_example (
 CREATE TABLE IF NOT EXISTS roadmap_meta (
     source  TEXT PRIMARY KEY,
     stamp   TEXT NOT NULL,
-    made_at TEXT NOT NULL
+    made_at TEXT NOT NULL,
+    total   INTEGER NOT NULL DEFAULT 0
 );
 """
 
@@ -124,12 +125,14 @@ class RoadmapStore:
         row honestly says: nothing was recorded, and the page falls back to
         counting for itself.
         """
-        columns = {row[1] for row in conn.execute("PRAGMA table_info(roadmap)")}
-        for name in ("readable", "occurrences"):
-            if name not in columns:
-                conn.execute(
-                    f"ALTER TABLE roadmap ADD COLUMN {name} INTEGER NOT NULL"
-                    " DEFAULT 0")
+        for table, added in (("roadmap", ("readable", "occurrences")),
+                             ("roadmap_meta", ("total",))):
+            columns = {row[1] for row in
+                       conn.execute(f"PRAGMA table_info({table})")}
+            for name in added:
+                if name not in columns:
+                    conn.execute(f"ALTER TABLE {table} ADD COLUMN {name}"
+                                 " INTEGER NOT NULL DEFAULT 0")
 
     def sources(self) -> dict[str, int]:
         """Which roadmaps exist, and how long each is."""
@@ -151,8 +154,24 @@ class RoadmapStore:
                 (source,)).fetchone()
         return row[0] if row else None
 
+    def total(self, source: str = ALL) -> int:
+        """How many sentences this roadmap was walked over.
+
+        The denominator the reading page states its progress against. Stored
+        rather than counted, because counting it means holding the corpus —
+        and because it is not the size of the corpus but the size of the slice
+        the walk was given: `--quality` builds over 41,394 of 115,461, and a
+        page that showed progress against the larger number would be quietly
+        answering a question nobody asked.
+        """
+        with open_state(self._path) as conn:
+            row = conn.execute(
+                "SELECT total FROM roadmap_meta WHERE source = ?",
+                (source,)).fetchone()
+        return row[0] if row else 0
+
     def append(self, steps: list[RoadmapStep], source: str = ALL,
-               stamp: str = "") -> None:
+               stamp: str = "", total: int = 0) -> None:
         """Add steps to a roadmap, leaving the ones already there alone.
 
         What a reader has already been shown keeps its position: a new video
@@ -160,18 +179,18 @@ class RoadmapStore:
         moves to the corpus that produced the extension, which is also the one
         the earlier steps were checked against when the walk resumed.
         """
-        self._insert(steps, source, stamp)
+        self._insert(steps, source, stamp, total)
 
     def save(self, steps: list[RoadmapStep], source: str = ALL,
-             stamp: str = "") -> None:
+             stamp: str = "", total: int = 0) -> None:
         with open_state(self._path) as conn:
             conn.execute("DELETE FROM roadmap WHERE source = ?", (source,))
             conn.execute("DELETE FROM roadmap_example WHERE source = ?",
                          (source,))
-        self._insert(steps, source, stamp)
+        self._insert(steps, source, stamp, total)
 
     def _insert(self, steps: list[RoadmapStep], source: str,
-                stamp: str = "") -> None:
+                stamp: str = "", total: int = 0) -> None:
         with open_state(self._path) as conn:
             conn.executemany(
                 f"INSERT INTO roadmap (source, {COLUMNS})"
@@ -191,9 +210,10 @@ class RoadmapStore:
             )
             if stamp:
                 conn.execute(
-                    "INSERT OR REPLACE INTO roadmap_meta (source, stamp, made_at)"
-                    " VALUES (?, ?, ?)",
-                    (source, stamp, datetime.now().isoformat(timespec="seconds")))
+                    "INSERT OR REPLACE INTO roadmap_meta"
+                    " (source, stamp, made_at, total) VALUES (?, ?, ?, ?)",
+                    (source, stamp,
+                     datetime.now().isoformat(timespec="seconds"), total))
 
     @staticmethod
     def _example_row(source: str, step: RoadmapStep, n: int,

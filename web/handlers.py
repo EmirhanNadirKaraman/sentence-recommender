@@ -194,10 +194,11 @@ class Viewer:
         # nothing.
         planned = self._planned(source, only) if self.counting(query) else None
         if planned is not None:
-            step, deck = planned
+            step, deck, total = planned
             readable, occurrences = step.readable, step.occurrences
         else:
-            step, deck, readable, occurrences = self._walked(query, source, only)
+            step, deck, readable, occurrences, total = self._walked(
+                query, source, only)
 
         if step is None:
             body = (switch + picker + "<h1>Nothing left that is i+1</h1>"
@@ -218,9 +219,9 @@ class Viewer:
             lede = "Everything in this sentence is yours except one word."
             kind = "a word"
         body = (
-            switch + picker +
-            f"<h1>{readable:,} sentences you can already read</h1>"
-            f"<p class='note'>{lede}</p>"
+            switch + picker
+            + self._progress(readable, total)
+            + f"<p class='note'>{lede}</p>"
             + self._stage(deck)
             + self._deck(deck, unit, source) +
             "<h2>The new thing</h2>"
@@ -235,8 +236,8 @@ class Viewer:
         )
         return layout("i+1", body, "/", source)
 
-    def _planned(self, source: str,
-                 only: str) -> tuple[RoadmapStep, list[Sentence]] | None:
+    def _planned(self, source: str, only: str
+                 ) -> tuple[RoadmapStep, list[Sentence], int] | None:
         """The next step of the stored plan the reader has not taken, and its
         deck.
 
@@ -279,11 +280,11 @@ class Viewer:
             # its words" — rendered under every slide — would do nothing here
             # until the next rebuild.
             deck = self.app.apply_overrides(deck)
-            return (step, deck) if deck else None
+            return (step, deck, self._store.total(label)) if deck else None
         return None
 
     def _walked(self, query: dict, source: str, only: str
-                ) -> tuple[RoadmapStep | None, list[Sentence], int, int]:
+                ) -> tuple[RoadmapStep | None, list[Sentence], int, int, int]:
         """The same answer, computed from a live index over the corpus.
 
         The original behaviour, and still the honest one: it recomputes what
@@ -300,11 +301,30 @@ class Viewer:
             kinds=frozenset({LEMMA}) if only == "word" else frozenset(),
         )
         if step is None:
-            return None, [], scope.index.readable, 0
+            return None, [], scope.index.readable, 0, len(scope.sentences)
         return (step,
                 scope.examples.examples(step.unit, self.known, limit=DECK_SIZE),
                 scope.index.readable,
-                scope.examples.count(step.unit))
+                scope.examples.count(step.unit),
+                len(scope.sentences))
+
+    @staticmethod
+    def _progress(readable: int, total: int) -> str:
+        """How far along the reader is, against what.
+
+        The denominator is not decoration. This page counts over whatever the
+        roadmap was walked over, and `--quality` walks 41,394 of 115,461
+        sentences — so the same wording over the same corpus honestly produced
+        27,971 one day and 5,720 the next. Saying both numbers is the only
+        version that cannot be read two ways.
+
+        A roadmap built before the total was recorded says nothing rather than
+        guessing at one.
+        """
+        if not total:
+            return f"<h1>{readable:,} sentences you can already read</h1>"
+        return (f"<h1>{readable:,} of {total:,} sentences you can already "
+                f"read</h1>")
 
     @staticmethod
     def _stage(deck: list[Sentence]) -> str:

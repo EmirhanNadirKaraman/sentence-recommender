@@ -68,7 +68,8 @@ class BuildRoadmapCommand:
         # Stamped with what built it, so the reading page can tell whether
         # the decks stored with these steps still describe a corpus that
         # exists — they name their sentences by text alone.
-        RoadmapStore(settings.state_path).save(plan, label, current_stamp())
+        RoadmapStore(settings.state_path).save(plan, label, current_stamp(),
+                                              len(sentences))
 
         now = datetime.now()
         app.card_store.add_many(
