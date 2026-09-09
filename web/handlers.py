@@ -13,7 +13,9 @@ from datetime import datetime
 from html import escape
 from urllib.parse import quote
 
+from commands.difficulty import ENOUGH_LINES, watchability
 from corpus.sentence import Sentence
+from db import Database
 from roadmap import (
     CorpusIndex, ExampleIndex, KnownSet, RoadmapBuilder, UnitPriority,
 )
@@ -61,6 +63,12 @@ class Viewer:
         # Blocked-set results, per source. The walk behind them is cheap on a
         # subtitle corpus and slow on a quarter of a million sentences.
         self._stuck: dict[str, list] = {}
+        # Videos grouped, and their metadata. None of it depends on what the
+        # reader knows, so it survives marking a word known — the scores are
+        # recomputed each load, the grouping is not.
+        self._videos: dict[str, dict] = {}
+        self._durations: dict[str, float] | None = None
+        self._video_titles: dict[str, str] | None = None
 
     # --- scope ------------------------------------------------------------
 
@@ -693,6 +701,134 @@ class Viewer:
         )
         return layout(key, body, "/roadmap", source)
 
+    # --- reels ------------------------------------------------------------
+
+    def reels(self, query: dict) -> str:
+        """One video at a time, ranked for watching rather than studying.
+
+        Scored on every load rather than cached, so marking a word known
+        moves the ranking immediately — which is the whole point of the page:
+        the videos you can follow are supposed to change as you learn. It
+        costs a pass over the corpus, which is cheaper than a stale answer.
+        """
+        source = self.source(query)
+        ranked = self._watchable(source)
+        if not ranked:
+            return layout("Reels", "<h1>Nothing to watch</h1><p class='empty'>"
+                          "No video in this corpus has enough subtitle lines.</p>",
+                          "/reels", source)
+
+        here = min(max(int(query.get("i") or 0), 0), len(ranked) - 1)
+        row = ranked[here]
+        args = f"?src={quote(source)}"
+        prev = (f"<a class='link' href='/reels{args}&i={here - 1}'>&larr; easier</a>"
+                if here else "<span class='link off'>&larr; easier</span>")
+        nxt = (f"<a class='link' href='/reels{args}&i={here + 1}'>harder &rarr;</a>"
+               if here + 1 < len(ranked) else "<span class='link off'>harder &rarr;</span>")
+
+        body = (
+            self.switch(source, "/reels")
+            + f"<h1>{escape(row['title'] or row['video'])}</h1>"
+            + f"<p class='note'>{here + 1} of {len(ranked):,}, ranked by how "
+              "well it plays with your hands full. Left and right move; the "
+              "scores follow whatever you have marked known.</p>"
+            + video.player(row["video"], 0)
+            + self._scoreboard(row)
+            + f"<div class='pager'>{prev}{nxt}</div>"
+            + self._reel_keys(source, here, len(ranked))
+        )
+        return layout("Reels", body, "/reels", source)
+
+    @staticmethod
+    def _scoreboard(row: dict) -> str:
+        length = f"{row['minutes']:.0f} min" if row["minutes"] else "unknown"
+        cells = (("you can follow", f"{row['comprehension']:.0%}"),
+                 ("length", length),
+                 ("sentences", f"{row['lines']:,}"),
+                 ("one new thing", f"{row['i+1']:,}"),
+                 ("teaches from your list", f"{row['teaches']:,}"),
+                 ("watchability", f"{row['watch']:.2f}"))
+        return ("<div class='switch'>" + "".join(
+            f"<span><strong>{value}</strong> {label}</span>" for label, value in cells
+        ) + "</div>")
+
+    @staticmethod
+    def _reel_keys(source: str, here: int, total: int) -> str:
+        """Left and right, because the point is not to touch anything."""
+        return (
+            "<script>(function () {"
+            "document.addEventListener('keydown', function (e) {"
+            "  var el = document.activeElement;"
+            "  if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ||"
+            "             el.tagName === 'SELECT' || el.isContentEditable)) return;"
+            f"  var at = {here}, last = {total - 1};"
+            f"  var to = '/reels?src={quote(source)}&i=';"
+            "  if (e.key === 'ArrowLeft' && at > 0) "
+            "    { location.href = to + (at - 1); e.preventDefault(); }"
+            "  if (e.key === 'ArrowRight' && at < last) "
+            "    { location.href = to + (at + 1); e.preventDefault(); }"
+            "});})();</script>"
+        )
+
+    def _watchable(self, source: str, floor: int = ENOUGH_LINES) -> list[dict]:
+        """Every video with enough in it, best-to-watch first.
+
+        `floor` is what the reel refuses to offer; the catalogue lists
+        everything and lets the score speak, since a thin video is not
+        hidden, it simply sinks.
+        """
+        known = self.known
+        goals = frozenset(self.app.goal_units)
+        out = []
+        for video_id, sentences in self._grouped(source).items():
+            if len(sentences) < floor:
+                continue
+            readable = teachable = 0
+            unblocks: set = set()
+            for sentence in sentences:
+                missing = sentence.units - known
+                if not missing:
+                    readable += 1
+                elif len(missing) == 1:
+                    teachable += 1
+                    unblocks |= missing & goals
+            comprehension = readable / len(sentences)
+            minutes = self._minutes().get(video_id)
+            out.append({
+                "video": video_id, "title": self._titles().get(video_id, ""),
+                "lines": len(sentences), "minutes": minutes,
+                "comprehension": comprehension, "i+1": teachable,
+                "teaches": len(unblocks),
+                "watch": watchability(comprehension, minutes, len(sentences)),
+            })
+        out.sort(key=lambda r: -r["watch"])
+        return out
+
+    def _grouped(self, source: str) -> dict[str, list]:
+        """Sentences by video. Cached: it does not depend on what you know."""
+        if source not in self._videos:
+            groups: dict[str, list] = defaultdict(list)
+            for sentence in self.app.corpus(*self._builds(source), list_only=False):
+                if sentence.timing:
+                    groups[sentence.timing.video_id].append(sentence)
+            self._videos[source] = dict(groups)
+        return self._videos[source]
+
+    def _minutes(self) -> dict[str, float]:
+        if self._durations is None:
+            with Database(self.app.settings.database) as db:
+                rows = db.rows("SELECT video_id, duration FROM video"
+                               " WHERE duration IS NOT NULL")
+            self._durations = {v: secs / 60 for v, secs in rows}
+        return self._durations
+
+    def _titles(self) -> dict[str, str]:
+        if self._video_titles is None:
+            with Database(self.app.settings.database) as db:
+                self._video_titles = dict(
+                    db.rows("SELECT video_id, title FROM video"))
+        return self._video_titles
+
     def watch(self, query: dict) -> str:
         source = self.source(query)
         target = Unit(query.get("kind", ""), query.get("key", ""))
@@ -738,25 +874,34 @@ class Viewer:
 
     def subtitles(self, query: dict) -> str:
         source = self.source(query)
-        by_video: dict[str, list] = defaultdict(list)
-        for s in self.app.corpus_store.load("subtitle", "subtitle:llm",
-                                            teachable_only=False):
-            if s.timing:
-                by_video[s.timing.video_id].append(s)
+        # Scored the same way the Reels tab ranks them, off the same grouping,
+        # so the catalogue answers the question you actually have about a
+        # video — can I follow it — and does not pay to load the corpus twice.
+        ranked = self._watchable(source, floor=1)
+        minutes = self._minutes()
         rows = "".join(
-            f"<tr><td><a href='https://www.youtube.com/watch?v={escape(v)}'>"
-            f"<code>{escape(v)}</code></a></td><td class='n'>{len(g):,}</td>"
-            f"<td class='n'>{max(x.timing.end for x in g) / 60:.0f} min</td></tr>"
-            for v, g in sorted(by_video.items())
+            f"<tr><td><a href='/reels?src={quote(source)}&i={n}'>"
+            f"{escape((r['title'] or r['video'])[:58])}</a></td>"
+            f"<td class='n'>{r['comprehension']:.0%}</td>"
+            f"<td class='n'>{r['watch']:.2f}</td>"
+            f"<td class='n'>{r['teaches']:,}</td>"
+            f"<td class='n'>{r['lines']:,}</td>"
+            f"<td class='n'>"
+            + (f"{minutes[r['video']]:.0f} min" if r["video"] in minutes else "—")
+            + "</td></tr>"
+            for n, r in enumerate(ranked)
         )
-        table = (f"<table class='rows'><tr><th>video</th><th class='n'>cues</th>"
+        table = (f"<table class='rows'><tr><th>video</th>"
+                 f"<th class='n'>you follow</th><th class='n'>watch</th>"
+                 f"<th class='n'>teaches</th><th class='n'>cues</th>"
                  f"<th class='n'>length</th></tr>{rows}</table>" if rows
                  else "<p class='empty'>No aligned subtitles yet.</p>")
-        body = ("<h1>Videos</h1><p class='note'>Corrected subtitles re-timed to "
-                "the video clock. Open a word from the roadmap to watch it being "
-                "said.</p>"
+        body = ("<h1>Videos</h1><p class='note'>Best to watch first. "
+                "<em>You follow</em> is the share of its sentences you can "
+                "already read; <em>watch</em> combines that with length and "
+                "how much is in it. Both move as you mark words known.</p>"
                 + self._add_video_form(query)
-                + f"<h2>{len(by_video)} in the catalogue</h2>" + table)
+                + f"<h2>{len(ranked)} in the catalogue</h2>" + table)
         return layout("Videos", body, "/subtitles", source)
 
     @staticmethod

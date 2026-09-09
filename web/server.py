@@ -112,6 +112,8 @@ def _make_handler(viewer: Viewer):
                 return viewer.fix(query), 200
             if path == "/subtitles":
                 return viewer.subtitles(query), 200
+            if path == "/reels":
+                return viewer.reels(query), 200
             if path == "/blocked":
                 return viewer.blocked(query), 200
             if path == "/watch":
