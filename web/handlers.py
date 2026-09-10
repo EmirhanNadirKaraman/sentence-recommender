@@ -480,7 +480,10 @@ class Viewer:
             "</span>"
             "<button type='button' id='next' aria-label='Next sentence'>"
             "&#8594;</button>"
-            "<span class='hint'>arrow keys &nbsp;&nbsp; "
+            # Naming both axes, because the right arrow is no longer a
+            # way of looking around: it marks the word known.
+            "<span class='hint'>&uarr;&darr; another sentence &nbsp; "
+            "&rarr; know it &nbsp; &larr; later &nbsp;&nbsp; "
             + (f"{readable} of them need only this"
                if readable != 1 else "one of them needs only this")
             + "</span></div>"

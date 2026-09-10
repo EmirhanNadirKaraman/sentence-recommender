@@ -77,3 +77,15 @@ sieh      sehen
 gehst     gehen
 musste    müssen
 mussten   müssen
+
+# The tail of the same sweep. `mussen` is a typo in the subtitle itself, not a
+# parser slip — it is written that way on screen — but it is tagged as a verb,
+# so the correction reaches it.
+#
+# Two more rows are left alone on purpose: `Sieh` comes back tagged ADJD and
+# `gehst` ADV, both in damaged lines, and the verb guard refuses them. That
+# guard is what keeps the adjective `weißen` from being folded into `wissen`,
+# and three rows in 1.18 million is not a reason to loosen it.
+
+wussten   wissen
+mussen    müssen

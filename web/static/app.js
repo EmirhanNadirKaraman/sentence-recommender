@@ -201,8 +201,15 @@
     var el = document.activeElement;
     if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ||
                el.tagName === 'SELECT' || el.isContentEditable)) return;
-    if (e.key === 'ArrowLeft') { show(showing - 1); e.preventDefault(); }
-    if (e.key === 'ArrowRight') { show(showing + 1); e.preventDefault(); }
+    // The same rule as the gestures: vertical is another one of these,
+    // horizontal decides. Worth knowing that this changes what the right
+    // arrow means — it used to step the deck and now marks a word known,
+    // which is a write. The hint under the stepper says both axes for that
+    // reason.
+    if (e.key === 'ArrowDown' || e.key === 'j') { show(showing + 1); e.preventDefault(); }
+    if (e.key === 'ArrowUp' || e.key === 'k') { show(showing - 1); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { decide('known'); e.preventDefault(); }
+    if (e.key === 'ArrowLeft') { decide('pass'); e.preventDefault(); }
   });
 
   bind();
@@ -347,7 +354,9 @@
     var el = document.activeElement;
     if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ||
                el.tagName === 'SELECT' || el.isContentEditable)) return;
-    if (e.key === 'ArrowDown') { go(s.at + 1); e.preventDefault(); }
-    if (e.key === 'ArrowUp') { go(s.at - 1); e.preventDefault(); }
+    if (e.key === 'ArrowDown' || e.key === 'j') { go(s.at + 1); e.preventDefault(); }
+    if (e.key === 'ArrowUp' || e.key === 'k') { go(s.at - 1); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { decide('known'); e.preventDefault(); }
+    if (e.key === 'ArrowLeft') { decide('pass'); e.preventDefault(); }
   });
 })();
