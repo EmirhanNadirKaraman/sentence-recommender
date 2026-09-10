@@ -105,6 +105,10 @@ class Settings:
     # Examples shown per review card.
     examples_per_card: int = 3
 
+    # How many other words to get through before one set aside comes back.
+    # Counted in decisions, not minutes — see `vocab.snooze_store`.
+    snooze_words: int = 20
+
     # Selection weight: score = unlock_gain + priority_weight * priority.
     # `priority` is in [0, 1] for both unit kinds, so the weight sets how far a
     # high-priority unit may outrank a higher-gain one.  Corpus gains are small

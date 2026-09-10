@@ -73,13 +73,6 @@ class Viewer:
         self._known = None
         self._scopes: dict[str, Scope] = {}
         self._store = RoadmapStore(app.settings.state_path)
-        # Units set aside without claiming to know them. Session-only, and
-        # that is the whole of it: the `pass` branch of `mark_known` writes
-        # nothing at all, so setting a word aside dies with the process. It
-        # used to claim the review card was the durable record; the card is
-        # minted when the roadmap is built whether you pass or not, so it
-        # records nothing about the decision.
-        self._passed: set[Unit] = set()
         # Blocked-set results, per source. The walk behind them is cheap on a
         # subtitle corpus and slow on a quarter of a million sentences.
         self._stuck: dict[str, list] = {}
@@ -280,14 +273,22 @@ class Viewer:
         label = self._stored_label(source, list_only)
         if self._store.stamp(label) != current_stamp():
             return None
-        known, skip = self.known, self._passed
-        for step in self._store.load(label):
-            if step.unit in known or step.unit in skip:
-                continue
+        known = self.known
+        steps = self._store.load(label)
+
+        def first(skip: frozenset[Unit]):
             # Patterns are grammar, not vocabulary. Some days you want one and
             # not the other, so they can be stepped over without being learned.
-            if only == "word" and step.unit.is_pattern:
-                continue
+            return next((s for s in steps
+                         if s.unit not in known and s.unit not in skip
+                         and not (only == "word" and s.unit.is_pattern)), None)
+
+        # Twice, if the first pass finds nothing. Everything left being set
+        # aside is not the same as nothing being left, and "nothing is i+1"
+        # would be a lie when the only thing in the way is your own skips.
+        # Better to offer a word early than to claim the corpus is exhausted.
+        step = first(self.app.snoozes.asleep()) or first(frozenset())
+        if step is not None:
             deck = self._store.deck(label, step)
             # A step with nothing written against it is a step from before the
             # decks existed. Falling back beats an empty page.
@@ -311,7 +312,7 @@ class Viewer:
         trusted.
         """
         scope = self.scope(source, self.counting(query))
-        skip = set(self._passed)
+        skip = set(self.app.snoozes.asleep())
         if only == "word":
             skip |= {u for u in scope.index.known_units_of_kind(PATTERN)}
         step = scope.builder.peek(
@@ -628,11 +629,17 @@ class Viewer:
             return back
 
         if form.get("action") == "pass":
-            self._passed.add(unit)
+            self.app.snoozes.snooze(unit, self.app.settings.snooze_words)
         else:
             self.app.marked_known.add(unit)
             self.app.card_store.remove(unit)
-            self._passed.discard(unit)
+            # Off the shelf rather than left to expire: learning a word should
+            # not leave it remembering that it was once avoided.
+            self.app.snoozes.wake(unit)
+            # Learning is a decision too, and the delay counts decisions —
+            # otherwise a session spent marking words known would never bring
+            # anything back.
+            self.app.snoozes.advance()
             if self._known is not None and unit not in self._known:
                 self._known.learn(unit)
             for scope in self._scopes.values():
