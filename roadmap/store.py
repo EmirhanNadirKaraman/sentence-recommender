@@ -61,6 +61,11 @@ CREATE TABLE IF NOT EXISTS roadmap (
     now_readable INTEGER NOT NULL,
     readable     INTEGER NOT NULL DEFAULT 0,
     occurrences  INTEGER NOT NULL DEFAULT 0,
+    -- The word learned alongside this one, on the steps where the walk had to
+    -- take two from a sentence because nothing anywhere was one word away.
+    -- Null on an ordinary step, which is nearly all of them.
+    beside_kind  TEXT,
+    beside_key   TEXT,
     PRIMARY KEY (source, position)
 );
 
@@ -88,7 +93,8 @@ CREATE TABLE IF NOT EXISTS roadmap_meta (
 """
 
 COLUMNS = ("position, kind, key, sentence, translation, origin, surface,"
-           " gain, score, now_readable, readable, occurrences")
+           " gain, score, now_readable, readable, occurrences,"
+           " beside_kind, beside_key")
 
 EXAMPLE_COLUMNS = ("position, n, text, translation, origin, surface, units,"
                    " video_id, start_time, end_time")
@@ -124,15 +130,25 @@ class RoadmapStore:
         write against an older database fails.  The defaults are what an old
         row honestly says: nothing was recorded, and the page falls back to
         counting for itself.
+
+        The type travels with the name because not every column is a count.
+        `beside_kind` is a word or it is nothing, and adding it as `INTEGER
+        NOT NULL DEFAULT 0` — which is what every column got when they were
+        all tallies — made a plain step unwritable.
         """
-        for table, added in (("roadmap", ("readable", "occurrences")),
-                             ("roadmap_meta", ("total",))):
+        for table, added in (
+            ("roadmap", (("readable", "INTEGER NOT NULL DEFAULT 0"),
+                         ("occurrences", "INTEGER NOT NULL DEFAULT 0"),
+                         ("beside_kind", "TEXT"),
+                         ("beside_key", "TEXT"))),
+            ("roadmap_meta", (("total", "INTEGER NOT NULL DEFAULT 0"),)),
+        ):
             columns = {row[1] for row in
                        conn.execute(f"PRAGMA table_info({table})")}
-            for name in added:
+            for name, kind in added:
                 if name not in columns:
-                    conn.execute(f"ALTER TABLE {table} ADD COLUMN {name}"
-                                 " INTEGER NOT NULL DEFAULT 0")
+                    conn.execute(
+                        f"ALTER TABLE {table} ADD COLUMN {name} {kind}")
 
     def sources(self) -> dict[str, int]:
         """Which roadmaps exist, and how long each is."""
@@ -194,11 +210,13 @@ class RoadmapStore:
         with open_state(self._path) as conn:
             conn.executemany(
                 f"INSERT INTO roadmap (source, {COLUMNS})"
-                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 [(source, s.position, s.unit.kind, s.unit.key, s.sentence.text,
                   s.sentence.translation, s.sentence.origin,
                   s.sentence.surface_of(s.unit), s.gain, s.score,
-                  s.now_readable, s.readable, s.occurrences) for s in steps],
+                  s.now_readable, s.readable, s.occurrences,
+                  s.beside.kind if s.beside else None,
+                  s.beside.key if s.beside else None) for s in steps],
             )
             conn.executemany(
                 f"INSERT OR REPLACE INTO roadmap_example (source,"
@@ -257,9 +275,11 @@ class RoadmapStore:
                 now_readable=now_readable,
                 readable=readable,
                 occurrences=occurrences,
+                beside=Unit(beside_kind, beside_key) if beside_key else None,
             )
-            for position, kind, key, text, translation, origin, surface, gain,
-                score, now_readable, readable, occurrences in rows
+            for (position, kind, key, text, translation, origin, surface, gain,
+                 score, now_readable, readable, occurrences,
+                 beside_kind, beside_key) in rows
         ]
 
     def deck(self, source: str, step: RoadmapStep) -> list[Sentence]:
