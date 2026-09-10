@@ -16,7 +16,8 @@ from corpus import CorpusStore, SentenceFilter, SentenceOverrides, UnitAnalyzer
 from db import Database, PatternRepository, WordRepository
 from roadmap import ExampleIndex, KnownSet, UnitPriority
 from srs import CardStore, PromptBuilder, SM2Scheduler
-from vocab import GoalList, KnownStore, SnoozeStore, Unit, WordListLoader
+from vocab import (CheckedStore, GoalList, KnownStore, SnoozeStore, Unit,
+                   WordListLoader)
 from vocab.cache import ResolvedCache
 
 
@@ -244,6 +245,10 @@ class Application:
     @cached_property
     def snoozes(self) -> SnoozeStore:
         return SnoozeStore(self.settings.state_path)
+
+    @cached_property
+    def checked(self) -> CheckedStore:
+        return CheckedStore(self.settings.state_path)
 
     def known_set(self) -> KnownSet:
         """Everything the reader knows: the vocabulary files plus what they

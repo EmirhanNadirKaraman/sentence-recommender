@@ -1,17 +1,26 @@
 """`quiz` — check the words the roadmap assumes you already know.
 
-Nine hundred and forty-one units are counted as known before the walk starts,
-almost all of them from `known_words.txt` and `function_words.txt`. Nothing
-has ever verified them. A word wrongly on that list does not block anything —
-it does something worse and quieter: sentences containing it are called
-readable, i+1 counts are wrong wherever it appears, and every number
-downstream inherits the error without a warning.
+Nine hundred and sixty-five units are counted as known before the walk starts.
+All but the twenty-two marked while reading come from `known_words.txt` and
+`function_words.txt`, and nothing has ever verified those — 865 of them are
+said somewhere in the corpus, which is what this asks about.
+
+A word wrongly on that list does not block anything — it does something worse
+and quieter: sentences containing it are called readable, i+1 counts are wrong
+wherever it appears, and every number downstream inherits the error without a
+warning.
 
 Asked most-frequent first, because that is where being wrong costs most: a
 mistaken `der` misprices thousands of sentences, a mistaken `Volkshochschule`
 misprices one. Answering "no" comments the line out, which is what both files
 already document as the way to say you do not know something — reversible,
 readable, and reviewable in a diff.
+
+A "yes" is written down too, to `checked_units` — not because it changes what
+you know, but because otherwise the quiz cannot finish. It asks the most
+frequent words first and forty at a time, so if a yes left no trace the next
+run would ask the same forty, and the run after that would ask them again.
+Confirmed words drop out of the pool and the count creeps forward.
 """
 from __future__ import annotations
 
@@ -22,6 +31,9 @@ from vocab.entry import Unit
 from vocab.loader import ARTICLES
 
 PROMPT = "  know it? [Enter]=yes  n=no  s=skip  q=save and quit > "
+# Anything not in here is a typo, and a typo used to mean yes: the dispatch
+# ended in an `else` that counted the word as known. Now it asks again.
+ANSWERS = {"", "y", "yes", "n", "no", "s", "skip", "q", "quit"}
 
 
 class QuizCommand:
@@ -37,13 +49,23 @@ class QuizCommand:
         grouped: dict[Unit, list[dict]] = {}
         for entry in entries:
             grouped.setdefault(entry["unit"], []).append(entry)
-        pending = sorted((g for g in grouped.values() if counts.get(g[0]["unit"], 0)),
-                         key=lambda g: -counts[g[0]["unit"]])[:limit]
+        # Confirmed words drop out, which is what lets the quiz finish. A yes
+        # used to write nothing, so the next run asked the same forty and the
+        # one after that asked them again — there was no way past the first
+        # forty except to deny them.
+        done = app.checked.units()
+        left = sorted((g for g in grouped.values()
+                       if counts.get(g[0]["unit"], 0)
+                       and g[0]["unit"] not in done),
+                      key=lambda g: -counts[g[0]["unit"]])
+        pending = left[:limit]
         if not pending:
-            raise SystemExit("nothing left to check in the vocabulary files")
+            raise SystemExit("nothing left to check — every assumed-known word "
+                             "has been confirmed or commented out")
 
-        print(f"\n  {len(grouped):,} words are assumed known; checking {len(pending)} "
-              "of them, most frequent first.")
+        print(f"\n  {len(grouped):,} words are assumed known, {len(done):,} already "
+              f"confirmed; checking {len(pending)} of the {len(left):,} left, most "
+              "frequent first.")
         print("  Answering no comments the line out; nothing else is touched.\n")
 
         removed: dict[Path, list[str]] = {}
@@ -58,20 +80,27 @@ class QuizCommand:
             if example:
                 print(f"     {example}")
             answer = input(PROMPT).strip().lower()
-            if answer == "q":
+            while answer not in ANSWERS:
+                answer = input("  sorry — [Enter], n, s or q > ").strip().lower()
+            if answer in ("q", "quit"):
                 break
-            if answer == "s":
+            if answer in ("s", "skip"):
                 continue
-            if answer == "n":
+            if answer in ("n", "no"):
                 for entry in group:
                     removed.setdefault(entry["path"], []).append(entry["line"])
+                # It may have been confirmed on an earlier run and since
+                # thought better of; the file is being changed either way.
+                app.checked.forget(unit)
             else:
+                app.checked.confirm(unit)
                 known += 1
 
         for path, lines in removed.items():
             self._comment_out(path, lines)
         total = sum(len(v) for v in removed.values())
         print(f"\n  asked {asked}, knew {known}, removed {total}")
+        print(f"  {len(app.checked):,} of {len(grouped):,} confirmed so far")
         for path, lines in removed.items():
             print(f"    {path.name}: {', '.join(l.split('#')[0].strip() for l in lines)}")
         if total:
