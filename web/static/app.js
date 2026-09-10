@@ -14,11 +14,48 @@
 // learned — and applied to <body> so both pages get it from one place.
 (function () {
   var KEY = 'i1-audio';
+
+  // Keeping the screen awake, and only while listening.
+  //
+  // Safari suspends a page when the screen sleeps, which stops the video —
+  // so on a run the audio dies a minute after the phone goes in your pocket.
+  // A wake lock is the fix, and it is deliberately tied to this mode rather
+  // than held always: it costs battery, and "I am listening" is exactly the
+  // signal that the screen going dark would be a problem.
+  //
+  // The lock is dropped by the browser whenever the page is hidden and is
+  // not given back on its own, so it is re-taken on every return to
+  // visibility. Everything here is guarded: it needs a secure context and
+  // iOS 16.4, and where it is missing the mode still works, the screen just
+  // sleeps as it always did.
+  var lock = null;
+
+  function hold() {
+    if (!('wakeLock' in navigator) || lock) return;
+    navigator.wakeLock.request('screen').then(function (l) {
+      lock = l;
+      l.addEventListener('release', function () { lock = null; });
+    }).catch(function () { lock = null; });   // refused: low battery, hidden
+  }
+
+  function release() {
+    if (!lock) return;
+    var l = lock;
+    lock = null;
+    try { l.release(); } catch (e) {}
+  }
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible'
+        && document.body.classList.contains('audio')) hold();
+  });
+
   function apply(on) {
     document.body.classList.toggle('audio', on);
     var b = document.getElementById('mode');
     if (b) b.textContent = on ? 'watching, not listening'
                               : 'listening, not watching';
+    if (on) hold(); else release();
   }
   var stored = false;
   try { stored = localStorage.getItem(KEY) === '1'; } catch (e) {}
