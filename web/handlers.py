@@ -416,7 +416,6 @@ class Viewer:
             + (f"{readable} of them need only this"
                if readable != 1 else "one of them needs only this")
             + "</span></div>"
-            + _DECK_SCRIPT
         )
 
     @staticmethod
@@ -1489,33 +1488,3 @@ def _clock(seconds: float) -> str:
     minutes, secs = divmod(int(seconds), 60)
     return f"{minutes}:{secs:02d}"
 
-
-_DECK_SCRIPT = """
-<script>
-(function () {
-  var slides = document.querySelectorAll('#deck .slide');
-  var at = document.getElementById('at');
-  var showing = 0;
-  if (slides.length < 2) return;
-
-  function show(i) {
-    slides[showing].hidden = true;
-    showing = (i + slides.length) % slides.length;
-    slides[showing].hidden = false;
-    at.textContent = showing + 1;
-  }
-
-  document.getElementById('prev').onclick = function () { show(showing - 1); };
-  document.getElementById('next').onclick = function () { show(showing + 1); };
-
-  document.addEventListener('keydown', function (e) {
-    // Never steal the arrows from a field someone is typing in.
-    var el = document.activeElement;
-    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ||
-               el.tagName === 'SELECT' || el.isContentEditable)) return;
-    if (e.key === 'ArrowLeft') { show(showing - 1); e.preventDefault(); }
-    if (e.key === 'ArrowRight') { show(showing + 1); e.preventDefault(); }
-  });
-})();
-</script>
-"""
