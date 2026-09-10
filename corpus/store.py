@@ -39,6 +39,9 @@ CREATE TABLE IF NOT EXISTS sentences (
     teachable   INTEGER NOT NULL DEFAULT 1
 );
 CREATE INDEX IF NOT EXISTS ix_sentences_build ON sentences(build);
+-- One video's cues, for the transcript beside the player. Without this
+-- the only way to that answer is a scan of every sentence in the table.
+CREATE INDEX IF NOT EXISTS ix_sentences_video ON sentences(video_id);
 CREATE TABLE IF NOT EXISTS sentence_units (
     sentence_id INTEGER NOT NULL REFERENCES sentences(id) ON DELETE CASCADE,
     kind        TEXT NOT NULL,
@@ -169,19 +172,35 @@ class CorpusStore:
         timing = sentence.timing
         return (timing.video_id, timing.start, timing.end) if timing else (None, None, None)
 
-    def load(self, *builds: str, teachable_only: bool = True) -> list[Sentence]:
+    def load(self, *builds: str, teachable_only: bool = True,
+             video: str | None = None) -> list[Sentence]:
         """Cached sentences.  By default only the ones worth studying from —
         pass `teachable_only=False` for the full transcript, which is what an
-        overlay needs."""
+        overlay needs.
+
+        `video` narrows to one video's lines, which is what the transcript
+        panel wants and the only thing it wants. Asked without it, that panel
+        loaded every sentence of every build to keep the two hundred it
+        needed — a scan of the whole table, plus its million-odd unit rows,
+        interned into Python objects and then thrown away. Pushing the filter
+        into SQL is the difference between a page and a coffee.
+        """
         if not builds:
             return []          # `WHERE build IN ()` is not valid SQL
         placeholders = ",".join("?" * len(builds))
         teachable = " AND teachable = 1" if teachable_only else ""
+        # Narrowing both halves matters: the unit join is the larger of the
+        # two, and filtering only the sentences would still walk every unit
+        # row in the corpus to find the handful belonging to this video.
+        one_video = " AND video_id = ?" if video else ""
+        joined_video = " AND s.video_id = ?" if video else ""
+        args = builds + ((video,) if video else ())
         with self._connect() as conn:
             rows = conn.execute(
                 "SELECT id, origin, text, translation, raw_text, source_ids,"
                 " video_id, start_time, end_time, teachable"
-                f" FROM sentences WHERE build IN ({placeholders}){teachable}", builds,
+                f" FROM sentences WHERE build IN ({placeholders}){teachable}"
+                f"{one_video}", args,
             ).fetchall()
             units: dict[int, set[Unit]] = {}
             surfaces: dict[int, list[tuple[Unit, str]]] = {}
@@ -193,7 +212,7 @@ class CorpusStore:
             for sid, kind, key, surface in conn.execute(
                 "SELECT su.sentence_id, su.kind, su.key, su.surface FROM sentence_units su"
                 " JOIN sentences s ON s.id = su.sentence_id"
-                f" WHERE s.build IN ({placeholders})", builds,
+                f" WHERE s.build IN ({placeholders}){joined_video}", args,
             ):
                 unit = seen.get((kind, key))
                 if unit is None:

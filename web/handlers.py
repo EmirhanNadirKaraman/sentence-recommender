@@ -1259,9 +1259,17 @@ class Viewer:
         return layout(f"{target.key} on video", body, "/subtitles", source)
 
     def _cues(self, video_id: str) -> list[Sentence]:
+        """Every line of one video, in the order it is spoken.
+
+        Asked of the database rather than of the corpus. This used to load
+        every sentence of both builds and keep the two hundred with the right
+        video id, which is a full scan and a million interned units for a
+        panel that fires on its own the moment the reading page opens.
+        """
         cues = [s for s in self.app.corpus_store.load(
-                    "subtitle", "subtitle:llm", teachable_only=False)
-                if s.timing and s.timing.video_id == video_id]
+                    "subtitle", "subtitle:llm", teachable_only=False,
+                    video=video_id)
+                if s.timing]
         return sorted(cues, key=lambda s: s.timing.start)
 
     def subtitles(self, query: dict) -> str:
