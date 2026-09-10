@@ -18,6 +18,7 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import datetime
+import json
 from html import escape
 from queue import Queue
 from threading import Lock, Thread
@@ -978,19 +979,54 @@ class Viewer:
         nxt = (f"<a class='link' href='/reels{args}&i={here + 1}'>harder &rarr;</a>"
                if here + 1 < len(ranked) else "<span class='link off'>harder &rarr;</span>")
 
+        state = json.dumps({"at": here, "total": len(ranked),
+                            "src": source, "video": row["video"]})
         body = (
             self.switch(source, "/reels")
-            + f"<h1>{escape(row['title'] or row['video'])}</h1>"
-            + f"<p class='note'>{here + 1} of {len(ranked):,}, ranked by how "
-              "well it plays with your hands full. Left and right move; the "
-              "scores follow whatever you have marked known.</p>"
+            + f"<h1 id='reel-title'>{escape(row['title'] or row['video'])}</h1>"
+            + "<p class='note'><span id='reel-at'>" + f"{here + 1}"
+            + f"</span> of {len(ranked):,}, ranked by how well it plays with "
+              "your hands full. Swipe up and down to move, right to say you "
+              "know a word, left to set it aside.</p>"
+            + "<div class='card' id='reel'>"
             + video.player(row["video"], 0)
-            + self._scoreboard(row)
+            + f"<div id='reel-board'>{self._scoreboard(row)}</div>"
+            + f"<div id='reel-panel'>"
             + self._to_follow(source, row, back=f"/reels?i={here}")
+            + "</div></div>"
             + f"<div class='pager'>{prev}{nxt}</div>"
-            + self._reel_keys(source, here, len(ranked))
+            # State as data, never interpolated into code: the title is a
+            # video title and goes nowhere near a script body.
+            + "<script type='application/json' id='reel-state'>"
+            + state.replace("<", "\\u003c") + "</script>"
+            + video.merged_script()
         )
         return layout("Reels", body, "/reels", source)
+
+    def reels_json(self, query: dict) -> dict:
+        """One reel's worth of data, for swapping in without a page load.
+
+        The player is deliberately not part of this. Reloading the page to
+        change video destroys the iframe, and iOS grants playback permission
+        to the iframe's *document* — so the next `playVideo` after a teardown
+        is an unprivileged call and simply does nothing. The picture has to
+        outlive the swipe, which means the server sends what changes around
+        it and the client keeps the player.
+        """
+        source = self.source(query)
+        ranked = self._watchable(source)
+        if not ranked:
+            return {"empty": True}
+        here = min(max(int(query.get("i") or 0), 0), len(ranked) - 1)
+        row = ranked[here]
+        return {
+            "at": here,
+            "total": len(ranked),
+            "video": row["video"],
+            "title": row["title"] or row["video"],
+            "scoreboard": self._scoreboard(row),
+            "panel": self._to_follow(source, row, back=f"/reels?i={here}"),
+        }
 
     @staticmethod
     def _scoreboard(row: dict) -> str:
@@ -1049,24 +1085,6 @@ class Viewer:
                 f"taking you from {at:.0%} to "
                 f"{(at + best[1] / total):.0%}.</p>"
                 f"<div class='ledger'>{entries}</div>")
-
-    @staticmethod
-    def _reel_keys(source: str, here: int, total: int) -> str:
-        """Left and right, because the point is not to touch anything."""
-        return (
-            "<script>(function () {"
-            "document.addEventListener('keydown', function (e) {"
-            "  var el = document.activeElement;"
-            "  if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ||"
-            "             el.tagName === 'SELECT' || el.isContentEditable)) return;"
-            f"  var at = {here}, last = {total - 1};"
-            f"  var to = '/reels?src={quote(source)}&i=';"
-            "  if (e.key === 'ArrowLeft' && at > 0) "
-            "    { location.href = to + (at - 1); e.preventDefault(); }"
-            "  if (e.key === 'ArrowRight' && at < last) "
-            "    { location.href = to + (at + 1); e.preventDefault(); }"
-            "});})();</script>"
-        )
 
     def _watchable(self, source: str, floor: int = ENOUGH_LINES) -> list[dict]:
         """Every video with enough in it, best-to-watch first.

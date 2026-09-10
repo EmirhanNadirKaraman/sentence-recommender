@@ -174,6 +174,15 @@ button:hover { border-color: var(--target); }
    before any handler runs, and no amount of preventDefault gets it back. The
    selection guards matter too: a long-press that starts selecting text
    cancels the drag halfway through. */
+/* The video is a cross-origin iframe: touches landing on it go to its own
+   browsing context and never reach this page, so a swipe that starts on the
+   picture is invisible. Turning its pointer events off is what makes the feed
+   possible at all — the cost is YouTube's own controls, and a tap on the card
+   plays and pauses instead. Only the feed does this; /watch keeps its
+   controls, because there a swipe means nothing. */
+#reel .player iframe { pointer-events: none; }
+#reel { will-change: transform; }
+
 .card { touch-action: none;
   user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .deck { min-height: 7.2rem; will-change: transform; }
