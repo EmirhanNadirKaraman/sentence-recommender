@@ -138,6 +138,9 @@ def _parser() -> argparse.ArgumentParser:
         "quiz", help="check the words the roadmap assumes you already know")
     quiz.add_argument("--limit", type=int, default=40)
     quiz.add_argument("--source", default="subtitle")
+    quiz.add_argument("--from", dest="files", default="both",
+                      choices=("both", "known", "function"),
+                      help="which vocabulary file to check (default: both)")
 
     hard = sub.add_parser(
         "difficulty", help="how hard each video is, and what it would teach")
@@ -186,7 +189,7 @@ def main() -> int:
         AddVideosCommand().run(app, args.channel, args.language, args.dry_run,
                                args.limit)
     elif args.command == "quiz":
-        QuizCommand().run(app, args.limit, args.source)
+        QuizCommand().run(app, args.limit, args.source, args.files)
     elif args.command == "difficulty":
         DifficultyCommand().run(app, args.source, args.limit, args.sort)
     elif args.command == "unblock":

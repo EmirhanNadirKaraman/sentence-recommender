@@ -13,7 +13,11 @@ parser, so it is what the rule turns on.
 """
 from __future__ import annotations
 
+import tempfile
 import unittest
+from collections import Counter
+from pathlib import Path
+from types import SimpleNamespace
 
 from commands.quiz import QuizCommand
 from vocab.entry import Unit
@@ -78,6 +82,53 @@ class MergeFramesTest(unittest.TestCase):
         grouped = self.group(entry("haus", Unit.lemma("haus")),
                              entry("baum", Unit.lemma("baum")))
         self.assertEqual(len(grouped), 2)
+
+
+class SourceTest(unittest.TestCase):
+    """`--from`, which points the quiz at one vocabulary file.
+
+    The two hold different kinds of claim. `function_words.txt` is generated
+    and closed-class, so nearly every answer is yes; `known_words.txt` is a
+    published wordlist never checked against this reader. Auditing them
+    together tells you less than auditing either alone.
+    """
+
+    def setUp(self) -> None:
+        self._dir = tempfile.TemporaryDirectory()
+        root = Path(self._dir.name)
+        self.known = root / "known_words.txt"
+        self.function = root / "function_words.txt"
+        self.known.write_text("das Haus\n# der Baum\n", encoding="utf-8")
+        self.function.write_text("der\nweil\n", encoding="utf-8")
+        self.app = SimpleNamespace(settings=SimpleNamespace(
+            known_words=self.known, function_words=self.function))
+
+    def tearDown(self) -> None:
+        self._dir.cleanup()
+
+    def surfaces(self, files: str) -> set[str]:
+        return {e["surface"] for e in
+                QuizCommand()._entries(self.app, Counter(), files)}
+
+    def test_both_is_the_default(self) -> None:
+        self.assertEqual(self.surfaces("both"), {"das Haus", "der", "weil"})
+
+    def test_known_only(self) -> None:
+        self.assertEqual(self.surfaces("known"), {"das Haus"})
+
+    def test_function_only(self) -> None:
+        self.assertEqual(self.surfaces("function"), {"der", "weil"})
+
+    def test_an_unknown_name_falls_back_to_both(self) -> None:
+        """argparse already refuses one; this is the library door."""
+        self.assertEqual(self.surfaces("nonsense"), {"das Haus", "der", "weil"})
+
+    def test_struck_lines_are_never_asked(self) -> None:
+        self.assertNotIn("der Baum", self.surfaces("known"))
+
+    def test_a_missing_file_is_not_an_error(self) -> None:
+        self.function.unlink()
+        self.assertEqual(self.surfaces("function"), set())
 
 
 if __name__ == "__main__":

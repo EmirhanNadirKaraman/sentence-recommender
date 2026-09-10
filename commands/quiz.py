@@ -46,9 +46,10 @@ ARTICLE_NOUN = re.compile(r"^(?:der|die|das)\s+\S+$", re.IGNORECASE)
 class QuizCommand:
     """Walks the assumed-known vocabulary, most frequent first."""
 
-    def run(self, app, limit: int = 40, source: str = "subtitle") -> None:
+    def run(self, app, limit: int = 40, source: str = "subtitle",
+            files: str = "both") -> None:
         counts = self._frequencies(app, source)
-        entries = self._entries(app, counts)
+        entries = self._entries(app, counts, files)
         # One question per unit, not per line. The same word is often written
         # in both files, and being asked about `sein` twice is a good way to
         # be answered carelessly the second time. A "no" comments out every
@@ -71,9 +72,11 @@ class QuizCommand:
             raise SystemExit("nothing left to check — every assumed-known word "
                              "has been confirmed or commented out")
 
-        print(f"\n  {len(grouped):,} words are assumed known, {len(done):,} already "
-              f"confirmed; checking {len(pending)} of the {len(left):,} left, most "
-              "frequent first.")
+        where = {"known": " in known_words.txt",
+                 "function": " in function_words.txt"}.get(files, "")
+        print(f"\n  {len(grouped):,} words are assumed known{where}, {len(done):,} "
+              f"already confirmed; checking {len(pending)} of the {len(left):,} "
+              "left, most frequent first.")
         print("  Answering no comments the line out; nothing else is touched.\n")
 
         # Fetched once rather than inside `_example`, which is called per
@@ -152,8 +155,15 @@ class QuizCommand:
 
     # --- the vocabulary files -------------------------------------------
 
-    def _entries(self, app, counts: Counter) -> list[dict]:
-        """Every live line in the two files, with the unit it stands for.
+    def _entries(self, app, counts: Counter, files: str = "both") -> list[dict]:
+        """Every live line in the vocabulary files, with the unit it stands for.
+
+        `files` narrows to one of them. They hold different kinds of claim and
+        are worth auditing separately: `function_words.txt` is generated from
+        the dictionary and is closed-class, so almost every answer will be yes
+        — a sample of twenty says whether the other hundred and fifty-six are
+        worth asking about at all. `known_words.txt` is a published wordlist
+        nobody has checked against this reader, which is where the doubt is.
 
         Matched against the corpus keys rather than run through the parser.
         `lemmatise_each` is the obvious tool and the wrong one here: given
@@ -163,8 +173,12 @@ class QuizCommand:
         sentences to give it context, so there is nothing to parse — the
         entry is already written in the shape the units are keyed by.
         """
+        wanted = {"known": (app.settings.known_words,),
+                  "function": (app.settings.function_words,)}.get(
+                      files, (app.settings.known_words,
+                              app.settings.function_words))
         out: list[dict] = []
-        for path in (app.settings.known_words, app.settings.function_words):
+        for path in wanted:
             if not path.exists():
                 continue
             for line in path.read_text(encoding="utf-8").splitlines():
