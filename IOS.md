@@ -25,13 +25,40 @@ WKWebView shell would wrap the same rewritten pages and add Xcode plus $99/yr;
 it buys more reliable gestures and guaranteed screen-wake, which are worth
 revisiting only if the PWA disappoints in use.
 
-## Already done
+## Where this stands
+
+Everything below the line is built and running. The phases are kept as the
+record of *why* each decision went the way it did, not as a to-do list.
+
+| | |
+|---|---|
+| Phase 0 reachability | done — `serve --host`, mDNS name, no-auth warning |
+| Phase 1 hosting | done in code; runs over Tailscale rather than a VPS |
+| Phase 2 PWA shell | done — installs, bottom tab bar, 44px targets |
+| Phase 3 JS foundation | done — CSS and JS are files, one keydown listener |
+| Phase 4 reading page | done — snooze, gestures, `/api/next` |
+| Phase 5 reels feed | done — persistent player, `/api/reels` |
+
+Reached over Tailscale, not a rented VPS. The tailnet gives the two things
+the plan wanted from hosting — reachable from anywhere, and membership as
+authentication — without a public listener or a monthly bill, and the server
+stays bound to one interface. What it does not yet give is HTTPS, which needs
+*HTTPS Certificates* enabling in the tailnet admin, and which is the only
+thing standing between here and a service worker and Wake Lock.
+
+Things fixed along the way that were not in the plan:
 
 - **`/api/transcript` loaded the entire corpus per call** — 154.1s and 572 MB
-  to keep 297 cues, fired automatically by JS on every `/` load. Now a
-  `video` filter in SQL plus `ix_sentences_video`: 0.4s, 0.6 MB. Commit
-  `8225abb`. This mattered here because a request costing half a gigabyte
-  decides how much machine you have to rent.
+  to keep 297 cues, fired by JS on every reading-page load. A `video` filter
+  and an index: 0.4s, 0.6 MB.
+- **Marking a word known took 23.2s on the request thread.** `_rescore`
+  reaches `_grouped`, which materialises the corpus. It is queued now; the
+  POST answers in 0.2ms.
+- **Curated lemma corrections were being ignored** wherever the parser
+  invented a lemma rather than failing cleanly — `muss` came back as `mussn`,
+  and the line saying it is `müssen` was skipped, 1,773 times.
+- **Videos can be ranked by teaching rate**, not only by how easy they are to
+  follow. The two orderings share two videos out of fifty.
 
 ## Corrections to assumptions worth carrying
 
@@ -52,7 +79,7 @@ approach, so they are recorded rather than buried.
    reels iframe is mandatory, not an optimisation — and it means building our
    own play/pause and progress bar.
 
-## Phase 0 — reachability and the two remaining cost bugs
+## Phase 0 — reachability  *(done)*
 
 Nothing is testable on the phone until the first item lands.
 
@@ -72,7 +99,7 @@ Nothing is testable on the phone until the first item lands.
 - Keep `server.py:7-9`'s no-auth warning honest: print it when the host is
   not loopback.
 
-## Phase 1 — hosting
+## Phase 1 — hosting  *(done, via Tailscale)*
 
 **Tailscale in front of a 4 GB VPS.**
 
@@ -141,7 +168,7 @@ hard `DELETE` with no tombstone) and every timestamp is timezone-naive, so
 
 Rebuilds stay on the Mac — they need Postgres, spaCy and YouTube.
 
-## Phase 2 — the PWA shell
+## Phase 2 — the PWA shell  *(done)*
 
 `web/render.py`, `layout()` at 244-261.
 
@@ -178,7 +205,7 @@ registration silently fails. Add-to-Home-Screen and `display:standalone` work
 over plain HTTP regardless. Once Tailscale's certificate is in place the
 secure context exists and a service worker becomes possible.
 
-## Phase 3 — JS foundation
+## Phase 3 — JS foundation  *(done)*
 
 **Move CSS and JS into real files** served by the Phase 2 static route:
 `web/static/app.css` (the whole of `STYLE`) and `web/static/app.js`. The
@@ -210,7 +237,7 @@ standalone, so "skip" would randomly navigate backwards. Scope
 `preventDefault` backstop on `window`/`document` must register `{passive:false}`
 or it is a silent no-op.
 
-## Phase 4 — the reading page
+## Phase 4 — the reading page  *(done)*
 
 **Snooze** (new, `vocab/snooze_store.py`, modelled on `known_store.py`):
 
@@ -249,7 +276,7 @@ New `/api/next` endpoint returning the fragments `_deck`, `_actions` and
 them. `_send_json` must set `Cache-Control: no-store` or the phone serves a
 stale rank window straight after a mark.
 
-## Phase 5 — Reels as a feed
+## Phase 5 — Reels as a feed  *(done)*
 
 - **`pointer-events: none` on the iframe**, `controls=0`, and build our own tap
   and progress bar off the 250ms tick that already exists. Without this no
@@ -306,9 +333,16 @@ stale rank window straight after a mark.
    as a step has an empty deck; more snoozing pushes the scan further down.
    Rebuild roadmaps periodically, not only when the corpus changes.
 
-## Open question
+## Still open
 
-Packaging was recommended, not chosen. Everything above assumes a PWA. A
-WKWebView shell wraps the same pages and changes nothing in phases 2-5; it buys
-more reliable gestures and guaranteed screen-wake for the cost of Xcode and a
-developer account. Worth deciding only after the PWA has been used on a run.
+- **HTTPS**, and with it the service worker and Wake Lock. Needs *HTTPS
+  Certificates* switched on at `login.tailscale.com/admin/dns`, then
+  `tailscale serve`.
+- **A roadmap over videos** rather than words — ordering them so each accounts
+  for what the ones before it taught. The word-level walk is the same shape.
+- **Packaging.** Everything here assumes a PWA. A WKWebView shell wraps the
+  same pages and changes nothing in phases 2-5; it buys more reliable gestures
+  and guaranteed screen-wake for the cost of Xcode and a developer account.
+  Worth deciding only after the PWA has been used on a run.
+- Three invented-lemma rows the verb guard deliberately refuses, and 984
+  assumed-known words that `quiz` has never checked.
