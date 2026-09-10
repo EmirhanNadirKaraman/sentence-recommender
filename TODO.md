@@ -50,16 +50,44 @@ what else is unknown in it. The *one word away* filter is the highest-value
 subset: 543 units whose easiest sentence has exactly two unknowns, so a single
 clip saying either one plainly unblocks both.
 
-### 3. Let the walk take i+2 steps when the frontier empties
+### 3. Let the walk take i+2 steps when the frontier empties  *(measured; not worth it)*
 
-**Not in effect today.** The deck on the reading page shows sentences with
-more than one unknown, labelled "Also new: …", but that is display only — the
-*walk* still advances solely through strictly-i+1 steps and still halts at
-241. Widening it is a separate change to `RoadmapBuilder`.
+Written when the walk halted at 241 steps of 4,806 unknown units, where a
+relaxation would have been the difference between a roadmap and a stub.
+Option 2 above happened instead: the corpus went from 2,045 sentences to
+115,461, and the strict walk now reaches 2,792 goals of 4,014.
 
-Cheap to add. It breaks the promise the whole thing is built on, so it wants
-a deliberate decision rather than a default: probably a flag, and probably
-only after the frontier is genuinely empty rather than as a general relaxation.
+Measured on that corpus, taking a sentence with two unknowns once no
+sentence has one — and only where both unknowns are goals, since pairing a
+goal with a word the walk will never teach is not a step the reader can
+take:
+
+```
+reached by i+1 alone     2,792 goals
+reached allowing pairs   2,861 goals   (+69, 2.5%)
+still stranded             810         (252 never said in the corpus at all)
+```
+
+2,861 is exactly the ceiling — the goals that appear in any sentence free of
+strangers — so pairs close the whole remaining gap and the whole remaining
+gap is 69 goals. That is a poor price for breaking the promise the reading
+page makes, plus a column on `roadmap`, a mode on the builder and a flag.
+
+The same effort spent on strangers is worth more and costs no promise. 741
+strangers are the single thing standing between some goal and an i+1
+sentence, and the top of that list is not vocabulary — `kannstn`,
+`brauchsen`, `beispielsätz`, `studierend` are lemmatiser slips, `nächster`,
+`letzter`, `besonderer` are inflections that should reduce:
+
+```
+top  50 strangers fixed -> 87 goals unblocked
+top 250 strangers fixed -> 219
+top 500 strangers fixed -> 349
+```
+
+If it is ever built anyway: `RoadmapStep.also`, a `--pairs` flag, engaged
+only once the frontier is genuinely empty, both units required to be goals,
+and the page saying "two new things here" rather than claiming one.
 
 ## Waiting on setup
 
