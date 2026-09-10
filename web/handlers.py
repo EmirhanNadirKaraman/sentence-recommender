@@ -42,6 +42,7 @@ from roadmap import (
 )
 from roadmap.examples import DECK_SIZE
 from roadmap.step import RoadmapStep
+from roadmap.videos import VideoRoadmapStore
 from roadmap.store import ALL, RoadmapStore, current_stamp
 from vocab.entry import LEMMA, PATTERN, Unit
 from web import watch as video
@@ -75,6 +76,7 @@ class Viewer:
         self._known = None
         self._scopes: dict[str, Scope] = {}
         self._store = RoadmapStore(app.settings.state_path)
+        self._video_plan = VideoRoadmapStore(app.settings.state_path)
         # Blocked-set results, per source. The walk behind them is cheap on a
         # subtitle corpus and slow on a quarter of a million sentences.
         self._stuck: dict[str, list] = {}
@@ -1426,7 +1428,10 @@ class Viewer:
         # holds, which is how /reels renders it without asking anyone.
         ranked = self._watchable(source, floor=1)
         order = query.get("by") or "watch"
-        ranked = self._ordered(ranked, order)
+        plan = self._video_plan.order(source) if order == "plan" else {}
+        if order == "plan" and not plan:
+            order = "watch"          # nothing built yet; say the true order
+        ranked = self._ordered(ranked, order, plan)
         # Reels is indexed by the watchability order, so a link from a
         # re-sorted table has to name the video rather than its row here.
         by_video = {r["video"]: n for n, r in
@@ -1457,7 +1462,8 @@ class Viewer:
             + f"' class='{'on' if order == value else ''}'>{label}</a>"
             for value, label in (("watch", "easiest to follow"),
                                  ("density", "most to learn per minute"),
-                                 ("teaching", "most of your list per minute"))
+                                 ("teaching", "most of your list per minute"),
+                                 ("plan", "in order, each building on the last"))
         )
         body = ("<h1>Videos</h1>"
                 f"<div class='switch'><span>Best first</span>{picker}</div>"
@@ -1467,7 +1473,11 @@ class Viewer:
                 "already. <em>i+1/min</em> asks the opposite question — how "
                 "much this video could teach you per minute — and picks "
                 "almost entirely different films: of the top fifty by each, "
-                "two are the same. Both move as you mark words known.</p>"
+                "two are the same. Both move as you mark words known. "
+                "<em>In order</em> is different again — a plan rather than a "
+                "ranking, where each video is scored against what the ones "
+                "before it taught you, so it does not change as you watch."
+                "</p>"
                 + self._add_video_form(query)
                 + f"<h2>{len(ranked)} in the catalogue</h2>" + table)
         return layout("Videos", body, "/subtitles", source)
@@ -1483,13 +1493,18 @@ class Viewer:
         """
         return row["i+1"] / row["minutes"] if row.get("minutes") else 0.0
 
-    def _ordered(self, rows: list[dict], order: str) -> list[dict]:
+    def _ordered(self, rows: list[dict], order: str,
+                 plan: dict[str, int] | None = None) -> list[dict]:
         """The catalogue, best first by whichever question was asked.
 
         `watch` and the two rates disagree almost completely — they are not
         two views of one ranking but answers to different questions, and the
         page says so rather than presenting one as the truth.
         """
+        if order == "plan" and plan:
+            # Videos the walk left out teach nothing at this point, so they go
+            # after everything it planned rather than being hidden.
+            return sorted(rows, key=lambda r: plan.get(r["video"], 10 ** 9))
         if order == "density":
             return sorted(rows, key=self._density, reverse=True)
         if order == "teaching":

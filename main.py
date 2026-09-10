@@ -7,6 +7,7 @@ from pathlib import Path
 
 from commands import (
     AddVideoCommand, AddVideosCommand, BuildCorpusCommand, BuildRoadmapCommand,
+    BuildVideoRoadmapCommand,
     CheckWordCommand, DifficultyCommand, QuizCommand, UnblockCommand,
     BuildStudyListCommand, ExportSubtitlesCommand, FillGapsCommand,
     HuntVideosCommand, ReviewCommand, ServeCommand, StatusCommand,
@@ -74,6 +75,13 @@ def _parser() -> argparse.ArgumentParser:
     corpus.add_argument("--limit", type=int, help="analyse only the first N sentences")
     corpus.add_argument("--min-words", type=int,
                         help="shortest sentence to keep (default 5)")
+
+    vplan = sub.add_parser("build-video-roadmap",
+                           help="order the videos so each builds on the last")
+    vplan.add_argument("--source", default="subtitle", metavar="BUILD")
+    vplan.add_argument("--floor", type=int, default=40,
+                       help="fewest subtitle lines a video needs to be planned")
+    vplan.add_argument("--steps", type=int, help="stop after N videos")
 
     plan = sub.add_parser("build-roadmap", help="run the greedy i+1 walk")
     plan.add_argument("--steps", type=int, help="stop after N steps")
@@ -189,6 +197,8 @@ def main() -> int:
     elif args.command == "build-corpus":
         BuildCorpusCommand().run(app, args.source, args.limit,
                                  args.corrector, args.min_words)
+    elif args.command == "build-video-roadmap":
+        BuildVideoRoadmapCommand().run(app, args.source, args.floor, args.steps)
     elif args.command == "build-roadmap":
         BuildRoadmapCommand().run(app, args.steps, tuple(args.source),
                                   args.goals, args.list_only, args.quality,

@@ -4,6 +4,7 @@ from .build_corpus import BuildCorpusCommand
 from .check_word import CheckWordCommand
 from .difficulty import DifficultyCommand
 from .build_roadmap import BuildRoadmapCommand
+from .build_video_roadmap import BuildVideoRoadmapCommand
 from .build_study_list import BuildStudyListCommand
 from .export_subtitles import ExportSubtitlesCommand
 from .fill_gaps import FillGapsCommand
@@ -16,6 +17,7 @@ from .status import StatusCommand
 
 __all__ = [
     "AddVideoCommand", "AddVideosCommand", "BuildCorpusCommand", "BuildRoadmapCommand",
+    "BuildVideoRoadmapCommand",
     "BuildStudyListCommand", "CheckWordCommand", "DifficultyCommand",
     "ExportSubtitlesCommand", "UnblockCommand",
     "FillGapsCommand",
