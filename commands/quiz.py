@@ -24,6 +24,7 @@ Confirmed words drop out of the pool and the count creeps forward.
 """
 from __future__ import annotations
 
+import re
 from collections import Counter
 from pathlib import Path
 
@@ -34,6 +35,12 @@ PROMPT = "  know it? [Enter]=yes  n=no  s=skip  q=save and quit > "
 # Anything not in here is a typo, and a typo used to mean yes: the dispatch
 # ended in an `else` that counted the word as known. Now it asks again.
 ANSWERS = {"", "y", "yes", "n", "no", "s", "skip", "q", "quit"}
+
+# `jdm. (Dat) etw. (Akk) erzählen` — the study list writes a verb with the
+# cases it governs. The bare verb is the same word to a learner.
+CASE_FRAME = re.compile(r"\((?:Akk|Dat|Gen)\)")
+# `das Essen`, which is a noun that shares a lemma with `essen` the verb.
+ARTICLE_NOUN = re.compile(r"^(?:der|die|das)\s+\S+$", re.IGNORECASE)
 
 
 class QuizCommand:
@@ -49,6 +56,7 @@ class QuizCommand:
         grouped: dict[Unit, list[dict]] = {}
         for entry in entries:
             grouped.setdefault(entry["unit"], []).append(entry)
+        self._merge_frames(grouped)
         # Confirmed words drop out, which is what lets the quiz finish. A yes
         # used to write nothing, so the next run asked the same forty and the
         # one after that asked them again — there was no way past the first
@@ -110,6 +118,37 @@ class QuizCommand:
         if total:
             print("\n  The known set has changed, so the roadmap is out of date:"
                   "\n    python main.py build-roadmap --source subtitle --goals --list-only")
+
+    @staticmethod
+    def _merge_frames(grouped: dict[Unit, list[dict]]) -> None:
+        """Fold a verb's case frame into the bare verb — one word, one question.
+
+        The study list writes `etw./jdn. (Akk) haben`; `function_words.txt`
+        writes `haben`. They are different units and the corpus counts them
+        separately, rightly — the frame matches only where the verb takes an
+        accusative object, 19,472 sentences against 21,421. To a reader being
+        asked whether they know the word, they are the same question, and
+        asking it twice is how you get two different answers.
+
+        The corpus side already reconciles them: `covered_forms` holds the
+        bare verb beside the goal that teaches it, so it is not counted as a
+        stranger. This is the same reconciliation, applied to the asking.
+
+        Only case frames, and only onto a verb. `das Essen` shares its lemma
+        with `essen` and is a different word — the article says so, which is
+        the one piece of evidence available here without a parser.
+        """
+        bare = {unit.key.lower(): unit for unit in grouped if not unit.is_pattern}
+        for unit in [u for u in grouped if u.is_pattern]:
+            if not CASE_FRAME.search(unit.key):
+                continue
+            verb = bare.get(unit.key.split()[-1].lower())
+            if verb is None or any(ARTICLE_NOUN.match(e["surface"])
+                                   for e in grouped[verb]):
+                continue
+            # Onto the bare verb, which is the more frequent of the two and so
+            # the one whose count should order the question.
+            grouped[verb].extend(grouped.pop(unit))
 
     # --- the vocabulary files -------------------------------------------
 
