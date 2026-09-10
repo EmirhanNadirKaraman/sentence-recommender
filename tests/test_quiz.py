@@ -174,5 +174,38 @@ class AskingTest(unittest.TestCase):
             self.assertEqual(QuizCommand._ask(), "q")
 
 
+class BoundTest(unittest.TestCase):
+    """What a random sample licenses you to say about the rest.
+
+    The point of `--sample`. Asked most-frequent-first, a clean sheet says
+    only that you know the commonest words in German, which was never in
+    doubt; drawn at random it bounds the rest. A bound and not an estimate:
+    zero denials out of twenty does not mean none of the others would be
+    denied.
+    """
+
+    def test_a_clean_sheet_is_not_a_guarantee(self) -> None:
+        """Rule of three: roughly 3/n, and on 176 words that is two dozen."""
+        self.assertAlmostEqual(QuizCommand._upper_bound(0, 20), 0.139, places=2)
+
+    def test_more_questions_narrow_it(self) -> None:
+        self.assertLess(QuizCommand._upper_bound(0, 40),
+                        QuizCommand._upper_bound(0, 20))
+
+    def test_a_denial_widens_it(self) -> None:
+        self.assertGreater(QuizCommand._upper_bound(1, 20),
+                           QuizCommand._upper_bound(0, 20))
+
+    def test_it_is_an_upper_bound_not_the_rate(self) -> None:
+        """One in twenty is 5%; the bound has to sit well above it."""
+        self.assertGreater(QuizCommand._upper_bound(1, 20), 0.05)
+
+    def test_all_denied_bounds_at_everything(self) -> None:
+        self.assertEqual(QuizCommand._upper_bound(20, 20), 1.0)
+
+    def test_a_tiny_sample_says_almost_nothing(self) -> None:
+        self.assertGreater(QuizCommand._upper_bound(0, 5), 0.4)
+
+
 if __name__ == "__main__":
     unittest.main()

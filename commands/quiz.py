@@ -24,8 +24,10 @@ Confirmed words drop out of the pool and the count creeps forward.
 """
 from __future__ import annotations
 
+import random
 import re
 from collections import Counter
+from math import comb
 from pathlib import Path
 
 from vocab.entry import Unit
@@ -47,7 +49,7 @@ class QuizCommand:
     """Walks the assumed-known vocabulary, most frequent first."""
 
     def run(self, app, limit: int = 40, source: str = "subtitle",
-            files: str = "both") -> None:
+            files: str = "both", sample: bool = False) -> None:
         counts = self._frequencies(app, source)
         entries = self._entries(app, counts, files)
         # One question per unit, not per line. The same word is often written
@@ -63,20 +65,26 @@ class QuizCommand:
         # one after that asked them again — there was no way past the first
         # forty except to deny them.
         done = app.checked.units()
-        left = sorted((g for g in grouped.values()
-                       if counts.get(g[0]["unit"], 0)
-                       and g[0]["unit"] not in done),
-                      key=lambda g: -counts[g[0]["unit"]])
-        pending = left[:limit]
+        left = [g for g in grouped.values()
+                if counts.get(g[0]["unit"], 0) and g[0]["unit"] not in done]
+        if sample:
+            # Drawn at random, because the answer to "do I know all of these"
+            # cannot come from the most frequent ones. Those are the easiest
+            # words in the language and everybody knows them; asking about
+            # them measures nothing except that the list starts with `der`.
+            pending = random.sample(left, min(limit, len(left)))
+        else:
+            pending = sorted(left, key=lambda g: -counts[g[0]["unit"]])[:limit]
         if not pending:
             raise SystemExit("nothing left to check — every assumed-known word "
                              "has been confirmed or commented out")
 
         where = {"known": " in known_words.txt",
                  "function": " in function_words.txt"}.get(files, "")
+        how = "drawn at random" if sample else "most frequent first"
         print(f"\n  {len(grouped):,} words are assumed known{where}, {len(done):,} "
               f"already confirmed; checking {len(pending)} of the {len(left):,} "
-              "left, most frequent first.")
+              f"left, {how}.")
         print("  Answering no comments the line out; nothing else is touched.\n")
 
         # Fetched once rather than inside `_example`, which is called per
@@ -84,7 +92,7 @@ class QuizCommand:
         # back as the example they judge a word by.
         hidden = app.overrides.hidden()
         removed: dict[Path, list[str]] = {}
-        asked = known = 0
+        asked = known = denied = 0
         for group in pending:
             asked += 1
             unit = group[0]["unit"]
@@ -105,6 +113,7 @@ class QuizCommand:
                 # It may have been confirmed on an earlier run and since
                 # thought better of; the file is being changed either way.
                 app.checked.forget(unit)
+                denied += 1
             else:
                 app.checked.confirm(unit)
                 known += 1
@@ -114,11 +123,55 @@ class QuizCommand:
         total = sum(len(v) for v in removed.values())
         print(f"\n  asked {asked}, knew {known}, removed {total}")
         print(f"  {len(app.checked):,} of {len(grouped):,} confirmed so far")
+        if sample and known + denied:
+            # Only what was actually answered: a skip is not evidence, and
+            # `asked` counts the question that was on screen when you quit.
+            self._estimate(denied, known + denied, len(left))
         for path, lines in removed.items():
             print(f"    {path.name}: {', '.join(l.split('#')[0].strip() for l in lines)}")
         if total:
             print("\n  The known set has changed, so the roadmap is out of date:"
                   "\n    python main.py build-roadmap --source subtitle --goals --list-only")
+
+    @staticmethod
+    def _upper_bound(bad: int, n: int, alpha: float = 0.05) -> float:
+        """Clopper-Pearson upper bound on the share that would be denied.
+
+        Exact rather than approximate because the numbers here are small: at
+        twenty questions the normal approximation is not trustworthy, and it
+        is a bisection over a binomial CDF either way.
+        """
+        if bad >= n:
+            return 1.0
+        lo, hi = bad / n, 1.0
+        for _ in range(60):
+            mid = (lo + hi) / 2
+            cdf = sum(comb(n, i) * mid ** i * (1 - mid) ** (n - i)
+                      for i in range(bad + 1))
+            if cdf > alpha:
+                lo = mid
+            else:
+                hi = mid
+        return hi
+
+    @classmethod
+    def _estimate(cls, bad: int, n: int, population: int) -> None:
+        """What a random sample says about the words it was drawn from.
+
+        The whole reason to draw at random. Asked most-frequent-first, a clean
+        sheet says only that you know the commonest words in German, which was
+        never in doubt. Drawn at random it bounds the rest.
+
+        A bound, not an estimate: zero denials out of twenty does not mean
+        none of the others would be denied, it means the share is probably
+        under fourteen percent. On a hundred and seventy-six words that is
+        still two dozen.
+        """
+        rate = cls._upper_bound(bad, n)
+        print(f"\n  {bad} of {n} denied. At 95% confidence no more than "
+              f"{rate:.0%} of the {population:,} left would be —")
+        print(f"  about {round(rate * population):,} words. Draw again to "
+              "narrow it.")
 
     @staticmethod
     def _ask() -> str:
