@@ -24,6 +24,27 @@ COMFORTABLE = 0.95
 ENOUGH_LINES = 40
 
 
+def length_band(minutes: float | None) -> float:
+    """How well a video's length sits, on its own, in [0, 1].
+
+    Separate from `watchability` because the two are wanted apart. Watching
+    asks whether you can follow a video at all, and squares comprehension to
+    say so — which at eleven percent understood scores every video in the
+    corpus at roughly zero, length included. Choosing which of several videos
+    to open a sentence in is a different question, and there length is the
+    part that still discriminates: it reaches zero at about forty-three
+    minutes, which is most of what the reading page was landing in.
+
+    A video whose duration was never recorded gets the same benefit of the
+    doubt it gets in `watchability`.
+    """
+    if minutes is None:
+        return 0.7
+    if minutes < IDEAL_MINUTES:
+        return max(0.0, 1 - (IDEAL_MINUTES - minutes) * SHORT_MINUTES)
+    return max(0.0, 1 - (minutes - IDEAL_MINUTES) * LONG_MINUTES)
+
+
 def watchability(comprehension: float, minutes: float | None,
                  lines: int = ENOUGH_LINES) -> float:
     """How well this plays with your hands full.
@@ -38,10 +59,5 @@ def watchability(comprehension: float, minutes: float | None,
     follow = min(comprehension / COMFORTABLE, 1.0)
     follow *= follow                      # squared: half-understood is far
                                           # worse than half as good
-    if minutes is None:
-        length = 0.7
-    elif minutes < IDEAL_MINUTES:
-        length = max(0.0, 1 - (IDEAL_MINUTES - minutes) * SHORT_MINUTES)
-    else:
-        length = max(0.0, 1 - (minutes - IDEAL_MINUTES) * LONG_MINUTES)
-    return round(follow * length * min(lines / ENOUGH_LINES, 1.0), 4)
+    return round(follow * length_band(minutes)
+                 * min(lines / ENOUGH_LINES, 1.0), 4)

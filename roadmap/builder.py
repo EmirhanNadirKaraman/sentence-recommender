@@ -41,6 +41,7 @@ class RoadmapBuilder:
         priority_weight: float = 3.0,
         goals: frozenset[Unit] = frozenset(),
         only_goals: bool = False,
+        video_minutes: dict[str, float] | None = None,
     ) -> None:
         self._index = index
         self._priority = priority
@@ -51,6 +52,10 @@ class RoadmapBuilder:
         # walk has to refuse them by name, or it starts teaching `Klausur`
         # to make a sentence readable that the reader never asked to read.
         self._only_goals = only_goals
+        # Video lengths, so a step opens on a clip you might actually watch
+        # rather than eighty minutes into a film. A tie-break inside the deck
+        # ranking; see `roadmap.examples.rank`.
+        self._minutes = video_minutes
 
     @property
     def goals(self) -> frozenset[Unit]:
@@ -156,7 +161,7 @@ class RoadmapBuilder:
         return tuple(nsmallest(
             DECK_SIZE,
             (self._index.sentence(p) for p in found),
-            key=rank(unit, known),
+            key=rank(unit, known, self._minutes),
         ))
 
     def _score(self, unit: Unit, positions: set[int]) -> tuple[int, float]:

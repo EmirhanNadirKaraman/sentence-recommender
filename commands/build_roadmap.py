@@ -61,7 +61,8 @@ class BuildRoadmapCommand:
         index = CorpusIndex(sentences, known)
         builder = RoadmapBuilder(index, app.priority(),
                                  settings.priority_weight, targets,
-                                 only_goals=strict)
+                                 only_goals=strict,
+                                 video_minutes=app.video_minutes)
 
         plan = builder.build(max_steps=steps, on_progress=self._report)
         label = "+".join(sorted(builds)) if builds else ALL

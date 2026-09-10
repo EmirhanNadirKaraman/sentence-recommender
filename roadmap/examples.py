@@ -12,6 +12,7 @@ from collections import defaultdict
 from corpus.quality import score as quality, variety
 from corpus.sentence import Sentence
 from vocab.entry import Unit
+from watchability import length_band
 
 # How many sentences a reader is given to step through for one unit.  Lives
 # here rather than beside the page because the walk stores a deck of this size
@@ -20,7 +21,8 @@ from vocab.entry import Unit
 DECK_SIZE = 24
 
 
-def rank(unit: Unit, known: frozenset[Unit]):
+def rank(unit: Unit, known: frozenset[Unit],
+         minutes: dict[str, float] | None = None):
     """How example sentences for `unit` are ordered.
 
     Readability first, because an example is only useful if the learner can
@@ -35,14 +37,31 @@ def rank(unit: Unit, known: frozenset[Unit]):
     over nine-word sentences that say something.  The walk's own example
     picker hit exactly this and was moved to quality; the deck kept it.
 
+    `minutes` maps a video to its length, and when given, a sentence from a
+    better-sized video wins a tie. It breaks ties rather than outranking
+    quality on purpose: the reading page was opening on videos of a median
+    thirty-eight minutes, and sorting on length first brings that to twelve —
+    but sorting on it *after* quality already brings it to fifteen, and does
+    it without giving up a thousandth of sentence quality. Ties on quality
+    are plentiful, so the weaker key is doing almost all the work the strong
+    one would, for nothing.
+
     Shared with the walk, which stores a deck with every step: the stored
     order has to be the order this ranking would have produced, or a page
     served from the store opens on a different sentence than one served from
     the corpus.
     """
+    def video_fit(s) -> float:
+        # No lengths to hand means no preference, so every sentence ties here
+        # and the ranking is exactly what it was before.
+        if minutes is None or s.timing is None:
+            return 0.0
+        return length_band(minutes.get(s.timing.video_id))
+
     return lambda s: (len(s.units - known - {unit}),
                       s.translation is None,
                       -quality(s.text),
+                      -video_fit(s),
                       -variety(s.text),
                       s.text)
 

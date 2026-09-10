@@ -221,6 +221,47 @@ class WalkDeckTest(unittest.TestCase):
         self.assertEqual(step_.examples[2].text, "Das Haus, der Baum, das Auto.")
 
 
+class VideoFitTest(unittest.TestCase):
+    """Which video a sentence is opened in, when the sentences tie.
+
+    The reading page was landing eighty minutes into feature films, because
+    the ranking had no opinion about video at all — it ordered sentences and
+    took whatever clip the winner happened to sit in.
+    """
+
+    def deck(self, minutes):
+        long_one = sentence("Alles, was du tust, geht mir auf die Nerven.",
+                            "haus", video="long")
+        short_one = sentence("Alles, was du tust, geht mir auf die Ohren.",
+                             "haus", video="short")
+        return sorted([long_one, short_one],
+                      key=rank(HAUS, frozenset(), minutes))
+
+    def test_a_shorter_video_wins_a_tie(self) -> None:
+        first = self.deck({"long": 200.0, "short": 11.0})[0]
+        self.assertEqual(first.timing.video_id, "short")
+
+    def test_without_lengths_the_order_is_unchanged(self) -> None:
+        """No durations to hand must rank exactly as it did before."""
+        self.assertEqual([s.timing.video_id for s in self.deck(None)],
+                         [s.timing.video_id for s in sorted(
+                             self.deck(None), key=rank(HAUS, frozenset()))])
+
+    def test_length_does_not_outrank_quality(self) -> None:
+        """A good sentence in a long video beats a poor one in a short video.
+
+        The tie-break is worth almost as much as sorting on length outright
+        and costs no quality, which is the only reason it sits below it.
+        """
+        good_long = sentence("Alles, was du tust, geht mir auf die Nerven.",
+                             "haus", video="long")
+        poor_short = sentence("Na?", "haus", video="short")
+        first = sorted([poor_short, good_long],
+                       key=rank(HAUS, frozenset(), {"long": 200.0,
+                                                    "short": 11.0}))[0]
+        self.assertEqual(first.timing.video_id, "long")
+
+
 class StrictWalkTest(unittest.TestCase):
     """Strict counting leaves words the list will never teach in the corpus.
 

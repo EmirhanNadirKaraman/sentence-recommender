@@ -137,6 +137,7 @@ class RoadmapRefresher:
                 self._app.settings.priority_weight,
                 goal_units if plan.goals else frozenset(),
                 only_goals=plan.strict,
+                video_minutes=self._app.video_minutes,
             ).build(
                 first_position=len(done) + 1,
                 on_progress=(lambda n, readable, label=label:

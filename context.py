@@ -57,6 +57,19 @@ class Application:
         )
 
     @cached_property
+    def video_minutes(self) -> dict[str, float]:
+        """How long each video runs, in minutes.
+
+        Here rather than beside either caller, because both the walk and the
+        pages that score videos want the same answer and a second copy is how
+        two rankings drift apart.
+        """
+        with Database(self.settings.database) as db:
+            rows = db.rows("SELECT video_id, duration FROM video"
+                           " WHERE duration IS NOT NULL")
+        return {video: seconds / 60 for video, seconds in rows}
+
+    @cached_property
     def overrides(self) -> SentenceOverrides:
         return SentenceOverrides(self.settings.state_path)
 
