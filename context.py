@@ -74,7 +74,9 @@ class Application:
         return SentenceOverrides(self.settings.state_path)
 
     def corpus(self, *builds: str, teachable_only: bool = True,
-               list_only: bool = False, strict: bool = False):
+               list_only: bool = False, strict: bool = False,
+               holding: tuple[str, str] | None = None,
+               text: str | None = None):
         """Cached sentences from the named builds, with reader corrections.
 
         Corrections are applied on the way out rather than baked into the
@@ -99,8 +101,12 @@ class Application:
         which is which.
         """
         self.check_freshness()
+        # `holding` asks for the sentences saying one word. A page that wants
+        # twenty-five of them has no business materialising a hundred and
+        # fifteen thousand, which is what it did before the index existed.
         sentences = self.apply_overrides(self.corpus_store.load(
-            *(builds or self.corpus_store.builds()), teachable_only=teachable_only
+            *(builds or self.corpus_store.builds()),
+            teachable_only=teachable_only, holding=holding, text=text,
         ))
         if strict:
             return self._drop_duplicates(sentences)

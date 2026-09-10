@@ -546,9 +546,10 @@ class Viewer:
         # Always the unfiltered analysis, whatever the counting switch says:
         # this page exists to correct what the analyser found, and the units
         # most worth removing are the ones the study list would have hidden.
-        found = next((s for s in self.scope(source, False).sentences
-                      if s.text == text),
-                     None)
+        # One sentence, asked for by name. It used to be found by walking
+        # every sentence of the corpus in memory.
+        holding = self.app.corpus(*self._builds(source), strict=True, text=text)
+        found = holding[0] if holding else None
         if found is None:
             return layout("Fix", "<h1>No such sentence</h1><p class='empty'>It "
                           "may have been dropped already.</p>", "/roadmap", source)
@@ -993,9 +994,14 @@ class Viewer:
     def unit(self, kind: str, key: str, query: dict) -> str:
         source = self.source(query)
         target = Unit(kind, key)
-        scope = self.scope(source, self.counting(query))
         known = self.known
-        found = scope.examples.examples(target, known, limit=25)
+        # Asked of the database, not of a corpus in memory. This page wants
+        # twenty-five sentences saying one word and used to load all 115,000
+        # to find them: forty-six seconds, the slowest thing in the app.
+        list_only = self.counting(query)
+        holding = self.app.corpus(*self._builds(source), list_only=list_only,
+                                  strict=not list_only, holding=(kind, key))
+        found = ExampleIndex(holding).examples(target, known, limit=25)
 
         entries = "".join(
             "<div class='entry'>"
@@ -1016,7 +1022,7 @@ class Viewer:
         already = target in known
         body = (
             f"<h1>{escape(key)}</h1>"
-            f"<p class='note'>{scope.examples.count(target):,} sentences here use "
+            f"<p class='note'>{len(holding):,} sentences here use "
             "it. The rail counts what else is unknown in each, so the top ones "
             "are the readable ones.</p>"
             + ("<p class='note'>You have marked this known.</p>" if already
@@ -1419,9 +1425,12 @@ class Viewer:
     def watch(self, query: dict) -> str:
         source = self.source(query)
         target = Unit(query.get("kind", ""), query.get("key", ""))
-        scope = self.scope(source, self.counting(query))
-        clips = [s for s in scope.examples.examples(target, self.known, limit=60)
-                 if s.timing]
+        list_only = self.counting(query)
+        holding = self.app.corpus(*self._builds(source), list_only=list_only,
+                                  strict=not list_only,
+                                  holding=(target.kind, target.key))
+        clips = [s for s in ExampleIndex(holding).examples(
+                     target, self.known, limit=60) if s.timing]
         if not clips:
             return layout("Watch", self.switch(source, "/") +
                           "<h1>Nothing to watch</h1><p class='empty'>No video "

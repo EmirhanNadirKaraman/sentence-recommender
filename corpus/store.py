@@ -49,6 +49,10 @@ CREATE TABLE IF NOT EXISTS sentence_units (
     surface     TEXT
 );
 CREATE INDEX IF NOT EXISTS ix_units_sentence ON sentence_units(sentence_id);
+-- Sentences that say a given word. Without it the only way to that answer is
+-- a scan of 1.18M rows, which is why the pages wanting it used to load the
+-- entire corpus into memory instead.
+CREATE INDEX IF NOT EXISTS ix_units_key ON sentence_units(kind, key);
 CREATE TABLE IF NOT EXISTS build_meta (
     build       TEXT PRIMARY KEY,
     fingerprint TEXT NOT NULL,
@@ -200,10 +204,20 @@ class CorpusStore:
         return (timing.video_id, timing.start, timing.end) if timing else (None, None, None)
 
     def load(self, *builds: str, teachable_only: bool = True,
-             video: str | None = None) -> list[Sentence]:
+             video: str | None = None,
+             holding: tuple[str, str] | None = None,
+             text: str | None = None) -> list[Sentence]:
         """Cached sentences.  By default only the ones worth studying from —
         pass `teachable_only=False` for the full transcript, which is what an
         overlay needs.
+
+        `holding` narrows to the sentences containing one unit, given as
+        `(kind, key)` — what a word's own page wants, and the only thing it
+        wants. It used to get there by loading every sentence of the corpus
+        and keeping the twenty-five that said the word.
+
+        `text` narrows to one sentence, which is what the correction page
+        wants — it was finding it by walking every sentence in memory.
 
         `video` narrows to one video's lines, which is what the transcript
         panel wants and the only thing it wants. Asked without it, that panel
@@ -221,13 +235,23 @@ class CorpusStore:
         # row in the corpus to find the handful belonging to this video.
         one_video = " AND video_id = ?" if video else ""
         joined_video = " AND s.video_id = ?" if video else ""
-        args = builds + ((video,) if video else ())
+        # A subquery rather than a join, so the sentence rows come back once:
+        # a sentence can hold the same unit twice and a join would duplicate
+        # it.
+        said_here = (" AND id IN (SELECT sentence_id FROM sentence_units"
+                     " WHERE kind = ? AND key = ?)" if holding else "")
+        joined_here = (" AND s.id IN (SELECT sentence_id FROM sentence_units"
+                       " WHERE kind = ? AND key = ?)" if holding else "")
+        one_text = " AND text = ?" if text else ""
+        joined_text = " AND s.text = ?" if text else ""
+        args = (builds + ((video,) if video else ()) + (holding or ())
+                + ((text,) if text else ()))
         with self._connect() as conn:
             rows = conn.execute(
                 "SELECT id, origin, text, translation, raw_text, source_ids,"
                 " video_id, start_time, end_time, teachable"
                 f" FROM sentences WHERE build IN ({placeholders}){teachable}"
-                f"{one_video}", args,
+                f"{one_video}{said_here}{one_text}", args,
             ).fetchall()
             units: dict[int, set[Unit]] = {}
             surfaces: dict[int, list[tuple[Unit, str]]] = {}
@@ -239,7 +263,8 @@ class CorpusStore:
             for sid, kind, key, surface in conn.execute(
                 "SELECT su.sentence_id, su.kind, su.key, su.surface FROM sentence_units su"
                 " JOIN sentences s ON s.id = su.sentence_id"
-                f" WHERE s.build IN ({placeholders}){joined_video}", args,
+                f" WHERE s.build IN ({placeholders}){joined_video}"
+                f"{joined_here}{joined_text}", args,
             ):
                 unit = seen.get((kind, key))
                 if unit is None:
