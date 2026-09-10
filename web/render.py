@@ -70,7 +70,9 @@ def layout(title: str, body: str, here: str = "/", source: str = "") -> str:
         "media='(prefers-color-scheme: dark)'>"
         "<link rel='manifest' href='/manifest.webmanifest'>"
         "<link rel='apple-touch-icon' href='/static/icon-512.png'>"
-        f"<link rel='stylesheet' href='{stamped("app.css")}'>"
+        # Single quotes inside the braces: reusing the outer quote there is
+        # also PEP 701, and this file has no other reason to demand 3.12.
+        f"<link rel='stylesheet' href='{stamped('app.css')}'>"
         "</head><body>"
         "<header class='masthead'><div class='inner'>"
         f"<span class='name'>i+1</span>{links}</div></header>"

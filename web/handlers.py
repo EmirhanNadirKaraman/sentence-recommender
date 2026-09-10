@@ -226,7 +226,7 @@ class Viewer:
             body = (switch + picker + "<h1>Nothing left that is i+1</h1>"
                     "<p class='empty'>Every remaining sentence needs two or more "
                     "new things. Widen the filter, add another corpus, or "
-                    "<a href='/review'>review what you have</a>.</p>")
+                    "run <code>python main.py review</code>.</p>")
             return layout("i+1", body, "/", source)
 
         unit = step.unit
@@ -1583,8 +1583,12 @@ class Viewer:
             return f"/subtitles?problem={quote(f'{type(error).__name__}: {error}')}"
 
         if not wanted:
-            return (f"/subtitles?problem={quote(channel + ' has nothing new — '
-                    'everything it lists is already in the catalogue.')}")
+            # Built before the f-string rather than inside it: an expression
+            # spanning lines inside the braces is PEP 701, which means Python
+            # 3.12, and nothing else here needs a version that new.
+            note = (channel + " has nothing new — everything it lists is "
+                    "already in the catalogue.")
+            return f"/subtitles?problem={quote(note)}"
 
         added, refused = [], 0
         for video_id in wanted:
@@ -1594,8 +1598,9 @@ class Viewer:
                 refused += 1
 
         if not added:
-            return (f"/subtitles?problem={quote(f'{channel}: none of the '
-                    f'{len(wanted)} tried had manual German subtitles.')}")
+            note = (f"{channel}: none of the {len(wanted)} tried had manual "
+                    "German subtitles.")
+            return f"/subtitles?problem={quote(note)}"
 
         caught = CorpusUpdater(self.app).catch_up()
         rebuilt = RoadmapRefresher(self.app).refresh(touching="subtitle")
