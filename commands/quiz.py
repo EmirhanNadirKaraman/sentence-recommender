@@ -24,10 +24,8 @@ Confirmed words drop out of the pool and the count creeps forward.
 """
 from __future__ import annotations
 
-import random
 import re
 from collections import Counter
-from math import comb
 from pathlib import Path
 from threading import Lock
 
@@ -54,7 +52,7 @@ class QuizCommand:
     """Walks the assumed-known vocabulary, most frequent first."""
 
     def run(self, app, limit: int = 40, source: str = "subtitle",
-            files: str = "both", sample: bool = False) -> None:
+            files: str = "both") -> None:
         counts = self._frequencies(app, source)
         entries = self._entries(app, counts, files)
         # One question per unit, not per line. The same word is often written
@@ -66,17 +64,16 @@ class QuizCommand:
             grouped.setdefault(entry["unit"], []).append(entry)
         self._merge_frames(grouped)
         done = app.checked.units()
-        left, pending = self.pool(grouped, counts, done, limit, sample)
+        left, pending = self.pool(grouped, counts, done, limit)
         if not pending:
             raise SystemExit("nothing left to check — every assumed-known word "
                              "has been confirmed or commented out")
 
         where = {"known": " in known_words.txt",
                  "function": " in function_words.txt"}.get(files, "")
-        how = "drawn at random" if sample else "most frequent first"
         print(f"\n  {len(grouped):,} words are assumed known{where}, {len(done):,} "
               f"already confirmed; checking {len(pending)} of the {len(left):,} "
-              f"left, {how}.")
+              "left, most frequent first.")
         print("  Answering no comments the line out; nothing else is touched.\n")
 
         # Fetched once rather than inside `_example`, which is called per
@@ -84,7 +81,7 @@ class QuizCommand:
         # back as the example they judge a word by.
         hidden = app.overrides.hidden()
         removed: dict[Path, list[str]] = {}
-        asked = known = denied = 0
+        asked = known = 0
         for group in pending:
             asked += 1
             unit = group[0]["unit"]
@@ -105,7 +102,6 @@ class QuizCommand:
                 # It may have been confirmed on an earlier run and since
                 # thought better of; the file is being changed either way.
                 app.checked.forget(unit)
-                denied += 1
             else:
                 app.checked.confirm(unit)
                 known += 1
@@ -115,10 +111,6 @@ class QuizCommand:
         total = sum(len(v) for v in removed.values())
         print(f"\n  asked {asked}, knew {known}, removed {total}")
         print(f"  {len(app.checked):,} of {len(grouped):,} confirmed so far")
-        if sample and known + denied:
-            # Only what was actually answered: a skip is not evidence, and
-            # `asked` counts the question that was on screen when you quit.
-            self._estimate(denied, known + denied, len(left))
         for path, lines in removed.items():
             print(f"    {path.name}: {', '.join(l.split('#')[0].strip() for l in lines)}")
         if total:
@@ -127,8 +119,7 @@ class QuizCommand:
 
     @staticmethod
     def pool(grouped: dict[Unit, list[dict]], counts: Counter,
-             done: frozenset[Unit], limit: int,
-             sample: bool = False) -> tuple[list, list]:
+             done: frozenset[Unit], limit: int) -> tuple[list, list]:
         """What is left to ask, and the next `limit` of it.
 
         Shared with the web page so the two ask the same questions. A word
@@ -136,56 +127,20 @@ class QuizCommand:
         which is what lets the quiz finish, since a yes used to write nothing
         and the next run asked the same forty — or the corpus never says it,
         in which case being wrong about it costs nothing.
+
+        There was a `sample` here that drew at random so the run could end
+        with a bound on how many of the rest would be denied. It answered the
+        wrong question. A bound is a statement about a rate, and this is not a
+        rate: the known set is a list of particular words, and a sentence is
+        mispriced by the particular ones that are wrong. Told that between
+        five and three hundred and eighty-five of the pool is wrong, there is
+        nothing to do with the answer — you cannot correct a percentage. So
+        the pool is worked through instead of sampled, and every answer is
+        one word that is now certain rather than a smaller error bar.
         """
         left = [g for g in grouped.values()
                 if counts.get(g[0]["unit"], 0) and g[0]["unit"] not in done]
-        if sample:
-            # Drawn at random, because the answer to "do I know all of these"
-            # cannot come from the most frequent ones. Those are the easiest
-            # words in the language and everybody knows them; asking about
-            # them measures nothing except that the list starts with `der`.
-            return left, random.sample(left, min(limit, len(left)))
         return left, sorted(left, key=lambda g: -counts[g[0]["unit"]])[:limit]
-
-    @staticmethod
-    def _upper_bound(bad: int, n: int, alpha: float = 0.05) -> float:
-        """Clopper-Pearson upper bound on the share that would be denied.
-
-        Exact rather than approximate because the numbers here are small: at
-        twenty questions the normal approximation is not trustworthy, and it
-        is a bisection over a binomial CDF either way.
-        """
-        if bad >= n:
-            return 1.0
-        lo, hi = bad / n, 1.0
-        for _ in range(60):
-            mid = (lo + hi) / 2
-            cdf = sum(comb(n, i) * mid ** i * (1 - mid) ** (n - i)
-                      for i in range(bad + 1))
-            if cdf > alpha:
-                lo = mid
-            else:
-                hi = mid
-        return hi
-
-    @classmethod
-    def _estimate(cls, bad: int, n: int, population: int) -> None:
-        """What a random sample says about the words it was drawn from.
-
-        The whole reason to draw at random. Asked most-frequent-first, a clean
-        sheet says only that you know the commonest words in German, which was
-        never in doubt. Drawn at random it bounds the rest.
-
-        A bound, not an estimate: zero denials out of twenty does not mean
-        none of the others would be denied, it means the share is probably
-        under fourteen percent. On a hundred and seventy-six words that is
-        still two dozen.
-        """
-        rate = cls._upper_bound(bad, n)
-        print(f"\n  {bad} of {n} denied. At 95% confidence no more than "
-              f"{rate:.0%} of the {population:,} left would be —")
-        print(f"  about {round(rate * population):,} words. Draw again to "
-              "narrow it.")
 
     @staticmethod
     def _ask() -> str:
@@ -246,11 +201,12 @@ class QuizCommand:
         """Every live line in the vocabulary files, with the unit it stands for.
 
         `files` narrows to one of them. They hold different kinds of claim and
-        are worth auditing separately: `function_words.txt` is generated from
-        the dictionary and is closed-class, so almost every answer will be yes
-        — a sample of twenty says whether the other hundred and fifty-six are
-        worth asking about at all. `known_words.txt` is a published wordlist
-        nobody has checked against this reader, which is where the doubt is.
+        are worth working through separately: `function_words.txt` is
+        generated from the dictionary and is closed-class, so most answers
+        will be yes and the ones that are not tend to be the generator's
+        fault rather than a gap — `aufn`, which is "auf den" run together.
+        `known_words.txt` is a published wordlist nobody has checked against
+        this reader, which is where the doubt is.
 
         Matched against the corpus keys rather than run through the parser.
         `lemmatise_each` is the obvious tool and the wrong one here: given
