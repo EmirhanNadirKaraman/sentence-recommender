@@ -46,7 +46,7 @@ from roadmap.videos import VideoRoadmapStore
 from roadmap.store import ALL, RoadmapStore, current_stamp
 from vocab.entry import LEMMA, PATTERN, Unit
 from web import watch as video
-from web.render import layout, sentence
+from web.render import layout, sentence, stamped
 
 PAGE_SIZE = 40
 
@@ -114,6 +114,12 @@ class Viewer:
         # skips commented lines — so they are kept rather than derived. One
         # entry, because there is one reader and one last answer.
         self._struck: tuple | None = None
+        # Words set aside for now. Not written down: a skip is "not this one,
+        # not yet", which is a fact about the sitting rather than about the
+        # vocabulary, and it should not survive a restart the way an answer
+        # does. Kept here because the page asks one question per request and
+        # has nowhere else to remember that it already offered this word.
+        self._skipped: set[Unit] = set()
 
     # --- the quiz ---------------------------------------------------------
 
@@ -136,8 +142,15 @@ class Viewer:
             QuizCommand._merge_frames(grouped)
             self._quiz[source] = (grouped, counts)
         grouped, counts = self._quiz[source]
+        checked = self.app.checked.units()
         _, pending = QuizCommand.pool(
-            grouped, counts, self.app.checked.units(), limit=1)
+            grouped, counts, checked | self._skipped, limit=1)
+        # Skipping everything is not finishing. When the pool runs out with
+        # words still set aside, they come back round rather than the page
+        # claiming there is nothing left to ask.
+        if not pending and self._skipped:
+            self._skipped.clear()
+            _, pending = QuizCommand.pool(grouped, counts, checked, limit=1)
         return grouped, counts, pending
 
     def _question(self, source: str) -> str:
@@ -159,16 +172,28 @@ class Viewer:
         group = pending[0]
         unit = group[0]["unit"]
         written = " / ".join(sorted({e["surface"] for e in group}))
-        example = QuizCommand._example(self.app, unit, source,
-                                       self.app.overrides.hidden())
+        # Several, because one is a gamble: the best-scoring sentence is the
+        # right length and sometimes says nothing that helps you recognise the
+        # word. The rest travel with the question so asking for another costs
+        # no round trip.
+        found = QuizCommand.examples(self.app, unit, source,
+                                     self.app.overrides.hidden(), want=5)
+        example = found[0] if found else ""
+        more = (f" data-more=\"{escape(json.dumps(found[1:]))}\""
+                if len(found) > 1 else "")
+        another = ("<button type='button' class='another'>another sentence"
+                   "</button>" if len(found) > 1 else "")
         left = sum(1 for g in grouped.values()
                    if counts.get(g[0]["unit"], 0) and g[0]["unit"] not in checked)
+        aside = (f" · {len(self._skipped):,} set aside"
+                 if self._skipped else "")
         return (
             "<div class='deck quizcard'>"
-            f"<p class='count'>{done:,} checked · {left:,} to go</p>"
+            f"<p class='count'>{done:,} checked · {left:,} to go{aside}</p>"
             f"<h2 class='de'>{escape(written)}</h2>"
             f"<p class='quiet'>said {counts[unit]:,} times in this corpus</p>"
-            + (f"<div class='example'>{sentence(example, None)}</div>"
+            + (f"<div class='example'{more}>{sentence(example, None)}</div>"
+               f"{another}"
                if example else "<p class='quiet'>no example sentence</p>")
             + "<form method='post' action='/quiz' class='actions'>"
             f"<input type='hidden' name='kind' value='{escape(unit.kind)}'>"
@@ -194,7 +219,12 @@ class Viewer:
                       "already counts as known. Swipe right if that is true, "
                       "left if it is not.</p>"
                       "<div class='card' id='quiz-card'>"
-                      f"<div id='quiz'>{self._question(source)}</div></div>",
+                      f"<div id='quiz'>{self._question(source)}</div></div>"
+                      # `layout` does not carry the script; every page that
+                      # wants behaviour asks for it. Without this the whole
+                      # controller was simply absent and the swipes did
+                      # nothing, silently, which is exactly how it looked.
+                      f"<script src='{stamped('app.js')}'></script>",
                       "/quiz", source)
 
     def quiz_json(self, query: dict) -> dict:
@@ -220,7 +250,10 @@ class Viewer:
         back = f"/quiz?src={quote(source)}" if source else "/quiz"
         if action == "undo":
             return self._undo_answer(back)
-        if not unit.key or action == "skip":
+        if not unit.key:
+            return back
+        if action == "skip":
+            self._skipped.add(unit)
             return back
 
         if action == "no":

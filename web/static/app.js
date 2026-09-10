@@ -511,6 +511,26 @@ function offerUndo(kind, key, src, opts) {
       .catch(function () { b.form.submit(); });
   }
 
+  // Another sentence for the same word. The alternatives travel with the
+  // question, so this is a swap rather than a request — and it rotates rather
+  // than running out, because the reason to ask for another is that the one
+  // on screen did not help, and the reason to ask twice is the same reason.
+  // Delegated: the region is replaced with every question.
+  card.addEventListener('click', function (e) {
+    var b = e.target.closest('.another');
+    if (!b) return;
+    var box = region.querySelector('.example'), more;
+    if (!box) return;
+    try { more = JSON.parse(box.getAttribute('data-more') || '[]'); }
+    catch (err) { more = []; }
+    var p = box.querySelector('.de');
+    if (!more.length || !p) return;
+    var showing = p.textContent;
+    p.textContent = more.shift();
+    more.push(showing);
+    box.setAttribute('data-more', JSON.stringify(more));
+  });
+
   var LOCK = 10, GO = 0.22, FLICK = 0.35, from = null;
 
   function offset(dx) {

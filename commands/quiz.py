@@ -288,14 +288,20 @@ class QuizCommand:
                         in app.corpus_store.unit_counts(source).items()})
 
     @staticmethod
-    def _example(app, unit: Unit, source: str, hidden: frozenset | set = ()) -> str:
-        """One sentence using it, so the word is not judged out of context.
+    def examples(app, unit: Unit, source: str, hidden: frozenset | set = (),
+                 want: int = 1) -> list[str]:
+        """Sentences using it, best first, so the word is not judged alone.
 
         Asked of the database as text, in three widening passes. The first
         asks only for sentences of the ideal length, which is what `score`
-        gives a perfect mark to, and takes the first that has no sentence
-        break inside it — the same sentence the old loop stopped at, reached
-        without reading the other thirty thousand.
+        gives a perfect mark to; if enough of those come back the other passes
+        are never run, and the thirty thousand other sentences saying `sein`
+        are never read.
+
+        `want` more than one because the reader can ask for another. A single
+        example is a gamble: the highest-scoring sentence is the right length
+        and says nothing useful about half the time, and a word judged on one
+        bad sentence is judged wrong.
 
         Two rewrites got here. The first loaded the whole corpus per question,
         nineteen seconds each and thirteen minutes for a quiz of forty. The
@@ -305,23 +311,26 @@ class QuizCommand:
         for the string.
         """
         from corpus.quality import BAND, IDEAL, score
-        # The best seen so far, not the best of the last pass. A widening
-        # search that returned whatever the final pass found could hand back
-        # something worse than an earlier pass had already located — the last
-        # pass is unordered, forty rows in whatever order the table holds
-        # them, so it is the least likely to hold the winner.
-        best, best_score = "", -1.0
+        # Collected across passes rather than replaced by each, so a later and
+        # wider pass can only add to what an earlier one found.
+        seen: set[str] = set()
+        found: list[str] = []
         # The ideal band is widened by one at each end: SQLite counts words by
         # counting spaces, so a double space reads as an extra word and a
         # sentence that belongs here can be excluded from its own range.
         for words in ((IDEAL[0] - 1, IDEAL[1] + 1), BAND, None):
             for text in app.corpus_store.example_texts(
                     unit.kind, unit.key, source, words=words, limit=40):
-                if text in hidden:
+                if text in hidden or text in seen:
                     continue
-                value = score(text)
-                if value > best_score:
-                    best, best_score = text, value
-            if best_score >= 1.0:
-                break          # a perfect mark; widening cannot beat it
-        return best
+                seen.add(text)
+                found.append(text)
+            if sum(score(t) >= 1.0 for t in found) >= want:
+                break      # enough perfect marks; widening cannot beat them
+        return sorted(found, key=lambda t: -score(t))[:want]
+
+    @staticmethod
+    def _example(app, unit: Unit, source: str,
+                 hidden: frozenset | set = ()) -> str:
+        found = QuizCommand.examples(app, unit, source, hidden, want=1)
+        return found[0] if found else ""

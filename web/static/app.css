@@ -380,3 +380,9 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1
   background: var(--ink); color: var(--paper); border-color: var(--ink);
 }
 .quizcard .actions .skip { color: var(--ink-2); }
+.quizcard .another {
+  font: 400 13.5px var(--sans); color: var(--ink-2);
+  background: none; border: 0; padding: 10px 4px 0; min-height: 0;
+  text-decoration: underline; text-decoration-color: var(--faint);
+}
+.quizcard .another:hover { color: var(--ink); }
