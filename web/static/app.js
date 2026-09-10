@@ -9,6 +9,29 @@
 // used to be two: the reading page emitted this and a deck-only script that
 // did a strict subset of it, each with its own idea of which slide was
 // showing, so an arrow key advanced the deck twice and desynced the counter.
+// Listening rather than watching. Remembered in the browser, because it is a
+// property of how the phone is being held this minute, not of what is being
+// learned — and applied to <body> so both pages get it from one place.
+(function () {
+  var KEY = 'i1-audio';
+  function apply(on) {
+    document.body.classList.toggle('audio', on);
+    var b = document.getElementById('mode');
+    if (b) b.textContent = on ? 'watching, not listening'
+                              : 'listening, not watching';
+  }
+  var stored = false;
+  try { stored = localStorage.getItem(KEY) === '1'; } catch (e) {}
+  apply(stored);
+  var b = document.getElementById('mode');
+  if (b) b.onclick = function () {
+    var on = !document.body.classList.contains('audio');
+    apply(on);
+    // A browser that refuses storage still toggles; it just forgets.
+    try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {}
+  };
+})();
+
 // Taking back "I know this".
 //
 // It is the only destructive thing here, and a right swipe is a gesture you

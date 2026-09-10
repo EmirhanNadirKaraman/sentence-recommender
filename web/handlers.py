@@ -250,6 +250,7 @@ class Viewer:
             # two of nothing, on the action taken most often.
             + f"<div id='reading-top'>{self._progress(readable, total)}"
             + f"<p class='note'>{lede}</p></div>"
+            + self._audio_toggle()
             + "<div class='card' id='card'>"
             + self._stage(deck)
             + "<div id='reading'>"
@@ -396,6 +397,18 @@ class Viewer:
                 scope.index.readable,
                 scope.examples.count(step.unit),
                 len(scope.sentences))
+
+    @staticmethod
+    def _audio_toggle() -> str:
+        """Hide the picture and keep the sound.
+
+        Rendered on every page that has a player. The state lives in the
+        browser rather than the URL or the database: it is a property of how
+        you are using the phone this minute — pocket or hand — not of what
+        you are learning.
+        """
+        return ("<button type='button' class='mode' id='mode'>"
+                "listening, not watching</button>")
 
     @staticmethod
     def _progress(readable: int, total: int) -> str:
@@ -1054,6 +1067,7 @@ class Viewer:
             + f"</span> of {len(ranked):,}, ranked by how well it plays with "
               "your hands full. Swipe up and down to move, right to say you "
               "know a word, left to set it aside.</p>"
+            + self._audio_toggle()
             + "<div class='card' id='reel'>"
             + video.player(row["video"], 0)
             + f"<div id='reel-board'>{self._scoreboard(row)}</div>"

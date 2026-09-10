@@ -255,6 +255,31 @@ button:hover { border-color: var(--target); }
   background: var(--surface); border: 1px solid var(--faint); }
 .player iframe { position: absolute; inset: 0; width: 100%; height: 100%;
   border: 0; }
+
+/* Listening rather than watching: the picture goes, the words get the room.
+   For a run this is the honest shape of the thing — you are not looking at
+   the screen, and a 16:9 letterbox of talking heads is using space the
+   caption could have.
+
+   The iframe stays rendered, two pixels tall and clipped, rather than
+   hidden. `display: none` and `visibility: hidden` both stop playback in
+   Safari, which is the one thing this mode must not do. It is not a
+   bandwidth saving either: YouTube's embed has no audio-only stream to ask
+   for, so the video is still fetched — what you get back is the screen and
+   the ability to pocket the phone. */
+body.audio .player { padding-bottom: 0; height: 2px; overflow: hidden;
+  border: 0; background: transparent; }
+body.audio .caption { min-height: 12rem; margin-top: 8px; }
+body.audio .caption .de { font-size: 30px; line-height: 1.4; }
+body.audio .scoreboard, body.audio #reel-board { display: none; }
+
+.mode { background: transparent; border: 0; padding: 4px 0;
+  font: 400 14px var(--sans); color: var(--ink-2); cursor: pointer;
+  min-height: 44px; text-decoration: underline;
+  text-decoration-color: var(--faint); text-underline-offset: 4px; }
+.mode:hover { color: var(--ink); text-decoration-color: var(--rail); }
+body.audio .mode { color: var(--ink); text-decoration-color: var(--rail);
+  text-decoration-thickness: 2px; }
 /* The spoken line, right under the picture. Reserved height so the layout
    does not jump each time it changes. */
 .caption { margin: 18px 0 4px; min-height: 4.6rem; }
