@@ -535,6 +535,38 @@ class Viewer:
         )
         return f"<div class='switch'><span>Teaching me</span>{links}</div>"
 
+    @staticmethod
+    def _here(path: str, query: dict, *keys: str) -> str:
+        """This page's own address, for a form that has to come back to it.
+
+        Only the keys named travel, because `mark_known` appends `src`
+        itself and two of those make a URL that carries neither.
+        """
+        carried = [(k, query[k]) for k in keys if query.get(k)]
+        return path + ("?" + "&".join(f"{k}={quote(str(v), safe='')}"
+                                      for k, v in carried) if carried else "")
+
+    def _word_actions(self, unit: Unit, source: str, back: str,
+                      pass_too: bool = True, extra: str = "") -> str:
+        """Mark a word without leaving the list it is in.
+
+        The reading page gets the full bar — watch it, read other sentences,
+        set it aside. A list wants the one thing you actually do while
+        reading down it, and to put you back where you were afterwards, so
+        `back` carries the page and the filters rather than a bare path.
+        """
+        hidden = (f"<input type='hidden' name='kind' value='{escape(unit.kind)}'>"
+                  f"<input type='hidden' name='key' value='{escape(unit.key)}'>"
+                  f"<input type='hidden' name='src' value='{escape(source)}'>"
+                  f"<input type='hidden' name='back' value='{escape(back)}'>")
+        passing = (f"<form method='post' action='/known'>{hidden}"
+                   "<button name='action' value='pass'>Not yet</button></form>"
+                   if pass_too else "")
+        return ("<div class='tools'>"
+                f"<form method='post' action='/known'>{hidden}"
+                "<button name='action' value='known'>I know this</button>"
+                f"</form>{passing}{extra}</div>")
+
     def _actions(self, unit: Unit, source: str, back: str,
                  watchable: bool = False) -> str:
         """What to do about the thing just shown."""
@@ -600,7 +632,13 @@ class Viewer:
             # marked. It did the work and wrote back the numbers it started
             # with.
             self._rescore(unit)
-        return f"{back}?src={quote(source)}" if source else back
+        # `&` when the caller already carried its own state — a list you
+        # were forty entries into should come back to entry forty, not to the
+        # top. Joining with `?` unconditionally made a second query string and
+        # the page silently forgot its page number and filters.
+        if not source:
+            return back
+        return f"{back}{'&' if '?' in back else '?'}src={quote(source)}"
 
     # --- the rest ---------------------------------------------------------
 
@@ -622,6 +660,10 @@ class Viewer:
             steps = [s for s in steps if s.unit not in known]
             hidden = before - len(steps)
 
+        # Carries the filters and the page, so marking a word halfway down
+        # comes back halfway down rather than at the top.
+        back = self._here("/roadmap", query, "q", "kind", "hide", "page",
+                          "count")
         page = max(int(query.get("page") or 1), 1)
         pages = max((len(steps) + PAGE_SIZE - 1) // PAGE_SIZE, 1)
         window = steps[(page - 1) * PAGE_SIZE: page * PAGE_SIZE]
@@ -635,7 +677,9 @@ class Viewer:
             f"{quote(s.unit.key, safe='')}?src={quote(source)}'>"
             f"{escape(s.unit.key)}</a></div>"
             f"{sentence(s.sentence.text, s.sentence.translation, s.sentence.surface_of(s.unit))}"
-            "</div></div>"
+            + ("" if s.unit in known
+               else self._word_actions(s.unit, source, back))
+            + "</div></div>"
             for s in window
         )
         listing = (f"<div class='ledger'>{entries}</div>" if window
@@ -655,26 +699,24 @@ class Viewer:
     def _stored_label(self, source: str, list_only: bool) -> str:
         """The stored roadmap the switches are asking for.
 
-        A roadmap's name carries the settings that built it, so the two
-        switches name one directly: `subtitle` counting only the study list
-        is `subtitle:list:goals`. That is the goal-directed plan — the one
-        that teaches your list rather than merely filtering by it — so it is
-        preferred whenever it exists, and the plain walk is the fallback for
-        a corpus no goal roadmap has been built over.
+        A roadmap's name carries the settings that built it, so the switches
+        name one directly: `subtitle` counting every word is
+        `subtitle:strict:goals`, counting only the study list is
+        `subtitle:list:goals`. Both teach the list and nothing else — that is
+        what `:goals` means, and it is not what the switch chooses. What it
+        chooses is which words have to be known before a sentence counts as
+        readable.
+
+        Both are built and stored, so either is a query rather than a walk.
+        Whichever was asked for wins and the other is the fallback, so a
+        corpus with only one of them built still works.
+
+        The well-formed plan wins over the plain one where it exists: it
+        teaches from sentences worth reading, at the price of the words this
+        corpus only ever says badly. Falling back rather than requiring it,
+        so the page works before `build-roadmap --quality` has ever been run.
         """
         stored = self._store.sources()
-        # Always the study-list plan, whatever the counting switch says. The
-        # roadmap answers one question — how do I learn the words on my list —
-        # and the wider walk answers a different one, in sixteen thousand
-        # steps of vocabulary nobody asked for.
-        #
-        # The well-formed plan wins where it exists: it teaches from sentences
-        # worth reading, at the price of the words this corpus only ever says
-        # badly. Falling back rather than requiring it, so the page still
-        # works before `build-roadmap --quality` has ever been run.
-        # The switch picks between them, and both are stored, so both are
-        # a query rather than a walk. Whichever was asked for wins; the other
-        # is the fallback, so a corpus with only one built still works.
         strict = (f"{source}:good:strict:goals", f"{source}:strict:goals")
         listed = (f"{source}:good:list:goals", f"{source}:list:goals")
         for wanted in (listed + strict) if list_only else (strict + listed):
@@ -715,12 +757,17 @@ class Viewer:
                f"{escape(', '.join(rest))}</p>" if example else
                "<p class='also'>Never said in this corpus. Find a clip of it "
                "and the chain continues.</p>")
-            + "<div class='tools'>"
-            f"<a class='link' target='_blank' rel='noreferrer' "
-            f"href='https://de.youglish.com/pronounce/"
-            f"{quote(_hunt_term(unit), safe='')}/german'>Find it on YouGlish</a>"
-            "</div>"
-            "</div></div>"
+            # No "not yet" here: nothing on this page is being offered, so
+            # there is nothing to defer. Knowing it already is the one thing
+            # that takes it off the list.
+            + self._word_actions(
+                unit, source, self._here("/blocked", query, "gap", "count"),
+                pass_too=False,
+                extra="<a class='link' target='_blank' rel='noreferrer' "
+                      "href='https://de.youglish.com/pronounce/"
+                      f"{quote(_hunt_term(unit), safe='')}"
+                      "/german'>Find it on YouGlish</a>")
+            + "</div></div>"
             for unit, count, gap, example, rest in rows[:PAGE_SIZE]
         )
         near = sum(1 for r in stranded if r[2] == 2)
@@ -770,8 +817,17 @@ class Viewer:
         # built to exhaustion, is usually nothing.
         for step in self._store.load(self._stored_label(source, list_only)):
             spare.learn(step.unit)
-        RoadmapBuilder(spare, scope.priority, self.app.settings.priority_weight
-                       ).build(max_steps=WALK_LIMIT)
+        # Only goals, because only goals are ever taught — the question is
+        # what the roadmap cannot reach, and the roadmap does not reach for
+        # anything else. Narrowed counting got this for free, having thrown
+        # every non-goal away before the index was built; counting every word
+        # keeps them, so a walk left to its own devices spends its time
+        # learning `Klausur` and then reports it as reachable. Saying so cost
+        # two minutes a page load as well as being wrong.
+        goals = frozenset(self.app.goal_units)
+        RoadmapBuilder(spare, scope.priority,
+                       self.app.settings.priority_weight,
+                       goals=goals, only_goals=True).build(max_steps=WALK_LIMIT)
         reached = spare.known
 
         appearances: Counter = Counter()
@@ -780,7 +836,11 @@ class Viewer:
             unknown = s.units - reached
             if not unknown:
                 continue
-            for u in unknown:
+            # The gap counts every unknown word, including the ones off the
+            # list: they are why the sentence cannot teach anything, so they
+            # belong in "three new things in its easiest sentence". Only the
+            # goals get a row of their own.
+            for u in unknown & goals:
                 appearances[u] += 1
                 if u not in easiest or len(unknown) < easiest[u][0]:
                     easiest[u] = (len(unknown), s.text,
@@ -799,7 +859,7 @@ class Viewer:
         rows += [
             (unit, 0, 0, "", [])
             for unit in sorted(
-                (u for u in self.app.goal_units
+                (u for u in goals
                  if u not in reached and u not in appearances),
                 key=lambda u: -priority.of(u),
             )
@@ -877,7 +937,7 @@ class Viewer:
               "scores follow whatever you have marked known.</p>"
             + video.player(row["video"], 0)
             + self._scoreboard(row)
-            + self._to_follow(source, row)
+            + self._to_follow(source, row, back=f"/reels?i={here}")
             + f"<div class='pager'>{prev}{nxt}</div>"
             + self._reel_keys(source, here, len(ranked))
         )
@@ -896,7 +956,8 @@ class Viewer:
             f"<span><strong>{value}</strong> {label}</span>" for label, value in cells
         ) + "</div>")
 
-    def _to_follow(self, source: str, row: dict, limit: int = 8) -> str:
+    def _to_follow(self, source: str, row: dict, back: str = "/reels",
+                   limit: int = 8) -> str:
         """The words that would make the most of *this* video readable.
 
         Not the roadmap's next step, which answers a different question —
@@ -923,12 +984,13 @@ class Viewer:
             "</div><div class='body'><div class='unit'>"
             "<a href='/unit/{}/{}?src={}'>{}</a></div>"
             "<p class='also'>{} more sentence{} in this video readable"
-            "{}</p></div></div>".format(
+            "{}</p>{}</div></div>".format(
                 count / total,
                 "on your list" if unit in goals else "extra",
                 unit.kind, quote(unit.key, safe=""), quote(source),
                 escape(unit.key), count, "" if count == 1 else "s",
-                f" — {at:.0%} to {(at + count / total):.0%}" if count else "")
+                f" — {at:.0%} to {(at + count / total):.0%}" if count else "",
+                self._word_actions(unit, source, back))
             for unit, count in gain.most_common(limit))
         best = gain.most_common(1)[0]
         return (f"<h2>Learn next to follow this one</h2>"
