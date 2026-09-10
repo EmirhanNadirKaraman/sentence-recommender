@@ -1150,7 +1150,17 @@ class Viewer:
         that never says the word scores exactly as it did. The stamp still
         guards correctness: if this ever misses a video, the fingerprint
         stops matching and the next read rebuilds the lot.
+
+        Serialised on the same lock `_watchable` uses, because `_grouped`
+        below materialises the whole corpus on a cold cache and two quick
+        taps would otherwise run two of those at once — a gigabyte apiece, on
+        request threads. The lock is not reentrant; this is reached only from
+        `mark_known`, which holds nothing.
         """
+        with self._scoring:
+            self._rescore_locked(unit)
+
+    def _rescore_locked(self, unit: Unit) -> None:
         known, goals = self.known, frozenset(self.app.goal_units)
         stamp = self._score_stamp()
         for source, rows in list(self._ranked.items()):

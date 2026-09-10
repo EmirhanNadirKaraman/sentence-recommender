@@ -4,34 +4,46 @@ Built on `http.server` rather than a framework: the site is six routes and a
 form, and a dependency that has to be installed before the results can be
 looked at is a worse trade than forty lines of routing.
 
-Bound to 127.0.0.1 only. There is no authentication, and the pages read
-whatever the local database holds, so it must not be exposed beyond this
-machine.
+Loopback by default. There is still no authentication of any kind, and the
+pages read and write whatever the local database holds — so binding it
+anywhere else puts that on the network for anyone who can reach the port.
+`serve --host` exists for reaching it from a phone on the same wifi, and says
+so out loud when it is used; anything beyond that wants a real front door
+(see IOS.md).
 """
 from __future__ import annotations
 
+import socket
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, unquote, urlparse
 
 from web.handlers import Viewer
 
-HOST = "127.0.0.1"
+LOOPBACK = "127.0.0.1"
 
 
 class LocalServer:
     """Routes requests to `Viewer` and serves the HTML it returns."""
 
-    def __init__(self, app, port: int = 8765) -> None:
+    def __init__(self, app, port: int = 8765, host: str = LOOPBACK) -> None:
         self._viewer = Viewer(app)
         self._port = port
+        self._host = host
 
     def serve(self, open_browser: bool = True) -> None:
         viewer = self._viewer
         handler = _make_handler(viewer)
-        server = ThreadingHTTPServer((HOST, self._port), handler)
-        url = f"http://{HOST}:{self._port}/"
-        print(f"serving {url}  (ctrl-c to stop)")
+        server = ThreadingHTTPServer((self._host, self._port), handler)
+        url = f"http://{self._reachable_at()}:{self._port}/"
+        # Flushed, both of them. Redirected output is block-buffered, so the
+        # one line whose entire job is telling you what to type into the other
+        # device is the one that vanishes under nohup, ssh or a service
+        # manager — which is exactly where it is needed.
+        print(f"serving {url}  (ctrl-c to stop)", flush=True)
+        if self._host != LOOPBACK:
+            print("  no authentication — anyone who can reach this port can "
+                  "read your corpus and mark words known", flush=True)
         if open_browser:
             webbrowser.open(url)
         try:
@@ -40,6 +52,24 @@ class LocalServer:
             print("\nstopped")
         finally:
             server.server_close()
+
+    def _reachable_at(self) -> str:
+        """The address to type into the other device.
+
+        The mDNS name rather than the LAN address, and deliberately: an
+        installed web app has no address bar and no reload, so when the DHCP
+        lease moves the app is bricked with nothing to edit. `.local` follows
+        the machine.
+
+        A bind address is not one of these — `0.0.0.0` means "every
+        interface", which is not somewhere a phone can be pointed.
+        """
+        if self._host == LOOPBACK:
+            return self._host
+        if self._host not in ("0.0.0.0", "::", ""):
+            return self._host
+        name = socket.gethostname()
+        return name if name.endswith(".local") else f"{name}.local"
 
 
 def _make_handler(viewer: Viewer):

@@ -5,7 +5,8 @@ from web import LocalServer
 
 
 class ServeCommand:
-    def run(self, app, port: int = 8765, open_browser: bool = True) -> None:
+    def run(self, app, port: int = 8765, open_browser: bool = True,
+            host: str = "127.0.0.1") -> None:
         builds = app.corpus_store.builds(teachable_only=True)
         if not builds:
             raise SystemExit("nothing built yet — run `build-corpus subtitle` first")
@@ -35,4 +36,4 @@ class ServeCommand:
         print(f"  {len(known):,} units known, "
               f"{sum(builds.values()):,} sentences cached", flush=True)
 
-        LocalServer(app, port).serve(open_browser)
+        LocalServer(app, port, host).serve(open_browser)

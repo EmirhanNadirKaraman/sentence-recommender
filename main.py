@@ -116,6 +116,10 @@ def _parser() -> argparse.ArgumentParser:
 
     serve = sub.add_parser("serve", help="browse the results at localhost")
     serve.add_argument("--port", type=int, default=8765)
+    serve.add_argument("--host", default="127.0.0.1",
+                       help="address to bind. 0.0.0.0 reaches it from a phone "
+                            "on the same wifi — there is no authentication, so "
+                            "only on a network you trust")
     serve.add_argument("--no-browser", action="store_true",
                        help="do not open a browser window")
 
@@ -198,7 +202,7 @@ def main() -> int:
     elif args.command == "review":
         ReviewCommand().run(app, args.limit, tuple(args.source))
     elif args.command == "serve":
-        ServeCommand().run(app, args.port, not args.no_browser)
+        ServeCommand().run(app, args.port, not args.no_browser, args.host)
     elif args.command == "build-study-list":
         BuildStudyListCommand().run(app)
     elif args.command == "status":
