@@ -198,6 +198,29 @@ button:hover { border-color: var(--target); }
 .also { font: 400 13.5px/1.5 var(--sans); color: var(--ink-2); margin: 10px 0 0; }
 .also.clear { color: var(--target); }
 
+/* Taking back the one destructive thing here. Fixed to the bottom because a
+   decision replaces the region it was made in, and above the tab bar so it
+   does not cover the navigation while it waits. */
+.undo {
+  position: fixed; left: 12px; right: 12px; z-index: 20;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  display: flex; gap: 14px; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-radius: 4px;
+  background: var(--ink); color: var(--paper);
+  font: 400 15px var(--sans);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .28);
+}
+.undo button {
+  min-height: 40px; padding: 8px 16px; font: 400 16px var(--sans);
+  color: var(--paper); background: transparent;
+  border: 1px solid var(--paper); border-radius: 3px;
+  text-decoration: underline; text-decoration-color: var(--rail);
+  text-decoration-thickness: 2px; text-underline-offset: 3px;
+}
+@media (max-width: 620px) {
+  .undo { bottom: calc(64px + env(safe-area-inset-bottom)); }
+}
+
 /* The word a sideways swipe acts on. Without this you are swiping blind
    into a permanent change to your vocabulary — the panel lists eight and
    nothing said which one was under the gesture. */

@@ -700,7 +700,9 @@ class Viewer:
         if not unit.key:
             return back
 
-        if form.get("action") == "pass":
+        if form.get("action") == "undo":
+            self._unmark(unit)
+        elif form.get("action") == "pass":
             self.app.snoozes.snooze(unit, self.app.settings.snooze_words)
         else:
             self.app.marked_known.add(unit)
@@ -1248,6 +1250,34 @@ class Viewer:
                         index[unit].add(video_id)
             self._unit_videos[source] = index
         return self._unit_videos[source]
+
+    def _unmark(self, unit: Unit) -> str:
+        """Take back "I know this".
+
+        The only destructive thing this app does, and until now the only one
+        with no way back: `KnownStore.remove` existed and nothing called it.
+        A right swipe is a gesture you make hundreds of times and will
+        sometimes make by accident.
+
+        What cannot be undone in place is dropped instead. `KnownSet.learn`
+        and `CorpusIndex.learn` both only go forwards — an index is built to
+        move sentences down states, never up — so rather than pretend
+        otherwise, the caches holding them are thrown away and rebuilt. That
+        costs a corpus load on the next page that needs one, which is the
+        right price for an action taken once in a session.
+
+        The card comes back too. It was deleted on the assumption you knew
+        the word; taking that back should put it in the queue again rather
+        than quietly losing its place.
+        """
+        self.app.marked_known.remove(unit)
+        self.app.card_store.add_many(
+            [self.app.scheduler.new_card(unit, datetime.now())])
+        self._known = None
+        self._scopes.clear()
+        self._stuck.clear()
+        self._queue_rescore(unit)
+        return unit.key
 
     def _queue_rescore(self, unit: Unit) -> None:
         """Hand the word to the scorer and get out of the way.

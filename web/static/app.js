@@ -9,6 +9,37 @@
 // used to be two: the reading page emitted this and a deck-only script that
 // did a strict subset of it, each with its own idea of which slide was
 // showing, so an arrow key advanced the deck twice and desynced the counter.
+// Taking back "I know this".
+//
+// It is the only destructive thing here, and a right swipe is a gesture you
+// will sometimes make by accident. The bar is appended to the body rather
+// than to the page region, because deciding a word replaces that region and
+// the offer has to outlive it.
+function offerUndo(kind, key, src) {
+  var old = document.getElementById('undo-bar');
+  if (old) old.remove();
+  var bar = document.createElement('div');
+  bar.id = 'undo-bar';
+  bar.className = 'undo';
+  var said = document.createElement('span');
+  said.textContent = 'Marked ' + key + ' known';
+  var go = document.createElement('button');
+  go.type = 'button';
+  go.textContent = 'Undo';
+  go.onclick = function () {
+    var body = new URLSearchParams({kind: kind, key: key, src: src || '',
+                                    back: '/', action: 'undo'});
+    fetch('/known', {method: 'POST', body: body, redirect: 'manual'})
+      .catch(function () {})
+      .then(function () { location.reload(); });
+  };
+  bar.appendChild(said);
+  bar.appendChild(go);
+  document.body.appendChild(bar);
+  // Long enough to notice and reach, short enough not to sit there.
+  setTimeout(function () { if (bar.parentNode) bar.remove(); }, 8000);
+}
+
 (function () {
   // #reading-top and #reading are replaced when a word is decided; the
   // player and the transcript sit outside them and survive. Anything looked
@@ -130,6 +161,8 @@
     busy = true;
     var body = new URLSearchParams(new FormData(b.form));
     body.append('action', value);
+    var was = {kind: body.get('kind'), key: body.get('key'),
+               src: body.get('src')};
     fetch('/known', {method: 'POST', body: body, redirect: 'manual',
                      keepalive: true})
       .then(function () { return fetch('/api/next' + window.location.search); })
@@ -145,6 +178,7 @@
                                 startSeconds: Math.max(d.at - 0.4, 0)});
           loadTranscript(d.video);
         }
+        if (value === 'known') offerUndo(was.kind, was.key, was.src);
         busy = false;
       })
       .catch(function () { b.form.submit(); });
@@ -284,11 +318,14 @@
     busy = true;
     var body = new FormData(b.form);
     body.append('action', value);
+    var was = {kind: body.get('kind'), key: body.get('key'),
+               src: body.get('src')};
     fetch('/known', {method: 'POST', body: new URLSearchParams(body),
                      redirect: 'manual', keepalive: true})
       .catch(function () {})
       .then(function () {
         busy = false;
+        if (value === 'known') offerUndo(was.kind, was.key, was.src);
         go(s.at);            // the word is gone; the panel behind it moved on
       });
   }
