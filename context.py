@@ -90,6 +90,13 @@ class Application:
         The trade is real: a sentence can then be called readable while
         holding a word you do not know, because that word was never
         something you set out to learn.
+
+        `strict` is the answer to that, and supersedes `list_only` rather
+        than combining with it. It keeps every word in the sentence and drops
+        only the ones the list already teaches under another name — `Kugel`
+        arriving a second time as a bare `kugel` — so a word you genuinely do
+        not know still counts against the sentence. See `covered_forms` for
+        which is which.
         """
         self.check_freshness()
         sentences = self.apply_overrides(self.corpus_store.load(

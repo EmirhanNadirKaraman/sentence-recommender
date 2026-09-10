@@ -73,9 +73,12 @@ class Viewer:
         self._known = None
         self._scopes: dict[str, Scope] = {}
         self._store = RoadmapStore(app.settings.state_path)
-        # Units set aside without claiming to know them. Session-only: the
-        # card in the review queue is the durable record, this just stops the
-        # page offering the same thing again.
+        # Units set aside without claiming to know them. Session-only, and
+        # that is the whole of it: the `pass` branch of `mark_known` writes
+        # nothing at all, so setting a word aside dies with the process. It
+        # used to claim the review card was the durable record; the card is
+        # minted when the roadmap is built whether you pass or not, so it
+        # records nothing about the decision.
         self._passed: set[Unit] = set()
         # Blocked-set results, per source. The walk behind them is cheap on a
         # subtitle corpus and slow on a quarter of a million sentences.
@@ -140,6 +143,11 @@ class Viewer:
 
         Keyed by counting mode as well as corpus: narrowing to the study list
         gives genuinely different unknown counts, so the two cannot share.
+
+        `list_only=False` means the *strict* corpus, not the raw one — the
+        duplicate forms are still dropped, only genuine strangers are kept.
+        The default here still reads True, but `counting()` now defaults to
+        strict, so nearly every caller passes False.
         """
         key = f"{source}|{'list' if list_only else 'all'}"
         if key not in self._scopes:
@@ -366,13 +374,17 @@ class Viewer:
               source: str = "") -> str:
         """The sentences using `unit`, readable ones first, stepped in place.
 
-        Strictly-i+1 sentences come first because the ranking sorts on how
-        much *else* is unknown, and there are often only one or two of them —
-        `etw. (Akk) können` appears in 131 subtitle sentences but is the sole
-        unknown in one. Stopping there would leave nothing to step through, so
-        the rest follow, each saying what else in it is new. That keeps the
-        i+1 claim honest while still letting the whole set be read without
-        leaving the page.
+        How far the deck reaches is decided by the walk that filled it, not
+        here. On the study-list roadmap it reaches past the strictly-i+1
+        sentences into the rest: there are often only one or two of the
+        former — `etw. (Akk) können` appears in 131 subtitle sentences and is
+        the sole unknown in one — and stopping there would leave nothing to
+        step through, so the rest follow, each saying what else in it is new.
+
+        The strict roadmap stops at the i+1 set however short that leaves it,
+        because reaching further would offer exactly the sentences it exists
+        to exclude — ones holding a word the walk will never teach. Either
+        way this method only renders what it was handed.
         """
         known = self.known
         if not options:
@@ -783,10 +795,14 @@ class Viewer:
             + self.counting_switch(query, "/blocked")
             + f"<div class='switch'><span>Showing</span>{picker}</div>"
             "<h1>Where the roadmap stops</h1>"
-            f"<p class='note'>{len(stranded):,} things this corpus can never "
-            "teach you, because none of them is ever the only new thing in a "
-            f"sentence. {near:,} are one word away — learn that word, or find a "
-            "clip that says this one plainly, and the chain continues.</p>"
+            f"<p class='note'>{len(stranded):,} words on your study list this "
+            "corpus cannot teach, because none of them is ever the only new "
+            "thing in a sentence. Every sentence saying one says something "
+            "else you do not know as well — often a word that is not on your "
+            "list at all, which the walk will therefore never teach, so no "
+            f"amount of progress will free it. {near:,} are a single word "
+            "away — learn that word, or find a clip that says this one "
+            "plainly, and the chain continues.</p>"
             + (f"<div class='ledger'>{entries}</div>" if entries
                else "<p class='empty'>Nothing is stranded — the roadmap "
                     "reaches everything in this corpus.</p>")
@@ -796,7 +812,14 @@ class Viewer:
         return layout("Blocked", body, "/blocked", source)
 
     def _stranded(self, source: str, list_only: bool = True):
-        """Units left unknown once the walk runs out, most frequent first.
+        """Goals left unknown once the walk runs out, most frequent first.
+
+        Goals, not units: the walk takes only goals, so what it cannot reach
+        is a question about the study list and nothing else. Narrowed
+        counting used to give that for free by discarding every non-goal
+        before the index was built; counting every word keeps them, so the
+        filter has to be said out loud — and a walk left to itself spent two
+        minutes learning `Klausur` before reporting it as reachable.
 
         Computed on a throwaway index: running the walk to exhaustion learns
         everything reachable, and doing that to the live one would tell the
@@ -909,10 +932,16 @@ class Viewer:
     def reels(self, query: dict) -> str:
         """One video at a time, ranked for watching rather than studying.
 
-        Scored on every load rather than cached, so marking a word known
-        moves the ranking immediately — which is the whole point of the page:
-        the videos you can follow are supposed to change as you learn. It
-        costs a pass over the corpus, which is cheaper than a stale answer.
+        The ranking still moves as you learn — that is the whole point of the
+        page — but it is no longer recomputed per load to achieve it. Scores
+        are read from `video_score` while the stamp holds, and `mark_known`
+        updates only the videos that say the word it was given. A warm load
+        is a dictionary lookup.
+
+        This said the opposite for a while after it stopped being true, and
+        an agent reading it concluded the page needed rearchitecting to avoid
+        a corpus scan that had already been removed. Prose about cost earns
+        its place only while someone keeps it honest.
         """
         source = self.source(query)
         ranked = self._watchable(source)

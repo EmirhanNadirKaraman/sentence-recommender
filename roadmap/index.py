@@ -1,6 +1,6 @@
 """The bipartite index the greedy walk runs on.
 
-Nothing is rescanned.  Rebuilding over a quarter of a million sentences after
+Nothing is rescanned.  Rebuilding over a hundred thousand sentences after
 every step would make the walk quadratic, so the index is built once and
 maintained incrementally.  Learning a unit touches only the sentences
 containing it, and each of those moves down one state:
@@ -11,9 +11,10 @@ containing it, and each of those moves down one state:
 
 Both the candidate map and the lookahead are kept as memberships rather than
 recomputed, which is the difference between a walk that takes a minute and one
-that takes a moment: at 258k sentences the frontier alone runs to tens of
-thousands of sentences, and a set difference per sentence per step dominates
-everything else.
+that takes a moment: at 115k teachable sentences the frontier alone runs to
+tens of thousands, and a set difference per sentence per step dominates
+everything else.  (The figure was 258k while Tatoeba was imported; the
+subtitle corpus alone holds 200,193 rows, 115,462 of them teachable.)
 """
 from __future__ import annotations
 

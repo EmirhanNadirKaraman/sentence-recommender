@@ -10,11 +10,19 @@ class ServeCommand:
         if not builds:
             raise SystemExit("nothing built yet — run `build-corpus subtitle` first")
 
-        # Warm up before opening the socket. Loading the parser and resolving
-        # the vocabulary takes seconds and is where the setup-dependent
-        # failures live — a stopped database, a missing spaCy model. Doing it
-        # here means those arrive as a plain message on the terminal, not as a
-        # traceback inside the first page.
+        # Warm up before opening the socket. This is where the setup-dependent
+        # failures live — a stopped database, a missing spaCy model — and doing
+        # it here means they arrive as a plain message on the terminal rather
+        # than a traceback inside the first page.
+        #
+        # It is nearly free when `data/resolved.json` still holds a valid
+        # entry, and only then costs the parser and the database when it does
+        # not. So it is a canary rather than a cost: what it really proves is
+        # that the resolved cache is present and current.
+        #
+        # The value is deliberately discarded. `Viewer` is built separately
+        # and resolves the known set again on its first render, which is a
+        # dictionary read once this has passed.
         print("loading vocabulary and parser…", flush=True)
         try:
             known = app.known_set()
