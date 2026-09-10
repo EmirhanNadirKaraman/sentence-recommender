@@ -41,6 +41,7 @@ class RoadmapBuilder:
         priority_weight: float = 3.0,
         goals: frozenset[Unit] = frozenset(),
         only_goals: bool = False,
+        relax: bool = False,
         video_minutes: dict[str, float] | None = None,
     ) -> None:
         self._index = index
@@ -52,6 +53,7 @@ class RoadmapBuilder:
         # walk has to refuse them by name, or it starts teaching `Klausur`
         # to make a sentence readable that the reader never asked to read.
         self._only_goals = only_goals
+        self._relax = relax
         # Video lengths, so a step opens on a clip you might actually watch
         # rather than eighty minutes into a film. A tie-break inside the deck
         # ranking; see `roadmap.examples.rank`.
@@ -78,10 +80,16 @@ class RoadmapBuilder:
         steps: list[RoadmapStep] = []
         while max_steps is None or len(steps) < max_steps:
             step = self._next_step(first_position + len(steps))
+            if step is None and self._relax:
+                # The wall, not a preference: nothing anywhere is one word
+                # away. Only here does the walk take two from one sentence.
+                step = self._relaxed_step(first_position + len(steps))
             if step is None:
                 break
             steps.append(step)
             self._index.learn(step.unit)
+            if step.beside is not None:
+                self._index.learn(step.beside)
             if on_progress and len(steps) % every == 0:
                 on_progress(len(steps), self._index.readable)
         return steps
@@ -163,6 +171,58 @@ class RoadmapBuilder:
             (self._index.sentence(p) for p in found),
             key=rank(unit, known, self._minutes),
         ))
+
+    def _relaxed_step(self, position: int) -> RoadmapStep | None:
+        """One step where no i+1 step exists — two new words from one sentence.
+
+        The walk halts when nothing is the sole unknown anywhere, and what is
+        left is stranded for good: 254 goals on this corpus, each said only in
+        sentences that hold something else unknown too. Often that something
+        is not on the study list at all, so no amount of progress reaches it
+        and the chain simply ends.
+
+        Relaxing breaks the deadlock by paying two words at once. It is the
+        last resort and gated as one — this runs only when `_next_step`
+        returns None, so the ordering stays i+1 for as long as the corpus
+        allows and a relaxed step is never *preferred* to a plain one. The
+        alternative, letting the scorer weigh two-word steps against one-word
+        steps throughout, degrades the whole sequence to buy the same words.
+
+        The pair is chosen by the same score as any other step, so the
+        cheapest wall to climb is the one climbed first.
+        """
+        best: tuple[Unit, set[int], int, float] | None = None
+        for unit, positions in self._index.pairs().items():
+            if not positions:
+                continue
+            if self._only_goals and unit not in self._goals:
+                continue
+            gain, score = self._score(unit, positions)
+            if best is None or (score, unit.key) > (best[3], best[0].key):
+                best = (unit, positions, gain, score)
+        if best is None:
+            return None
+        unit, positions, gain, score = best
+        sentence = self._example(positions)
+        # The other unknown in that sentence — what learning `unit` alone
+        # would have left behind, and the reason this sentence was out of
+        # reach.
+        beside = next((u for u in sentence.units
+                       if u != unit and u not in self._index.known), None)
+        if beside is None:
+            return None
+        return RoadmapStep(
+            position=position,
+            unit=unit,
+            sentence=sentence,
+            gain=gain,
+            score=score,
+            now_readable=0,
+            examples=self._deck(unit, positions),
+            readable=self._index.readable,
+            occurrences=len(self._index.containing(unit)),
+            beside=beside,
+        )
 
     def _score(self, unit: Unit, positions: set[int]) -> tuple[int, float]:
         gain = len(positions) + self._index.unlocks(unit)

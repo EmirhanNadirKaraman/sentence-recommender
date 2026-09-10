@@ -16,6 +16,13 @@ class RoadmapStep:
     forward — those it makes fully readable plus those it brings down to a
     single unknown.
 
+    `beside` is the other unit, on the steps where the walk had to relax.
+    Most steps are i+1 and it is None. When nothing anywhere is one word
+    away, the walk takes the cheapest sentence that is two away and teaches
+    both — see `RoadmapBuilder`. Such a step is a different promise, and the
+    reader is owed the difference rather than being handed a sentence with an
+    unexplained second new word in it.
+
     `examples` is the deck the reader steps through, chosen during the walk
     against what they know by the time they reach this step.  It is stored
     with the step so the page can be served without the corpus in memory;
@@ -33,6 +40,7 @@ class RoadmapStep:
     examples: tuple[Sentence, ...] = ()
     readable: int = 0
     occurrences: int = 0
+    beside: Unit | None = None
 
     def describe(self) -> str:
         kind = "pattern" if self.unit.is_pattern else "word"

@@ -30,7 +30,8 @@ class BuildRoadmapCommand:
 
     def run(self, app, steps: int | None = None, builds: tuple[str, ...] = (),
             goals: bool = False, list_only: bool = False,
-            quality_only: bool = False, strict: bool = False) -> None:
+            quality_only: bool = False, strict: bool = False,
+            relax: bool = False) -> None:
         settings = app.settings
         # Strict counting only makes sense aimed at the list: it leaves the
         # words the list will never teach in the sentences, and the walk has
@@ -61,7 +62,7 @@ class BuildRoadmapCommand:
         index = CorpusIndex(sentences, known)
         builder = RoadmapBuilder(index, app.priority(),
                                  settings.priority_weight, targets,
-                                 only_goals=strict,
+                                 only_goals=strict, relax=relax,
                                  video_minutes=app.video_minutes)
 
         plan = builder.build(max_steps=steps, on_progress=self._report)

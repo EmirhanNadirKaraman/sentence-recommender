@@ -87,6 +87,19 @@ class CorpusIndex:
         """
         return self._candidates
 
+    def pairs(self) -> dict[Unit, set[int]]:
+        """Every unit that is one of exactly *two* unknowns in some sentence.
+
+        The lookahead, read as a frontier in its own right. `candidates` is
+        what can be learned next on its own; this is what can be learned next
+        if you are willing to take two words from one sentence, which is what
+        the walk falls back on when nothing anywhere is one word away.
+
+        Read-only, and emptied entries are dropped as they empty, exactly as
+        `candidates` documents.
+        """
+        return self._pending
+
     def containing(self, unit: Unit) -> set[int]:
         """Every sentence with `unit` in it, readable or not.
 
