@@ -123,9 +123,17 @@ class Viewer:
         return self._known.units
 
     def counting(self, query: dict) -> bool:
-        """Whether to count only what the study list names. Default yes —
-        the list is what the reader set out to learn."""
-        return (query.get("count") or "list") == "list"
+        """Whether to count only what the study list names. Default no.
+
+        It used to default yes, on the grounds that the list is what the
+        reader set out to learn. That is still true of what gets *taught* —
+        both roadmaps teach the list and nothing else — but it was never a
+        good answer to what gets *counted*, because narrowing lets a sentence
+        be called readable while holding a word you cannot read. The strict
+        roadmap counts every word and is the better default; this is how you
+        ask for the older, looser reading back.
+        """
+        return (query.get("count") or "all") == "list"
 
     def scope(self, source: str, list_only: bool = True) -> Scope:
         """The live index for one corpus, built once and kept current.
@@ -135,8 +143,13 @@ class Viewer:
         """
         key = f"{source}|{'list' if list_only else 'all'}"
         if key not in self._scopes:
+            # Not narrowed means strict, not raw: the bare lemma the
+            # analyser yields beside the goal that already teaches it is one
+            # word arriving twice, and counting it as unknown is bookkeeping
+            # rather than vocabulary. See `Application.covered_forms`.
             sentences = self.app.corpus(*self._builds(source),
-                                        list_only=list_only)
+                                        list_only=list_only,
+                                        strict=not list_only)
             # The resolved vocabulary, not a fresh resolution: known_set()
             # re-runs the parser over every word in the files, which is
             # sixteen seconds, and this viewer already holds the answer.
@@ -162,8 +175,8 @@ class Viewer:
         links = "".join(
             f"<a href='{page}?src={quote(source)}&count={value}' "
             f"class='{'on' if here == value else ''}'>{label}</a>"
-            for value, label in (("list", "only my study list"),
-                                 ("all", "every word it finds"))
+            for value, label in (("all", "every word in the sentence"),
+                                 ("list", "only my study list"))
         )
         return f"<div class='switch'><span>Counting</span>{links}</div>"
 
@@ -187,12 +200,9 @@ class Viewer:
         switch = self.switch(source, "/") + self.counting_switch(query, "/")
         picker = self._kind_picker(only, source)
 
-        # The counting switch is a question the stored plan cannot answer: it
-        # was walked over the study list, and there is no stored plan for the
-        # wider count. Asking for one falls through to the live walk, which is
-        # slow and correct, rather than leaving the control on the page doing
-        # nothing.
-        planned = self._planned(source, only) if self.counting(query) else None
+        # Both readings have a stored roadmap now, so the switch picks one
+        # rather than choosing between a stored answer and a slow live walk.
+        planned = self._planned(source, only, self.counting(query))
         if planned is not None:
             step, deck, total = planned
             readable, occurrences = step.readable, step.occurrences
@@ -236,7 +246,7 @@ class Viewer:
         )
         return layout("i+1", body, "/", source)
 
-    def _planned(self, source: str, only: str
+    def _planned(self, source: str, only: str, list_only: bool
                  ) -> tuple[RoadmapStep, list[Sentence], int] | None:
         """The next step of the stored plan the reader has not taken, and its
         deck.
@@ -259,7 +269,7 @@ class Viewer:
         longer matches the rules in force. The caller falls back to walking a
         live index, which is the same answer computed the slow way.
         """
-        label = self._stored_label(source, True)
+        label = self._stored_label(source, list_only)
         if self._store.stamp(label) != current_stamp():
             return None
         known, skip = self.known, self._passed
@@ -662,11 +672,12 @@ class Viewer:
         # worth reading, at the price of the words this corpus only ever says
         # badly. Falling back rather than requiring it, so the page still
         # works before `build-roadmap --quality` has ever been run.
-        # Strict first where it exists: it is the only one that can promise
-        # every other word in the sentence is known, rather than every other
-        # word the study list happens to name.
-        for wanted in (f"{source}:good:strict:goals", f"{source}:strict:goals",
-                       f"{source}:good:list:goals", f"{source}:list:goals"):
+        # The switch picks between them, and both are stored, so both are
+        # a query rather than a walk. Whichever was asked for wins; the other
+        # is the fallback, so a corpus with only one built still works.
+        strict = (f"{source}:good:strict:goals", f"{source}:strict:goals")
+        listed = (f"{source}:good:list:goals", f"{source}:list:goals")
+        for wanted in (listed + strict) if list_only else (strict + listed):
             if wanted in stored:
                 return wanted
         return source
