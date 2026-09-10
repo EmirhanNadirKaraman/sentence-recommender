@@ -28,7 +28,7 @@ from watchability import ENOUGH_LINES, watchability
 
 # Bump when scoring changes: the stored rows are only valid for
 # the code that wrote them.
-SCORE_VERSION = 3
+SCORE_VERSION = 4
 
 # How many next-best words to keep per video. The panel shows eight;
 # storing more would be paying to remember what nobody reads.
@@ -1082,10 +1082,23 @@ class Viewer:
                 f"|{self.app.marked_known.version()}")
 
     def _grouped(self, source: str) -> dict[str, list]:
-        """Sentences by video. Cached: it does not depend on what you know."""
+        """Sentences by video. Cached: it does not depend on what you know.
+
+        Counted the way the strict roadmap counts. Every word in the line
+        counts against comprehension, which is what makes a percentage about
+        a video mean anything — but the bare lemma the analyser yields beside
+        the goal that already teaches it is one word arriving twice, and
+        counting it said you did not know `passieren` while the roadmap was
+        telling you that you did.
+
+        It was worth 1.9 points of comprehension across the corpus and moved
+        591 of 893 videos, and it mattered more to the next-best-word panel:
+        the sentences one word away went from 24,676 to 31,105, a quarter of
+        the evidence that panel reasons from.
+        """
         if source not in self._videos:
             groups: dict[str, list] = defaultdict(list)
-            for sentence in self.app.corpus(*self._builds(source), list_only=False):
+            for sentence in self.app.corpus(*self._builds(source), strict=True):
                 if sentence.timing:
                     groups[sentence.timing.video_id].append(sentence)
             self._videos[source] = dict(groups)
