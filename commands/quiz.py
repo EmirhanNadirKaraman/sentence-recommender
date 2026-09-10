@@ -186,16 +186,23 @@ class QuizCommand:
         for the string.
         """
         from corpus.quality import BAND, IDEAL, score
-        # The ideal band widened by one at each end: SQLite counts words by
+        # The best seen so far, not the best of the last pass. A widening
+        # search that returned whatever the final pass found could hand back
+        # something worse than an earlier pass had already located — the last
+        # pass is unordered, forty rows in whatever order the table holds
+        # them, so it is the least likely to hold the winner.
+        best, best_score = "", -1.0
+        # The ideal band is widened by one at each end: SQLite counts words by
         # counting spaces, so a double space reads as an extra word and a
         # sentence that belongs here can be excluded from its own range.
         for words in ((IDEAL[0] - 1, IDEAL[1] + 1), BAND, None):
-            texts = [t for t in app.corpus_store.example_texts(
-                unit.kind, unit.key, source, words=words, limit=40)
-                if t not in hidden]
-            if not texts:
-                continue
-            best = max(texts, key=score)
-            if score(best) >= 1.0 or words is None:
-                return best
-        return ""
+            for text in app.corpus_store.example_texts(
+                    unit.kind, unit.key, source, words=words, limit=40):
+                if text in hidden:
+                    continue
+                value = score(text)
+                if value > best_score:
+                    best, best_score = text, value
+            if best_score >= 1.0:
+                break          # a perfect mark; widening cannot beat it
+        return best
