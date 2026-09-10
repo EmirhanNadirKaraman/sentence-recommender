@@ -215,15 +215,21 @@ class CorpusStore:
         from collections import Counter
         if not builds:
             return Counter()
+        # The join exists only to filter by build. When the builds asked for
+        # are every build there is, it filters nothing and costs everything —
+        # 1.18M unit rows walked against the sentence table to reach an answer
+        # `ix_units_key` can give on its own.
+        everything = set(builds) >= set(self.builds())
         placeholders = ",".join("?" * len(builds))
         with self._connect() as conn:
-            return Counter({
-                (kind, key): n for kind, key, n in conn.execute(
-                    "SELECT su.kind, su.key, count(*) FROM sentence_units su"
-                    " JOIN sentences s ON s.id = su.sentence_id"
-                    f" WHERE s.build IN ({placeholders})"
-                    " GROUP BY su.kind, su.key", builds)
-            })
+            rows = conn.execute(
+                "SELECT kind, key, count(*) FROM sentence_units"
+                " GROUP BY kind, key") if everything else conn.execute(
+                "SELECT su.kind, su.key, count(*) FROM sentence_units su"
+                " JOIN sentences s ON s.id = su.sentence_id"
+                f" WHERE s.build IN ({placeholders})"
+                " GROUP BY su.kind, su.key", builds)
+            return Counter({(kind, key): n for kind, key, n in rows})
 
     def load(self, *builds: str, teachable_only: bool = True,
              video: str | None = None,
