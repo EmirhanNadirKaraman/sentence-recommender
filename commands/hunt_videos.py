@@ -96,6 +96,12 @@ class HuntVideosCommand:
             ):
                 print(f"  roadmap [{label}]: {steps} steps")
             after = self._stranded(app, source, known, quality_only)
+            if absent_only:
+                # The same filter, or the round compares the absent list it
+                # chased against the whole stranded set and reports a rout.
+                after = [(u, n) for u, n in after
+                         if not app.corpus_store.unit_counts(source)
+                         .get((u.kind, u.key), 0)]
             closed = len(stuck) - len(after)
             print(f"  stranded: {len(stuck):,} → {len(after):,} "
                   f"({closed:,} fewer)" if closed >= 0
