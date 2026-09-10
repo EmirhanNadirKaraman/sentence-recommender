@@ -834,6 +834,35 @@ class Viewer:
         return path + ("?" + "&".join(f"{k}={quote(str(v), safe='')}"
                                       for k, v in carried) if carried else "")
 
+    @staticmethod
+    def _blocker_actions(rest: list, gap: int, source: str, back: str) -> str:
+        """Offer to mark the word that is actually in the way.
+
+        The button beside a stranded goal marks the goal known, which is the
+        one thing that takes it off the list — but it is not what stands
+        between you and the sentence. `palästinensisch` is blocked by
+        `geiselnehmer`, a word that is not on the study list at all and that
+        the walk will therefore never teach, so no amount of reading frees it.
+        Knowing the blocker does.
+
+        Only when there is exactly one, and only when it is named. Of 254
+        stranded goals 42 are a single word away, and each of those words
+        unlocks exactly one goal — there is no stranger blocking a batch, so
+        this is a one-for-one trade and pretending otherwise would oversell
+        it. Past one blocker the offer is meaningless: knowing one of three
+        leaves the sentence just as unreachable.
+        """
+        if gap != 2 or len(rest) != 1:
+            return ""
+        blocker = rest[0]
+        return ("<form method='post' action='/known'>"
+                f"<input type='hidden' name='kind' value='{escape(blocker.kind)}'>"
+                f"<input type='hidden' name='key' value='{escape(blocker.key)}'>"
+                f"<input type='hidden' name='src' value='{escape(source)}'>"
+                f"<input type='hidden' name='back' value='{escape(back)}'>"
+                "<button name='action' value='known'>I know "
+                f"{escape(blocker.key)}</button></form>")
+
     def _word_actions(self, unit: Unit, source: str, back: str,
                       pass_too: bool = True, extra: str = "") -> str:
         """Mark a word without leaving the list it is in.
@@ -1062,7 +1091,7 @@ class Viewer:
                # Say how many *others* there are, which is what the list holds.
                f"<p class='also'>needs {gap - 1} other new "
                f"word{'' if gap == 2 else 's'} here: "
-               f"{escape(', '.join(rest))}"
+               f"{escape(', '.join(b.key for b in rest))}"
                f"{f' and {gap - 1 - len(rest)} more' if gap - 1 > len(rest) else ''}"
                "</p>" if example else
                "<p class='also'>Never said in this corpus. Find a clip of it "
@@ -1073,10 +1102,13 @@ class Viewer:
             + self._word_actions(
                 unit, source, self._here("/blocked", query, "gap", "count"),
                 pass_too=False,
-                extra="<a class='link' target='_blank' rel='noreferrer' "
-                      "href='https://de.youglish.com/pronounce/"
-                      f"{quote(_hunt_term(unit), safe='')}"
-                      "/german'>Find it on YouGlish</a>")
+                extra=self._blocker_actions(
+                    rest, gap, source,
+                    self._here("/blocked", query, "gap", "count"))
+                + "<a class='link' target='_blank' rel='noreferrer' "
+                  "href='https://de.youglish.com/pronounce/"
+                  f"{quote(_hunt_term(unit), safe='')}"
+                  "/german'>Find it on YouGlish</a>")
             + "</div></div>"
             for unit, count, gap, example, rest in rows[:PAGE_SIZE]
         )
@@ -1164,8 +1196,12 @@ class Viewer:
             for u in unknown & goals:
                 appearances[u] += 1
                 if u not in easiest or len(unknown) < easiest[u][0]:
+                    # Units rather than keys. The page offers to mark a
+                    # blocker known, and `/known` is addressed by kind and
+                    # key together — a bare string cannot say whether a word
+                    # is the lemma or the pattern.
                     easiest[u] = (len(unknown), s.text,
-                                  sorted(x.key for x in unknown - {u})[:4])
+                                  sorted(unknown - {u}, key=lambda x: x.key)[:4])
         rows = [(u, n, *easiest[u]) for u, n in appearances.most_common()]
 
         # Goals this corpus never says at all. Far more numerous than the
