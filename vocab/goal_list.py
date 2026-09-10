@@ -17,12 +17,20 @@ pattern units; the rest become plain lemmas.
 """
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
 from vocab.loader import ARTICLES
 
 from vocab.entry import Unit
+
+
+# `jdm. (Dat) etw. (Akk) erzählen` — a verb written with the cases it governs.
+# An article-and-noun entry like `das Russisch` carries no case marker and is
+# not one of these, which is the whole reason the test is on the marker rather
+# than on the last word.
+CASE_FRAME = re.compile(r"\((?:Akk|Dat|Gen)\)")
 
 
 class GoalList:
@@ -114,9 +122,41 @@ class GoalList:
             wanted = [settled.get(i) or lemmas[i] for i in range(len(wanted))]
             wanted = [lemma for lemma in wanted if lemma]
         seen: dict[Unit, None] = {}
-        for unit in out + [Unit.lemma(word) for word in wanted]:
+        for unit in out + [Unit.exact(word) for word in wanted]:
             seen.setdefault(unit, None)
-        return tuple(seen)
+        return self._one_goal_per_verb(tuple(seen))
+
+    @staticmethod
+    def _one_goal_per_verb(units: tuple[Unit, ...]) -> tuple[Unit, ...]:
+        """Drop a bare verb the list also names inside a case frame.
+
+        The list writes `nennen` and it writes `jdn. (Akk) + Name (Akk)
+        nennen`, and both become goals. They are one German word, so every
+        sentence saying it carries two unknown units and can never be i+1 for
+        either — 263 sentences for `nennen`, including "So nennt man das
+        Fastenbrechen", one word away from readable and unreachable for ever.
+
+        `covered_forms` cannot help. `_drop_duplicates` keeps a unit if it
+        `in goals or unit.key not in covered`, and the bare verb is itself a
+        goal, so the first test passes and it is never dropped. The
+        duplicate-collapsing machinery only ever removes things off the list.
+
+        The frame is the one that survives, because it teaches the verb and
+        the cases it governs where the bare lemma teaches only the verb.
+
+        Two guards. Only a case frame counts, or `das Russisch` would eat the
+        adjective `russisch` and `der Morgen` the adverb `morgen` — the last
+        word of an article-and-noun entry coincides with a different goal
+        surprisingly often. And a capitalised bare goal is never dropped: the
+        capital marks a noun that shares its lemma with a verb, which is a
+        different word from the verb whatever the frame says.
+        """
+        frames = {u.key.split()[-1].lower() for u in units
+                  if u.is_pattern and CASE_FRAME.search(u.key)}
+        return tuple(u for u in units
+                     if u.is_pattern
+                     or u.key != u.key.lower()      # a noun, keeping its capital
+                     or u.key not in frames)
 
     @staticmethod
     def _alternatives(entry: str) -> list[str]:
