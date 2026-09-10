@@ -245,6 +245,20 @@ class PoolTest(unittest.TestCase):
         left, pending = QuizCommand.pool(self.grouped, self.counts, frozenset(), 1)
         self.assertEqual((len(left), len(pending)), (2, 1))
 
+    def test_a_word_the_known_set_does_not_hold_is_not_asked(self) -> None:
+        """The premise of the question is that the word is being taken on
+        trust. For 130 entries it was not: they key to a pattern unit, which
+        the lemma resolvers never produce, so they were assumed known here and
+        taught by the roadmap at the same time."""
+        left, _ = QuizCommand.pool(self.grouped, self.counts, frozenset(), 9,
+                                   known=frozenset({Unit.lemma("haus")}))
+        self.assertEqual([g[0]["unit"] for g in left], [Unit.lemma("haus")])
+
+    def test_no_known_set_means_no_filter(self) -> None:
+        """The library default, so a caller without one still gets a pool."""
+        left, _ = QuizCommand.pool(self.grouped, self.counts, frozenset(), 9)
+        self.assertEqual(len(left), 2)
+
     def test_asking_for_more_than_there_is_is_not_an_error(self) -> None:
         _, pending = QuizCommand.pool(self.grouped, self.counts, frozenset(), 99)
         self.assertEqual(len(pending), 2)

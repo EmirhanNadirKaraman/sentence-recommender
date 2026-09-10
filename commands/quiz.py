@@ -64,7 +64,8 @@ class QuizCommand:
             grouped.setdefault(entry["unit"], []).append(entry)
         self._merge_frames(grouped)
         done = app.checked.units()
-        left, pending = self.pool(grouped, counts, done, limit)
+        left, pending = self.pool(grouped, counts, done, limit,
+                                  app.known_set().units)
         if not pending:
             raise SystemExit("nothing left to check — every assumed-known word "
                              "has been confirmed or commented out")
@@ -119,14 +120,26 @@ class QuizCommand:
 
     @staticmethod
     def pool(grouped: dict[Unit, list[dict]], counts: Counter,
-             done: frozenset[Unit], limit: int) -> tuple[list, list]:
+             done: frozenset[Unit], limit: int,
+             known: frozenset[Unit] | None = None) -> tuple[list, list]:
         """What is left to ask, and the next `limit` of it.
 
         Shared with the web page so the two ask the same questions. A word
-        drops out for one of two reasons: it has been confirmed already —
-        which is what lets the quiz finish, since a yes used to write nothing
-        and the next run asked the same forty — or the corpus never says it,
-        in which case being wrong about it costs nothing.
+        drops out for three reasons: it has been confirmed already — which is
+        what lets the quiz finish, since a yes used to write nothing and the
+        next run asked the same forty — or the corpus never says it, in which
+        case being wrong about it costs nothing, or the known set does not
+        contain it after all.
+
+        That last one was 130 questions with no consequence. This reads the
+        vocabulary files and keys each entry by whichever unit the corpus uses
+        most, which for `jdm. (Dat) stehen` or `etw. (Akk) bekommen` is the
+        pattern. `known_set` resolves the same files through the lemma
+        resolvers, which never produce a pattern. So those entries were
+        assumed known here and unknown to the roadmap at the same time — 120
+        of them are roadmap steps, waiting to be taught — and confirming one
+        recorded a verdict that reached nothing. Ask only about what is
+        actually being taken on trust.
 
         There was a `sample` here that drew at random so the run could end
         with a bound on how many of the rest would be denied. It answered the
@@ -139,7 +152,8 @@ class QuizCommand:
         one word that is now certain rather than a smaller error bar.
         """
         left = [g for g in grouped.values()
-                if counts.get(g[0]["unit"], 0) and g[0]["unit"] not in done]
+                if counts.get(g[0]["unit"], 0) and g[0]["unit"] not in done
+                and (known is None or g[0]["unit"] in known)]
         return left, sorted(left, key=lambda g: -counts[g[0]["unit"]])[:limit]
 
     @staticmethod

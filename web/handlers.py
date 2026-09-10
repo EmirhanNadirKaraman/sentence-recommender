@@ -144,13 +144,14 @@ class Viewer:
         grouped, counts = self._quiz[source]
         checked = self.app.checked.units()
         _, pending = QuizCommand.pool(
-            grouped, counts, checked | self._skipped, limit=1)
+            grouped, counts, checked | self._skipped, limit=1, known=self.known)
         # Skipping everything is not finishing. When the pool runs out with
         # words still set aside, they come back round rather than the page
         # claiming there is nothing left to ask.
         if not pending and self._skipped:
             self._skipped.clear()
-            _, pending = QuizCommand.pool(grouped, counts, checked, limit=1)
+            _, pending = QuizCommand.pool(grouped, counts, checked, limit=1,
+                                          known=self.known)
         return grouped, counts, pending
 
     def _question(self, source: str) -> str:
