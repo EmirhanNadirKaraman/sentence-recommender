@@ -6,7 +6,7 @@ import argparse
 from pathlib import Path
 
 from commands import (
-    AddVideoCommand, AddVideosCommand, BuildCorpusCommand, BuildRoadmapCommand,
+    AddVideoCommand, BlockersCommand, AddVideosCommand, BuildCorpusCommand, BuildRoadmapCommand,
     BuildVideoRoadmapCommand,
     CheckWordCommand, DifficultyCommand, QuizCommand, UnblockCommand,
     BuildStudyListCommand, ExportSubtitlesCommand, FillGapsCommand,
@@ -140,6 +140,14 @@ def _parser() -> argparse.ArgumentParser:
     serve.add_argument("--no-browser", action="store_true",
                        help="do not open a browser window")
 
+    blockers = sub.add_parser(
+        "blockers", help="what stands between the roadmap and the rest of the "
+                         "study list, and what it would cost to free them")
+    blockers.add_argument("--source", default="subtitle")
+    blockers.add_argument("--limit", type=int, default=15)
+    blockers.add_argument("--all-sentences", action="store_true",
+                          help="count from every sentence, not only well-formed ones")
+
     sub.add_parser("build-study-list",
                    help="merge the ranking and the form dictionary into "
                         "data/study_list.txt")
@@ -206,6 +214,9 @@ def main() -> int:
                              args.quality)
     elif args.command == "check":
         CheckWordCommand().run(app, args.word)
+    elif args.command == "blockers":
+        BlockersCommand().run(app, args.source, args.limit,
+                              not args.all_sentences)
     elif args.command == "build-corpus":
         BuildCorpusCommand().run(app, args.source, args.limit,
                                  args.corrector, args.min_words)

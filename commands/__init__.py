@@ -12,6 +12,7 @@ from .unblock import UnblockCommand
 from .hunt_videos import HuntVideosCommand
 from .quiz import QuizCommand
 from .review import ReviewCommand
+from .blockers import BlockersCommand
 from .serve import ServeCommand
 from .status import StatusCommand
 
@@ -21,6 +22,6 @@ __all__ = [
     "BuildStudyListCommand", "CheckWordCommand", "DifficultyCommand",
     "ExportSubtitlesCommand", "UnblockCommand",
     "FillGapsCommand",
-    "HuntVideosCommand", "QuizCommand", "ReviewCommand", "ServeCommand",
+    "HuntVideosCommand", "QuizCommand", "ReviewCommand", "ServeCommand", "BlockersCommand",
     "StatusCommand",
 ]
