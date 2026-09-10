@@ -16,7 +16,7 @@ from __future__ import annotations
 import sqlite3
 from datetime import datetime
 
-from fingerprint import analyser_fingerprint
+from fingerprint import analyser_fingerprint, packages_fingerprint
 from state import open_state
 from pathlib import Path
 
@@ -52,7 +52,11 @@ CREATE INDEX IF NOT EXISTS ix_units_sentence ON sentence_units(sentence_id);
 CREATE TABLE IF NOT EXISTS build_meta (
     build       TEXT PRIMARY KEY,
     fingerprint TEXT NOT NULL,
-    made_at     TEXT NOT NULL
+    made_at     TEXT NOT NULL,
+    -- The parser that produced it, kept apart from the rules hash: a
+    -- different spaCy is worth saying out loud, but it is not a reason for a
+    -- machine that only serves these rows to distrust them.
+    packages    TEXT NOT NULL DEFAULT ''
 );
 """
 
@@ -86,6 +90,10 @@ class CorpusStore:
                              ("teachable", "INTEGER NOT NULL DEFAULT 1")):
             if column not in existing:
                 conn.execute(f"ALTER TABLE sentences ADD COLUMN {column} {kind}")
+        meta = {row[1] for row in conn.execute("PRAGMA table_info(build_meta)")}
+        if "packages" not in meta:
+            conn.execute("ALTER TABLE build_meta ADD COLUMN packages"
+                         " TEXT NOT NULL DEFAULT ''")
 
     def _connect(self) -> sqlite3.Connection:
         conn = open_state(self._path)
@@ -125,6 +133,22 @@ class CorpusStore:
         self._write(sentences, build)
         self._stamp(build)
 
+    def parser_changed(self) -> dict[str, str]:
+        """Builds analysed by a different spaCy than the one installed here.
+
+        Worth a word — the parser decides what a lemma is — but not a reason
+        to throw the build away, and emphatically not a reason for a host that
+        never parses anything to call every cache stale. Builds with nothing
+        recorded are skipped rather than reported: they predate this column,
+        and warning about every one of them would be noise.
+        """
+        now = packages_fingerprint()
+        with self._connect() as conn:
+            stored = dict(conn.execute(
+                "SELECT build, packages FROM build_meta"))
+        return {b: stored[b] for b in self.builds()
+                if stored.get(b) and stored[b] != now}
+
     def stale(self) -> dict[str, str]:
         """Builds whose fingerprint no longer matches the rules in force.
 
@@ -141,10 +165,13 @@ class CorpusStore:
     def _stamp(self, build: str) -> None:
         with self._connect() as conn:
             conn.execute(
-                "INSERT INTO build_meta (build, fingerprint, made_at)"
-                " VALUES (?, ?, ?) ON CONFLICT(build) DO UPDATE SET"
-                " fingerprint = excluded.fingerprint, made_at = excluded.made_at",
-                (build, analyser_fingerprint(), datetime.now().isoformat(timespec="seconds")),
+                "INSERT INTO build_meta (build, fingerprint, made_at, packages)"
+                " VALUES (?, ?, ?, ?) ON CONFLICT(build) DO UPDATE SET"
+                " fingerprint = excluded.fingerprint, made_at = excluded.made_at,"
+                " packages = excluded.packages",
+                (build, analyser_fingerprint(),
+                 datetime.now().isoformat(timespec="seconds"),
+                 packages_fingerprint()),
             )
 
     def _write(self, sentences: list[Sentence], build: str) -> None:

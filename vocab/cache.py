@@ -13,6 +13,7 @@ there is nothing to remember to run.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -47,10 +48,23 @@ class ResolvedCache:
 
     @staticmethod
     def _stamp(sources: list[Path]) -> list:
-        """What the inputs look like now: size and mtime, per file.
+        """What the inputs look like now: a content hash, per file.
 
-        Content hashing would be surer, but these files run to thousands of
-        lines and this has to be cheaper than the work it guards.
+        It used to be the absolute path, the mtime and the size, which is
+        cheaper and cannot travel. Every one of those three is a fact about
+        this filesystem rather than about the words: `git clone` on another
+        machine writes identical bytes under a different root with fresh
+        mtimes, so the cache was guaranteed to miss — and missing costs a
+        Postgres round trip and a spaCy pass, on a machine that may have
+        neither.
+
+        The five files come to about 250 KB, so hashing them is microseconds
+        against the twenty-nine seconds it guards. The original objection —
+        that this had to be cheaper than the work — was answered the moment
+        `analyser_fingerprint` joined the stamp and started hashing whole
+        source files anyway.
+
+        Names, not paths, for the same reason.
         """
         # The rules join the stamp: the vocabulary is resolved *by* the
         # parser, so changing the model changes every lemma in here while
@@ -58,9 +72,10 @@ class ResolvedCache:
         out = [["rules", analyser_fingerprint(), 0]]
         for path in sources:
             try:
-                info = path.stat()
+                data = path.read_bytes()
             except OSError:
-                out.append([str(path), None, None])
+                out.append([path.name, None, None])
             else:
-                out.append([str(path), info.st_mtime_ns, info.st_size])
+                out.append([path.name,
+                            hashlib.sha256(data).hexdigest()[:16], len(data)])
         return out

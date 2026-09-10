@@ -37,11 +37,20 @@ class DatabaseConfig:
 
     @classmethod
     def from_env(cls) -> "DatabaseConfig":
+        """Credentials from `.env`, or blanks if there are none.
+
+        Blanks rather than a KeyError, because a machine that only serves the
+        cached artefacts has no Postgres to name and `Settings()` is built
+        before anything knows whether it will be needed. `Database` refuses
+        clearly when asked to connect without a name; failing here instead
+        meant the whole program would not start, with a bare KeyError as the
+        explanation.
+        """
         load_dotenv()
         return cls(
-            name=os.environ["DB_NAME"],
-            user=os.environ["DB_USER"],
-            password=os.environ["DB_PASSWORD"],
+            name=os.environ.get("DB_NAME", ""),
+            user=os.environ.get("DB_USER", ""),
+            password=os.environ.get("DB_PASSWORD", ""),
             host=os.environ.get("DB_HOST", "localhost"),
             port=int(os.environ.get("DB_PORT", "5432")),
         )

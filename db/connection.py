@@ -26,6 +26,11 @@ class Database:
         self._conn: Any = None
 
     def __enter__(self) -> "Database":
+        if not self._config.name:
+            raise RuntimeError(
+                "no Postgres configured (DB_NAME is unset) — this machine can "
+                "serve what is already cached, but not build or rescrape"
+            )
         self._conn = psycopg2.connect(**self._config.dsn_kwargs())
         self._conn.set_session(readonly=True, autocommit=True)
         return self
@@ -67,6 +72,11 @@ class WritableDatabase:
         self.connection: Any = None
 
     def __enter__(self) -> "WritableDatabase":
+        if not self._config.name:
+            raise RuntimeError(
+                "no Postgres configured (DB_NAME is unset) — this machine can "
+                "serve what is already cached, but not build or rescrape"
+            )
         self.connection = psycopg2.connect(**self._config.dsn_kwargs())
         return self
 

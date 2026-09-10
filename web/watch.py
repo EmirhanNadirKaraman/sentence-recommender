@@ -31,10 +31,10 @@ def player(video_id: str, start: float) -> str:
     return (
         "<div class='player'>"
         f"<iframe id='player' title='Video' allowfullscreen "
-        "allow='accelerometer; encrypted-media; picture-in-picture' "
+        "allow='autoplay; accelerometer; encrypted-media; picture-in-picture' "
         f"src='https://www.youtube-nocookie.com/embed/{escape(video_id)}"
         f"?start={max(int(start - LEAD_IN), 0)}"
-        "&rel=0&modestbranding=1&enablejsapi=1'></iframe></div>"
+        "&rel=0&modestbranding=1&enablejsapi=1&playsinline=1'></iframe></div>"
     )
 
 
@@ -157,9 +157,9 @@ def stage(video_id: str, start: float) -> str:
     return (
         "<div class='stage' id='stage'><div class='player'>"
         f"<iframe id='player' title='Video' allowfullscreen "
-        "allow='accelerometer; encrypted-media; picture-in-picture' "
+        "allow='autoplay; accelerometer; encrypted-media; picture-in-picture' "
         f"src='https://www.youtube-nocookie.com/embed/{escape(video_id)}"
         f"?start={max(int(start - LEAD_IN), 0)}"
-        "&rel=0&modestbranding=1&enablejsapi=1'></iframe></div>"
+        "&rel=0&modestbranding=1&enablejsapi=1&playsinline=1'></iframe></div>"
         "<p class='de' id='caption'></p></div>"
     )

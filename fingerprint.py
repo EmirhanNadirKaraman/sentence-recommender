@@ -39,7 +39,20 @@ PACKAGES = ("spacy", "de_core_news_md", "de_core_news_sm")
 
 
 def analyser_fingerprint() -> str:
-    """A short digest of the rules currently in force."""
+    """A short digest of the rules currently in force.
+
+    The rules only — the files above. The installed package versions used to
+    be hashed in here too, which made the digest a property of the *machine*
+    rather than of the rules. A host that serves these caches without ever
+    parsing anything would compute a different answer purely by not having
+    spaCy installed, and every page would fall off the fast path onto a
+    full-corpus walk. Asking "did the rules change?" and being told "you are
+    a different computer" is not a useful answer.
+
+    The versions still matter — the parser decides what a lemma is — so they
+    are kept, separately, by `packages_fingerprint`, recorded beside this and
+    warned about rather than used to invalidate. See `CorpusStore.stale`.
+    """
     digest = hashlib.sha256()
     for path in SOURCES:
         digest.update(path.name.encode())
@@ -47,6 +60,17 @@ def analyser_fingerprint() -> str:
             digest.update(path.read_bytes())
         except OSError:
             digest.update(b"<missing>")
+    return digest.hexdigest()[:16]
+
+
+def packages_fingerprint() -> str:
+    """A short digest of the parser that produced a cache.
+
+    A missing package hashes as "-", so a machine that never installed spaCy
+    is distinguishable from one that changed its version — which is the whole
+    point of keeping this apart from the rules.
+    """
+    digest = hashlib.sha256()
     for name in PACKAGES:
         try:
             version = metadata.version(name)

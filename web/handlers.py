@@ -1293,8 +1293,11 @@ class Viewer:
         # Scored the same way the Reels tab ranks them, off the same grouping,
         # so the catalogue answers the question you actually have about a
         # video — can I follow it — and does not pay to load the corpus twice.
+        # Length comes off the scored row, not from Postgres. `_minutes()`
+        # was called here unconditionally and was the one thing on a warm page
+        # that still needed a database — for a number `video_score` already
+        # holds, which is how /reels renders it without asking anyone.
         ranked = self._watchable(source, floor=1)
-        minutes = self._minutes()
         rows = "".join(
             f"<tr><td><a href='/reels?src={quote(source)}&i={n}'>"
             f"{escape((r['title'] or r['video'])[:58])}</a></td>"
@@ -1303,7 +1306,7 @@ class Viewer:
             f"<td class='n'>{r['teaches']:,}</td>"
             f"<td class='n'>{r['lines']:,}</td>"
             f"<td class='n'>"
-            + (f"{minutes[r['video']]:.0f} min" if r["video"] in minutes else "—")
+            + (f"{r['minutes']:.0f} min" if r["minutes"] is not None else "—")
             + "</td></tr>"
             for n, r in enumerate(ranked)
         )
