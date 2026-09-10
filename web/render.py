@@ -40,7 +40,7 @@ def stamped(name: str) -> str:
     return f"/static/{name}?v={digest}"
 
 NAV = (("/", "Next"), ("/reels", "Reels"), ("/roadmap", "Roadmap"),
-       ("/blocked", "Blocked"), ("/subtitles", "Videos"))
+       ("/quiz", "Quiz"), ("/blocked", "Blocked"), ("/subtitles", "Videos"))
 
 
 def layout(title: str, body: str, here: str = "/", source: str = "") -> str:

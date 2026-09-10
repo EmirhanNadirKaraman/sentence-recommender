@@ -207,5 +207,88 @@ class BoundTest(unittest.TestCase):
         self.assertGreater(QuizCommand._upper_bound(0, 5), 0.4)
 
 
+class RestoreTest(unittest.TestCase):
+    """Putting back a line the quiz struck.
+
+    The terminal never needed this: a wrong answer there is a deliberate
+    keystroke. The web page is a thumb on a phone, and the write it causes is
+    to a file under version control — so there has to be a way back that is
+    not `git checkout`.
+    """
+
+    def setUp(self) -> None:
+        self._dir = tempfile.TemporaryDirectory()
+        self.path = Path(self._dir.name) / "known_words.txt"
+        self.original = ("das Haus\n# struck by hand, long ago\n"
+                         "der Baum  # 5x\nweil\n")
+        self.path.write_text(self.original, encoding="utf-8")
+
+    def tearDown(self) -> None:
+        self._dir.cleanup()
+
+    def test_a_strike_can_be_taken_back(self) -> None:
+        QuizCommand._comment_out(self.path, ["der Baum  # 5x"])
+        self.assertNotEqual(self.path.read_text(encoding="utf-8"), self.original)
+        QuizCommand.restore(self.path, ["der Baum  # 5x"])
+        self.assertEqual(self.path.read_text(encoding="utf-8"), self.original)
+
+    def test_it_says_how_many_it_put_back(self) -> None:
+        QuizCommand._comment_out(self.path, ["das Haus", "weil"])
+        self.assertEqual(QuizCommand.restore(self.path, ["das Haus", "weil"]), 2)
+
+    def test_restoring_twice_changes_nothing(self) -> None:
+        QuizCommand._comment_out(self.path, ["weil"])
+        QuizCommand.restore(self.path, ["weil"])
+        self.assertEqual(QuizCommand.restore(self.path, ["weil"]), 0)
+
+    def test_a_line_struck_by_hand_is_left_alone(self) -> None:
+        """It carries no marker, so it was not this that struck it."""
+        QuizCommand.restore(self.path, ["struck by hand, long ago"])
+        self.assertIn("# struck by hand, long ago",
+                      self.path.read_text(encoding="utf-8"))
+
+
+class PoolTest(unittest.TestCase):
+    """What is left to ask — shared by the terminal and the web page, so the
+    two cannot drift into asking different questions."""
+
+    def setUp(self) -> None:
+        self.grouped = {Unit.lemma("haus"): [entry("haus", Unit.lemma("haus"))],
+                        Unit.lemma("baum"): [entry("baum", Unit.lemma("baum"))],
+                        Unit.lemma("nie"): [entry("nie", Unit.lemma("nie"))]}
+        self.counts = Counter({Unit.lemma("haus"): 100,
+                               Unit.lemma("baum"): 5,
+                               Unit.lemma("nie"): 0})
+
+    def test_the_most_frequent_comes_first(self) -> None:
+        _, pending = QuizCommand.pool(self.grouped, self.counts, frozenset(), 2)
+        self.assertEqual(pending[0][0]["unit"], Unit.lemma("haus"))
+
+    def test_a_word_the_corpus_never_says_is_not_asked(self) -> None:
+        """Being wrong about it costs nothing, so it is not worth a question."""
+        left, _ = QuizCommand.pool(self.grouped, self.counts, frozenset(), 9)
+        self.assertNotIn(Unit.lemma("nie"), [g[0]["unit"] for g in left])
+
+    def test_a_confirmed_word_drops_out(self) -> None:
+        left, _ = QuizCommand.pool(self.grouped, self.counts,
+                                   frozenset({Unit.lemma("haus")}), 9)
+        self.assertEqual([g[0]["unit"] for g in left], [Unit.lemma("baum")])
+
+    def test_the_limit_is_the_sitting_not_the_pool(self) -> None:
+        left, pending = QuizCommand.pool(self.grouped, self.counts, frozenset(), 1)
+        self.assertEqual((len(left), len(pending)), (2, 1))
+
+    def test_a_sample_stays_inside_the_pool(self) -> None:
+        left, pending = QuizCommand.pool(self.grouped, self.counts,
+                                         frozenset(), 9, sample=True)
+        self.assertEqual(sorted(id(g) for g in pending),
+                         sorted(id(g) for g in left))
+
+    def test_asking_for_more_than_there_is_is_not_an_error(self) -> None:
+        _, pending = QuizCommand.pool(self.grouped, self.counts, frozenset(),
+                                      99, sample=True)
+        self.assertEqual(len(pending), 2)
+
+
 if __name__ == "__main__":
     unittest.main()

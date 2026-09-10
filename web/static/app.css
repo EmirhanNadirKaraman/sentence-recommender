@@ -347,3 +347,36 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1
   main { padding: 24px 20px calc(112px + env(safe-area-inset-bottom)); }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* Quiz: one assumed-known word at a time, and a verdict on it.
+
+   `pan-y` rather than the reading page's `none`. There the deck is a stack to
+   step through, so the vertical axis is spoken for; here there is nothing
+   above or below the question and taking the axis away would only stop the
+   page being scrolled. Horizontal is still captured, which is what the two
+   answers hang off. */
+#quiz-card .deck { touch-action: pan-y; }
+.quizcard { text-align: center; padding: 6px 0 0; }
+.quizcard .count {
+  font: 400 13px var(--sans); color: var(--ink-2);
+  letter-spacing: .04em; margin: 0 0 18px;
+}
+.quizcard h2 {
+  font: 400 30px/1.25 var(--serif); color: var(--ink);
+  margin: 0 0 6px; overflow-wrap: break-word;
+}
+.quizcard .quiet { font: 400 13.5px var(--sans); color: var(--ink-2); margin: 0; }
+.quizcard .example {
+  margin: 22px auto 0; max-width: 34rem;
+  padding: 16px 18px; background: var(--surface);
+  border: 1px solid var(--faint); border-radius: 3px;
+}
+.quizcard .example .de { font: 400 17px/1.6 var(--serif); margin: 0; }
+.quizcard .actions { justify-content: center; }
+/* The affirmative is the one you press most, so it is the one that looks
+   pressable. The denial is not made red: it is an ordinary, reversible
+   answer, and dressing it as a danger would slow down the honest one. */
+.quizcard .actions .yes {
+  background: var(--ink); color: var(--paper); border-color: var(--ink);
+}
+.quizcard .actions .skip { color: var(--ink-2); }

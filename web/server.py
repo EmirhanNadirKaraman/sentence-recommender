@@ -125,6 +125,8 @@ def _make_handler(viewer: Viewer):
                     self._redirect(viewer.add_video(form))
                 elif posted == "/add-channel":
                     self._redirect(viewer.add_channel(form))
+                elif posted == "/quiz":
+                    self._redirect(viewer.answer_quiz(form))
                 elif posted == "/hide":
                     self._redirect(viewer.hide_sentence(form))
                 elif posted == "/fix":
@@ -155,6 +157,8 @@ def _make_handler(viewer: Viewer):
                 return viewer.reels(query), 200
             if path == "/blocked":
                 return viewer.blocked(query), 200
+            if path == "/quiz":
+                return viewer.quiz(query), 200
             if path == "/watch":
                 return viewer.watch(query), 200
             if path == "/api/next":
@@ -162,6 +166,9 @@ def _make_handler(viewer: Viewer):
                 return "", 0
             if path == "/api/reels":
                 self._send_json(viewer.reels_json(query))
+                return "", 0
+            if path == "/api/quiz":
+                self._send_json(viewer.quiz_json(query))
                 return "", 0
             if path == "/api/transcript":
                 self._send_json(viewer.transcript_json(query.get("video", "")))

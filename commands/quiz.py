@@ -29,6 +29,7 @@ import re
 from collections import Counter
 from math import comb
 from pathlib import Path
+from threading import Lock
 
 from vocab.entry import Unit
 from vocab.loader import ARTICLES
@@ -40,6 +41,10 @@ ANSWERS = {"", "y", "yes", "n", "no", "s", "skip", "q", "quit"}
 
 # `jdm. (Dat) etw. (Akk) erzählen` — the study list writes a verb with the
 # cases it governs. The bare verb is the same word to a learner.
+# The vocabulary files are read-modify-written, and the web server answers on
+# a thread per request. Two denials at once would otherwise lose one of them.
+FILES = Lock()
+
 CASE_FRAME = re.compile(r"\((?:Akk|Dat|Gen)\)")
 # `das Essen`, which is a noun that shares a lemma with `essen` the verb.
 ARTICLE_NOUN = re.compile(r"^(?:der|die|das)\s+\S+$", re.IGNORECASE)
@@ -60,21 +65,8 @@ class QuizCommand:
         for entry in entries:
             grouped.setdefault(entry["unit"], []).append(entry)
         self._merge_frames(grouped)
-        # Confirmed words drop out, which is what lets the quiz finish. A yes
-        # used to write nothing, so the next run asked the same forty and the
-        # one after that asked them again — there was no way past the first
-        # forty except to deny them.
         done = app.checked.units()
-        left = [g for g in grouped.values()
-                if counts.get(g[0]["unit"], 0) and g[0]["unit"] not in done]
-        if sample:
-            # Drawn at random, because the answer to "do I know all of these"
-            # cannot come from the most frequent ones. Those are the easiest
-            # words in the language and everybody knows them; asking about
-            # them measures nothing except that the list starts with `der`.
-            pending = random.sample(left, min(limit, len(left)))
-        else:
-            pending = sorted(left, key=lambda g: -counts[g[0]["unit"]])[:limit]
+        left, pending = self.pool(grouped, counts, done, limit, sample)
         if not pending:
             raise SystemExit("nothing left to check — every assumed-known word "
                              "has been confirmed or commented out")
@@ -132,6 +124,28 @@ class QuizCommand:
         if total:
             print("\n  The known set has changed, so the roadmap is out of date:"
                   "\n    python main.py build-roadmap --source subtitle --goals --list-only")
+
+    @staticmethod
+    def pool(grouped: dict[Unit, list[dict]], counts: Counter,
+             done: frozenset[Unit], limit: int,
+             sample: bool = False) -> tuple[list, list]:
+        """What is left to ask, and the next `limit` of it.
+
+        Shared with the web page so the two ask the same questions. A word
+        drops out for one of two reasons: it has been confirmed already —
+        which is what lets the quiz finish, since a yes used to write nothing
+        and the next run asked the same forty — or the corpus never says it,
+        in which case being wrong about it costs nothing.
+        """
+        left = [g for g in grouped.values()
+                if counts.get(g[0]["unit"], 0) and g[0]["unit"] not in done]
+        if sample:
+            # Drawn at random, because the answer to "do I know all of these"
+            # cannot come from the most frequent ones. Those are the easiest
+            # words in the language and everybody knows them; asking about
+            # them measures nothing except that the list starts with `der`.
+            return left, random.sample(left, min(limit, len(left)))
+        return left, sorted(left, key=lambda g: -counts[g[0]["unit"]])[:limit]
 
     @staticmethod
     def _upper_bound(bad: int, n: int, alpha: float = 0.05) -> float:
@@ -274,13 +288,36 @@ class QuizCommand:
                       Unit.lemma(surface.lower())]
         return max(candidates, key=lambda u: counts.get(u, 0))
 
-    @staticmethod
-    def _comment_out(path: Path, lines: list[str]) -> None:
+    MARK = "# not known: "
+
+    @classmethod
+    def _comment_out(cls, path: Path, lines: list[str]) -> None:
         """Comment the given lines out, leaving the rest of the file alone."""
         wanted = set(lines)
-        kept = [f"# not known: {line}" if line in wanted else line
-                for line in path.read_text(encoding="utf-8").splitlines()]
-        path.write_text("\n".join(kept) + "\n", encoding="utf-8")
+        with FILES:
+            kept = [f"{cls.MARK}{line}" if line in wanted else line
+                    for line in path.read_text(encoding="utf-8").splitlines()]
+            path.write_text("\n".join(kept) + "\n", encoding="utf-8")
+
+    @classmethod
+    def restore(cls, path: Path, lines: list[str]) -> int:
+        """Undo `_comment_out` — put the lines back as they were.
+
+        The web page needs this and the terminal never did. On the phone a
+        wrong answer is a thumb landing an inch left of where it meant to,
+        and the write it causes is to a file under version control; without
+        an inverse the only way back is git. Matched on the exact text that
+        was struck, so a line commented out by hand for some other reason is
+        left alone.
+        """
+        wanted = {f"{cls.MARK}{line}" for line in lines}
+        with FILES:
+            read = path.read_text(encoding="utf-8").splitlines()
+            kept = [line[len(cls.MARK):] if line in wanted else line
+                    for line in read]
+            if kept != read:
+                path.write_text("\n".join(kept) + "\n", encoding="utf-8")
+        return sum(a != b for a, b in zip(read, kept))
 
     # --- what the corpus says -------------------------------------------
 

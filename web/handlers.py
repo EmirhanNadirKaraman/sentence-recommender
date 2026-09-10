@@ -101,15 +101,170 @@ class Viewer:
         self._scores = ScoreStore(app.settings.state_path)
         self._durations: dict[str, float] | None = None
         self._video_titles: dict[str, str] | None = None
+        # The quiz pool: every live line in the vocabulary files, grouped into
+        # the units they stand for. Rebuilt when an answer changes the files.
+        # Which builds exist and how big they are. Every page asks, through
+        # `source()`, and the answer is a GROUP BY over two hundred thousand
+        # sentence rows — a fifth of a second, on every request, to decide
+        # which corpus was meant. It changes only when a build does.
+        self._sources: dict[str, int] | None = None
+        self._quiz: dict[str, tuple] = {}
+        # What the last denial struck, so it can be put back. The lines cannot
+        # be recomputed after the fact — they are commented out, and the pool
+        # skips commented lines — so they are kept rather than derived. One
+        # entry, because there is one reader and one last answer.
+        self._struck: tuple | None = None
+
+    # --- the quiz ---------------------------------------------------------
+
+    def _quiz_pool(self, source: str) -> tuple[dict, Counter, list]:
+        """The words still to be checked, most frequent first.
+
+        Ordered rather than sampled. `--sample` on the command line draws a
+        set once and bounds what it finds; a page serving one question per
+        request would redraw every time, from a pool that shrinks as it goes,
+        which is not the same experiment and could not be summarised as one.
+        The flag stays where it means something.
+        """
+        from commands.quiz import QuizCommand   # noqa: PLC0415
+
+        if source not in self._quiz:
+            counts = QuizCommand._frequencies(self.app, source)
+            grouped: dict[Unit, list[dict]] = {}
+            for entry in QuizCommand()._entries(self.app, counts):
+                grouped.setdefault(entry["unit"], []).append(entry)
+            QuizCommand._merge_frames(grouped)
+            self._quiz[source] = (grouped, counts)
+        grouped, counts = self._quiz[source]
+        _, pending = QuizCommand.pool(
+            grouped, counts, self.app.checked.units(), limit=1)
+        return grouped, counts, pending
+
+    def _question(self, source: str) -> str:
+        """One word to judge: what it is, how much it matters, and a sentence.
+
+        The example is what makes this answerable. A word out of context is a
+        spelling, and the honest answer to most spellings is "I think so".
+        """
+        from commands.quiz import QuizCommand   # noqa: PLC0415
+
+        grouped, counts, pending = self._quiz_pool(source)
+        # Read once. Asked inside the loop below it was a query per group —
+        # eight hundred and eighty-four of them, 1.38s to build one question.
+        checked = self.app.checked.units()
+        done = len(checked)
+        if not pending:
+            return ("<p class='empty'>Every assumed-known word has been "
+                    "checked. Nothing left to ask.</p>")
+        group = pending[0]
+        unit = group[0]["unit"]
+        written = " / ".join(sorted({e["surface"] for e in group}))
+        example = QuizCommand._example(self.app, unit, source,
+                                       self.app.overrides.hidden())
+        left = sum(1 for g in grouped.values()
+                   if counts.get(g[0]["unit"], 0) and g[0]["unit"] not in checked)
+        return (
+            "<div class='deck quizcard'>"
+            f"<p class='count'>{done:,} checked · {left:,} to go</p>"
+            f"<h2 class='de'>{escape(written)}</h2>"
+            f"<p class='quiet'>said {counts[unit]:,} times in this corpus</p>"
+            + (f"<div class='example'>{sentence(example, None)}</div>"
+               if example else "<p class='quiet'>no example sentence</p>")
+            + "<form method='post' action='/quiz' class='actions'>"
+            f"<input type='hidden' name='kind' value='{escape(unit.kind)}'>"
+            f"<input type='hidden' name='key' value='{escape(unit.key)}'>"
+            f"<input type='hidden' name='src' value='{escape(source)}'>"
+            "<button name='action' value='no' class='no'>Don't know it</button>"
+            "<button name='action' value='skip' class='skip'>Skip</button>"
+            "<button name='action' value='know' class='yes'>I know it</button>"
+            "</form></div>")
+
+    def quiz(self, query: dict) -> str:
+        """Check the words the roadmap assumes you already know.
+
+        The same audit as `python main.py quiz`, asking the same questions
+        through the same pool, because it is one decision either way and two
+        of them would drift. What the page adds is that it can be done on a
+        phone — which is where this gets used, and a terminal is not.
+        """
+        source = self.source(query)
+        return layout("Quiz", self.switch(source, "/quiz") +
+                      "<h1>Do you know these?</h1>"
+                      "<p class='quiet'>Every word here is one the roadmap "
+                      "already counts as known. Swipe right if that is true, "
+                      "left if it is not.</p>"
+                      "<div class='card' id='quiz-card'>"
+                      f"<div id='quiz'>{self._question(source)}</div></div>",
+                      "/quiz", source)
+
+    def quiz_json(self, query: dict) -> dict:
+        """The next question, for answering without a page load."""
+        source = self.source(query)
+        html = self._question(source)
+        return {"html": html, "empty": "actions" not in html}
+
+    def answer_quiz(self, form: dict) -> str:
+        """Record one answer.
+
+        A yes is a confirmation and nothing else — the word was already
+        assumed known, so what changes is that somebody has now looked at it.
+        A no comments the line out of the vocabulary file, which is what both
+        files document as the way to say you do not know something, and which
+        is a write to a tracked file from a thumb on a phone. Hence undo.
+        """
+        from commands.quiz import QuizCommand   # noqa: PLC0415
+
+        source = form.get("src", "")
+        action = form.get("action", "")
+        unit = Unit(form.get("kind", ""), form.get("key", ""))
+        back = f"/quiz?src={quote(source)}" if source else "/quiz"
+        if action == "undo":
+            return self._undo_answer(back)
+        if not unit.key or action == "skip":
+            return back
+
+        if action == "no":
+            grouped, _, _ = self._quiz_pool(source)
+            group = grouped.get(unit, [])
+            by_path: dict = {}
+            for entry in group:
+                by_path.setdefault(entry["path"], []).append(entry["line"])
+            for path, lines in by_path.items():
+                QuizCommand._comment_out(path, lines)
+            self.app.checked.forget(unit)
+            self._struck = (unit, by_path)
+            self._quiz.pop(source, None)      # the files changed
+        else:
+            self.app.checked.confirm(unit)
+            self._struck = (unit, None)
+        return back
+
+    def _undo_answer(self, back: str) -> str:
+        """Put the last answer back, whichever way it went."""
+        from commands.quiz import QuizCommand   # noqa: PLC0415
+
+        if not self._struck:
+            return back
+        unit, by_path = self._struck
+        self._struck = None
+        if by_path is None:
+            self.app.checked.forget(unit)
+        else:
+            for path, lines in by_path.items():
+                QuizCommand.restore(path, lines)
+            self._quiz.clear()
+        return back
 
     # --- scope ------------------------------------------------------------
 
     def sources(self) -> dict[str, int]:
-        known = self.app.corpus_store.builds(teachable_only=True)
-        out = {name: count for name, count in known.items()}
-        if len(out) > 1:
-            out[ALL] = sum(out.values())
-        return out
+        if self._sources is None:
+            known = self.app.corpus_store.builds(teachable_only=True)
+            out = {name: count for name, count in known.items()}
+            if len(out) > 1:
+                out[ALL] = sum(out.values())
+            self._sources = out
+        return self._sources
 
     def source(self, query: dict) -> str:
         available = self.sources()
@@ -1656,6 +1811,7 @@ class Viewer:
             return f"/subtitles?problem={quote(note)}"
 
         caught = CorpusUpdater(self.app).catch_up()
+        self._sources = None            # a build just changed size
         rebuilt = RoadmapRefresher(self.app).refresh(touching="subtitle")
         self._scopes.clear()
         self._stuck.clear()
@@ -1692,6 +1848,7 @@ class Viewer:
         from corpus import CorpusUpdater
         from roadmap import RoadmapRefresher
         caught = CorpusUpdater(self.app).catch_up()
+        self._sources = None            # a build just changed size
         rebuilt = RoadmapRefresher(self.app).refresh(touching="subtitle")
         self._scopes.clear()          # what is in memory no longer matches
         self._stuck.clear()

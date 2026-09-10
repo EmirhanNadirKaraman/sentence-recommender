@@ -75,21 +75,24 @@
 // will sometimes make by accident. The bar is appended to the body rather
 // than to the page region, because deciding a word replaces that region and
 // the offer has to outlive it.
-function offerUndo(kind, key, src) {
+function offerUndo(kind, key, src, opts) {
+  opts = opts || {};
+  var endpoint = opts.endpoint || '/known';
+  var back = opts.back || '/';
   var old = document.getElementById('undo-bar');
   if (old) old.remove();
   var bar = document.createElement('div');
   bar.id = 'undo-bar';
   bar.className = 'undo';
   var said = document.createElement('span');
-  said.textContent = 'Marked ' + key + ' known';
+  said.textContent = opts.label || ('Marked ' + key + ' known');
   var go = document.createElement('button');
   go.type = 'button';
   go.textContent = 'Undo';
   go.onclick = function () {
     var body = new URLSearchParams({kind: kind, key: key, src: src || '',
-                                    back: '/', action: 'undo'});
-    fetch('/known', {method: 'POST', body: body, redirect: 'manual'})
+                                    back: back, action: 'undo'});
+    fetch(endpoint, {method: 'POST', body: body, redirect: 'manual'})
       .catch(function () {})
       .then(function () { location.reload(); });
   };
@@ -455,5 +458,112 @@ function offerUndo(kind, key, src) {
     if (e.key === 'ArrowUp' || e.key === 'k') { go(s.at - 1); e.preventDefault(); }
     if (e.key === 'ArrowRight') { decide('known'); e.preventDefault(); }
     if (e.key === 'ArrowLeft') { decide('pass'); e.preventDefault(); }
+  });
+})();
+
+
+// --- the quiz --------------------------------------------------------------
+//
+// Same two gestures as the reading page and the opposite stakes. There, right
+// marks a word known and left sets it aside for a while; here BOTH answers
+// write, and the left one comments a line out of a file under version
+// control. So both offer undo, and the vertical axis is left alone — the page
+// scrolls, because there is no deck to step through and a swipe up that ate a
+// question would be worse than no gesture at all.
+(function () {
+  var card = document.getElementById('quiz-card');
+  if (!card) return;
+  var region = document.getElementById('quiz');
+  var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var busy = false;
+
+  function deck() { return region.querySelector('.deck'); }
+
+  function answer(value) {
+    var b = region.querySelector('.actions button[value="' + value + '"]');
+    if (!b || !b.form || busy) return;
+    busy = true;
+    var body = new URLSearchParams(new FormData(b.form));
+    body.append('action', value);
+    var was = {kind: body.get('kind'), key: body.get('key'),
+               src: body.get('src'),
+               written: (region.querySelector('h2') || {}).textContent || ''};
+    fetch('/quiz', {method: 'POST', body: body, redirect: 'manual',
+                    keepalive: true})
+      .then(function () {
+        return fetch('/api/quiz' + window.location.search);
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d.html) { location.reload(); return; }
+        region.innerHTML = d.html;
+        if (value !== 'skip') {
+          offerUndo(was.kind, was.key, was.src, {
+            endpoint: '/quiz',
+            back: '/quiz' + window.location.search,
+            label: value === 'know'
+              ? 'Confirmed ' + was.written
+              : 'Struck ' + was.written + ' from the list'
+          });
+        }
+        busy = false;
+      })
+      .catch(function () { b.form.submit(); });
+  }
+
+  var LOCK = 10, GO = 0.22, FLICK = 0.35, from = null;
+
+  function offset(dx) {
+    var d = deck();
+    if (d) d.style.transform = dx ? 'translateX(' + dx + 'px)' : '';
+  }
+
+  card.addEventListener('pointerdown', function (e) {
+    if (!e.isPrimary || e.clientX < 24) return;
+    if (e.target.closest('button, a, input, textarea, select, [contenteditable]'))
+      return;
+    from = {x: e.clientX, y: e.clientY, t: e.timeStamp, axis: null};
+    var d = deck();
+    if (d) d.style.transition = 'none';
+  });
+
+  card.addEventListener('pointermove', function (e) {
+    if (!from) return;
+    var dx = e.clientX - from.x, dy = e.clientY - from.y;
+    if (!from.axis) {
+      if (Math.abs(dx) < LOCK && Math.abs(dy) < LOCK) return;
+      // Once it is a scroll it stays a scroll: no answer is recorded from a
+      // gesture that started as someone reading down the page.
+      from.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+    }
+    if (from.axis === 'x') offset(dx * 0.6);
+  });
+
+  function settle() {
+    from = null;
+    var d = deck();
+    if (d) d.style.transition = calm ? 'none' : 'transform .18s ease-out';
+    offset(0);
+  }
+
+  card.addEventListener('pointerup', function (e) {
+    if (!from) return;
+    var dx = e.clientX - from.x, axis = from.axis;
+    var ms = Math.max(e.timeStamp - from.t, 1);
+    settle();
+    if (axis !== 'x') return;
+    if (Math.abs(dx) < card.clientWidth * GO && Math.abs(dx) / ms < FLICK) return;
+    answer(dx > 0 ? 'know' : 'no');
+  });
+
+  card.addEventListener('pointercancel', settle);
+
+  document.addEventListener('keydown', function (e) {
+    var el = document.activeElement;
+    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ||
+               el.tagName === 'SELECT' || el.isContentEditable)) return;
+    if (e.key === 'ArrowRight' || e.key === 'y') { answer('know'); e.preventDefault(); }
+    if (e.key === 'ArrowLeft' || e.key === 'n') { answer('no'); e.preventDefault(); }
+    if (e.key === 's') { answer('skip'); e.preventDefault(); }
   });
 })();
