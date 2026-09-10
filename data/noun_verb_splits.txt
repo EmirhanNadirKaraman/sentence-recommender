@@ -1,0 +1,53 @@
+# Nouns that share a lemma with a verb.
+#
+# German makes a noun of an infinitive - das Essen, das Leben, das Treffen
+# - and a good many ordinary nouns are homographs of one: der Laden and
+# laden, der Wagen and wagen, der Rücken and rücken. spaCy tells them
+# apart, lemmatising the noun to `Treffen` and the verb to `treffen`. The
+# analyser lowercased both and lost it, so a study list teaching the verb
+# claimed the noun as well: `covered_forms` held `treffen`, and every
+# `das Treffen` in the corpus counted as a word already taught.
+#
+# Only these keep their capital. Every other noun stays lowercase, so the
+# vocabulary files and both resolvers go on matching as they did -
+# capitalising every noun would mean the corpus keying `Haus` while the
+# vocabulary resolves `haus`, which is every noun silently unknown.
+#
+# Three tests, and all three are load-bearing. The lemma must end like an
+# infinitive, or `Frage`, `Papa` and `Ende` join the list on the strength
+# of one mis-tagged token each. It must be said as a noun at least five
+# times, or `Haben` joins it - one occurrence, against twenty thousand as
+# a verb, because `Haben Sie Zeit?` starts a sentence. And it must be said
+# as a verb at least ten times, or the collision is not one.
+#
+# Generated from the corpus: noun uses, then verb uses.
+
+Leben           #   891 as a noun,    404 as a verb
+Unternehmen     #   183 as a noun,     44 as a verb
+Essen           #   166 as a noun,    471 as a verb
+Treffen         #    82 as a noun,    663 as a verb
+Laden           #    81 as a noun,     68 as a verb
+Wagen           #    60 as a noun,     25 as a verb
+Kosten          #    59 as a noun,    178 as a verb
+Rücken          #    54 as a noun,     16 as a verb
+Schaden         #    48 as a noun,     37 as a verb
+Gefallen        #    34 as a noun,     23 as a verb
+Versprechen     #    22 as a noun,    182 as a verb
+Magen           #    18 as a noun,     10 as a verb
+Wissen          #    17 as a noun,   2094 as a verb
+Fasten          #    16 as a noun,     40 as a verb
+Entschuldigen   #    14 as a noun,    118 as a verb
+Zuschauen       #    14 as a noun,     12 as a verb
+Vorhaben        #    11 as a noun,     10 as a verb
+Schreiben       #    10 as a noun,    503 as a verb
+Fliegen         #     9 as a noun,    191 as a verb
+Glauben         #     8 as a noun,   1252 as a verb
+Beten           #     8 as a noun,     50 as a verb
+Lesen           #     7 as a noun,    245 as a verb
+Nutzen          #     7 as a noun,    179 as a verb
+Aussehen        #     7 as a noun,    142 as a verb
+Furzen          #     7 as a noun,     45 as a verb
+Posten          #     7 as a noun,     11 as a verb
+Feiern          #     6 as a noun,    128 as a verb
+Lernen          #     5 as a noun,    708 as a verb
+Investieren     #     5 as a noun,     33 as a verb

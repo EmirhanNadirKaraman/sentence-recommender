@@ -31,6 +31,8 @@ from vocab.entry import Unit
 
 _MATCHER_DIR = Path(__file__).resolve().parents[1] / "matcher"
 _OVERRIDES = Path(__file__).resolve().parents[1] / "data" / "lemma_overrides.txt"
+_NOUN_SPLITS = (Path(__file__).resolve().parents[1] / "data"
+                / "noun_verb_splits.txt")
 
 VERB_TAGS = ("VV", "VA", "VM")
 
@@ -76,6 +78,7 @@ class UnitAnalyzer:
         self._processes = processes
         self._matcher = None
         self._verb_lemmas: "_LemmaLookup | None" = None
+        self._noun_splits: frozenset[str] | None = None
 
     @property
     def verb_lemmas(self) -> "_LemmaLookup":
@@ -124,6 +127,34 @@ class UnitAnalyzer:
                 file=sys.stderr, flush=True,
             )
             return None
+
+    @property
+    def noun_splits(self) -> frozenset[str]:
+        """Nouns that share a lemma with a verb, kept apart by their capital.
+
+        German makes a noun of any infinitive — das Essen, das Leben, das
+        Treffen. spaCy already tells them apart: it lemmatises the noun to
+        `Treffen` and the verb to `treffen`. `_verb_lemma` lowercased both and
+        threw the distinction away, so the two became one unit — and a study
+        list teaching the verb then claimed the noun as well, because
+        `covered_forms` held `treffen` and every `das Treffen` in the corpus
+        counted as a word already taught.
+
+        Only the colliding lemmas keep their capital. Every other noun stays
+        lowercase, so the vocabulary files and both resolvers go on matching
+        exactly as they did — capitalising all of them would have meant the
+        corpus keying `Haus` while the vocabulary resolves `haus`, which is
+        every noun silently unknown for the sake of a few dozen.
+        """
+        if self._noun_splits is None:
+            found: set[str] = set()
+            if _NOUN_SPLITS.exists():
+                for raw in _NOUN_SPLITS.read_text(encoding="utf-8").splitlines():
+                    word = raw.split("#", 1)[0].strip()
+                    if word:
+                        found.add(word)
+            self._noun_splits = frozenset(found)
+        return self._noun_splits
 
     @staticmethod
     def _read_overrides() -> dict[str, str]:
@@ -272,9 +303,15 @@ class UnitAnalyzer:
         different verbs.  The table only wins where the parser produced
         nothing usable.
         """
-        lemma = token.lemma_.strip().lower()
+        lemma = token.lemma_.strip()
         if not lemma or lemma == "--":
             return ""
+        # Before the lowercasing, because the capital is the whole distinction:
+        # the noun `Treffen` and the verb `treffen` are one word to `.lower()`
+        # and two words to a reader. Only nouns, and only the ones listed.
+        if token.tag_ == "NN" and lemma in self.noun_splits:
+            return lemma
+        lemma = lemma.lower()
         surface = token.text.lower()
         if token.tag_.startswith(VERB_TAGS):
             # A hand-written correction wins outright, whatever the parser

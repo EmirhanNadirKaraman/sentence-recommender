@@ -33,6 +33,8 @@ SOURCES = (
     ROOT / "corpus" / "filter.py",
     ROOT / "data" / "final_result.txt",
     ROOT / "data" / "lemma_overrides.txt",
+    # Which nouns are kept apart from the verb they share a lemma with.
+    ROOT / "data" / "noun_verb_splits.txt",
 )
 
 PACKAGES = ("spacy", "de_core_news_md", "de_core_news_sm")

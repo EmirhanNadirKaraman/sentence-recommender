@@ -178,7 +178,15 @@ class Application:
         covered = self.covered_forms
 
         def keep(unit) -> bool:
-            return unit in goals or unit.key.lower() not in covered
+            # Compared as written, not lowercased. Lemma keys are lowercase
+            # except the nouns that share a lemma with a verb, which keep a
+            # capital to say which of the two they are — see the analyser's
+            # `noun_splits`. Lowercasing here put `Treffen` back together with
+            # `treffen` and handed the noun to whatever taught the verb.
+            # Nothing else is affected: every other lemma key is already
+            # lowercase, and a multi-word pattern key never matches `covered`,
+            # which holds single words.
+            return unit in goals or unit.key not in covered
 
         return [
             s.with_units(
