@@ -16,11 +16,20 @@ from __future__ import annotations
 import socket
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
 
 from web.handlers import Viewer
 
 LOOPBACK = "127.0.0.1"
+
+TYPES = {
+    ".png": "image/png", ".svg": "image/svg+xml", ".ico": "image/png",
+    ".css": "text/css; charset=utf-8",
+    ".js": "text/javascript; charset=utf-8",
+    ".webmanifest": "application/manifest+json; charset=utf-8",
+    ".woff2": "font/woff2", ".json": "application/json; charset=utf-8",
+}
 
 
 class LocalServer:
@@ -154,7 +163,42 @@ def _make_handler(viewer: Viewer):
             if path.startswith("/unit/"):
                 _, _, kind, key = path.split("/", 3)
                 return viewer.unit(kind, unquote(key), query), 200
+            # Safari asks for both of these unprompted the moment you add the
+            # page to a home screen. They used to fall through and come back
+            # as an HTML 404 with a 200-shaped body.
+            if path in ("/favicon.ico", "/apple-touch-icon.png",
+                        "/apple-touch-icon-precomposed.png"):
+                return self._send_static("/static/icon-512.png"), 0
+            if path == "/manifest.webmanifest":
+                return self._send_static("/static/manifest.webmanifest"), 0
+            if path.startswith("/static/"):
+                return self._send_static(path), 0
             return _missing(path), 404
+
+        def _send_static(self, path: str) -> str:
+            """A file from `web/static`, and nothing outside it.
+
+            The check is on the *resolved* path rather than the requested one,
+            because `..` and symlinks are the two ways a string that looks
+            local stops being local.
+            """
+            root = Path(__file__).resolve().parent / "static"
+            target = (root / path[len("/static/"):]).resolve()
+            if not target.is_relative_to(root) or not target.is_file():
+                self._send(_missing(path), status=404)
+                return ""
+            body = target.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", TYPES.get(target.suffix,
+                                                       "application/octet-stream"))
+            self.send_header("Content-Length", str(len(body)))
+            # Long, because these are the only things here that never change
+            # without also changing name — and a phone on cellular should not
+            # re-fetch an icon.
+            self.send_header("Cache-Control", "public, max-age=31536000")
+            self.end_headers()
+            self.wfile.write(body)
+            return ""
 
         def _send_json(self, data) -> None:
             import json

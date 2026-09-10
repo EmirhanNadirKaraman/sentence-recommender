@@ -1,0 +1,14 @@
+{
+  "name": "i+1",
+  "short_name": "i+1",
+  "description": "German sentences one new thing at a time",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#eef1f6",
+  "theme_color": "#eef1f6",
+  "icons": [
+    { "src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

@@ -7,17 +7,21 @@ separates the rail carrying step numbers from the reading column, which is
 exactly what a margin is for. Red also means one thing here, the same thing it
 means on returned schoolwork: a correction.
 
-Typographic register carries the pedagogy. German is set in Literata, a
-reading face; the interface and the English translations are in Atkinson
-Hyperlegible. The German is the material; everything else is scaffolding.
+Typographic register carries the pedagogy: German in a reading face, the
+interface and the English translations in a plainer one. The German is the
+material; everything else is scaffolding.
+
+Both used to be webfonts — Literata and Atkinson Hyperlegible. They are asked
+of the device now. A phone reaching this over wifi with no route to the wider
+internet spent the whole font timeout showing nothing, and a render-blocking
+request to a third party is a poor trade for a face the reader has a close
+match to already: Charter ships on Apple platforms and holds the same register.
+Self-hosting the originals through `/static/` is the way back if the
+difference is missed.
 """
 from __future__ import annotations
 
 from html import escape
-
-FONTS = ("https://fonts.googleapis.com/css2?"
-         "family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400"
-         "&family=Atkinson+Hyperlegible:wght@400;700&display=swap")
 
 STYLE = """
 :root {
@@ -40,6 +44,8 @@ STYLE = """
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; }
+html, body { overscroll-behavior-y: contain; }   /* no pull-to-refresh */
+:root { -webkit-tap-highlight-color: transparent; }
 body {
   margin: 0; background: var(--paper); color: var(--ink);
   font: 400 15px/1.5 var(--sans);
@@ -52,7 +58,8 @@ a:hover { text-decoration-color: var(--target); }
 
 .masthead { border-bottom: 1px solid var(--faint); }
 .masthead .inner {
-  max-width: 47rem; margin: 0 auto; padding: 14px 24px;
+  max-width: 47rem; margin: 0 auto;
+  padding: calc(14px + env(safe-area-inset-top)) 24px 14px;
   display: flex; gap: 22px; align-items: baseline; flex-wrap: wrap;
 }
 .masthead .name { font: italic 400 16px/1 var(--serif); margin-right: 6px; }
@@ -60,7 +67,8 @@ a:hover { text-decoration-color: var(--target); }
 .masthead a.here { color: var(--ink); text-decoration: underline;
   text-decoration-color: var(--rail); text-decoration-thickness: 2px; }
 
-main { max-width: 47rem; margin: 0 auto; padding: 40px 24px 96px; }
+main { max-width: 47rem; margin: 0 auto;
+  padding: 40px 24px calc(96px + env(safe-area-inset-bottom)); }
 
 h1 { font: 400 21px/1.3 var(--sans); margin: 0 0 6px; }
 h2 { font: 400 15px/1.3 var(--sans); color: var(--ink-2);
@@ -108,14 +116,17 @@ h2 { font: 400 15px/1.3 var(--sans); color: var(--ink-2);
 .figures .k { font-size: 13px; color: var(--ink-2); margin-top: 3px; }
 
 form.bar { display: flex; gap: 10px; margin: 0 0 26px; flex-wrap: wrap; }
+/* 16px is not a taste: below it iOS zooms the viewport on focus and never
+   zooms back out, leaving the page wider than the screen with no way back. */
 input[type=text], select {
-  font: 400 15px var(--sans); padding: 8px 11px; color: var(--ink);
+  font: 400 16px var(--sans); padding: 8px 11px; color: var(--ink);
   background: var(--surface); border: 1px solid var(--faint); border-radius: 3px;
 }
-input[type=text] { flex: 1; min-width: 190px; }
+input[type=text] { flex: 1; min-width: 0; }
 input[type=text]::placeholder { color: var(--ink-2); opacity: .8; }
 button {
-  font: 400 15px var(--sans); padding: 8px 15px; cursor: pointer;
+  font: 400 16px var(--sans); padding: 10px 16px; cursor: pointer;
+  min-height: 44px; touch-action: manipulation;
   color: var(--ink); background: var(--surface);
   border: 1px solid var(--faint); border-radius: 3px;
 }
@@ -153,8 +164,15 @@ button:hover { border-color: var(--target); }
 .tools { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
 .tools button, .tools .link {
   font: 400 13px var(--sans); padding: 4px 10px; border-radius: 3px;
+  min-height: 0; position: relative; touch-action: manipulation;
   color: var(--ink-2); background: transparent;
   border: 1px solid var(--faint); text-decoration: none; cursor: pointer;
+}
+/* These are deliberately quiet — they are for the exception, not the reading —
+   so the box stays small and only the hit area grows to something a thumb can
+   land on. Drawing them at 44px would make corrections shout. */
+.tools button::after, .tools .link::after {
+  content: ''; position: absolute; inset: -11px -8px;
 }
 .tools button:hover, .tools .link:hover { color: var(--ink);
   border-color: var(--rail); }
@@ -177,7 +195,9 @@ button:hover { border-color: var(--target); }
 .also.clear { color: var(--target); }
 .stepper { display: flex; gap: 12px; align-items: center; margin-top: 14px;
   font-size: 14px; color: var(--ink-2); }
-.stepper button { padding: 4px 12px; font-size: 16px; line-height: 1.2; }
+.stepper button { padding: 4px 12px; font-size: 16px; line-height: 1.2;
+  min-height: 0; position: relative; }
+.stepper button::after { content: ''; position: absolute; inset: -12px -10px; }
 .stepper .count { font-variant-numeric: tabular-nums; }
 .stepper .hint { margin-left: 4px; }
 
@@ -217,6 +237,15 @@ button:hover { border-color: var(--target); }
 .cue.now { box-shadow: inset 3px 0 0 var(--rail); }
 .occurrence { font-size: 14px; color: var(--ink-2); margin: 0 0 22px; }
 
+/* `.link` was only ever styled inside `.actions` and `.tools`, so the reels
+   pager — which uses it bare — rendered as unstyled inline text, and
+   `.link.off` had no rule whatsoever. */
+.link { color: var(--ink); text-decoration: none;
+  border-bottom: 1px solid var(--faint); padding-bottom: 2px; }
+.link:hover { border-bottom-color: var(--target); }
+.link.off { color: var(--ink-2); opacity: .45; pointer-events: none;
+  border-bottom-color: transparent; }
+
 .pager { display: flex; gap: 18px; align-items: baseline; margin-top: 30px;
   font-size: 14px; color: var(--ink-2); }
 .quiet { color: var(--ink-2); }
@@ -233,6 +262,26 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1
   .entry .body { padding-left: 14px; }
   .de.lead { font-size: 24px; }
   .figures { gap: 26px; }
+
+  /* The nav moves to the bottom. Held one-handed, the top of a phone is the
+     part a thumb cannot reach, and this is the only navigation there is. Same
+     markup, so nothing else has to know. */
+  .masthead {
+    position: fixed; inset: auto 0 0 0; z-index: 5;
+    background: var(--paper);
+    border-bottom: 0; border-top: 1px solid var(--faint);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .masthead .inner {
+    padding: 0 8px; gap: 0; justify-content: space-around; align-items: stretch;
+  }
+  .masthead .name { display: none; }
+  .masthead a {
+    min-height: 48px; display: flex; align-items: center; padding: 0 6px;
+    touch-action: manipulation;
+  }
+  /* Clear the bar, and the home indicator under it. */
+  main { padding: 24px 20px calc(112px + env(safe-area-inset-bottom)); }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 """
@@ -250,10 +299,24 @@ def layout(title: str, body: str, here: str = "/", source: str = "") -> str:
     )
     return (
         "<!doctype html><html lang='en'><head><meta charset='utf-8'>"
-        "<meta name='viewport' content='width=device-width,initial-scale=1'>"
+        # `viewport-fit=cover` lets the page paint under the notch and the
+        # home indicator; the safe-area insets below put the content back.
+        # No `user-scalable=no` — refusing to let someone zoom a page of
+        # foreign-language text is the wrong call for this app in particular.
+        "<meta name='viewport' content='width=device-width,initial-scale=1,"
+        "viewport-fit=cover'>"
         f"<title>{escape(title)}</title>"
-        "<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>"
-        f"<link rel='stylesheet' href='{FONTS}'>"
+        "<meta name='apple-mobile-web-app-capable' content='yes'>"
+        "<meta name='apple-mobile-web-app-title' content='i+1'>"
+        # `default`, not `black-translucent`: the latter shifts content up
+        # under the notch and brings a class of layout bugs with it.
+        "<meta name='apple-mobile-web-app-status-bar-style' content='default'>"
+        "<meta name='theme-color' content='#eef1f6' "
+        "media='(prefers-color-scheme: light)'>"
+        "<meta name='theme-color' content='#0f1626' "
+        "media='(prefers-color-scheme: dark)'>"
+        "<link rel='manifest' href='/manifest.webmanifest'>"
+        "<link rel='apple-touch-icon' href='/static/icon-512.png'>"
         f"<style>{STYLE}</style></head><body>"
         "<header class='masthead'><div class='inner'>"
         f"<span class='name'>i+1</span>{links}</div></header>"
