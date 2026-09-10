@@ -1055,8 +1055,16 @@ class Viewer:
             "</div><div class='body'>"
             f"<div class='unit'>{escape(unit.key)}</div>"
             + (f"<p class='de'>{escape(example)}</p>"
-               f"<p class='also'>{gap} new things in its easiest sentence here: "
-               f"{escape(', '.join(rest))}</p>" if example else
+               # `gap` counts this word too; `rest` does not. Printing the one
+               # beside the other read as "2 new things: geiselnehmer", a
+               # count of two above a list of one, and the obvious reading —
+               # that the single word named was somehow two things — is wrong.
+               # Say how many *others* there are, which is what the list holds.
+               f"<p class='also'>needs {gap - 1} other new "
+               f"word{'' if gap == 2 else 's'} here: "
+               f"{escape(', '.join(rest))}"
+               f"{f' and {gap - 1 - len(rest)} more' if gap - 1 > len(rest) else ''}"
+               "</p>" if example else
                "<p class='also'>Never said in this corpus. Find a clip of it "
                "and the chain continues.</p>")
             # No "not yet" here: nothing on this page is being offered, so
