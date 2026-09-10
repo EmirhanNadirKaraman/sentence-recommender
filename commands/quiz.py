@@ -127,22 +127,30 @@ class QuizCommand:
 
     @staticmethod
     def _frequencies(app, source: str) -> Counter:
-        counts: Counter = Counter()
-        for sentence in app.corpus(source, list_only=False):
-            for unit in sentence.units:
-                counts[unit] += 1
-        return counts
+        """How often each unit is said, for ranking what to ask about.
+
+        Counted by the database rather than by loading the corpus and
+        tallying it, which was nineteen seconds before the first question.
+        """
+        return Counter({Unit(kind, key): n for (kind, key), n
+                        in app.corpus_store.unit_counts(source).items()})
 
     @staticmethod
     def _example(app, unit: Unit, source: str) -> str:
-        """One sentence using it, so the word is not judged out of context."""
+        """One sentence using it, so the word is not judged out of context.
+
+        Asked of the database for the sentences saying this word. It used to
+        load the whole corpus looking for them — inside the question loop, so
+        once per word: nineteen seconds of silence before every question, and
+        thirteen minutes for a quiz of forty.
+        """
         from corpus.quality import score
         best, best_score = "", -1.0
-        for sentence in app.corpus(source, list_only=False):
-            if unit in sentence.units:
-                value = score(sentence.text)
-                if value > best_score:
-                    best, best_score = sentence.text, value
-                if best_score >= 1.0:
-                    break
+        for sentence in app.corpus(source, list_only=False,
+                                   holding=(unit.kind, unit.key)):
+            value = score(sentence.text)
+            if value > best_score:
+                best, best_score = sentence.text, value
+            if best_score >= 1.0:
+                break
         return best

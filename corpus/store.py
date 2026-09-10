@@ -203,6 +203,28 @@ class CorpusStore:
         timing = sentence.timing
         return (timing.video_id, timing.start, timing.end) if timing else (None, None, None)
 
+    def unit_counts(self, *builds: str) -> "Counter":
+        """How often each unit is said, counted by the database.
+
+        The alternative is materialising every sentence and tallying the units
+        in Python, which is nineteen seconds to answer a question SQLite can
+        answer from an index. Corrections are not applied — a hidden sentence
+        still counts here — because this ranks what to ask about first and a
+        handful of rows cannot change that order.
+        """
+        from collections import Counter
+        if not builds:
+            return Counter()
+        placeholders = ",".join("?" * len(builds))
+        with self._connect() as conn:
+            return Counter({
+                (kind, key): n for kind, key, n in conn.execute(
+                    "SELECT su.kind, su.key, count(*) FROM sentence_units su"
+                    " JOIN sentences s ON s.id = su.sentence_id"
+                    f" WHERE s.build IN ({placeholders})"
+                    " GROUP BY su.kind, su.key", builds)
+            })
+
     def load(self, *builds: str, teachable_only: bool = True,
              video: str | None = None,
              holding: tuple[str, str] | None = None,
