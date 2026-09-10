@@ -161,9 +161,23 @@ class Application:
         """
         words: set[str] = set()
         for unit in self.goal_units:
-            for word in re.findall(r"[^\W\d_]+", unit.key.lower()):
-                if len(word) > 2 and word not in self.PLACEHOLDERS:
+            # Both cases, and the pair is the point. Lemma keys are lowercase
+            # except the nouns that share one with a verb, which keep a
+            # capital — so `das Unternehmen` has to cover `Unternehmen` the
+            # noun as well as `unternehmen`, or the goal is blocked by the
+            # very word it exists to teach. Reading the written case alone
+            # would be worse: `das Jahr` would then cover `Jahr` and not
+            # `jahr`, and every article-and-noun goal on the list would break
+            # the same way.
+            #
+            # What this does not do is cover a capital the goal never wrote.
+            # `jdn. (Akk) ... nennen` is lowercase throughout, so it covers
+            # the verb and leaves any noun `Nennen` alone, which is the whole
+            # distinction the split exists for.
+            for word in re.findall(r"[^\W\d_]+", unit.key):
+                if len(word) > 2 and word.lower() not in self.PLACEHOLDERS:
                     words.add(word)
+                    words.add(word.lower())
         return frozenset(words)
 
     def _drop_duplicates(self, sentences: list) -> list:
