@@ -19,7 +19,8 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import datetime
 from html import escape
-from threading import Lock
+from queue import Queue
+from threading import Lock, Thread
 from urllib.parse import quote
 
 from fingerprint import analyser_fingerprint
@@ -87,6 +88,13 @@ class Viewer:
         self._unit_videos: dict[str, dict] = {}
         # One scoring pass at a time; the rest wait and find it done.
         self._scoring = Lock()
+        # Marked words waiting to be scored. `_rescore` reaches `_grouped`,
+        # which materialises the whole corpus on a cold cache — twenty-three
+        # seconds, measured, on the thread answering the POST. Swiping a word
+        # away should not wait for that, so it is handed to one worker and
+        # answered immediately.
+        self._marks: Queue = Queue()
+        self._worker: Thread | None = None
         self._scores = ScoreStore(app.settings.state_path)
         self._durations: dict[str, float] | None = None
         self._video_titles: dict[str, str] | None = None
@@ -233,9 +241,15 @@ class Viewer:
             switch + picker
             + self._progress(readable, total)
             + f"<p class='note'>{lede}</p>"
+            # One surface for the whole reading area — the player, the
+            # sentence and the stepper. Bound as a card because a 7rem strip
+            # of text is not something a thumb can find without looking, which
+            # is the one thing this page is supposed to allow.
+            + "<div class='card' id='card'>"
             + self._stage(deck)
-            + self._deck(deck, unit, source) +
-            "<h2>The new thing</h2>"
+            + self._deck(deck, unit, source)
+            + "</div>"
+            + "<h2>The new thing</h2>"
             f"<p class='de'>{escape(unit.key)}</p>"
             f"<p class='en'>{kind}, appearing in {occurrences:,} sentence"
             f"{'s' if occurrences != 1 else ''} here and opening {step.gain} "
@@ -649,7 +663,7 @@ class Viewer:
             # against a vocabulary that did not yet contain the word just
             # marked. It did the work and wrote back the numbers it started
             # with.
-            self._rescore(unit)
+            self._queue_rescore(unit)
         # `&` when the caller already carried its own state — a list you
         # were forty entries into should come back to entry forty, not to the
         # top. Joining with `?` unconditionally made a second query string and
@@ -1147,6 +1161,40 @@ class Viewer:
                         index[unit].add(video_id)
             self._unit_videos[source] = index
         return self._unit_videos[source]
+
+    def _queue_rescore(self, unit: Unit) -> None:
+        """Hand the word to the scorer and get out of the way.
+
+        The stamp is what keeps this honest. It carries the known-set version,
+        so between the POST returning and the worker finishing, what is on
+        disk simply disagrees with what the reader knows — and a disagreeing
+        stamp means recompute, never serve. The window is a few seconds and it
+        errs in the safe direction.
+        """
+        self._marks.put(unit)
+        if self._worker is None or not self._worker.is_alive():
+            self._worker = Thread(target=self._drain, name="rescore",
+                                  daemon=True)
+            self._worker.start()
+
+    def _drain(self) -> None:
+        """One at a time, forever. Daemon, so it never holds up a shutdown."""
+        while True:
+            unit = self._marks.get()
+            try:
+                self._rescore(unit)
+            except Exception as error:            # noqa: BLE001
+                # Printed here rather than through `web.server._report`,
+                # which cannot be imported this way round — server imports
+                # handlers. Swallowed either way: a worker that dies takes
+                # every later mark with it, silently, because nothing is left
+                # draining the queue.
+                import traceback
+                print(f"\n--- rescoring {unit.kind}:{unit.key} failed ---",
+                      flush=True)
+                traceback.print_exception(error)
+            finally:
+                self._marks.task_done()
 
     def _rescore(self, unit: Unit) -> None:
         """Update only the videos that say `unit`.

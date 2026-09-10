@@ -168,7 +168,16 @@ button:hover { border-color: var(--target); }
 .note.said.bad { border-left-color: var(--rail); }
 
 /* Alternative i+1 sentences for the same unit, stepped through in place. */
-.deck { min-height: 7.2rem; }
+/* The card is the only part of the page that reinterprets a drag: the rest
+   scrolls, and the transcript scrolls inside itself. `touch-action: none` is
+   what makes that possible — without it iOS claims the touch for scrolling
+   before any handler runs, and no amount of preventDefault gets it back. The
+   selection guards matter too: a long-press that starts selecting text
+   cancels the drag halfway through. */
+.card { touch-action: none;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.deck { min-height: 7.2rem; will-change: transform; }
+@media (prefers-reduced-motion: reduce) { .deck { transition: none !important; } }
 .also { font: 400 13.5px/1.5 var(--sans); color: var(--ink-2); margin: 10px 0 0; }
 .also.clear { color: var(--target); }
 .stepper { display: flex; gap: 12px; align-items: center; margin-top: 14px;
