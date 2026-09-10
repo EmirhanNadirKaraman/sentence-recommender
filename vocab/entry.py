@@ -15,7 +15,10 @@ class Unit:
     a sentence is i+1 when it contains exactly one unknown *unit*, whichever
     kind that is.
 
-    kind == LEMMA    key is a lowercase lemma from `word_table.lemma`
+    kind == LEMMA    key is a lemma, lowercase — except the handful of nouns
+                     that share one with a verb, which keep their capital to
+                     say which of the two they are (`Treffen` the meeting
+                     against `treffen` the verb). See `Unit.exact`.
     kind == PATTERN  key is a `phrase_table.canonical`, e.g.
                      "jdm. (Dat) etw. (Akk) geben"
     """
@@ -39,7 +42,28 @@ class Unit:
 
     @classmethod
     def lemma(cls, key: str) -> "Unit":
+        """A lemma unit, lowercased.
+
+        The default, because almost every caller has a written word rather
+        than a parse — a study-list entry, a query string, a line of a
+        vocabulary file — and none of those can be trusted to carry the case
+        the corpus uses. Use `exact` where the parser is the authority.
+        """
         return cls(LEMMA, key.lower())
+
+    @classmethod
+    def exact(cls, key: str) -> "Unit":
+        """A lemma unit with the case it was given.
+
+        Only for lemmas that come from the analyser, which is the one place
+        that knows whether a word was a noun or a verb. German makes a noun of
+        an infinitive — das Treffen against treffen — and spaCy keeps them
+        apart by exactly that capital. `lemma` would throw it away, which is
+        what it did: the analyser was taught to preserve the noun and the very
+        next line lowercased it again, so a fourteen-minute rebuild changed
+        nothing at all. See the analyser's `noun_splits`.
+        """
+        return cls(LEMMA, key)
 
     @classmethod
     def pattern(cls, key: str) -> "Unit":

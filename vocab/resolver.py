@@ -29,4 +29,5 @@ class VocabResolver:
         return self._words.lemmas_for_surfaces(surfaces)
 
     def units(self, surfaces: list[str]) -> set[Unit]:
-        return {Unit.lemma(lemma) for lemma in self.lemmas(surfaces)}
+        # Straight from the analyser, so the case it chose is kept.
+        return {Unit.exact(lemma) for lemma in self.lemmas(surfaces)}

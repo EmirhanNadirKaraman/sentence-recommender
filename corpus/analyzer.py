@@ -249,7 +249,10 @@ class UnitAnalyzer:
                 continue
             evidence.content[lemma] += 1
             evidence.by_surface[token.text.lower()][lemma] += 1
-            unit = Unit.lemma(lemma)
+            # `exact`: the capital on a noun that shares its lemma with a
+            # verb is the only thing telling them apart, and it is this
+            # line that used to drop it.
+            unit = Unit.exact(lemma)
             units.add(unit)
             surfaces.setdefault(unit, token.text)
         for phrase in self.matcher.extract_phrases(doc, self._language):

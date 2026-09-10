@@ -268,7 +268,9 @@ class Application:
         covers surface forms spaCy lemmatises differently in isolation.
         """
         return KnownSet(
-            {Unit.lemma(lemma) for lemma in self._known_lemmas()}
+            # `exact`, so `das Leben` reaches the noun `Leben` and not
+            # only the verb `leben` the database resolves it to.
+            {Unit.exact(lemma) for lemma in self._known_lemmas()}
             | self.marked_known.units()
         )
 
