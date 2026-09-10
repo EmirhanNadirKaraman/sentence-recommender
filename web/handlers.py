@@ -1369,30 +1369,78 @@ class Viewer:
         # that still needed a database — for a number `video_score` already
         # holds, which is how /reels renders it without asking anyone.
         ranked = self._watchable(source, floor=1)
+        order = query.get("by") or "watch"
+        ranked = self._ordered(ranked, order)
+        # Reels is indexed by the watchability order, so a link from a
+        # re-sorted table has to name the video rather than its row here.
+        by_video = {r["video"]: n for n, r in
+                    enumerate(self._ordered(ranked, "watch"))}
         rows = "".join(
-            f"<tr><td><a href='/reels?src={quote(source)}&i={n}'>"
+            f"<tr><td><a href='/reels?src={quote(source)}"
+            f"&i={by_video.get(r['video'], 0)}'>"
             f"{escape((r['title'] or r['video'])[:58])}</a></td>"
             f"<td class='n'>{r['comprehension']:.0%}</td>"
             f"<td class='n'>{r['watch']:.2f}</td>"
+            f"<td class='n'>{self._density(r):.1f}</td>"
             f"<td class='n'>{r['teaches']:,}</td>"
             f"<td class='n'>{r['lines']:,}</td>"
             f"<td class='n'>"
             + (f"{r['minutes']:.0f} min" if r["minutes"] is not None else "—")
             + "</td></tr>"
-            for n, r in enumerate(ranked)
+            for r in ranked
         )
         table = (f"<table class='rows'><tr><th>video</th>"
                  f"<th class='n'>you follow</th><th class='n'>watch</th>"
+                 f"<th class='n'>i+1/min</th>"
                  f"<th class='n'>teaches</th><th class='n'>cues</th>"
                  f"<th class='n'>length</th></tr>{rows}</table>" if rows
                  else "<p class='empty'>No aligned subtitles yet.</p>")
-        body = ("<h1>Videos</h1><p class='note'>Best to watch first. "
-                "<em>You follow</em> is the share of its sentences you can "
-                "already read; <em>watch</em> combines that with length and "
-                "how much is in it. Both move as you mark words known.</p>"
+        picker = "".join(
+            f"<a href='/subtitles?src={quote(source)}"
+            + (f"&by={value}" if value != "watch" else "")
+            + f"' class='{'on' if order == value else ''}'>{label}</a>"
+            for value, label in (("watch", "easiest to follow"),
+                                 ("density", "most to learn per minute"),
+                                 ("teaching", "most of your list per minute"))
+        )
+        body = ("<h1>Videos</h1>"
+                f"<div class='switch'><span>Best first</span>{picker}</div>"
+                "<p class='note'><em>You follow</em> is the share of its "
+                "sentences you can already read, and <em>watch</em> combines "
+                "that with length. Those favour videos you understand "
+                "already. <em>i+1/min</em> asks the opposite question — how "
+                "much this video could teach you per minute — and picks "
+                "almost entirely different films: of the top fifty by each, "
+                "two are the same. Both move as you mark words known.</p>"
                 + self._add_video_form(query)
                 + f"<h2>{len(ranked)} in the catalogue</h2>" + table)
         return layout("Videos", body, "/subtitles", source)
+
+    @staticmethod
+    def _density(row: dict) -> float:
+        """Sentences one word away, per minute.
+
+        The teaching rate: how much of this video is material you could
+        actually learn from, rather than how comfortable it is to sit
+        through. A video with no length recorded scores nothing rather than
+        dividing by a guess.
+        """
+        return row["i+1"] / row["minutes"] if row.get("minutes") else 0.0
+
+    def _ordered(self, rows: list[dict], order: str) -> list[dict]:
+        """The catalogue, best first by whichever question was asked.
+
+        `watch` and the two rates disagree almost completely — they are not
+        two views of one ranking but answers to different questions, and the
+        page says so rather than presenting one as the truth.
+        """
+        if order == "density":
+            return sorted(rows, key=self._density, reverse=True)
+        if order == "teaching":
+            return sorted(rows, key=lambda r: (r["teaches"] / r["minutes"]
+                                               if r.get("minutes") else 0.0),
+                          reverse=True)
+        return sorted(rows, key=lambda r: -r["watch"])
 
     @staticmethod
     def _add_video_form(query: dict) -> str:
