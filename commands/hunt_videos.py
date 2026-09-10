@@ -55,7 +55,7 @@ def _search_terms(unit) -> list[str]:
 class HuntVideosCommand:
     def run(self, app, batch: int = 10, rounds: int = 1,
             source: str = "subtitle", dry_run: bool = False,
-            quality_only: bool = False) -> None:
+            quality_only: bool = False, absent_only: bool = False) -> None:
         ingestor = VideoIngestor(app.settings, app.analyzer)
         hunter = VideoHunter(ingestor)
 
@@ -63,6 +63,8 @@ class HuntVideosCommand:
         for round_number in range(1, rounds + 1):
             print(f"\n── round {round_number} of {rounds} " + "─" * 30)
             stuck = self._stranded(app, source, known, quality_only)
+            if absent_only:
+                stuck = self._never_said(app, source, stuck)
             if not stuck:
                 print("  nothing is stranded — the roadmap reaches everything.")
                 return
@@ -99,6 +101,29 @@ class HuntVideosCommand:
                   f"({closed:,} fewer)" if closed >= 0
                   else f"  stranded: {len(stuck):,} → {len(after):,} "
                        f"({-closed:,} more)")
+
+    @staticmethod
+    def _never_said(app, source: str, stuck: list) -> list:
+        """Only the goals the corpus does not contain at all.
+
+        `_stranded` returns two kinds and puts the present ones first, on the
+        argument that a video isolating a word already in play pays off at
+        once. That is sound in principle and was wrong in the case that sent
+        us here: the top of the queue was `nennen`, said 264 times and never
+        alone, and the reason was not scarcity but that the study list named
+        the verb twice. Ten downloads would have bought nothing.
+
+        A word never said at all is different. There is no sentence to fix, so
+        a video that says it creates the first one. Whether that sentence is
+        i+1 is another matter — but it cannot be, today, and after it exists
+        it can.
+        """
+        counts = app.corpus_store.unit_counts(source)
+        absent = [(u, n) for u, n in stuck
+                  if not counts.get((u.kind, u.key), 0)]
+        print(f"  {len(stuck):,} stranded, of which {len(absent):,} are never "
+              "said here at all — chasing only those")
+        return absent
 
     @staticmethod
     def _stranded(app, source: str, known=None, quality_only: bool = False

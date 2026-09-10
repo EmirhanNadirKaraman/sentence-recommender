@@ -54,6 +54,11 @@ def _parser() -> argparse.ArgumentParser:
                       help="chase what a well-formed-only roadmap cannot reach")
     hunt.add_argument("--dry-run", action="store_true",
                       help="show what it would fetch, and stop")
+    hunt.add_argument("--absent-only", action="store_true",
+                      help="chase only the goals this corpus never says. The "
+                           "rest are said but never alone, which more video "
+                           "rarely fixes — they need the words around them "
+                           "known, not another recording")
 
     channel = sub.add_parser(
         "add-channel",
@@ -184,7 +189,7 @@ def main() -> int:
         AddVideosCommand().run(app, args.source, args.language, args.dry_run)
     elif args.command == "hunt":
         HuntVideosCommand().run(app, args.batch, args.rounds, args.source,
-                                args.dry_run, args.quality)
+                                args.dry_run, args.quality, args.absent_only)
     elif args.command == "add-channel":
         AddVideosCommand().run(app, args.channel, args.language, args.dry_run,
                                args.limit)
