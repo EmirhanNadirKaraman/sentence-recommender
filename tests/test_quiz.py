@@ -18,6 +18,7 @@ import unittest
 from collections import Counter
 from pathlib import Path
 from types import SimpleNamespace
+from unittest import mock
 
 from commands.quiz import QuizCommand
 from vocab.entry import Unit
@@ -129,6 +130,48 @@ class SourceTest(unittest.TestCase):
     def test_a_missing_file_is_not_an_error(self) -> None:
         self.function.unlink()
         self.assertEqual(self.surfaces("function"), set())
+
+
+class AskingTest(unittest.TestCase):
+    """`_ask`, which has to cope with there being nobody there.
+
+    Started without a terminal — a pipe, a hook, an agent shelling out — the
+    prompt used to raise EOFError and print a traceback over the first
+    question. The quiz is a conversation; with no one to answer it should say
+    so and keep what it already has.
+    """
+
+    def answers(self, *replies):
+        it = iter(replies)
+
+        def fake(_prompt=""):
+            try:
+                return next(it)
+            except StopIteration:
+                raise EOFError
+        return mock.patch("builtins.input", fake)
+
+    def test_an_answer_comes_back_lowered_and_stripped(self) -> None:
+        with self.answers("  N  "):
+            self.assertEqual(QuizCommand._ask(), "n")
+
+    def test_enter_is_an_answer(self) -> None:
+        with self.answers(""):
+            self.assertEqual(QuizCommand._ask(), "")
+
+    def test_a_typo_asks_again(self) -> None:
+        with self.answers("k", "yes"):
+            self.assertEqual(QuizCommand._ask(), "yes")
+
+    def test_no_terminal_quits_instead_of_raising(self) -> None:
+        with self.answers():
+            self.assertEqual(QuizCommand._ask(), "q")
+
+    def test_it_quits_rather_than_looping_on_a_closed_stdin(self) -> None:
+        """A typo then EOF must not spin: the re-prompt reads from the same
+        dead stream."""
+        with self.answers("k"):
+            self.assertEqual(QuizCommand._ask(), "q")
 
 
 if __name__ == "__main__":

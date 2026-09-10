@@ -94,9 +94,7 @@ class QuizCommand:
             example = self._example(app, unit, source, hidden)
             if example:
                 print(f"     {example}")
-            answer = input(PROMPT).strip().lower()
-            while answer not in ANSWERS:
-                answer = input("  sorry — [Enter], n, s or q > ").strip().lower()
+            answer = self._ask()
             if answer in ("q", "quit"):
                 break
             if answer in ("s", "skip"):
@@ -121,6 +119,28 @@ class QuizCommand:
         if total:
             print("\n  The known set has changed, so the roadmap is out of date:"
                   "\n    python main.py build-roadmap --source subtitle --goals --list-only")
+
+    @staticmethod
+    def _ask() -> str:
+        """One answer, or `q` if there is nobody there to give one.
+
+        Reading from a closed stdin raised EOFError and printed a traceback,
+        which is what happens whenever this is started somewhere without a
+        terminal attached — a pipe, a hook, an agent shelling out. The quiz is
+        a conversation; with no one to answer it should say so and keep what
+        it already has, not fall over on the first question.
+        """
+        while True:
+            try:
+                answer = input(PROMPT).strip().lower()
+            except EOFError:
+                print("\n\n  Nothing to read answers from — this needs a real "
+                      "terminal.\n  Open one in this directory and run the same "
+                      "command there.")
+                return "q"
+            if answer in ANSWERS:
+                return answer
+            print("  sorry — [Enter]=yes, n=no, s=skip, q=quit")
 
     @staticmethod
     def _merge_frames(grouped: dict[Unit, list[dict]]) -> None:
