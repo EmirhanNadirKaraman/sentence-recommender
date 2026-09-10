@@ -33,3 +33,26 @@ geh     gehen
 # Not a clipped form: a plain third-person present, and simply missing from
 # the table. The parser hands it back unchanged like the rest.
 lässt   lassen
+
+# A second sweep, over every identity lemma rather than the most frequent few.
+# Three shapes the first pass could not see:
+#
+#   contractions      the verb and a swallowed "es", written as one token
+#   suffix swaps      -t replaced rather than -en appended, so guessing
+#                     "surface + en" produced lassten and müssten and scored
+#                     them as having no infinitive at all
+#   the quiet ones    bring, at 59 uses, sat below the frequency cut
+#
+# 590 sentences hold one; 56 have no other unknown. Each target was already
+# known, so folding removes the unit rather than renaming it.
+
+versuch  versuchen
+stell    stellen
+bring    bringen
+lasst    lassen
+müsst    müssen
+
+# The verb with a swallowed "es". The pronoun is a function word either way,
+# so nothing is lost by reading the token as the verb it carries.
+geht's   gehen
+gibt's   geben
