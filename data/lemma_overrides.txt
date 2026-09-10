@@ -11,3 +11,25 @@
 muss    müssen
 musst   müssen
 soll    sollen
+
+# German drops the -e of the first person and the imperative as soon as anyone
+# is speaking rather than writing: habe/sage/gehe/mache/höre/lasse become hab,
+# sag, geh, mach, hör, lass. spaCy's lemma table is built from written
+# wordlists that carry the full forms and none of the clipped ones, and its
+# lemmatiser leaves what it cannot place alone — so every one of these came
+# through as a unit of its own, sitting beside the infinitive the reader
+# already knows.
+#
+# 2,454 subtitle sentences hold one. 255 of them have no other unknown at all,
+# so they are unreadable for no reason but this.
+
+hab     haben
+lass    lassen
+sag     sagen
+hör     hören
+mach    machen
+geh     gehen
+
+# Not a clipped form: a plain third-person present, and simply missing from
+# the table. The parser hands it back unchanged like the rest.
+lässt   lassen
