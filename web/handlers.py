@@ -705,6 +705,12 @@ class Viewer:
         else:
             self.app.marked_known.add(unit)
             self.app.card_store.remove(unit)
+            # The blocked page is computed against what you know and cached
+            # per source, and nothing here was clearing it — so a word you had
+            # just learned went on being listed as stranded until the server
+            # restarted. Cleared here and not in the `pass` branch, because
+            # `_stranded` reads the known set and never the snoozed one.
+            self._stuck.clear()
             # Off the shelf rather than left to expire: learning a word should
             # not leave it remembering that it was once avoided.
             self.app.snoozes.wake(unit)

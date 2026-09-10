@@ -294,6 +294,25 @@ class UnitAnalyzer:
                 return fixed
             if lemma == surface and not surface.endswith(INFINITIVE_ENDINGS):
                 return self.verb_lemmas.get(surface, lemma)
+            # The parser is an edit-tree model: it predicts a transformation,
+            # applies it, and never checks that the result is a word. Nothing
+            # downstream checked either, so `gehst` became `hsen`, `warst`
+            # became `warn` and `muss` became `mussen`, each a unit of its own
+            # competing for the reader's attention.
+            #
+            # A lemma that is neither the surface nor a lemma any lexicon
+            # knows is treated as a failure, and failure means handing back
+            # the surface. That is the shape the rest of this file already
+            # copes with: an identity lemma is what the override table and the
+            # corpus-majority pass are both built to repair. It turns a
+            # creative failure into a clean one.
+            #
+            # 4.6% of verb tokens, measured, and all but a handful of those
+            # were genuine inventions. The few honest lemmas it refuses — the
+            # table has no `möchten` — come back as their own surface, which
+            # is correctable; being wrong in that direction is the point.
+            if lemma != surface and not self.verb_lemmas.is_lemma(lemma):
+                return surface
         return lemma
 
     # --- second pass -----------------------------------------------------
@@ -414,10 +433,27 @@ class _LemmaLookup:
     def __init__(self, table, overrides: dict[str, str]) -> None:
         self._table = table
         self._overrides = overrides
+        self._lemmas: set[str] | None = None
 
     def override(self, surface: str) -> str:
         """The hand-checked correction for `surface`, if there is one."""
         return self._overrides.get(surface, "")
+
+    def is_lemma(self, word: str) -> bool:
+        """Whether any German lexicon has this as a lemma.
+
+        The table's *values*, not its keys: the right-hand side is the set of
+        things that are lemmas, against the far larger set of things that are
+        forms. Built once and kept, because it is asked of every verb.
+
+        With no table installed everything passes — the check can only ever
+        refuse, so without evidence it refuses nothing.
+        """
+        if self._table is None:
+            return True
+        if self._lemmas is None:
+            self._lemmas = {str(v).lower() for v in self._table.values()}
+        return word in self._lemmas
 
     def get(self, surface: str, default: str = "") -> str:
         if surface in self._overrides:

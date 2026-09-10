@@ -89,3 +89,20 @@ mussten   müssen
 
 wussten   wissen
 mussen    müssen
+
+# Forms the invention check now hands back as themselves. Each was previously
+# some string the parser made up — `hältst` came back as `hälten`, `sprichst`
+# as `sprichen` — so the entry could never fire; refusing the invention is
+# what makes them reachable.
+
+hältst    halten
+sprichst  sprechen
+nehm      nehmen
+schau     schauen
+findest   finden
+verstehst verstehen
+bekommst  bekommen
+bringst   bringen
+merkt     merken
+wusstest  wissen
+hättest   haben

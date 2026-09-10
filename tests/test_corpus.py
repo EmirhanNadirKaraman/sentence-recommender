@@ -224,6 +224,9 @@ class LemmaLookupTest(unittest.TestCase):
             table={"willst": "wollen", "sein": "mein", "sie": "ich"},
             # The hand-written file.
             overrides={"muss": "müssen"},
+            # Real German lemmas, for the invention check. `mussn` is not
+            # here, which is the whole point of it.
+            lemmas={"wollen", "mein", "ich", "müssen", "gehen", "wissen"},
         )
 
     def lemma(self, text: str, spacy_lemma: str, tag: str) -> str:
@@ -267,6 +270,28 @@ class LemmaLookupTest(unittest.TestCase):
         """The one guard that stays, and the reason `weißen` is safe: the
         adjective keeps its own lemma, only the verb form is folded."""
         self.assertEqual(self.lemma("muss", "muss", "NN"), "muss")
+
+    def test_an_invented_lemma_is_refused(self) -> None:
+        """The parser is an edit-tree model: it predicts a transformation,
+        applies it, and never checks the result is a word. `gehst` came back
+        as `hsen`, `warst` as `warn`.
+
+        Refusing means handing back the surface, which is the shape the rest
+        of this file already copes with — an identity lemma is exactly what
+        the override table and the majority pass repair.
+        """
+        self.assertEqual(self.lemma("gehst", "hsen", "VVFIN"), "gehst")
+        self.assertEqual(self.lemma("nehm", "nehmn", "VVFIN"), "nehm")
+
+    def test_a_real_lemma_is_left_alone(self) -> None:
+        """The check can only refuse, so anything the lexicon vouches for
+        passes untouched."""
+        self.assertEqual(self.lemma("ging", "gehen", "VVFIN"), "gehen")
+
+    def test_only_verbs_are_checked(self) -> None:
+        """A noun's lemma is not asked to be a verb lemma — this check would
+        refuse most of the language if it ran on everything."""
+        self.assertEqual(self.lemma("Häuser", "haus", "NN"), "haus")
 
     def test_lower_cases_so_units_dedupe(self) -> None:
         self.assertEqual(self.lemma("Haus", "Haus", "NN"), "haus")
@@ -335,12 +360,19 @@ class _FakeLookup:
     """
 
     def __init__(self, table: dict[str, str],
-                 overrides: dict[str, str] | None = None) -> None:
+                 overrides: dict[str, str] | None = None,
+                 lemmas: set[str] | None = None) -> None:
         self._table = table
         self._overrides = overrides or {}
+        # What the lexicon will vouch for as a lemma. Defaults to the table's
+        # own right-hand side, which is what the real one uses.
+        self._lemmas = lemmas if lemmas is not None else set(table.values())
 
     def override(self, surface: str) -> str:
         return self._overrides.get(surface, "")
+
+    def is_lemma(self, word: str) -> bool:
+        return word in self._lemmas
 
     def get(self, surface: str, default: str = "") -> str:
         if surface in self._overrides:
