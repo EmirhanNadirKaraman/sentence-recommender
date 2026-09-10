@@ -240,27 +240,80 @@ class Viewer:
             kind = "a word"
         body = (
             switch + picker
-            + self._progress(readable, total)
-            + f"<p class='note'>{lede}</p>"
-            # One surface for the whole reading area — the player, the
-            # sentence and the stepper. Bound as a card because a 7rem strip
-            # of text is not something a thumb can find without looking, which
-            # is the one thing this page is supposed to allow.
+            # Everything from here down is replaced in place when a word is
+            # decided, so it is built once and shared with `/api/next`.
+            # Three pieces, and the split is forced by the player: it must
+            # sit *outside* whatever gets replaced, or a decision tears down
+            # the iframe and the YouTube API has to boot again — a second or
+            # two of nothing, on the action taken most often.
+            + f"<div id='reading-top'>{self._progress(readable, total)}"
+            + f"<p class='note'>{lede}</p></div>"
             + "<div class='card' id='card'>"
             + self._stage(deck)
-            + self._deck(deck, unit, source)
-            + "</div>"
+            + "<div id='reading'>"
+            + self._reading(step, deck, source, occurrences, kind, watchable)
+            + "</div></div>"
+            + ("<h2>Transcript</h2><ol class='transcript' id='transcript'></ol>"
+               if watchable else "")
+            + video.merged_script()
+        )
+        return layout("i+1", body, "/", source)
+
+    def _reading(self, step, deck, source, occurrences, kind,
+                 watchable) -> str:
+        """Everything a decision replaces, minus the player above it."""
+        unit = step.unit
+        return (
+            self._deck(deck, unit, source)
             + "<h2>The new thing</h2>"
             f"<p class='de'>{escape(unit.key)}</p>"
             f"<p class='en'>{kind}, appearing in {occurrences:,} sentence"
             f"{'s' if occurrences != 1 else ''} here and opening {step.gain} "
             f"more</p>"
             + self._actions(unit, source, "/", watchable=watchable)
-            + ("<h2>Transcript</h2><ol class='transcript' id='transcript'></ol>"
-               if watchable else "")
-            + video.merged_script()
         )
-        return layout("i+1", body, "/", source)
+
+    def next_json(self, query: dict) -> dict:
+        """The next word, for swapping in without a page load.
+
+        The reading page reloaded on every decision, which meant tearing down
+        the YouTube iframe and building it again — a second or two of nothing,
+        on the action taken most often. The reels feed avoids that by keeping
+        its player; this does the same.
+        """
+        source = self.source(query)
+        only = query.get("only") or ""
+        # No gate here. An earlier version of `next_up` only consulted the
+        # stored plan under study-list counting, and copying that condition
+        # across sent every request down the live walk instead — 41s a swipe,
+        # for the endpoint whose entire purpose was to make swiping instant.
+        planned = self._planned(source, only, self.counting(query))
+        if planned is not None:
+            step, deck, total = planned
+            readable, occurrences = step.readable, step.occurrences
+        else:
+            step, deck, readable, occurrences, total = self._walked(
+                query, source, only)
+        if step is None:
+            return {"empty": True}
+        unit = step.unit
+        watchable = self._has_video(deck)
+        if unit.is_pattern:
+            lede = ("You know every word in this sentence. What is new is the "
+                    "pattern the verb takes — which cases it needs.")
+            kind = "a verb pattern"
+        else:
+            lede = "Everything in this sentence is yours except one word."
+            kind = "a word"
+        first = next((x for x in deck if x.timing), None)
+        return {
+            "top": (self._progress(readable, total)
+                    + f"<p class='note'>{lede}</p>"),
+            "html": self._reading(step, deck, source, occurrences, kind,
+                                  watchable),
+            "video": first.timing.video_id if first else "",
+            "at": first.timing.start if first else 0,
+        }
 
     def _planned(self, source: str, only: str, list_only: bool
                  ) -> tuple[RoadmapStep, list[Sentence], int] | None:

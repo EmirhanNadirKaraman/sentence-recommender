@@ -10,26 +10,41 @@
 // did a strict subset of it, each with its own idea of which slide was
 // showing, so an arrow key advanced the deck twice and desynced the counter.
 (function () {
-  var deck = document.getElementById('deck');
-  if (!deck) return;
-  var slides = Array.prototype.slice.call(deck.querySelectorAll('.slide'));
-  var at = document.getElementById('at');
-  var stage = document.getElementById('stage');
+  // #reading-top and #reading are replaced when a word is decided; the
+  // player and the transcript sit outside them and survive. Anything looked
+  // up inside a replaced region has to be looked up again afterwards, which
+  // is what `bind` is for — and the gesture listeners hang off #card, which
+  // is one of the survivors, so they are attached once.
+  var card = document.getElementById('card');
+  if (!card) return;
+  var region = document.getElementById('reading');
+  var top = document.getElementById('reading-top');
   var box = document.getElementById('transcript');
-  var line = document.getElementById('caption');
   var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var player = null, ready = false, showing = 0;
+  var player = null, ready = false, busy = false;
   var loaded = {}, cues = [], marking = -1, video = null;
+  var deck, slides, at, stage, line, showing = 0;
 
-  function slide(i) { return slides[i]; }
+  function bind() {
+    deck = document.getElementById('deck');
+    slides = deck
+      ? Array.prototype.slice.call(deck.querySelectorAll('.slide')) : [];
+    at = document.getElementById('at');
+    stage = document.getElementById('stage');
+    line = document.getElementById('caption');
+    showing = 0;
+    var p = document.getElementById('prev'), n = document.getElementById('next');
+    if (p) p.onclick = function () { show(showing - 1); };
+    if (n) n.onclick = function () { show(showing + 1); };
+  }
 
   function keepInView(el) {
     if (!box || !el) return;
     var wanted = el.offsetTop - box.offsetTop
                - (box.clientHeight / 2) + (el.clientHeight / 2);
-    var top = Math.max(0, Math.min(wanted, box.scrollHeight - box.clientHeight));
-    if (box.scrollTo) box.scrollTo({top: top, behavior: calm ? 'auto' : 'smooth'});
-    else box.scrollTop = top;
+    var to = Math.max(0, Math.min(wanted, box.scrollHeight - box.clientHeight));
+    if (box.scrollTo) box.scrollTo({top: to, behavior: calm ? 'auto' : 'smooth'});
+    else box.scrollTop = to;
   }
 
   function drawTranscript(rows) {
@@ -52,7 +67,7 @@
   }
 
   function loadTranscript(id) {
-    if (!box) return;
+    if (!box || !id) return;
     if (loaded[id]) { drawTranscript(loaded[id]); return; }
     fetch('/api/transcript?video=' + encodeURIComponent(id))
       .then(function (r) { return r.json(); })
@@ -61,7 +76,7 @@
   }
 
   function follow(now) {
-    if (!cues.length) return;
+    if (!cues.length || !box) return;
     var i = 0;
     while (i + 1 < cues.length && cues[i + 1].at <= now) i++;
     if (i === marking) return;
@@ -73,7 +88,9 @@
   }
 
   function play(i) {
-    var el = slide(i), id = el.dataset.video;
+    var el = slides[i];
+    if (!el) return;
+    var id = el.dataset.video;
     if (!id) { if (stage) stage.hidden = true; return; }
     if (stage) stage.hidden = false;
     var start = Math.max(parseFloat(el.dataset.at) - 0.4, 0);
@@ -84,6 +101,7 @@
   }
 
   function show(i) {
+    if (slides.length < 2) return;
     slides[showing].hidden = true;
     showing = (i + slides.length) % slides.length;
     slides[showing].hidden = false;
@@ -102,87 +120,82 @@
     }}});
   };
 
-  var prev = document.getElementById('prev'), next = document.getElementById('next');
-  if (prev) prev.onclick = function () { show(showing - 1); };
-  if (next) next.onclick = function () { show(showing + 1); };
-
-  // --- touch -------------------------------------------------------------
-  //
-  // The deck is the gesture surface, not the document: the page below it
-  // scrolls normally and the transcript scrolls inside itself, so only the
-  // card reinterprets a drag. `touch-action: none` on #deck is what stops iOS
-  // scrolling a gesture that starts there — without it the browser claims the
-  // touch before any of this runs.
-  //
-  //   up / down     another sentence for this word
-  //   right         I know this
-  //   left          not yet  (snoozes it for twenty words)
-  //
-  // Vertical is always "another one of these" and horizontal always decides,
-  // which is the same rule the reels feed will use.
-  // Listen on the whole reading area, animate only the sentence: dragging
-  // the iframe with it repaints the video for no benefit.
-  var surface = document.getElementById('card') || deck;
-  var LOCK = 10;        // px of travel before the axis is decided
-  var GO = 0.22;        // fraction of the surface that counts as a commit
-  var FLICK = 0.35;     // px/ms that counts regardless of distance
-  var from = null;
-
+  // A decision, without the page reload it used to cost. Anything unexpected
+  // falls back to submitting the form the old way — slower, but it is the
+  // behaviour that already worked, and a silent no-op here would look like
+  // the swipe simply being ignored.
   function decide(value) {
     var b = document.querySelector('.actions button[value="' + value + '"]');
-    if (b) b.click();
+    if (!b || !b.form || busy) return;
+    busy = true;
+    var body = new URLSearchParams(new FormData(b.form));
+    body.append('action', value);
+    fetch('/known', {method: 'POST', body: body, redirect: 'manual',
+                     keepalive: true})
+      .then(function () { return fetch('/api/next' + window.location.search); })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.empty || !d.html) { location.reload(); return; }
+        if (top && d.top) top.innerHTML = d.top;
+        region.innerHTML = d.html;
+        bind();
+        if (d.video && ready) {
+          video = d.video;
+          player.loadVideoById({videoId: d.video,
+                                startSeconds: Math.max(d.at - 0.4, 0)});
+          loadTranscript(d.video);
+        }
+        busy = false;
+      })
+      .catch(function () { b.form.submit(); });
   }
 
+  var LOCK = 10, GO = 0.22, FLICK = 0.35, from = null;
+
   function offset(dx, dy) {
-    deck.style.transform = dx || dy
+    if (deck) deck.style.transform = dx || dy
       ? 'translate(' + dx + 'px,' + dy + 'px)' : '';
   }
 
-  surface.addEventListener('pointerdown', function (e) {
-    if (!e.isPrimary) return;
-    // iOS reserves the left edge for its own back gesture, and will take the
-    // touch mid-drag; starting there would make "not yet" navigate backwards.
-    if (e.clientX < 24) return;
+  card.addEventListener('pointerdown', function (e) {
+    if (!e.isPrimary || e.clientX < 24) return;
     if (e.target.closest('button, a, input, textarea, select, [contenteditable]'))
       return;
     from = {x: e.clientX, y: e.clientY, t: e.timeStamp, axis: null};
-    deck.style.transition = 'none';
+    if (deck) deck.style.transition = 'none';
   });
 
-  surface.addEventListener('pointermove', function (e) {
+  card.addEventListener('pointermove', function (e) {
     if (!from) return;
     var dx = e.clientX - from.x, dy = e.clientY - from.y;
     if (!from.axis) {
       if (Math.abs(dx) < LOCK && Math.abs(dy) < LOCK) return;
       from.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
     }
-    // Follow the finger, damped, so the card admits it is being dragged
-    // without implying it will come off the page.
     if (from.axis === 'x') offset(dx * 0.6, 0);
     else offset(0, dy * 0.4);
   });
 
-  function release(e) {
+  function settle() {
+    from = null;
+    if (deck) deck.style.transition = calm ? 'none' : 'transform .18s ease-out';
+    offset(0, 0);
+  }
+
+  card.addEventListener('pointerup', function (e) {
     if (!from) return;
     var dx = e.clientX - from.x, dy = e.clientY - from.y;
     var axis = from.axis, ms = Math.max(e.timeStamp - from.t, 1);
-    from = null;
-    deck.style.transition = calm ? 'none' : 'transform .18s ease-out';
-    offset(0, 0);
+    settle();
     if (!axis) return;
     var d = axis === 'x' ? dx : dy;
-    var far = Math.abs(d) > (axis === 'x' ? surface.clientWidth : surface.clientHeight) * GO;
-    if (!far && Math.abs(d) / ms < FLICK) return;
+    var span = axis === 'x' ? card.clientWidth : card.clientHeight;
+    if (Math.abs(d) < span * GO && Math.abs(d) / ms < FLICK) return;
     if (axis === 'x') decide(d > 0 ? 'known' : 'pass');
     else show(showing + (d < 0 ? 1 : -1));
-  }
-
-  surface.addEventListener('pointerup', release);
-  surface.addEventListener('pointercancel', function () {
-    from = null;
-    deck.style.transition = calm ? 'none' : 'transform .18s ease-out';
-    offset(0, 0);
   });
+
+  card.addEventListener('pointercancel', settle);
 
   document.addEventListener('keydown', function (e) {
     var el = document.activeElement;
@@ -191,7 +204,10 @@
     if (e.key === 'ArrowLeft') { show(showing - 1); e.preventDefault(); }
     if (e.key === 'ArrowRight') { show(showing + 1); e.preventDefault(); }
   });
+
+  bind();
 })();
+
 
 // --- the reels feed --------------------------------------------------------
 //

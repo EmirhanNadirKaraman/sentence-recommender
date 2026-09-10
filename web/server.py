@@ -157,6 +157,9 @@ def _make_handler(viewer: Viewer):
                 return viewer.blocked(query), 200
             if path == "/watch":
                 return viewer.watch(query), 200
+            if path == "/api/next":
+                self._send_json(viewer.next_json(query))
+                return "", 0
             if path == "/api/reels":
                 self._send_json(viewer.reels_json(query))
                 return "", 0
