@@ -30,7 +30,11 @@ from vocab.entry import Unit
 # An article-and-noun entry like `das Russisch` carries no case marker and is
 # not one of these, which is the whole reason the test is on the marker rather
 # than on the last word.
-CASE_FRAME = re.compile(r"\((?:Akk|Dat|Gen)\)")
+# The case marker, or a bare placeholder. `von etw. absehen` governs a case
+# without naming one, and matching only on `(Akk)` left it out — so `absehen`
+# and `von etw. absehen` stayed two goals for one verb, each listed as blocked
+# by the other, which is the deadlock this exists to prevent.
+CASE_FRAME = re.compile(r"\((?:Akk|Dat|Gen)\)|\b(?:etw|jdn|jdm)\.")
 
 
 class GoalList:

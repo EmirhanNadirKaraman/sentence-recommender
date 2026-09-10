@@ -106,3 +106,14 @@ bringst   bringen
 merkt     merken
 wusstest  wissen
 hättest   haben
+
+# `möchte` is the subjunctive of `mögen` — "ich möchte" is "I would like" —
+# and spaCy already knows it for one form and not the others: `möchtest` comes
+# back as `mögen`, 145 times, while `möchte` (796), `möchten` (173), `möchtet`
+# (22) and `möcht` (3) each become a unit of their own. So the reader meets
+# the same verb as four separate words to learn, three of which are the one
+# they have already been taught.
+möchte    mögen
+möchten   mögen
+möchtet   mögen
+möcht     mögen
