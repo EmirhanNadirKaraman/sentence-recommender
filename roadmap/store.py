@@ -33,7 +33,7 @@ ALL = "all"
 # way, a column that means something new. The analyser fingerprint catches a
 # rebuilt corpus but not a rewritten walk, and a stamp that only watches its
 # inputs will happily vouch for output the current code would never produce.
-ROADMAP_VERSION = 1
+ROADMAP_VERSION = 2
 
 
 def current_stamp() -> str:
