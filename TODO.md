@@ -188,6 +188,39 @@ reasoning about case and number for every noun in the corpus to rescue one
 word, and would guess wrong elsewhere. `die Leiter` stays stranded, and that
 is the right trade.
 
+## `de_core_news_lg` is not an upgrade  *(measured)*
+
+The clipped forms — `hab`, `sag`, `geh`, `mach`, `hör`, `lass` — are absent
+from spaCy's German lemma table, which is built from written wordlists that
+carry `habe` and `sage` and none of the spoken contractions. The lemmatiser
+is an `EditTreeLemmatizer`, trained rather than a lookup, so the model does
+have an opinion; on these it declines to have one and returns the surface.
+
+`lg` was tried on the assumption that a bigger model would know them:
+
+```
+form    want      sm      md      lg
+hab     haben     hab     hab     habn
+sag     sagen     sag     sag     sagn
+lass    lassen    lass    lass    lassen
+mach    machen    mach    mach    machen
+lässt   lassen    lässt   lässt   lässt
+hör     hören     hör     hör     hör
+geh     gehen     geh     geh     geh
+```
+
+Two of seven right and two invented words, and the inventions are the
+problem rather than the misses. An override fires only where the parser
+admits defeat by returning the surface unchanged; `habn` is not that, so no
+override could ever correct it and the bogus unit would be permanent. The
+same guess breaks entries that have worked for months — `lg` gives `mussn`
+and `mussen` where `md` gives `muss`.
+
+Over a 757-verb-token sample, `md` returns a lemma the table has never heard
+of 4.5% of the time and `lg` 3.4%, so `lg` is marginally tidier on the crude
+count. It is the shape of the failure that decides it: `md` fails cleanly and
+can be corrected, `lg` fails creatively and cannot.
+
 ## Known limitations
 
 - **`weiß` stays split** between the colour and the form of *wissen*. Both
