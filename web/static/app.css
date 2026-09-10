@@ -183,12 +183,31 @@ button:hover { border-color: var(--target); }
 #reel .player iframe { pointer-events: none; }
 #reel { will-change: transform; }
 
-.card { touch-action: none;
-  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+/* Only the picture takes the gesture. It used to be the whole card — the
+   video, the scoreboard and the eight words under it — which is most of a
+   phone screen, and `touch-action: none` there meant a drag anywhere in it
+   scrolled nothing. The page could not be read to the bottom. Swipe on the
+   video; read and scroll everywhere else. */
+.card .player, .card .stage, .card .deck {
+  touch-action: none;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+.card { user-select: none; -webkit-user-select: none; }
 .deck { min-height: 7.2rem; will-change: transform; }
 @media (prefers-reduced-motion: reduce) { .deck { transition: none !important; } }
 .also { font: 400 13.5px/1.5 var(--sans); color: var(--ink-2); margin: 10px 0 0; }
 .also.clear { color: var(--target); }
+
+/* The word a sideways swipe acts on. Without this you are swiping blind
+   into a permanent change to your vocabulary — the panel lists eight and
+   nothing said which one was under the gesture. */
+.entry.target { position: relative; }
+.entry.target .unit::after {
+  content: 'swipe →  known    ← later';
+  display: block; margin-top: 4px;
+  font: 400 12px var(--sans); color: var(--ink-2); letter-spacing: .02em;
+}
+.entry.target .rail { box-shadow: inset 3px 0 0 var(--rail); }
 .stepper { display: flex; gap: 12px; align-items: center; margin-top: 14px;
   font-size: 14px; color: var(--ink-2); }
 .stepper button { padding: 4px 12px; font-size: 16px; line-height: 1.2;

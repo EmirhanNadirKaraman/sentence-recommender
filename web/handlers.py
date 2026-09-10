@@ -1064,19 +1064,24 @@ class Viewer:
         goals = frozenset(self.app.goal_units)
         total = max(row["lines"], 1)
         at = row["comprehension"]
+        # The first entry is what a sideways swipe takes, so it says so. The
+        # panel lists eight and the gesture is silent about which — swiping
+        # blind into a permanent change to your vocabulary is not a thing to
+        # ask anyone to do.
         entries = "".join(
-            "<div class='entry'><div class='rail'>+{:.0%}<span class='kind'>{}</span>"
+            "<div class='entry{}'><div class='rail'>+{:.0%}<span class='kind'>{}</span>"
             "</div><div class='body'><div class='unit'>"
             "<a href='/unit/{}/{}?src={}'>{}</a></div>"
             "<p class='also'>{} more sentence{} in this video readable"
             "{}</p>{}</div></div>".format(
+                " target" if n == 0 else "",
                 count / total,
                 "on your list" if unit in goals else "extra",
                 unit.kind, quote(unit.key, safe=""), quote(source),
                 escape(unit.key), count, "" if count == 1 else "s",
                 f" — {at:.0%} to {(at + count / total):.0%}" if count else "",
                 self._word_actions(unit, source, back))
-            for unit, count in gain.most_common(limit))
+            for n, (unit, count) in enumerate(gain.most_common(limit)))
         best = gain.most_common(1)[0]
         return (f"<h2>Learn next to follow this one</h2>"
                 f"<p class='note'>{len(gain):,} words here are a single step "

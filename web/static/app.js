@@ -211,6 +211,9 @@
   if (!reel || !stateEl) return;
 
   var s = JSON.parse(stateEl.textContent);
+  // The picture, not the whole card: everything under it has to stay
+  // scrollable or the page cannot be read to the bottom.
+  var surface = reel.querySelector('.player') || reel;
   var title = document.getElementById('reel-title');
   var board = document.getElementById('reel-board');
   var panel = document.getElementById('reel-panel');
@@ -274,7 +277,7 @@
       ? 'translate(' + dx + 'px,' + dy + 'px)' : '';
   }
 
-  reel.addEventListener('pointerdown', function (e) {
+  surface.addEventListener('pointerdown', function (e) {
     if (!e.isPrimary || e.clientX < 24) return;
     if (e.target.closest('button, a, input, textarea, select, [contenteditable]'))
       return;
@@ -282,7 +285,7 @@
     reel.style.transition = 'none';
   });
 
-  reel.addEventListener('pointermove', function (e) {
+  surface.addEventListener('pointermove', function (e) {
     if (!from) return;
     var dx = e.clientX - from.x, dy = e.clientY - from.y;
     if (!from.axis) {
@@ -311,14 +314,14 @@
       return;
     }
     var d = axis === 'x' ? dx : dy;
-    var span = axis === 'x' ? reel.clientWidth : reel.clientHeight;
+    var span = axis === 'x' ? surface.clientWidth : surface.clientHeight;
     if (Math.abs(d) < span * GO && Math.abs(d) / ms < FLICK) return;
     if (axis === 'x') decide(d > 0 ? 'known' : 'pass');
     else go(s.at + (d < 0 ? 1 : -1));      // swipe up = next, as a feed does
   }
 
-  reel.addEventListener('pointerup', release);
-  reel.addEventListener('pointercancel', function () {
+  surface.addEventListener('pointerup', release);
+  surface.addEventListener('pointercancel', function () {
     from = null;
     reel.style.transition = calm ? 'none' : 'transform .18s ease-out';
     offset(0, 0);

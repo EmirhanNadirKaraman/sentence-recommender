@@ -218,9 +218,13 @@ class LemmaLookupTest(unittest.TestCase):
     def setUp(self) -> None:
         from corpus.analyzer import UnitAnalyzer
         self.analyzer = UnitAnalyzer(frozenset())
-        self.analyzer._verb_lemmas = _FakeLookup({
-            "willst": "wollen", "sein": "mein", "sie": "ich", "muss": "müssen",
-        })
+        self.analyzer._verb_lemmas = _FakeLookup(
+            # spaCy's table, including the two entries that show why it is
+            # never applied without guards.
+            table={"willst": "wollen", "sein": "mein", "sie": "ich"},
+            # The hand-written file.
+            overrides={"muss": "müssen"},
+        )
 
     def lemma(self, text: str, spacy_lemma: str, tag: str) -> str:
         return self.analyzer._verb_lemma(_FakeToken(text, spacy_lemma, tag))
@@ -238,6 +242,31 @@ class LemmaLookupTest(unittest.TestCase):
 
     def test_leaves_a_lemma_the_parser_resolved(self) -> None:
         self.assertEqual(self.lemma("musst", "müssen", "VMFIN"), "müssen")
+
+    def test_a_written_correction_beats_an_invented_lemma(self) -> None:
+        """The parser does not only fail cleanly — it also invents.
+
+        `muss` came back as `mussn` and `mussen`, and because neither equals
+        the surface, the correction written for it was skipped and the
+        invention became a unit of its own: 1,773 rows for this one word,
+        against a file that had said what to do since the day it was written.
+        """
+        self.assertEqual(self.lemma("muss", "mussn", "VMFIN"), "müssen")
+        self.assertEqual(self.lemma("muss", "mussen", "VMFIN"), "müssen")
+
+    def test_the_table_still_cannot_beat_a_resolved_lemma(self) -> None:
+        """Only the curated file is trusted that far.
+
+        `willst` is in the table, so had this relaxation been applied to the
+        table as well, a lemma the parser got right would be overwritten by a
+        context-free guess.
+        """
+        self.assertEqual(self.lemma("willst", "wollen", "VMFIN"), "wollen")
+
+    def test_a_written_correction_is_still_only_for_verbs(self) -> None:
+        """The one guard that stays, and the reason `weißen` is safe: the
+        adjective keeps its own lemma, only the verb form is folded."""
+        self.assertEqual(self.lemma("muss", "muss", "NN"), "muss")
 
     def test_lower_cases_so_units_dedupe(self) -> None:
         self.assertEqual(self.lemma("Haus", "Haus", "NN"), "haus")
@@ -297,10 +326,25 @@ class _FakeToken:
 
 
 class _FakeLookup:
-    def __init__(self, table: dict[str, str]) -> None:
+    """Both halves, kept apart as the real one keeps them.
+
+    The distinction is the whole point: spaCy's table is machine-generated and
+    destructive applied broadly, so it is only ever consulted behind guards.
+    The hand-written file is curated, and is trusted over anything the parser
+    produced. Modelling them as one dict hid that difference.
+    """
+
+    def __init__(self, table: dict[str, str],
+                 overrides: dict[str, str] | None = None) -> None:
         self._table = table
+        self._overrides = overrides or {}
+
+    def override(self, surface: str) -> str:
+        return self._overrides.get(surface, "")
 
     def get(self, surface: str, default: str = "") -> str:
+        if surface in self._overrides:
+            return self._overrides[surface]
         return self._table.get(surface, default)
 
 

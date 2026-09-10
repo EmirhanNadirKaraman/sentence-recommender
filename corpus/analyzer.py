@@ -276,10 +276,24 @@ class UnitAnalyzer:
         if not lemma or lemma == "--":
             return ""
         surface = token.text.lower()
-        if (lemma == surface
-                and token.tag_.startswith(VERB_TAGS)
-                and not surface.endswith(INFINITIVE_ENDINGS)):
-            return self.verb_lemmas.get(surface, lemma)
+        if token.tag_.startswith(VERB_TAGS):
+            # A hand-written correction wins outright, whatever the parser
+            # produced. The other two guards exist to keep the *table* — which
+            # is machine-generated and conflates whole pronoun paradigms — from
+            # overriding a lemma the parser got right. A curated line saying
+            # "muss, as a verb, is müssen" needs no such protection, and
+            # subjecting it to them made it unreachable exactly when it was
+            # most needed: the parser does not always fail cleanly by handing
+            # back the surface. It also invents. `muss` came back as `mussn`
+            # and `mussen`, `hab` as `habn` — and because those are not equal
+            # to the surface, the correction written for them was skipped and
+            # the invention became a unit of its own, 1,773 times for `muss`
+            # alone.
+            fixed = self.verb_lemmas.override(surface)
+            if fixed:
+                return fixed
+            if lemma == surface and not surface.endswith(INFINITIVE_ENDINGS):
+                return self.verb_lemmas.get(surface, lemma)
         return lemma
 
     # --- second pass -----------------------------------------------------
@@ -400,6 +414,10 @@ class _LemmaLookup:
     def __init__(self, table, overrides: dict[str, str]) -> None:
         self._table = table
         self._overrides = overrides
+
+    def override(self, surface: str) -> str:
+        """The hand-checked correction for `surface`, if there is one."""
+        return self._overrides.get(surface, "")
 
     def get(self, surface: str, default: str = "") -> str:
         if surface in self._overrides:

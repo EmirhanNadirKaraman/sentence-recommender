@@ -56,3 +56,24 @@ müsst    müssen
 # so nothing is lost by reading the token as the verb it carries.
 geht's   gehen
 gibt's   geben
+
+# The parser does not only fail cleanly, it also invents — and an invented
+# lemma used to slip past the correction written for it, because the entry was
+# only consulted when the lemma came back identical to the surface. `muss` came
+# back as `mussn` and `mussen`, `hab` as `habn`, and each became a unit of its
+# own. A written line is trusted over the parser now, so these fire.
+#
+# Every one of these was found in the corpus as an invented unit: the count is
+# how many rows it had taken.
+
+weißt     wissen
+kannst    können
+wusste    wissen
+gewusst   wissen
+kommst    kommen
+brauchst  brauchen
+siehst    sehen
+sieh      sehen
+gehst     gehen
+musste    müssen
+mussten   müssen
