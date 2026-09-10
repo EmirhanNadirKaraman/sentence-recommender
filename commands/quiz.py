@@ -68,6 +68,10 @@ class QuizCommand:
               "frequent first.")
         print("  Answering no comments the line out; nothing else is touched.\n")
 
+        # Fetched once rather than inside `_example`, which is called per
+        # question: a sentence the reader hid through `/fix` should not come
+        # back as the example they judge a word by.
+        hidden = app.overrides.hidden()
         removed: dict[Path, list[str]] = {}
         asked = known = 0
         for group in pending:
@@ -76,7 +80,7 @@ class QuizCommand:
             written = " / ".join(sorted({e["surface"] for e in group}))
             print(f"\n  {asked}/{len(pending)}  {written}"
                   f"   ({counts[unit]:,} times in the corpus)")
-            example = self._example(app, unit, source)
+            example = self._example(app, unit, source, hidden)
             if example:
                 print(f"     {example}")
             answer = input(PROMPT).strip().lower()
@@ -165,21 +169,33 @@ class QuizCommand:
                         in app.corpus_store.unit_counts(source).items()})
 
     @staticmethod
-    def _example(app, unit: Unit, source: str) -> str:
+    def _example(app, unit: Unit, source: str, hidden: frozenset | set = ()) -> str:
         """One sentence using it, so the word is not judged out of context.
 
-        Asked of the database for the sentences saying this word. It used to
-        load the whole corpus looking for them — inside the question loop, so
-        once per word: nineteen seconds of silence before every question, and
-        thirteen minutes for a quiz of forty.
+        Asked of the database as text, in three widening passes. The first
+        asks only for sentences of the ideal length, which is what `score`
+        gives a perfect mark to, and takes the first that has no sentence
+        break inside it — the same sentence the old loop stopped at, reached
+        without reading the other thirty thousand.
+
+        Two rewrites got here. The first loaded the whole corpus per question,
+        nineteen seconds each and thirteen minutes for a quiz of forty. The
+        second asked the database for the sentences saying the word, which was
+        right but still built every one of them into a Sentence with its unit
+        set — ten seconds for `sein` — to read the one string on it. This asks
+        for the string.
         """
-        from corpus.quality import score
-        best, best_score = "", -1.0
-        for sentence in app.corpus(source, list_only=False,
-                                   holding=(unit.kind, unit.key)):
-            value = score(sentence.text)
-            if value > best_score:
-                best, best_score = sentence.text, value
-            if best_score >= 1.0:
-                break
-        return best
+        from corpus.quality import BAND, IDEAL, score
+        # The ideal band widened by one at each end: SQLite counts words by
+        # counting spaces, so a double space reads as an extra word and a
+        # sentence that belongs here can be excluded from its own range.
+        for words in ((IDEAL[0] - 1, IDEAL[1] + 1), BAND, None):
+            texts = [t for t in app.corpus_store.example_texts(
+                unit.kind, unit.key, source, words=words, limit=40)
+                if t not in hidden]
+            if not texts:
+                continue
+            best = max(texts, key=score)
+            if score(best) >= 1.0 or words is None:
+                return best
+        return ""

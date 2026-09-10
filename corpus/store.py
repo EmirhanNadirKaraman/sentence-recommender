@@ -52,7 +52,12 @@ CREATE INDEX IF NOT EXISTS ix_units_sentence ON sentence_units(sentence_id);
 -- Sentences that say a given word. Without it the only way to that answer is
 -- a scan of 1.18M rows, which is why the pages wanting it used to load the
 -- entire corpus into memory instead.
-CREATE INDEX IF NOT EXISTS ix_units_key ON sentence_units(kind, key);
+--
+-- `sentence_id` is in the index rather than fetched from the row it points
+-- at, which is the whole answer the `holding` subquery wants: for a word like
+-- `sein`, said in 35,192 sentences, that is 35,192 row reads the query no
+-- longer does.
+CREATE INDEX IF NOT EXISTS ix_units_key ON sentence_units(kind, key, sentence_id);
 CREATE TABLE IF NOT EXISTS build_meta (
     build       TEXT PRIMARY KEY,
     fingerprint TEXT NOT NULL,
@@ -98,6 +103,16 @@ class CorpusStore:
         if "packages" not in meta:
             conn.execute("ALTER TABLE build_meta ADD COLUMN packages"
                          " TEXT NOT NULL DEFAULT ''")
+        # An index is created IF NOT EXISTS, so widening one in `SCHEMA` does
+        # nothing to a file that already has the narrow version — it has to be
+        # dropped. Guarded on the stored definition rather than a version
+        # number, so it runs once and is a no-op forever after.
+        row = conn.execute("SELECT sql FROM sqlite_master WHERE type = 'index'"
+                           " AND name = 'ix_units_key'").fetchone()
+        if row and "sentence_id" not in (row[0] or ""):
+            conn.execute("DROP INDEX ix_units_key")
+            conn.execute("CREATE INDEX ix_units_key"
+                         " ON sentence_units(kind, key, sentence_id)")
 
     def _connect(self) -> sqlite3.Connection:
         conn = open_state(self._path)
@@ -177,6 +192,11 @@ class CorpusStore:
                  datetime.now().isoformat(timespec="seconds"),
                  packages_fingerprint()),
             )
+            # Table statistics, refreshed whenever a build changes the data
+            # they describe. Stale ones are worse than none: the planner
+            # believes them. Seven tenths of a second at the end of a build
+            # that takes minutes.
+            conn.execute("ANALYZE")
 
     def _write(self, sentences: list[Sentence], build: str) -> None:
         with self._connect() as conn:
@@ -230,6 +250,42 @@ class CorpusStore:
                 f" WHERE s.build IN ({placeholders})"
                 " GROUP BY su.kind, su.key", builds)
             return Counter({(kind, key): n for kind, key, n in rows})
+
+    def example_texts(self, kind: str, key: str, *builds: str,
+                      words: tuple[int, int] | None = None,
+                      limit: int = 40) -> list[str]:
+        """Texts of sentences saying one unit — the text, and nothing else.
+
+        `load(holding=...)` answers the same question properly: it returns
+        Sentence objects with their unit sets, which is what a word's page
+        needs to say how many unknowns each one carries. Picking an example
+        needs none of that. `corpus.quality.score` reads the string, so the
+        unit join — 35,192 sentences and roughly 420,000 unit rows for a word
+        like `sein` — is built, interned, and thrown away unread. It was ten
+        seconds before every question in the quiz, on a warm cache less, and
+        the whole of it went on data the caller never looked at.
+
+        `words` narrows to a range of word counts, which is what makes this
+        cheap rather than merely cheaper: with a limit, the database stops as
+        soon as it has enough and never visits the other thirty thousand. The
+        count is approximate — SQLite has no `split`, so runs of spaces read
+        as extra words — which is why this returns candidates rather than a
+        winner. SQL narrows; the caller scores what comes back.
+        """
+        if not builds:
+            return []
+        placeholders = ",".join("?" * len(builds))
+        # `length(x) - length(replace(x, ' ', ''))` is the number of spaces.
+        counted = " AND length(text) - length(replace(text, ' ', '')) + 1" \
+                  " BETWEEN ? AND ?" if words else ""
+        args = builds + (kind, key) + (tuple(words) if words else ()) + (limit,)
+        with self._connect() as conn:
+            return [text for (text,) in conn.execute(
+                f"SELECT text FROM sentences WHERE build IN ({placeholders})"
+                " AND teachable = 1"
+                " AND id IN (SELECT sentence_id FROM sentence_units"
+                "            WHERE kind = ? AND key = ?)"
+                f"{counted} LIMIT ?", args)]
 
     def load(self, *builds: str, teachable_only: bool = True,
              video: str | None = None,
