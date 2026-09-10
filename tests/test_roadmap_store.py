@@ -221,6 +221,51 @@ class WalkDeckTest(unittest.TestCase):
         self.assertEqual(step_.examples[2].text, "Das Haus, der Baum, das Auto.")
 
 
+class StrictWalkTest(unittest.TestCase):
+    """Strict counting leaves words the list will never teach in the corpus.
+
+    Narrowing removed them, which is why the walk never had to think about
+    them. Now they sit on the frontier looking exactly like a goal, and the
+    only thing keeping the roadmap on the study list is the walk refusing
+    them by name.
+    """
+
+    def setUp(self) -> None:
+        # `klausur` is a stranger: not known, not a goal, never taught.
+        self.sentences = [
+            sentence("Das Haus ist gross.", "haus", "sein"),
+            sentence("Die Klausur war schwer.", "klausur", "sein"),
+            sentence("Das Haus und die Klausur.", "haus", "klausur"),
+        ]
+        self.known = KnownSet({Unit.lemma("sein")})
+        self.goals = frozenset({HAUS})
+
+    def test_the_walk_refuses_a_word_that_is_not_a_goal(self) -> None:
+        index = CorpusIndex(self.sentences, self.known)
+        steps = RoadmapBuilder(index, UnitPriority({}), goals=self.goals,
+                               only_goals=True).build()
+
+        self.assertEqual([s.unit for s in steps], [HAUS])
+
+    def test_without_the_refusal_it_teaches_the_stranger(self) -> None:
+        """The same corpus, the same goals — only the refusal differs."""
+        index = CorpusIndex(self.sentences, self.known)
+        steps = RoadmapBuilder(index, UnitPriority({}), goals=self.goals).build()
+
+        self.assertIn(Unit.lemma("klausur"), {s.unit for s in steps})
+
+    def test_a_sentence_holding_a_stranger_is_never_offered(self) -> None:
+        """The whole point: every other word in the sentence is known."""
+        index = CorpusIndex(self.sentences, self.known)
+        step = RoadmapBuilder(index, UnitPriority({}), goals=self.goals,
+                              only_goals=True).peek()
+
+        self.assertEqual(step.unit, HAUS)
+        for example in step.examples:
+            self.assertEqual(example.units - {HAUS} - self.known.units,
+                             frozenset())
+
+
 class LabelTest(unittest.TestCase):
     """A roadmap's name is the only record of the settings that built it.
 
@@ -231,21 +276,33 @@ class LabelTest(unittest.TestCase):
 
     def test_every_flag_is_read_back_off_the_end(self) -> None:
         self.assertEqual(read_label("subtitle:good:list:goals"),
-                         (("subtitle",), True, True, True))
+                         (("subtitle",), True, True, True, False))
 
     def test_the_quality_flag_does_not_end_up_in_the_corpus_name(self) -> None:
         """`subtitle:good` is not a build, and asking for it loads nothing."""
-        builds, _, _, quality_only = read_label("subtitle:good:list:goals")
-        self.assertEqual(builds, ("subtitle",))
-        self.assertTrue(quality_only)
+        plan = read_label("subtitle:good:list:goals")
+        self.assertEqual(plan.builds, ("subtitle",))
+        self.assertTrue(plan.quality_only)
 
     def test_a_plain_roadmap_carries_no_flags(self) -> None:
-        self.assertEqual(read_label("subtitle"), (("subtitle",), False, False, False))
-        self.assertEqual(read_label("all"), ((), False, False, False))
+        self.assertEqual(read_label("subtitle"),
+                         (("subtitle",), False, False, False, False))
+        self.assertEqual(read_label("all"), ((), False, False, False, False))
 
     def test_the_flags_are_independent(self) -> None:
-        self.assertEqual(read_label("subtitle:list"), (("subtitle",), True, False, False))
-        self.assertEqual(read_label("subtitle:good"), (("subtitle",), False, False, True))
+        self.assertEqual(read_label("subtitle:list"),
+                         (("subtitle",), True, False, False, False))
+        self.assertEqual(read_label("subtitle:good"),
+                         (("subtitle",), False, False, True, False))
+
+    def test_strict_is_read_and_does_not_narrow(self) -> None:
+        """The two are alternatives: strict counts every word in a sentence,
+        narrowing counts only the ones on the list."""
+        plan = read_label("subtitle:good:strict:goals")
+        self.assertEqual(plan.builds, ("subtitle",))
+        self.assertTrue(plan.strict)
+        self.assertTrue(plan.quality_only)
+        self.assertFalse(plan.list_only)
 
 
 if __name__ == "__main__":

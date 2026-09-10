@@ -662,7 +662,11 @@ class Viewer:
         # worth reading, at the price of the words this corpus only ever says
         # badly. Falling back rather than requiring it, so the page still
         # works before `build-roadmap --quality` has ever been run.
-        for wanted in (f"{source}:good:list:goals", f"{source}:list:goals"):
+        # Strict first where it exists: it is the only one that can promise
+        # every other word in the sentence is known, rather than every other
+        # word the study list happens to name.
+        for wanted in (f"{source}:good:strict:goals", f"{source}:strict:goals",
+                       f"{source}:good:list:goals", f"{source}:list:goals"):
             if wanted in stored:
                 return wanted
         return source

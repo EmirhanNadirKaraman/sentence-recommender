@@ -40,11 +40,17 @@ class RoadmapBuilder:
         priority: UnitPriority,
         priority_weight: float = 3.0,
         goals: frozenset[Unit] = frozenset(),
+        only_goals: bool = False,
     ) -> None:
         self._index = index
         self._priority = priority
         self._weight = priority_weight
         self._goals = goals
+        # Strict counting leaves the words the list will never teach in the
+        # sentences, so they turn up on the frontier like anything else. The
+        # walk has to refuse them by name, or it starts teaching `Klausur`
+        # to make a sentence readable that the reader never asked to read.
+        self._only_goals = only_goals
 
     @property
     def goals(self) -> frozenset[Unit]:
@@ -98,6 +104,8 @@ class RoadmapBuilder:
         for unit, positions in self._index.candidates().items():
             if not positions or unit in exclude:
                 continue
+            if self._only_goals and unit not in self._goals:
+                continue
             if kinds and unit.kind not in kinds:
                 continue
             gain, score = self._score(unit, positions)
@@ -113,12 +121,12 @@ class RoadmapBuilder:
             gain=gain,
             score=score,
             now_readable=len(sentences),
-            examples=self._deck(unit),
+            examples=self._deck(unit, sentences),
             readable=self._index.readable,
             occurrences=len(self._index.containing(unit)),
         )
 
-    def _deck(self, unit: Unit) -> tuple[Sentence, ...]:
+    def _deck(self, unit: Unit, positions: set[int]) -> tuple[Sentence, ...]:
         """The sentences a reader will be stepped through for this unit.
 
         Chosen during the walk rather than when the step is read, so the page
@@ -127,14 +135,27 @@ class RoadmapBuilder:
         exactly what a reader following the plan knows when they arrive — so
         the deck is the one they would have been given, not a stale one.
 
+        Ordinarily it reaches past `positions` — the sentences where this unit
+        is the only unknown — into the rest, because the median unit is the
+        sole unknown in one or two sentences and a deck of one cannot be
+        stepped through. The page says what else is new in each, so the i+1
+        claim stays honest while there is still somewhere to go next.
+
+        Strict counting is the case where that trade is the wrong way round.
+        There, every word in a sentence counts, and the whole promise is that
+        nothing in it is unknown but the step — so the deck stops at
+        `positions`, however short that leaves it. Reaching further would
+        offer exactly the sentences the mode exists to exclude.
+
         `nsmallest` rather than sorting: a common unit appears in a couple of
         thousand sentences and only the first two dozen are ever shown. Like
         `sorted`, it keeps the first of equals.
         """
         known = self._index.known
+        found = positions if self._only_goals else self._index.containing(unit)
         return tuple(nsmallest(
             DECK_SIZE,
-            (self._index.sentence(p) for p in self._index.containing(unit)),
+            (self._index.sentence(p) for p in found),
             key=rank(unit, known),
         ))
 

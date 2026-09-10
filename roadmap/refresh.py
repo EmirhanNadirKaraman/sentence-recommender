@@ -24,6 +24,7 @@ confusing `:llm` for one of them.
 from __future__ import annotations
 
 from datetime import datetime
+from typing import NamedTuple
 
 from corpus.quality import well_formed
 from roadmap.builder import RoadmapBuilder
@@ -33,9 +34,25 @@ from roadmap.store import ALL, RoadmapStore, current_stamp
 GOALS = ":goals"
 LIST = ":list"
 GOOD = ":good"
+STRICT = ":strict"
 
 
-def read_label(label: str) -> tuple[tuple[str, ...], bool, bool, bool]:
+class Plan(NamedTuple):
+    """The settings a roadmap's name carries.
+
+    A NamedTuple because this has grown a field twice and read as a bare
+    tuple both times — `builds, list_only, goals = read_label(...)` says
+    nothing about what it dropped when a fourth arrived.
+    """
+
+    builds: tuple[str, ...]
+    list_only: bool
+    goals: bool
+    quality_only: bool
+    strict: bool
+
+
+def read_label(label: str) -> Plan:
     """A roadmap's name, back into the settings that made it.
 
     Read off the end in the reverse of the order they are appended, so
@@ -54,11 +71,14 @@ def read_label(label: str) -> tuple[tuple[str, ...], bool, bool, bool]:
     list_only = label.endswith(LIST)
     if list_only:
         label = label[: -len(LIST)]
+    strict = label.endswith(STRICT)
+    if strict:
+        label = label[: -len(STRICT)]
     quality_only = label.endswith(GOOD)
     if quality_only:
         label = label[: -len(GOOD)]
     builds = () if label == ALL else tuple(label.split("+"))
-    return builds, list_only, goals, quality_only
+    return Plan(builds, list_only, goals, quality_only, strict)
 
 
 class RoadmapRefresher:
@@ -92,15 +112,17 @@ class RoadmapRefresher:
         priority = self._app.priority()
 
         for label in sorted(self._store.sources()):
-            builds, list_only, goals, quality_only = read_label(label)
+            plan = read_label(label)
+            builds, list_only = plan.builds, plan.list_only
             if touching and touching not in (builds or (ALL,)):
                 continue
-            sentences = self._app.corpus(*builds, list_only=list_only)
+            sentences = self._app.corpus(*builds, list_only=list_only,
+                                         strict=plan.strict)
             # Before the count below, not after: the length recorded with the
             # roadmap is the denominator the reading page shows progress
             # against, and it has to be the slice the walk was actually
             # given.
-            if quality_only:
+            if plan.quality_only:
                 sentences = [s for s in sentences if well_formed(s.text)]
             if not sentences:
                 continue
@@ -113,7 +135,8 @@ class RoadmapRefresher:
             fresh = RoadmapBuilder(
                 index, priority,
                 self._app.settings.priority_weight,
-                goal_units if goals else frozenset(),
+                goal_units if plan.goals else frozenset(),
+                only_goals=plan.strict,
             ).build(
                 first_position=len(done) + 1,
                 on_progress=(lambda n, readable, label=label:

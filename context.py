@@ -7,6 +7,7 @@ just to read cached cards.
 """
 from __future__ import annotations
 
+import re
 import sys
 from functools import cached_property
 
@@ -60,7 +61,7 @@ class Application:
         return SentenceOverrides(self.settings.state_path)
 
     def corpus(self, *builds: str, teachable_only: bool = True,
-               list_only: bool = False):
+               list_only: bool = False, strict: bool = False):
         """Cached sentences from the named builds, with reader corrections.
 
         Corrections are applied on the way out rather than baked into the
@@ -81,6 +82,8 @@ class Application:
         sentences = self.apply_overrides(self.corpus_store.load(
             *(builds or self.corpus_store.builds()), teachable_only=teachable_only
         ))
+        if strict:
+            return self._drop_duplicates(sentences)
         return self._narrow_to_list(sentences) if list_only else sentences
 
     @cached_property
@@ -97,6 +100,66 @@ class Application:
                   f"(fingerprint {made_with}) — rebuild it with "
                   f"`python main.py build-corpus {source}`", file=sys.stderr)
         return lambda: None
+
+    # Bits of a pattern that name a role rather than a word. Without these
+    # out of the way, `etw.` and `jdm.` would count as vocabulary the list
+    # teaches, and every sentence containing them would look covered.
+    PLACEHOLDERS = frozenset({
+        "jdm", "jdn", "etw", "dat", "akk", "gen", "sich", "der", "die", "das",
+        "ein", "eine", "einer", "einem", "einen", "zu", "an", "auf", "in",
+        "mit", "von", "bei", "um", "vor", "nach", "aus", "über",
+    })
+
+    @cached_property
+    def covered_forms(self) -> frozenset[str]:
+        """Every word the study list teaches, under whatever name it uses.
+
+        The list writes a noun with its article and a verb inside a pattern —
+        `die Schule`, `jdm. (Dat) etw. (Akk) erzählen` — while the analyser
+        also yields the bare lemma, `schule` and `erzählen`. Those are one
+        word arriving twice, which is the duplicate `list_only` exists to
+        collapse.
+
+        Narrowing collapses it by throwing away everything off the list, and
+        with it the difference between a duplicate and a word you genuinely
+        do not know. Strict counting needs that difference back, so it keeps
+        the forms rather than the units: `passieren` beside the goal that
+        teaches it is not a gap, and `Ministerin` is.
+
+        Read off the written keys rather than lemmatised, which would cost a
+        parser to resolve what the list almost always already writes in lemma
+        form. The cost of the exceptions is a word counted as a stranger that
+        the list does in fact reach — the safe direction, since it only ever
+        holds a sentence back.
+        """
+        words: set[str] = set()
+        for unit in self.goal_units:
+            for word in re.findall(r"[^\W\d_]+", unit.key.lower()):
+                if len(word) > 2 and word not in self.PLACEHOLDERS:
+                    words.add(word)
+        return frozenset(words)
+
+    def _drop_duplicates(self, sentences: list) -> list:
+        """Every sentence, less the units the list already teaches elsewhere.
+
+        What is left is what strict counting wants: the goals, the words
+        already known, and the genuine strangers — words neither known nor on
+        the list, which the walk will never teach and which therefore keep a
+        sentence out of an i+1 reading for good.
+        """
+        goals = frozenset(self.goal_units)
+        covered = self.covered_forms
+
+        def keep(unit) -> bool:
+            return unit in goals or unit.key.lower() not in covered
+
+        return [
+            s.with_units(
+                frozenset(u for u in s.units if keep(u)),
+                tuple((u, x) for u, x in s.surfaces if keep(u)),
+            )
+            for s in sentences
+        ]
 
     def _narrow_to_list(self, sentences: list) -> list:
         goals = frozenset(self.goal_units)

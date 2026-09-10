@@ -30,9 +30,14 @@ class BuildRoadmapCommand:
 
     def run(self, app, steps: int | None = None, builds: tuple[str, ...] = (),
             goals: bool = False, list_only: bool = False,
-            quality_only: bool = False) -> None:
+            quality_only: bool = False, strict: bool = False) -> None:
         settings = app.settings
-        sentences = app.corpus(*builds, list_only=list_only)
+        # Strict counting only makes sense aimed at the list: it leaves the
+        # words the list will never teach in the sentences, and the walk has
+        # to know which units it is allowed to take.
+        if strict:
+            goals = True
+        sentences = app.corpus(*builds, list_only=list_only, strict=strict)
         if quality_only:
             # Teach only from sentences worth reading. Costs coverage —
             # a word said once, badly, becomes unreachable — so the
@@ -55,13 +60,16 @@ class BuildRoadmapCommand:
 
         index = CorpusIndex(sentences, known)
         builder = RoadmapBuilder(index, app.priority(),
-                                 settings.priority_weight, targets)
+                                 settings.priority_weight, targets,
+                                 only_goals=strict)
 
         plan = builder.build(max_steps=steps, on_progress=self._report)
         label = "+".join(sorted(builds)) if builds else ALL
         if quality_only:
             label = f"{label}:good"
-        if list_only:
+        if strict:
+            label = f"{label}:strict"
+        elif list_only:
             label = f"{label}:list"
         if goals:
             label = f"{label}:goals"
