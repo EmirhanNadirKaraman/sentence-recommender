@@ -8,6 +8,7 @@ written out for the reader to confirm or strike.
 """
 from __future__ import annotations
 
+import re
 from datetime import date
 from pathlib import Path
 
@@ -54,6 +55,41 @@ class FunctionWordFile:
                 )
         return "\n".join(lines) + "\n"
 
+    # A struck line and a live one differ only by the leading `#`; both carry
+    # the generated `# 123x  forms` comment, which is what tells either apart
+    # from the prose in the header.
+    STRUCK = re.compile(r"^#\s*(\S+)\s+#\s+\d+x")
+    LIVE = re.compile(r"^(\S+)\s+#\s+\d+x")
+
+    @classmethod
+    def struck(cls, path: Path) -> set[str]:
+        """The lemmas a reader has already said they do not know.
+
+        Held in the file as a leading `#`, which is what the header asks for
+        and what the quiz writes when the answer is no.
+        """
+        if not path.exists():
+            return set()
+        return {m.group(1) for m in map(
+            cls.STRUCK.match, path.read_text(encoding="utf-8").splitlines()) if m}
+
     def write(self, path: Path, words: list[FunctionWord]) -> int:
-        path.write_text(self.render(words), encoding="utf-8")
+        """Regenerate the file, keeping the decisions already recorded in it.
+
+        This overwrote blindly. Every `#` in the file is a reader saying they
+        do not know a word — twenty-four of them by hand, plus every "no" the
+        quiz has recorded — and regenerating threw the lot away without
+        saying so. The word list is derived and can be rebuilt; the judgements
+        about it cannot.
+        """
+        struck = self.struck(path)
+        rendered = self.render(words)
+        if struck:
+            kept = []
+            for line in rendered.splitlines():
+                found = self.LIVE.match(line)
+                kept.append(f"# {line}" if found and found.group(1) in struck
+                            else line)
+            rendered = "\n".join(kept) + "\n"
+        path.write_text(rendered, encoding="utf-8")
         return len(words)

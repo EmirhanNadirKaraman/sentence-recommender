@@ -19,7 +19,7 @@
 ## Artikel (3)
 der   #  2337x  Das, Dem, Den, Der
 ein   #   650x  Ein, Eine, Einem, Einen
-fürn  #     1x  fürn
+# fürn  #     1x  fürn
 
 ## Personalpronomen (14)
 ich    #   397x  Ich, ich
@@ -81,12 +81,12 @@ mancher       #     5x  Manche, Manches, manche, manchen
 anderer       #     3x  Andere, anderem
 einer         #     3x  Einer, Eines
 irgendeiner   #     2x  irgendeine
-irgendwa      #     2x  Irgendwas
-jemander      #     2x  jemanden
+# irgendwa      #     2x  Irgendwas
+# jemander      #     2x  jemanden
 keiner        #     2x  keiner
 stressig      #     1x  stressigsten
 # sämtlicher    #     1x  sämtliche
-aufn          #     1x  aufn
+# aufn          #     1x  aufn
 # jeglicher     #     1x  jeglichen
 jedermann     #     1x  jedermann
 irgendwelche  #     1x  Irgendwelche
@@ -252,7 +252,7 @@ wart     #     1x  wart
 habt     #     1x  Habt
 wirst    #     1x  wirst
 seid     #     1x  Seid
-sin      #     1x  wär
+# sin      #     1x  wär
 
 ## Modalverben (18)
 können    #   160x  Kann, Können, Könnte, Könnten
@@ -269,7 +269,7 @@ willst    #     3x  willst
 wollt     #     3x  wollt
 möchtet   #     2x  Möchtet
 mögen     #     2x  mag, mögen
-müssteen  #     2x  müsste
-werdn     #     2x  würd
+# müssteen  #     2x  müsste
+# werdn     #     2x  würd
 alt       #     2x  ältesten
 möchtest  #     1x  möchtest
