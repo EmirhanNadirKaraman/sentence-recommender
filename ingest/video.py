@@ -1,10 +1,13 @@
-"""Adding a YouTube video to the shared catalogue.
+"""Adding a YouTube video to the catalogue.
 
 Wraps language-app's own scraper rather than reimplementing it. That package
 already knows how to fetch a transcript, detect its language, segment it into
-sentences and fill every bridge table — and a second implementation would
-drift from the corpus this project reads, which is the one thing that must
-not happen.
+sentences and fill every bridge table, and reimplementing that would be a
+second parser of the same subtitles, drifting from the first.
+
+It writes wherever it is pointed, and it is pointed at our database. The keys
+it leaves for the database to assign are why migration 9863bcf8177b exists:
+every statement omits the primary key and reads it back.
 
 The coupling is deliberate and narrow: four functions from
 `subtitle-scraper/pipeline.py`, reached by path. If that repository moves,
@@ -66,7 +69,7 @@ class VideoIngestor:
         return self._pipeline
 
     def already_have(self, video_id: str) -> bool:
-        with Database(self._settings.database) as db:
+        with Database(self._settings.own) as db:
             return bool(db.rows("SELECT 1 FROM video WHERE video_id = %s",
                                 (video_id,)))
 
@@ -107,7 +110,7 @@ class VideoIngestor:
         if not transcript:
             raise SystemExit(f"{video_id}: {self._why_empty(video_id, wanted)}")
 
-        with WritableDatabase(self._settings.database) as db:
+        with WritableDatabase(self._settings.own) as db:
             cursor = db.cursor()
             # The scraper needs to know what is already catalogued so it does
             # not insert a second row for a word it has seen before.

@@ -16,6 +16,7 @@ from pathlib import Path
 
 from commands.add_video import AddVideoCommand
 from corpus import CorpusUpdater
+from config import DatabaseConfig
 from db import Database
 from ingest import VideoIngestor
 from ingest.attempts import AttemptLog
@@ -106,11 +107,7 @@ class AddVideosCommand:
             # Another database on the same server keeps a list of ids. It has
             # no titles or languages, so anything not in German is found out
             # only by trying it.
-            config = app.settings.database
-            with Database(config.__class__(
-                name="lexy", user=config.user, password=config.password,
-                host=config.host, port=config.port,
-            )) as db:
+            with Database(DatabaseConfig.named("lexy")) as db:
                 return db.column("SELECT DISTINCT video_id FROM youtube_video"
                                  " WHERE video_id <> '' ORDER BY video_id")
         if source == "-":

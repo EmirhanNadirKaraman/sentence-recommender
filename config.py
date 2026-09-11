@@ -1,15 +1,24 @@
 """Runtime configuration.
 
 Credentials come from `.env`; everything else is a tunable with a documented
-default.  The database is treated as read-only throughout — it is the
-language-app schema and this project is a consumer, never a writer.  All
-mutable state lives in `Settings.state_path` (local SQLite).
+default.
+
+There are two Postgres databases and the difference is the whole point.
+There is one Postgres database, `Settings.own`, named by `DB_NAME` and
+managed by this project's own migrations. It began as a copy of language-app's
+`german_vocabulary`, but `sync-catalogue` was the migration that made it, not
+a link that outlives it: ingestion writes here, so re-copying would destroy
+work, and the command refuses when it would. Other databases on the same
+server — language-app's, `lexy` — are named at the point of use.
+
+All other mutable state lives in `Settings.state_path` (local SQLite).
 """
 from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
+from urllib.parse import quote
 
 ROOT = Path(__file__).resolve().parent
 
@@ -36,24 +45,58 @@ class DatabaseConfig:
     port: int
 
     @classmethod
-    def from_env(cls) -> "DatabaseConfig":
-        """Credentials from `.env`, or blanks if there are none.
+    def named(cls, name: str) -> "DatabaseConfig":
+        """Any database on this server, under the same credentials.
 
-        Blanks rather than a KeyError, because a machine that only serves the
-        cached artefacts has no Postgres to name and `Settings()` is built
-        before anything knows whether it will be needed. `Database` refuses
-        clearly when asked to connect without a name; failing here instead
-        meant the whole program would not start, with a bare KeyError as the
-        explanation.
+        One server, one login, many databases — ours, language-app's, `lexy`.
+        Only ours is configured; the others are named at the point of use by
+        whatever needs them, because a name in `.env` would imply a standing
+        relationship where there is only an occasional errand.
+
+        Blanks rather than a KeyError when `.env` is missing, because a
+        machine that only serves the cached artefacts has no Postgres to name
+        and `Settings()` is built before anything knows whether it will be
+        needed. `Database` refuses clearly when asked to connect without a
+        name; failing here instead meant the whole program would not start,
+        with a bare KeyError as the explanation.
         """
         load_dotenv()
         return cls(
-            name=os.environ.get("DB_NAME", ""),
+            name=name,
             user=os.environ.get("DB_USER", ""),
             password=os.environ.get("DB_PASSWORD", ""),
             host=os.environ.get("DB_HOST", "localhost"),
             port=int(os.environ.get("DB_PORT", "5432")),
         )
+
+    @classmethod
+    def owned(cls) -> "DatabaseConfig":
+        """This project's database — the one it reads, writes and migrates.
+
+        `DB_NAME` names it, because it is now the only database this project
+        uses in the ordinary course of things. It did not start that way:
+        everything read from Postgres once belonged to language-app, and
+        reading someone else's schema meant never being able to index it —
+        the vocabulary lookup was a sequential scan of 129,841 rows because
+        the index it wanted could not be added to a database under their
+        migrations. That index exists here, and the same lookup is 57x
+        faster for it.
+        """
+        load_dotenv()
+        return cls.named(os.environ.get("DB_NAME", "sentence_recommender"))
+
+    def url(self) -> str:
+        """SQLAlchemy URL, for alembic. Nothing else here speaks SQLAlchemy.
+
+        Every part is percent-encoded. A password containing `@` or `/` —
+        both legal, both common in generated passwords — would otherwise be
+        read as the end of the credentials or the start of the database name,
+        and the failure looks like a wrong host rather than a quoting bug.
+        """
+        user = quote(self.user, safe="")
+        password = quote(self.password, safe="")
+        return (f"postgresql+psycopg2://{user}:{password}"
+                f"@{self.host}:{self.port}/{self.name}")
 
     def dsn_kwargs(self) -> dict:
         return {
@@ -69,7 +112,10 @@ class DatabaseConfig:
 class Settings:
     """Everything the CLI needs, assembled once at startup."""
 
-    database: DatabaseConfig = field(default_factory=DatabaseConfig.from_env)
+    # One Postgres database: ours, named by `DB_NAME`, under `alembic`, and
+    # the target of every read and write. Anything else on the same server is
+    # reached with `DatabaseConfig.named` by the one command that wants it.
+    own: DatabaseConfig = field(default_factory=DatabaseConfig.owned)
     language: str = "de"
 
     # Which browser yt-dlp should borrow cookies from, or "" for none.

@@ -12,6 +12,7 @@ from commands import (
     CheckWordCommand, DifficultyCommand, QuizCommand, UnblockCommand,
     BuildStudyListCommand, ExportSubtitlesCommand, FillGapsCommand,
     HuntVideosCommand, ReviewCommand, ServeCommand, StatusCommand,
+    SyncCatalogueCommand,
 )
 from config import Settings
 from context import Application
@@ -191,13 +192,28 @@ def _parser() -> argparse.ArgumentParser:
         "check", help="trace one word from the study list into the corpus")
     check.add_argument("word")
 
+    sync = sub.add_parser(
+        "sync-catalogue",
+        help="refill this project's database from the shared one")
+    sync.add_argument("--from", dest="source_db", required=True,
+                      metavar="DATABASE",
+                      help="the database to copy out of, on the same server "
+                           "(language-app's is 'german_vocabulary')")
+    sync.add_argument("--table", action="append", default=[], metavar="NAME",
+                      help="copy only this table (repeatable); default is all")
+    sync.add_argument("--dry-run", action="store_true",
+                      help="say what would be copied, and stop")
+    sync.add_argument("--replace", action="store_true",
+                      help="sync even though videos scraped here are not "
+                           "upstream, discarding them")
+
     sub.add_parser("status", help="what is built and what is due")
     sub.add_parser("function-words", help="regenerate the closed-class review file")
     return parser
 
 
 def function_words(app: Application) -> None:
-    with Database(app.settings.database) as db:
+    with Database(app.settings.own) as db:
         words = WordRepository(db, app.settings.language).function_words()
     count = FunctionWordFile().write(app.settings.function_words, words)
     print(f"wrote {app.settings.function_words} — {count} lemmas")
@@ -259,6 +275,9 @@ def main() -> int:
         ServeCommand().run(app, args.port, not args.no_browser, args.host)
     elif args.command == "build-study-list":
         BuildStudyListCommand().run(app)
+    elif args.command == "sync-catalogue":
+        SyncCatalogueCommand().run(app, args.source_db, tuple(args.table),
+                                   args.dry_run, args.replace)
     elif args.command == "status":
         StatusCommand().run(app)
     elif args.command == "function-words":

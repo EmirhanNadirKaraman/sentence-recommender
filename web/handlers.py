@@ -1642,7 +1642,7 @@ class Viewer:
 
     def _minutes(self) -> dict[str, float]:
         if self._durations is None:
-            with Database(self.app.settings.database) as db:
+            with Database(self.app.settings.own) as db:
                 rows = db.rows("SELECT video_id, duration FROM video"
                                " WHERE duration IS NOT NULL")
             self._durations = {v: secs / 60 for v, secs in rows}
@@ -1650,7 +1650,7 @@ class Viewer:
 
     def _titles(self) -> dict[str, str]:
         if self._video_titles is None:
-            with Database(self.app.settings.database) as db:
+            with Database(self.app.settings.own) as db:
                 self._video_titles = dict(
                     db.rows("SELECT video_id, title FROM video"))
         return self._video_titles
@@ -1809,7 +1809,7 @@ class Viewer:
     def _add_video_form(query: dict) -> str:
         """Paste a video in. Says what it is about to do, because unlike every
         other button here this one reaches out to YouTube and then writes to
-        the shared catalogue."""
+        the catalogue."""
         said = ""
         if query.get("added"):
             said = (f"<p class='note said'>Added "
@@ -1832,7 +1832,7 @@ class Viewer:
             "<button class='go' type='submit'>Add channel</button>"
             "</form>"
             "<p class='note'>Both fetch German subtitles and write them to the "
-            "shared catalogue, then fold the result into the roadmap. The page "
+            "catalogue, then fold the result into the roadmap. The page "
             "waits — about a minute for a video, a few for a channel, which is "
             "why a channel is capped.</p>"
         )

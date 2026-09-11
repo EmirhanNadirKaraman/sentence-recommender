@@ -40,7 +40,7 @@ class CorpusUpdater:
         settings = self._app.settings
         have = self._app.corpus_store.video_ids(build)
 
-        with Database(settings.database) as db:
+        with Database(settings.own) as db:
             videos = SubtitleSource(db, settings.language).videos()
         fresh = [v for v in videos if v and v[0].video_id not in have]
         if not fresh:

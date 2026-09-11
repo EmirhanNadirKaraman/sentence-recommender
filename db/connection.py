@@ -1,9 +1,11 @@
-"""Postgres access to the shared language-app database.
+"""Postgres access.
 
-Reads go through `Database`, whose sessions are opened READ ONLY so a stray
-write cannot touch a schema this project does not own. `WritableDatabase` is
-the single deliberate exception, used only by video ingestion — see its
-docstring for why it is a separate class rather than a flag on the other one.
+Reads go through `Database`, whose sessions are opened READ ONLY.  That began
+as a guard around someone else's schema; it is kept now that the schema is
+ours because it is still true of almost every caller, and a session that
+cannot write is one that cannot corrupt the catalogue by accident.
+
+`WritableDatabase` is the deliberate exception — see its docstring.
 """
 from __future__ import annotations
 
@@ -18,7 +20,7 @@ class Database:
     """A single read-only connection, used as a context manager.
 
     The session is opened `READ ONLY` so a stray INSERT fails loudly rather
-    than mutating a schema this project does not own.
+    than quietly changing the catalogue from a path that only meant to read.
     """
 
     def __init__(self, config: DatabaseConfig) -> None:
@@ -53,18 +55,30 @@ class Database:
         """First column of every row."""
         return [row[0] for row in self.rows(sql, params)]
 
+    def cursor(self):
+        """A raw cursor, for `COPY ... TO STDOUT`.
+
+        `rows()` cannot express a copy — psycopg2 wants the cursor itself for
+        `copy_expert`. This does not widen what the connection may do: the
+        session is still `READ ONLY`, so a cursor taken from here fails on a
+        write exactly as `rows()` would.
+        """
+        if self._conn is None:
+            raise RuntimeError("Database used outside its context manager")
+        return self._conn.cursor()
+
 
 class WritableDatabase:
-    """The one connection allowed to write to the shared catalogue.
+    """The connection allowed to write to the catalogue.
 
-    Everything else in this project reads. Adding a video is the exception:
-    the sentences have to live in language-app's tables, because that is where
-    this project reads them from and a second copy would drift.
+    Two callers have it: ingestion, which adds a scraped video, and
+    `sync-catalogue`, which refills the tables from upstream. Everything else
+    in this project reads.
 
-    A separate class rather than a flag on `Database`, so the exception is
-    visible at every call site. Nothing commits on your behalf — the whole
-    video lands or none of it does, so a failure halfway through leaves no
-    half-scraped video in the catalogue.
+    A separate class rather than a flag on `Database`, so a write is visible
+    at the call site rather than hidden in an argument. Nothing commits on
+    your behalf — the whole video lands or none of it does, so a failure
+    halfway through leaves no half-scraped video behind.
     """
 
     def __init__(self, config: DatabaseConfig) -> None:

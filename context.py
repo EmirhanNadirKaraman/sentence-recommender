@@ -46,7 +46,7 @@ class Application:
 
     @cached_property
     def analyzer(self) -> UnitAnalyzer:
-        with Database(self.settings.database) as db:
+        with Database(self.settings.own) as db:
             patterns = PatternRepository(db, self.settings.language).canonicals()
         return UnitAnalyzer(
             patterns, self.settings.language, self.settings.analysis_processes
@@ -65,7 +65,7 @@ class Application:
         pages that score videos want the same answer and a second copy is how
         two rankings drift apart.
         """
-        with Database(self.settings.database) as db:
+        with Database(self.settings.own) as db:
             rows = db.rows("SELECT video_id, duration FROM video"
                            " WHERE duration IS NOT NULL")
         return {video: seconds / 60 for video, seconds in rows}
@@ -300,7 +300,7 @@ class Application:
         if cached is not None:
             return cached
         surfaces = self._surfaces()
-        with Database(self.settings.database) as db:
+        with Database(self.settings.own) as db:
             lemmas = WordRepository(db, self.settings.language).lemmas_for_surfaces(surfaces)
         lemmas |= self.analyzer.lemmas(surfaces)
         out = sorted(lemmas)
@@ -323,7 +323,7 @@ class Application:
         cached = self.resolved.get("goals", files)
         if cached is not None:
             return tuple(Unit(kind, key) for kind, key in cached)
-        with Database(self.settings.database) as db:
+        with Database(self.settings.own) as db:
             patterns = PatternRepository(db, self.settings.language).canonicals()
         units = GoalList(self.settings.goal_words).units(
             patterns, self.analyzer.lemmatise_each,

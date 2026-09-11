@@ -15,6 +15,7 @@ from .review import ReviewCommand
 from .blockers import BlockersCommand
 from .serve import ServeCommand
 from .status import StatusCommand
+from .sync_catalogue import SyncCatalogueCommand
 
 __all__ = [
     "AddVideoCommand", "AddVideosCommand", "BuildCorpusCommand", "BuildRoadmapCommand",
@@ -23,5 +24,5 @@ __all__ = [
     "ExportSubtitlesCommand", "UnblockCommand",
     "FillGapsCommand",
     "HuntVideosCommand", "QuizCommand", "ReviewCommand", "ServeCommand", "BlockersCommand",
-    "StatusCommand",
+    "StatusCommand", "SyncCatalogueCommand",
 ]

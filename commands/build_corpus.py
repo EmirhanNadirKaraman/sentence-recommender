@@ -69,7 +69,7 @@ class BuildCorpusCommand:
             raise SystemExit(
                 f"unknown source {source!r} (expected subtitle or transcript)")
 
-        with Database(settings.database) as db:
+        with Database(settings.own) as db:
             videos = SubtitleSource(db, settings.language).videos()
         engine = self._corrector(corrector, settings)
         aligner = SubtitleAligner()

@@ -27,7 +27,7 @@ class BuildVideoRoadmapCommand:
         # Length and title come from the catalogue rather than the score cache,
         # because this is a build-time command and the cache may be empty or
         # stale; the walk needs a length for every video it ranks.
-        with Database(settings.database) as db:
+        with Database(settings.own) as db:
             minutes = {v: secs / 60 for v, secs in db.rows(
                 "SELECT video_id, duration FROM video WHERE duration IS NOT NULL")}
             titles = dict(db.rows("SELECT video_id, title FROM video"))

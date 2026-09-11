@@ -55,7 +55,7 @@ class DifficultyCommand:
 
     @staticmethod
     def _durations(app) -> dict[str, float]:
-        with Database(app.settings.database) as db:
+        with Database(app.settings.own) as db:
             rows = db.rows("SELECT video_id, duration FROM video"
                            " WHERE duration IS NOT NULL")
         return {video: seconds / 60 for video, seconds in rows}
