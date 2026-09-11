@@ -16,6 +16,7 @@ from collections import Counter
 from config import Settings
 from corpus import CorpusUpdater
 from ingest import VideoHunter, VideoIngestor
+from ingest.attempts import AttemptLog
 from corpus.quality import well_formed
 from roadmap import (CorpusIndex, RoadmapBuilder, RoadmapRefresher,
                      RoadmapStore)
@@ -59,7 +60,14 @@ class HuntVideosCommand:
             source: str = "subtitle", dry_run: bool = False,
             quality_only: bool = False, absent_only: bool = False) -> None:
         ingestor = VideoIngestor(app.settings, app.analyzer)
-        hunter = VideoHunter(ingestor)
+        # The book `add-videos` has always kept, and the hunt never opened.
+        log = AttemptLog(app.settings.state_path)
+        hunter = VideoHunter(ingestor, log)
+        if rounds > 1:
+            settled = len(log.settled())
+            if settled:
+                print(f"{settled:,} videos settled by an earlier run "
+                      "will not be offered again")
 
         known = app.known_set()
         carried = None

@@ -18,6 +18,7 @@ import time
 from dataclasses import dataclass, field
 
 from vocab.entry import Unit
+from ingest.attempts import SETTLED, AttemptLog
 
 # YouTube refuses a client that asks too often — three videos in one run of
 # twenty came back empty and were fine minutes later. A pause between
@@ -41,8 +42,21 @@ class Hunt:
 class VideoHunter:
     """Searches YouTube for video that says particular words."""
 
-    def __init__(self, ingestor) -> None:
+    def __init__(self, ingestor, log=None) -> None:
         self._ingestor = ingestor
+        # What has already been tried, so a round does not spend its slots
+        # on videos an earlier round already asked about. `add-videos` has
+        # consulted this from the start; the hunt never did, and three
+        # rounds of eight therefore offered the same six subtitle-less
+        # videos three times and added six videos instead of twenty-four.
+        self._log = log
+        self._settled = log.settled() if log else frozenset()
+        # Refusals from this run. Kept apart from `settled` because most of
+        # them classify as `unfetchable`, which is deliberately never
+        # settled — it cannot be told from throttling, and blacklisting it
+        # once cost forty good videos. Not settling it is right; asking
+        # again four minutes later in the same command is not.
+        self._tried: set[str] = set()
 
     def search(self, word: str, limit: int = PER_WORD) -> list[str]:
         """Video ids for a German query about `word`, captioned ones only.
@@ -81,7 +95,9 @@ class VideoHunter:
             term = unit.key.split()[-1] if unit.is_pattern else unit.key
             hunt.searched.append(term)
             for video_id in self.search(term):
-                if video_id in seen or self._ingestor.already_have(video_id):
+                if (video_id in seen or video_id in self._tried
+                        or video_id in self._settled
+                        or self._ingestor.already_have(video_id)):
                     continue
                 seen.add(video_id)
                 hunt.candidates.append(video_id)
@@ -90,21 +106,36 @@ class VideoHunter:
             time.sleep(PAUSE)
         return hunt
 
+    def _record(self, video_id: str, outcome: str, detail: str = "") -> None:
+        """Write down what came of a video, if anyone is keeping the book.
+
+        The hunt collected refusals into `Hunt.refused` and dropped them on
+        the floor, so nothing it learned outlived the command.
+        """
+        if self._log is not None:
+            self._log.record(video_id, outcome, detail)
+            if outcome in SETTLED:
+                self._settled |= {video_id}
+
     def take(self, hunt: Hunt, language: str | None = None,
              say=print) -> Hunt:
         """Try each candidate, keeping the ones that have German subtitles."""
         for index, video_id in enumerate(hunt.candidates, start=1):
             say(f"    [{index}/{len(hunt.candidates)}] {video_id} … ", end="")
+            self._tried.add(video_id)
             try:
                 landed = self._ingestor.add(video_id, language)
             except SystemExit as why:
                 hunt.refused.append((video_id, str(why).splitlines()[0]))
+                self._record(video_id, AttemptLog.classify(str(why)), str(why))
                 say("no German subtitles")
             except Exception as error:           # noqa: BLE001 — one bad video
                 hunt.refused.append((video_id, f"{type(error).__name__}"))
+                self._record(video_id, "error", f"{type(error).__name__}: {error}")
                 say("failed")
             else:
                 hunt.added.append(video_id)
+                self._record(video_id, "added")
                 say(f"{landed.lines} lines — {landed.title[:38]}")
             time.sleep(PAUSE)
         return hunt
