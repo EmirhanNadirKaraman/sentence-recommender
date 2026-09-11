@@ -239,13 +239,19 @@ translation into German. The command takes `de-orig` where it exists, and a
 bare `de` only when the video's own audio is German — which correctly
 refused the Indonesian and Dutch videos in a sample of ten.
 
-**The answer is yes, with one gate.** Ten videos, all with an
-original-language track:
+**Thirty videos, twenty-three with an original-language track, and every
+one of the twenty-three is worse than its hand-written counterpart:**
 
 ```
-  8 of 10   punctuated      99.4-99.8% of the units, ~1.5x the sentences
-  2 of 10   no punctuation  collapse to a single sentence; 88% and 90%
+                        by hand   by machine
+  sentences              20,886       28,939
+  teachable               5,130        3,554     -31%
+  units kept                   —        98.3%, 1.61x each
 ```
+
+Teachable means i+1 and well-formed, which is what a page shows. Punctuation
+is bimodal — two tracks at 0%, the rest between 18% and 56%, nothing between
+— so `PUNCTUATED = 0.05` sits in clear air.
 
 Where it does not punctuate, `MergeCorrector` — which finds boundaries by
 punctuation — returns one enormous sentence whose vocabulary looks excellent
@@ -253,27 +259,19 @@ and which teaches nothing, since no word can be the only unknown in it.
 There is no middle: a track punctuates about a third of its lines or none at
 all, so `PUNCTUATED = 0.05` separates them.
 
-Where it does punctuate, the material is **worse than the hand-written
-track, not better** — the opposite of what was first recorded here, and the
-count that shows it is the last one, not the first:
+Where it does punctuate, the material is still **worse than the
+hand-written track** — the opposite of what was first recorded here. Raw
+sentence counts flatter the machine by half again and the bar takes it all
+back, because ASR over-segments: on one video examined closely, median six
+words against eight and 34% of sentences under five words against none by
+hand.
 
-```
-                        by hand   by machine
-  sentences               1,112        1,769
-  well-formed             1,001        1,030
-  i+1                       316          507
-  i+1 and well-formed       294          242
-```
+The vocabulary is genuinely good — 98.7% of the words only the machine found
+are in the lexicon, and most misses are real German the lexicon lacks rather
+than debris — but vocabulary was never the question. Counting units alone is
+what produced two wrong reports here before the teachable column was added.
 
-Raw sentence counts flatter the machine by half again, and the bar takes it
-all back: it punctuates aggressively and over-segments, median six words
-against eight, 34% of its sentences under five words against none by hand.
-The vocabulary is genuinely good — 98.7% of the words only it found are in
-the lexicon, and most of the misses are real German the lexicon lacks rather
-than ASR debris — but vocabulary was never the question.
-
-So on a video that already has a manual track the machine one is 18% worse,
-and there is no reason to use it.
+So where a manual track exists there is no reason to use the machine one.
 
 Counting units alone hides this completely, which is how it was first
 measured here and first reported wrongly. The command now prints sentence

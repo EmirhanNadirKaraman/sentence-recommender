@@ -25,6 +25,7 @@ import time
 
 from alignment import SubtitleAligner
 from corpus import MergeCorrector
+from corpus.quality import well_formed
 from corpus.sentence import RawLine
 from db import Database
 
@@ -108,6 +109,10 @@ def machine_track(video_id: str) -> tuple[str, list[RawLine]] | tuple[None, None
 
 
 class CaptionCheckCommand:
+    @staticmethod
+    def _known(app):
+        return app.known_set().units
+
     def run(self, app, limit: int = 20, source: str = "subtitle",
             pause: float = PAUSE) -> None:
         settings = app.settings
@@ -151,11 +156,21 @@ class CaptionCheckCommand:
             # that completely.
             ended = sum(1 for line in lines
                         if line.content.rstrip().endswith((".", "!", "?")))
+            # The only count that decides anything: sentences a reader could
+            # actually be shown. Raw totals flatter the machine by half again
+            # and the bar takes it all back, because ASR over-segments.
+            known = frozenset(self._known(app))
+            usable_mine = sum(1 for s in by_video[video]
+                              if len(s.units - known) == 1 and well_formed(s.text))
+            usable_auto = sum(1 for s in auto
+                              if len(s.units - known) == 1 and well_formed(s.text))
             rows.append((video, track, len(mine), len(theirs), kept,
-                         len(by_video[video]), len(auto), len(lines), ended))
-            print(f"{head}  {track:<8} sentences {len(by_video[video]):>4} → "
-                  f"{len(auto):<5} units {len(mine):>5} → {len(theirs):<5} "
-                  f"keeps {100 * kept:>5.1f}%  punct {ended:>4}/{len(lines)}",
+                         len(by_video[video]), len(auto), len(lines), ended,
+                         usable_mine, usable_auto))
+            print(f"{head}  {track:<8} punct {100 * ended / max(len(lines), 1):>3.0f}%"
+                  f"  sentences {len(by_video[video]):>4}→{len(auto):<5}"
+                  f"  teachable {usable_mine:>4}→{usable_auto:<5}"
+                  f"  {'' if usable_auto >= usable_mine else 'worse'}",
                   flush=True)
             time.sleep(pause)
 
@@ -163,6 +178,8 @@ class CaptionCheckCommand:
             raise SystemExit("nothing to compare")
         kept = sum(r[4] for r in rows) / len(rows)
         gained = sum(r[3] for r in rows) / sum(r[2] for r in rows)
+        usable_mine = sum(r[9] for r in rows)
+        usable_auto = sum(r[10] for r in rows)
         manual_sentences = sum(r[5] for r in rows)
         auto_sentences = sum(r[6] for r in rows)
         punctuated = sum(r[8] for r in rows)
@@ -174,6 +191,15 @@ class CaptionCheckCommand:
               f"{auto_sentences:,} by machine")
         print(f"  of {all_lines:,} machine lines, {punctuated:,} end in "
               "punctuation")
+        print(f"  teachable: {usable_mine:,} by hand → {usable_auto:,} by "
+              f"machine  ({100 * usable_auto / max(usable_mine, 1) - 100:+.0f}%)")
+        print("  teachable = i+1 and well-formed, which is what a page shows.")
+        flat = [r for r in rows if r[8] == 0]
+        if flat:
+            print(f"\n  {len(flat)} of {len(rows)} machine tracks carry no "
+                  "punctuation at all and collapse to one sentence:")
+            for r in flat:
+                print(f"      {r[0]}")
         if auto_sentences < manual_sentences / 10:
             print("\n  The machine track has no punctuation, and the corrector"
                   "\n  finds sentence boundaries by punctuation — so it becomes"
