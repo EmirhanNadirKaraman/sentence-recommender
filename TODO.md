@@ -16,22 +16,42 @@ Measured 2026-09-10, 8 cores:
     spaCy parse + units   486s   4 workers parsing, parent extracting
     total                 828s
 
-### 1. Parallelise the subtitle correction — worth ~280s
+### 1. Parallelise the subtitle correction — DONE, worth 50s not 280s
 
-`MergeCorrector.correct` is called once per video from `BuildCorpusCommand`.
-It is pure Python, no model and no network, and each video is independent. A
-`ProcessPoolExecutor` over videos should take 342s to something near 50s on
-eight cores.
+Done, and both halves of the estimate were wrong.
 
-The care needed is ordering: the corpus is written in list order and the
-filter carries de-duplication state that depends on what it has already seen
-(`SentenceFilter.apply`, then `split`). Collect the per-video results and
-reassemble them in the original video order before filtering, or the
-duplicate-detection changes which of two identical lines survives — and the
-build stops being reproducible.
+`build-corpus --workers N` spreads `MergeCorrector.correct` plus the aligner
+over processes, merge path only: `LLMCorrector` counts chunks, fallbacks and
+rejections on itself (`corpus/llm_corrector.py:68-70`), and a worker would
+keep its own copy and lose them. `executor.map` yields in the order it was
+given, which is all reproducibility needs here.
 
-Verify by rebuilding twice and diffing `sentence_units` — the row count and
-the distinct unit count must both be identical to the serial build.
+Measured over all 1,235 videos and 271,414 lines:
+
+```
+  serial        125.5s     215,437 sentences
+  4 workers      75.3s     215,437 sentences     1.67x
+```
+
+Identical, and checked harder than this entry asked. "Diff `sentence_units`"
+needs two full builds; comparing the sentence stream itself, in order, before
+the filter sees it, tests the property actually at risk — the filter's
+duplicate check carries state along the list, so a different order changes
+which of two identical lines survives.
+
+**Why it is 1.67x and not the 6.8x this predicted: macOS Python does not
+fork, it spawns.** Every worker re-imports the package and every video's
+lines are pickled across, so six workers on six videos cost 0.96s before
+doing any work. The curve flattens early — 2 workers 1.15x, 4 workers 1.39x,
+6 workers 1.45x on a 120-video sample — and past four the start-up eats the
+gain. Anything here that assumes a free fork is wrong on this machine.
+
+**And the 342s was not real.** Correction is 125.5s. The measurement above
+it, and very likely the whole 828s table, was taken on a loaded machine —
+the same mistake `scratchpad`'s plan file records at length, where page
+timings taken at load average 50 were wrong by a factor of twenty-five.
+Re-measure the table on a quiet machine before trusting any line of it,
+including the ones under 2 and 3.
 
 ### 2. NER — NOT a free win, do not simply disable it
 

@@ -10,7 +10,9 @@ corpora and neither should overwrite the other.
 """
 from __future__ import annotations
 
+import os
 import time
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 from alignment import SubtitleAligner
@@ -19,6 +21,28 @@ from corpus import (
 )
 from db import Database
 from generation import LLMClient
+
+
+def correct_one(lines):
+    """One video, corrected and timed — the unit of parallel work.
+
+    Module level so a worker process can find it, and it builds its own
+    corrector and aligner because both are stateless: `MergeCorrector` keeps
+    nothing between calls and `SubtitleAligner` has no `__init__` at all.
+    `LLMCorrector` is a different matter — it counts chunks, fallbacks and
+    rejections on itself — which is why only the merge path comes here.
+    """
+    return SubtitleAligner().align(lines, MergeCorrector().correct(lines))
+
+
+def default_workers() -> int:
+    """One per core less the parent, capped at six.
+
+    Capped because each worker is a fork of a parent already holding the
+    whole subtitle corpus, and this machine has been driven into the swapper
+    by less. `--workers 1` turns the pool off.
+    """
+    return max(1, min(6, (os.cpu_count() or 2) - 1))
 
 
 class BuildCorpusCommand:
@@ -30,12 +54,12 @@ class BuildCorpusCommand:
 
     def run(self, app, source: str, limit: int | None = None,
             corrector: str = "merge", min_words: int | None = None,
-            path: str | None = None) -> None:
+            path: str | None = None, workers: int | None = None) -> None:
         settings = app.settings
         started = time.time()
         build = f"{source}:llm" if source == "subtitle" and corrector == "llm" else source
 
-        sentences = self._collect(app, source, corrector, path)
+        sentences = self._collect(app, source, corrector, path, workers)
         print(f"{build}: {len(sentences)} sentences from source "
               f"({time.time() - started:.0f}s)")
 
@@ -61,7 +85,8 @@ class BuildCorpusCommand:
         print(f"  cached {len(analysed)} sentences, {units} distinct units "
               f"({time.time() - started:.0f}s total)")
 
-    def _collect(self, app, source: str, corrector: str, path: str | None = None):
+    def _collect(self, app, source: str, corrector: str,
+                 path: str | None = None, workers: int | None = None):
         settings = app.settings
         if source == "transcript":
             return self._transcripts(path)
@@ -77,12 +102,25 @@ class BuildCorpusCommand:
 
         # Aligned per video: a sentence's timing comes from the rows of its own
         # video, and the aligner needs both sides of one video to match them.
-        sentences = []
-        for index, video in enumerate(videos, start=1):
-            sentences.extend(aligner.align(video, engine.correct(video)))
-            if corrector == "llm":
-                print(f"    video {index}/{len(videos)} — {len(sentences)} sentences",
-                      flush=True)
+        # Correction is pure Python with no model and no network, and each
+        # video is independent, so the merge path spreads it over processes.
+        # `executor.map` yields in the order it was given, which is the whole
+        # of what reproducibility needs here: the filter's duplicate check
+        # carries state along the list, so a different order would change
+        # which of two identical lines survives.
+        pool = default_workers() if workers is None else workers
+        if corrector == "merge" and pool > 1 and len(videos) > 1:
+            print(f"  correcting on {pool} processes…", flush=True)
+            with ProcessPoolExecutor(max_workers=pool) as run:
+                done = list(run.map(correct_one, videos, chunksize=8))
+            sentences = [s for video in done for s in video]
+        else:
+            sentences = []
+            for index, video in enumerate(videos, start=1):
+                sentences.extend(aligner.align(video, engine.correct(video)))
+                if corrector == "llm":
+                    print(f"    video {index}/{len(videos)} — "
+                          f"{len(sentences)} sentences", flush=True)
         if isinstance(engine, LLMCorrector) and engine.fallbacks:
             detail = (f", {engine.rejected} of them for losing the original wording"
                       if engine.rejected else "")

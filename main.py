@@ -87,6 +87,10 @@ def _parser() -> argparse.ArgumentParser:
         help="how to turn subtitle lines into sentences; 'llm' repairs them "
              "with the local model and caches as 'subtitle:llm'",
     )
+    corpus.add_argument("--workers", type=int, metavar="N",
+                        help="processes for the rule-based correction "
+                             "(default: cores minus one, capped at six). "
+                             "1 runs it serially, as it always did")
     corpus.add_argument("--limit", type=int, help="analyse only the first N sentences")
     corpus.add_argument("--min-words", type=int,
                         help="shortest sentence to keep (default 5)")
@@ -383,7 +387,8 @@ def main() -> int:
                               not args.all_sentences)
     elif args.command == "build-corpus":
         BuildCorpusCommand().run(app, args.source, args.limit,
-                                 args.corrector, args.min_words, args.path)
+                                 args.corrector, args.min_words, args.path,
+                                 args.workers)
     elif args.command == "build-video-roadmap":
         BuildVideoRoadmapCommand().run(app, args.source, args.floor, args.steps)
     elif args.command == "build-roadmap":
