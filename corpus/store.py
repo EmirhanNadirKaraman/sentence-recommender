@@ -42,13 +42,28 @@ CREATE INDEX IF NOT EXISTS ix_sentences_build ON sentences(build);
 -- One video's cues, for the transcript beside the player. Without this
 -- the only way to that answer is a scan of every sentence in the table.
 CREATE INDEX IF NOT EXISTS ix_sentences_video ON sentences(video_id);
+-- Keyed on all three of the columns that identify a row, and stored as that
+-- key rather than beside it.
+--
+-- It had no key at all. `(sentence_id, kind, key)` was already unique in
+-- fact — 1,742,479 rows, not one duplicate — but nothing said so, and an
+-- unenforced key is the sort of thing that lets the same sentence be written
+-- twice with different values. That happened in `roadmap_example`, which has
+-- three rows carrying conflicting `origin` for one text.
+--
+-- WITHOUT ROWID because the key *is* the row: there is nothing left over to
+-- give a rowid to, and it saves the separate index SQLite would otherwise
+-- build to enforce the key. The table went from 344 MB to 222 MB after a
+-- VACUUM. It did not get faster — everything here fits in the page cache
+-- already — so the reason to do it is that the key is now true rather than
+-- merely observed.
 CREATE TABLE IF NOT EXISTS sentence_units (
     sentence_id INTEGER NOT NULL REFERENCES sentences(id) ON DELETE CASCADE,
     kind        TEXT NOT NULL,
     key         TEXT NOT NULL,
-    surface     TEXT
-);
-CREATE INDEX IF NOT EXISTS ix_units_sentence ON sentence_units(sentence_id);
+    surface     TEXT,
+    PRIMARY KEY (sentence_id, kind, key)
+) WITHOUT ROWID;
 -- Sentences that say a given word. Without it the only way to that answer is
 -- a scan of 1.18M rows, which is why the pages wanting it used to load the
 -- entire corpus into memory instead.
@@ -122,6 +137,32 @@ class CorpusStore:
         # nothing to a file that already has the narrow version — it has to be
         # dropped. Guarded on the stored definition rather than a version
         # number, so it runs once and is a no-op forever after.
+        # An unkeyed `sentence_units` has to be rebuilt: SQLite cannot add a
+        # primary key in place. Nine seconds on 1.74M rows, once.
+        row = conn.execute("SELECT sql FROM sqlite_master WHERE type = 'table'"
+                           " AND name = 'sentence_units'").fetchone()
+        if row and "PRIMARY KEY" not in (row[0] or ""):
+            conn.executescript("""
+                CREATE TABLE sentence_units_keyed (
+                    sentence_id INTEGER NOT NULL
+                                REFERENCES sentences(id) ON DELETE CASCADE,
+                    kind        TEXT NOT NULL,
+                    key         TEXT NOT NULL,
+                    surface     TEXT,
+                    PRIMARY KEY (sentence_id, kind, key)
+                ) WITHOUT ROWID;
+                INSERT OR IGNORE INTO sentence_units_keyed
+                       (sentence_id, kind, key, surface)
+                     SELECT sentence_id, kind, key, surface FROM sentence_units;
+                DROP TABLE sentence_units;
+                ALTER TABLE sentence_units_keyed RENAME TO sentence_units;
+                CREATE INDEX IF NOT EXISTS ix_units_key
+                    ON sentence_units(kind, key, sentence_id);
+            """)
+            # `ix_units_sentence` was an index on the primary key's own first
+            # column. The key answers every question it did.
+            conn.execute("DROP INDEX IF EXISTS ix_units_sentence")
+
         row = conn.execute("SELECT sql FROM sqlite_master WHERE type = 'index'"
                            " AND name = 'ix_units_key'").fetchone()
         if row and "sentence_id" not in (row[0] or ""):
