@@ -124,21 +124,19 @@ reply, so a crash at video 900 costs the first 899. Keep auto videos in
 their own build and `transcript_source='auto'`, so the reader can see
 which text a machine wrote twice.
 
-### 8. Backfill `channel_id` on the 1,114 videos that lack it
+### 8. Backfill `channel_id` on the videos that lack it
 
 Item 6 needs this and cannot start without it, which is why it is its own
 entry rather than a clause inside one. 1,117 of 1,382 videos have a null
 `channel_id`, and every one of them is German — the non-German rows came
 from upstream with theirs already set.
 
-**The command exists; the work is running it.** `backfill-channels` does one
-`fetch_video_metadata` call per video, upserts the channel and commits each
-row as it lands, so an interrupted run keeps what it earned and the work
-left is always `WHERE channel_id IS NULL` rather than a position in a queue.
-Three videos were filled this way on 2026-09-11; 1,114 remain.
-
-At the default 15s pace that is about four and a half hours, and it wants
-running in the background rather than watched.
+**The command exists; the work is running it.** `backfill-channels` asks per
+channel rather than per video: it takes an unattributed video, asks which
+channel it belongs to, lists that channel once, and attributes every video
+of ours that appears in it. Measured on three channels, that was 183 videos
+for six requests. Each channel commits as it lands, so the work left is
+always `WHERE channel_id IS NULL` rather than a position in a queue.
 
 The pace is the whole difficulty. On 2026-09-11 five metadata calls five
 seconds apart drew "The page needs to be reloaded" from YouTube, and cookies
