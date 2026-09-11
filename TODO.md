@@ -577,7 +577,7 @@ Worth knowing for next time: a plan nobody reads still costs a full walk on
 every refresh. `RoadmapStore` has no way to forget one, so it was deleted by
 hand. If experiments like that become normal, it wants a command.
 
-### 16. `--unblock` — DONE, and the gaps are now 11
+### 16. `--unblock` — DONE, and the gaps are now 9
 
 `--strict` sets `only_goals`, so the walk may never teach a word that is
 not itself a goal — a goal with one ordinary word in the way is stranded by
@@ -617,10 +617,10 @@ and the ceiling took it to 0.
 Where b1 stands now, same reading, over a catalogue 99 videos larger:
 
 ```
-    11   out of reach
+     9   out of reach
      3   never said at all       die Phantasie, das Top, die Unterlagen
      0   refused by the bar
-     8   said but never alone
+     6   said but never alone
 ```
 
 Nothing here is blocked by a threshold any more. The three absent ones want
