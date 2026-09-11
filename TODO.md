@@ -421,19 +421,33 @@ milliseconds of each other, both sequential scans, so the rows the planner
 Leave them. A separate table would save perhaps 32 MB of a 356 MB corpus and
 buy the transcript panel a join, which is the panel's whole cost.
 
-### 15. `roadmap_example` is 65% repeated text
+### 15. `roadmap_example` is 65% repeated text — DONE, and it is not the cost
 
-114,473 rows carrying 40,062 distinct texts, inside a `state.sqlite3` that is
-now 63 MB total — the corpus having left for Postgres.
+Re-measured, because this file grew from 63 MB to 271 MB while the quality
+floor was being fixed and every roadmap re-walked, which is exactly the kind
+of change the entry said to reopen on.
 
-This was measured once and the denormalisation was kept deliberately: 29%
-faster reads for 26% more space, and the duplicate text is a snapshot of what
-a step showed rather than redundancy. Reopen it only with a reason the
-earlier measurement did not cover — the file shrinking by 150 MB changes the
-ratio the decision rested on, so "it is most of what is left" is such a
-reason, and "it looks duplicated" is not.
+It is now 78% repeated — and that repetition is **19 MB**. All the text in
+`roadmap_example` is 25 MB, of which 6 MB is distinct. The other 176 MB of
+the file is the `roadmap` rows, the decks' own row overhead, the indexes and
+58,299 cards.
 
-## The walk
+So normalising would save 9% of the file and buy a join on every deck read,
+against a denormalisation that was measured at 29% faster reads. The
+earlier decision stands, and now stands on a number rather than on a ratio
+that had drifted. Closed: "it looks duplicated" was never the argument, and
+"it is most of what is left" turns out to be false.
+
+What actually grew the file was two 24,000-step plans, each carrying a deck
+per step. One of them — `subtitle+transcript:good:goals:b1_parsed`, a walk
+with neither narrowing nor `only_goals` — was built here to measure whether
+dropping both at once helped. It did not (326 goals out of reach against
+218), no switch position names it, and the refresher re-walked it on every
+rebuild. Deleted, with a VACUUM: 271 MB to 201 MB.
+
+Worth knowing for next time: a plan nobody reads still costs a full walk on
+every refresh. `RoadmapStore` has no way to forget one, so it was deleted by
+hand. If experiments like that become normal, it wants a command.
 
 ### 16. The 66 gaps that are left, and what each kind needs
 
