@@ -14,3 +14,9 @@ data/state.sqlite3-wal
 
 # Derived: rebuilt whenever the vocabulary files or the analyser change
 data/resolved.json
+
+# Source material for `build-corpus transcript`, not source code: 1,413
+# transcript files someone else wrote and published. What this project makes
+# of them — the analysed sentences — lives in data/state.sqlite3, which is
+# ignored too. Point `--path` elsewhere if you keep them somewhere else.
+Easy German Transcripts/
