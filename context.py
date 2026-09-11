@@ -31,7 +31,7 @@ class Application:
 
     @cached_property
     def corpus_store(self) -> CorpusStore:
-        return CorpusStore(self.settings.state_path,
+        return CorpusStore(self.settings.own,
                            self.settings.ignored_builds)
 
     @cached_property
