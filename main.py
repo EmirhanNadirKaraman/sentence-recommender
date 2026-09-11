@@ -270,6 +270,24 @@ def _parser() -> argparse.ArgumentParser:
                        help="read the entries to save from this file")
     lists.add_argument("--forget", metavar="NAME", help="delete a saved list")
 
+    cover = sub.add_parser(
+        "cover", help="the fewest minutes of video that teach a saved list")
+    cover.add_argument("--source", nargs="+", default=[], metavar="BUILD",
+                       help="which build to choose videos from (default: "
+                            "subtitle; only timed builds can be in a cover)")
+    cover.add_argument("--depth", type=int, default=5,
+                       help="sentences wanted per word (default 5). A word "
+                            "with fewer is asked for what exists")
+    cover.add_argument("--floor", type=int, metavar="LINES",
+                       help="shortest video that may be chosen, in lines "
+                            "(default 40) — without one a cover is clips")
+    cover.add_argument("--dry-run", action="store_true",
+                       help="print it and store nothing")
+    cover.add_argument("--goals-list", metavar="NAME",
+                       help="saved word list to cover")
+    cover.add_argument("--goals-file", metavar="PATH",
+                       help="word list file to cover, instead of a saved one")
+
     look = sub.add_parser(
         "search", help="find a word in the corpus vocabulary, misspellings and all")
     look.add_argument("term", help="what to look for")
@@ -421,6 +439,10 @@ def main() -> int:
         OutOfReachCommand().run(app, tuple(args.source), args.out,
                                 not args.all_sentences, args.counting,
                                 args.unblock)
+    elif args.command == "cover":
+        from commands.cover_list import CoverListCommand   # noqa: PLC0415
+        CoverListCommand().run(app, tuple(args.source), args.depth,
+                               args.floor, args.dry_run)
     elif args.command == "word-list":
         word_lists(app, args)
     elif args.command == "search":

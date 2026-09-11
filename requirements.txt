@@ -10,3 +10,5 @@ requests>=2.31                 # the local model client
 # for lemmatisation, and under `sm` it returns `schreie` for `schreien` and
 # `samen` for `gesamt`.  See matcher/phrase_finder.py.
 #   python -m spacy download de_core_news_md
+
+pulp>=3.0                      # `cover` only; the wheel carries its own CBC

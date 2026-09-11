@@ -342,7 +342,7 @@ does. i+2 keeps `--relax`'s meaning, only at the wall (weighing pairs
 throughout degrades the whole sequence), and the page shows a relaxed
 step's `beside` word, which is already stored.
 
-### 10. Cover a saved list in the fewest minutes of video
+### 10. Cover a saved list in the fewest minutes — DONE as a command
 
 Take a list the reader built and saved (item 9's `word_list`) and choose
 the videos: the set with the fewest minutes in which every word on the list
@@ -427,14 +427,48 @@ the list and the build, or regenerating under one deletes the other;
 Worth: item 9 lets the reader say what they want to learn; this is the
 first answer here that takes the list whole and prices it in minutes.
 
-Blocked on item 9's page, by this entry's own reasoning. The measurement
-above says a cover only means anything for a hand-built list of tens of
-words — for the 4,007-unit default list it is 683 videos and 14,319 minutes,
-which is the catalogue with a price on it. Item 9's storage and search are
-built (`vocab/word_lists.py`, `vocab/search.py`, `--goals-list`), but until
-a reader can tick twenty words into a list there is nothing here worth
-solving. `pulp` is not installed; adding it is the first step after that,
-not before.
+Built: `roadmap/cover.py` (model, `VideoCoverStore`, and an `audit` that
+re-counts the answer without asking the solver), and `python main.py cover
+--goals-list NAME`. `pulp` is pinned; its wheel carries CBC. The page is
+**not** built, and the measurements below are why.
+
+`gapRel` is 0.0, not the inherited 0.08. That tolerance came from a much
+larger problem; here 0.08, 0.02 and 0.0 all return the same 41 videos in a
+tenth of a second, so the setting was never binding and would have been one
+more number nobody could account for.
+
+**The premise does not hold in this corpus.** This entry rests on videos
+overlapping — "one video holds sole-unknown sentences for many words". Over
+a twenty-word list and the 141 videos that serve it:
+
+```
+  words a video can teach     videos
+      1                         120
+      2                          18
+      3                           3
+```
+
+85% serve exactly one word; the mean is 1.17. So the problem is nearly
+degenerate — it is close to "pick the cheapest video per word" — and that is
+why the solver beats a greedy pick by words-per-minute by only 4-7%:
+
+```
+  depth 1   ilp 17 videos  541 min   greedy 20  561 min
+  depth 3   ilp 29 videos  920 min   greedy 33  956 min
+  depth 5   ilp 41 videos 1180 min   greedy 48 1264 min
+```
+
+**And the answer is not yet worth showing.** A real twenty-word list gives
+40 videos and 18.6 hours: three words have no timed video at all, seven
+cannot be taught five deep, and most chosen videos teach exactly one word.
+That is a true answer to the question and a bad deal for a reader, and it
+is a fact about the corpus rather than the model — the pool is bounded by
+the known set, as this entry already said.
+
+So the page waits on the corpus, not on the code. What would change it is
+more sentences per list word, which is `fill-gaps` writing five a word
+rather than one a step, or more video. Re-run `cover` on a hand-built list
+after either, and if the overlap column above moves, build the page.
 
 ## Other people
 
