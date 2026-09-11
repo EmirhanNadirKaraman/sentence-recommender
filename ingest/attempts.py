@@ -84,6 +84,18 @@ class AttemptLog:
             return "unfetchable"
         if "no such video" in low or "unavailable" in low:
             return "unavailable"
+        if "could not be inspected" in low:
+            # `_why_empty` says this when its own look at the video threw.
+            # The sentence mentions subtitles, but it is explicitly a refusal
+            # to say why — and YouTube throttles a burst of requests with
+            # "The page needs to be reloaded", which arrives here looking
+            # exactly like a verdict.
+            #
+            # It was settled as `no-subtitles`, so nine videos were written
+            # off permanently without one of them being checked. One had
+            # already been scraped successfully minutes before: 176
+            # sentences, from a video the log called subtitle-less.
+            return "unfetchable"      # weather; try again later
         if "subtitle" in low:
             return "no-subtitles"
         return "error"

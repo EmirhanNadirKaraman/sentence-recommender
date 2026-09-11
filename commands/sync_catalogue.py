@@ -122,6 +122,14 @@ class SyncCatalogueCommand:
                 print(f"  {table:<14} {moved:>9,} rows"
                       f"  {perf_counter() - started:>6.1f}s", flush=True)
 
+            # TRUNCATE leaves the sequences alone and the copy supplies its
+            # own ids, so nothing has moved them past the rows just brought
+            # in. Without this the next insert draws an id that is already
+            # taken — which is exactly how a scrape died on
+            # `phrase_blueprint_pkey` with the sequence sitting at 36 and the
+            # copied ids running to 1,288,657.
+            self._rekey(target, chosen)
+
         # Outside the transaction, because VACUUM cannot run inside one.
         print(f"\nanalysing {len(chosen)} tables…", flush=True)
         self._settle(settings, chosen)
