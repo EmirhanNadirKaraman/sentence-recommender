@@ -26,6 +26,13 @@ HEADER = """\
 #   Delete a line — or put a `#` in front of it — for anything you do NOT
 #   know.  What remains is treated as known.  Order does not matter.
 #
+# Some lines are struck not because they are unknown but because they are
+# not closed-class at all.  A lemma is listed if ANY of its rows carries a
+# closed-class tag, however rare, so one mis-tagged form is enough: `alt` is
+# an adjective fifteen times and a modal twice, and the two are `ältesten`.
+# Those strikes are judgements about the word class, not about the reader,
+# and they survive regeneration like any other.
+#
 # The number is how often the word occurs in the corpus; the words after it
 # are the surface forms it appears as.
 #

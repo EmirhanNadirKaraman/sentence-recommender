@@ -60,14 +60,27 @@ against ~1:47 per worker: the parent is the bottleneck, so a bigger
 
 ## Vocabulary
 
-### 4. Adjectives sitting in `function_words.txt`
+### 4. Adjectives sitting in `function_words.txt` — DONE
 
-`stressig`, `interessante`, `alt`, `fest`, `bereit`, `voll`, `übrig`, `pack`,
-`all`, `namens` are in the closed-class file and are not closed-class. They are
-therefore assumed known on the strength of a category they do not belong to.
-`db/word_repo.function_words` selects by tag, so either the tags are wrong for
-these or the tag set is too wide. Decide per word rather than by rule; there
-are about ten.
+Neither the tags nor the tag set, in the end: the query admits a lemma if
+*any* of its rows carries a closed-class tag, however rare, so a single
+mis-tagged form was enough. `alt` is ADJA fifteen times and VMFIN twice, and
+the two VMFIN rows are `ältesten`.
+
+Decided per word against the corpus tags, as this said to. Ten struck —
+`alt`, `hoch`, `voll`, `weg`, `fest`, `übrig`, `bereit`, `stressig`,
+`interessante`, `pack`. Five left live because they earn it whatever their
+frequency: `all` and `namens` are a real indefinite pronoun and a real
+preposition, `doch` is a modal particle and is tagged ADV as modal particles
+are, and `anderer` and `irgendjemand` are a determiner and a pronoun.
+
+`alt`, `weg`, `hoch` and `doch` were in `known_words.txt` anyway, so striking
+them removed a wrong reason rather than a right answer. The other six become
+teachable, which is the point.
+
+A rule was available and refused: "closed-class tags carry most of the
+frequency" catches nine of these and misses `stressig`, `pack`, `übrig` and
+`bereit`, whose frequency rows are too sparse to decide anything.
 
 ### 5. `--from known` has never been run
 

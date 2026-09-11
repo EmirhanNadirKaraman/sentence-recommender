@@ -84,14 +84,14 @@ irgendeiner   #     2x  irgendeine
 # irgendwa      #     2x  Irgendwas
 # jemander      #     2x  jemanden
 keiner        #     2x  keiner
-stressig      #     1x  stressigsten
+# stressig      #     1x  stressigsten
 # sämtlicher    #     1x  sämtliche
 # aufn          #     1x  aufn
 # jeglicher     #     1x  jeglichen
 jedermann     #     1x  jedermann
 irgendwelche  #     1x  Irgendwelche
 irgendjemand  #     1x  irgendjemand
-interessante  #     1x  interessantesten
+# interessante  #     1x  interessantesten
 all           #     1x  All
 
 ## Fragewörter (14)
@@ -179,7 +179,7 @@ hinaus       #     1x  hinaus
 # jenseits     #     1x  jenseits
 außer        #     1x  außer
 # ausweislich  #     1x  Ausweislich
-voll         #     1x  Voller
+# voll         #     1x  Voller
 # anstelle     #     1x  anstelle
 # anhand       #     1x  Anhand
 # angesichts   #     1x  Angesichts
@@ -209,7 +209,7 @@ solange          #     2x  solange
 sowie            #     2x  Sowie, sowie
 beziehungsweise  #     1x  beziehungsweise
 weder            #     1x  weder
-pack             #     1x  pack
+# pack             #     1x  pack
 obwohl           #     1x  obwohl
 nachdem          #     1x  nachdem
 
@@ -222,18 +222,18 @@ zurück    #     9x  zurück
 los       #     8x  los
 hin       #     7x  hin
 drauf     #     6x  drauf
-weg       #     6x  weg
+# weg       #     6x  weg
 her       #     5x  her
 zusammen  #     5x  zusammen
 frei      #     5x  frei
 statt     #     4x  statt
 vorbei    #     3x  vorbei
-hoch      #     3x  hoch
-fest      #     2x  Fest, fest
+# hoch      #     3x  hoch
+# fest      #     2x  Fest, fest
 heraus    #     2x  heraus
-bereit    #     2x  bereit
+# bereit    #     2x  bereit
 weh       #     2x  weh
-übrig     #     1x  übrig
+# übrig     #     1x  übrig
 # lahm      #     1x  lahm
 # herum     #     1x  herum
 # aufrecht  #     1x  aufrecht
@@ -271,5 +271,5 @@ möchtet   #     2x  Möchtet
 mögen     #     2x  mag, mögen
 # müssteen  #     2x  müsste
 # werdn     #     2x  würd
-alt       #     2x  ältesten
+# alt       #     2x  ältesten
 möchtest  #     1x  möchtest
