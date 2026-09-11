@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import hashlib
 from html import escape
+from urllib.parse import quote
 from pathlib import Path
 
 STATIC = Path(__file__).resolve().parent / "static"
@@ -44,8 +45,14 @@ NAV = (("/", "Next"), ("/reels", "Reels"), ("/roadmap", "Roadmap"),
        ("/subtitles", "Videos"))
 
 
-def layout(title: str, body: str, here: str = "/", source: str = "") -> str:
-    suffix = f"?src={source}" if source else ""
+def layout(title: str, body: str, here: str = "/", source: str = "",
+           wordlist: str = "") -> str:
+    # Both carried, because a nav link that drops either one silently puts
+    # the reader back on the default corpus or the default goal list, which
+    # looks like the switch did not work.
+    carried = [(k, v) for k, v in (("src", source), ("list", wordlist)) if v]
+    suffix = ("?" + "&".join(f"{k}={quote(str(v), safe='')}"
+                             for k, v in carried)) if carried else ""
     links = "".join(
         f'<a href="{href}{suffix}" class="{"here" if href == here else ""}">'
         f"{escape(label)}</a>"

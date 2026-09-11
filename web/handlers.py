@@ -96,6 +96,9 @@ class Viewer:
         # reason it stays usable when the machine has nothing left.
         self._searches: dict[str, UnitSearch] = {}
         self._lists = WordListStore(app.settings.state_path)
+        # Set by `web.server.Viewers` so a page can offer the
+        # other lists; None when a Viewer is built directly.
+        self.lists = None
         self._store = RoadmapStore(app.settings.state_path)
         self._video_plan = VideoRoadmapStore(app.settings.state_path)
         # Blocked-set results, per source. The walk behind them is cheap on a
@@ -235,7 +238,7 @@ class Viewer:
         phone — which is where this gets used, and a terminal is not.
         """
         source = self.source(query)
-        return layout("Quiz", self.switch(source, "/quiz") +
+        return self._page("Quiz", self.switch(source, "/quiz") +
                       "<h1>Do you know these?</h1>"
                       "<p class='quiet'>Every word here is one the roadmap "
                       "already counts as known. Swipe right if that is true, "
@@ -466,6 +469,7 @@ class Viewer:
             for n, c, _ in saved)
         body = [
             "<h1>Word lists</h1>",
+            self.list_switch(query, "/lists"),
             f"<div class='switch'><span>Lists</span>{picker or empty}</div>",
             "<form method='get' action='/lists' class='row'>",
             f"<input type='hidden' name='src' value='{escape(source)}'>",
@@ -533,7 +537,7 @@ class Viewer:
             else:
                 body.append("<p class='empty'>Nothing in it yet — search "
                             "above and tick what you mean to learn.</p>")
-        return layout("Lists", "".join(body), "/lists", source)
+        return self._page("Lists", "".join(body), "/lists", source)
 
     def save_word_list(self, form: dict) -> str:
         """Add to a list, drop one entry, or forget the whole thing.
@@ -561,6 +565,32 @@ class Viewer:
             ticked = [e for e in (form.get("entry") or "").split("\x00") if e]
             self._lists.save(name, existing + ticked)
         return back
+
+    def list_name(self) -> str:
+        """Which goal list this viewer is aimed at."""
+        return self.app.settings.goal_words.stem
+
+    def _page(self, title: str, body: str, here: str = "/",
+              source: str = "") -> str:
+        """`layout`, with this viewer's goal list carried into every link."""
+        return layout(title, body, here, source, self.list_name())
+
+    def list_switch(self, query: dict, page: str) -> str:
+        """Which list the page is about.
+
+        Hidden when there is only one, like the corpus switch: a control
+        with a single position is furniture.
+        """
+        offered = self.lists.names() if self.lists else [self.list_name()]
+        if len(offered) < 2:
+            return ""
+        here = self.list_name()
+        source = self.source(query)
+        links = "".join(
+            f"<a href='{page}?src={quote(source)}&list={quote(name)}' "
+            f"class='{'on' if name == here else ''}'>{escape(name)}</a>"
+            for name in offered)
+        return f"<div class='switch'><span>Learning</span>{links}</div>"
 
     def counting_switch(self, query: dict, page: str) -> str:
         """The three readings, minus any this corpus has no plan for.
@@ -602,7 +632,8 @@ class Viewer:
     def next_up(self, query: dict) -> str:
         source = self.source(query)
         only = query.get("only") or ""
-        switch = self.switch(source, "/") + self.counting_switch(query, "/")
+        switch = (self.list_switch(query, "/") + self.switch(source, "/")
+                  + self.counting_switch(query, "/"))
         picker = self._kind_picker(only, source)
 
         # Both readings have a stored roadmap now, so the switch picks one
@@ -621,7 +652,7 @@ class Viewer:
                     "<p class='empty'>Every remaining sentence needs two or more "
                     "new things. Widen the filter, add another corpus, or "
                     "run <code>python main.py review</code>.</p>")
-            return layout("i+1", body, "/", source)
+            return self._page("i+1", body, "/", source)
 
         unit = step.unit
         watchable = self._has_video(deck)
@@ -654,7 +685,7 @@ class Viewer:
                if watchable else "")
             + video.merged_script()
         )
-        return layout("i+1", body, "/", source)
+        return self._page("i+1", body, "/", source)
 
     def _reading(self, step, deck, source, occurrences, kind,
                  watchable) -> str:
@@ -947,7 +978,7 @@ class Viewer:
         holding = self.app.corpus(*self._builds(source), strict=True, text=text)
         found = holding[0] if holding else None
         if found is None:
-            return layout("Fix", "<h1>No such sentence</h1><p class='empty'>It "
+            return self._page("Fix", "<h1>No such sentence</h1><p class='empty'>It "
                           "may have been dropped already.</p>", "/roadmap", source)
 
         known = self.known
@@ -979,7 +1010,7 @@ class Viewer:
             "<button name='action' value='reset'>Use the analyser's answer"
             "</button></div></form>"
         )
-        return layout("Fix", body, "/roadmap", source)
+        return self._page("Fix", body, "/roadmap", source)
 
     def save_fix(self, form: dict) -> str:
         """Store a correction, or throw one away, and go back to the reading."""
@@ -1224,6 +1255,7 @@ class Viewer:
         listing = (f"<div class='ledger'>{entries}</div>" if window
                    else "<p class='empty'>Nothing here matches that.</p>")
         body = (self.switch(source, "/roadmap")
+                + self.list_switch(query, "/roadmap")
                 + self.counting_switch(query, "/roadmap")
                 + "<h1>Roadmap</h1>"
                 f"<p class='note'>{len(steps):,} steps in the order they were "
@@ -1233,7 +1265,7 @@ class Viewer:
                 f"{self._filters(needle, kind, source, query.get('hide', ''))}"
                 f"{self._hidden_note(hidden)}{listing}"
                 f"{self._pager(page, pages, needle, kind, source, query.get('hide', ''))}")
-        return layout("Roadmap", body, "/roadmap", source)
+        return self._page("Roadmap", body, "/roadmap", source)
 
     def _stored_label(self, source: str, list_only: bool,
                       unblock: bool = False) -> str:
@@ -1346,6 +1378,7 @@ class Viewer:
         )
         body = (
             self.switch(source, "/blocked")
+            + self.list_switch(query, "/blocked")
             + self.counting_switch(query, "/blocked")
             + f"<div class='switch'><span>Showing</span>{picker}</div>"
             "<h1>Where the roadmap stops</h1>"
@@ -1363,7 +1396,7 @@ class Viewer:
             + (f"<p class='note'>Showing the {PAGE_SIZE} most frequent of "
                f"{len(rows):,}.</p>" if len(rows) > PAGE_SIZE else "")
         )
-        return layout("Blocked", body, "/blocked", source)
+        return self._page("Blocked", body, "/blocked", source)
 
     def _stranded(self, source: str, list_only: bool = True,
                   unblock: bool = False):
@@ -1490,7 +1523,7 @@ class Viewer:
                                   watchable=any(s.timing for s in found)))
             + listing
         )
-        return layout(key, body, "/roadmap", source)
+        return self._page(key, body, "/roadmap", source)
 
     # --- reels ------------------------------------------------------------
 
@@ -1520,7 +1553,7 @@ class Viewer:
                    "them to watch. Try the subtitle build."
                    if not timed else
                    "No video in this corpus has enough subtitle lines.")
-            return layout("Reels", f"<h1>Nothing to watch</h1>"
+            return self._page("Reels", f"<h1>Nothing to watch</h1>"
                           f"<p class='empty'>{why}</p>", "/reels", source)
 
         here = min(max(int(query.get("i") or 0), 0), len(ranked) - 1)
@@ -1554,7 +1587,7 @@ class Viewer:
             + state.replace("<", "\\u003c") + "</script>"
             + video.merged_script()
         )
-        return layout("Reels", body, "/reels", source)
+        return self._page("Reels", body, "/reels", source)
 
     def reels_json(self, query: dict) -> dict:
         """One reel's worth of data, for swapping in without a page load.
@@ -1899,7 +1932,7 @@ class Viewer:
         clips = [s for s in ExampleIndex(holding).examples(
                      target, self.known, limit=60) if s.timing]
         if not clips:
-            return layout("Watch", self.switch(source, "/") +
+            return self._page("Watch", self.switch(source, "/") +
                           "<h1>Nothing to watch</h1><p class='empty'>No video "
                           "sentence in this corpus uses that.</p>", "/", source)
 
@@ -1927,7 +1960,7 @@ class Viewer:
             + video.transcript(cues, here, surface)
             + video.script()
         )
-        return layout(f"{target.key} on video", body, "/subtitles", source)
+        return self._page(f"{target.key} on video", body, "/subtitles", source)
 
     def _cues(self, video_id: str) -> list[Sentence]:
         """Every line of one video, in the order it is spoken.
@@ -2006,7 +2039,7 @@ class Viewer:
                 "</p>"
                 + self._add_video_form(query)
                 + f"<h2>{len(ranked)} in the catalogue</h2>" + table)
-        return layout("Videos", body, "/subtitles", source)
+        return self._page("Videos", body, "/subtitles", source)
 
     @staticmethod
     def _density(row: dict) -> float:

@@ -352,8 +352,19 @@ already holds from a channel before fetching anything.
 
 DONE. The counting switch has three positions; the storage
 (`vocab/word_lists.py`), the fuzzy search (`vocab/search.py`) and
-`--goals-list` are built; and `/lists` is the page — search box, tick,
-name, remove, forget, with a list picker across the top.
+`--goals-list` are built; `/lists` is the page — search box, tick, name,
+remove, forget; and a **Learning** switch on `/`, `/roadmap`, `/blocked` and
+`/lists` chooses which list the whole app is aimed at.
+
+That last part was claimed done here before it existed, which is half the
+entry's title. It is a viewer per list rather than a list dimension inside
+`_scopes`: a `Viewer` already holds everything a list decides — resolved
+goals, narrowed corpus, ranking, scopes — so switching is a different viewer
+and nothing else needs re-keying. Built on demand, so a list nobody opens
+costs nothing, which was the measured objection to putting it in `_scopes`.
+`layout` carries `list` beside `src` into every nav link, since dropping
+either silently returns the reader to a default and looks like a broken
+switch.
 
 No script on it. Everything is a form and a 303, because the state that
 matters lives in `word_list` rather than in the page, and a page that

@@ -32,17 +32,60 @@ TYPES = {
 }
 
 
+class Viewers:
+    """One `Viewer` per goal list, built when first asked for.
+
+    A viewer holds everything derived from a list — the resolved goals, the
+    narrowed corpus, the ranking, the scopes — so switching lists is a
+    different viewer rather than a re-keying of every cache inside one. It
+    also means a list nobody opens costs nothing, which matters: each one is
+    a corpus load, and that was the measured objection to putting a list
+    dimension inside `_scopes`.
+    """
+
+    def __init__(self, app) -> None:
+        self._default = app
+        self._stem = app.settings.goal_words.stem
+        self._made: dict[str, Viewer] = {self._stem: Viewer(app)}
+
+    def names(self) -> list[str]:
+        """The list this process was started with, and every saved one."""
+        from vocab.word_lists import WordListStore       # noqa: PLC0415
+        saved = [n for n, count, _ in
+                 WordListStore(self._default.settings.state_path).names()
+                 if count]
+        return [self._stem] + [n for n in saved if n != self._stem]
+
+    def pick(self, query: dict) -> Viewer:
+        wanted = (query.get("list") or "").strip() or self._stem
+        if wanted not in self.names():
+            wanted = self._stem
+        if wanted not in self._made:
+            from dataclasses import replace              # noqa: PLC0415
+            from context import Application              # noqa: PLC0415
+            from vocab.word_lists import WordListStore   # noqa: PLC0415
+            store = WordListStore(self._default.settings.state_path)
+            settings = replace(
+                self._default.settings,
+                goal_words=self._default.settings.data_dir / f"{wanted}.txt",
+                goal_entries=store.entries(wanted))
+            self._made[wanted] = Viewer(Application(settings))
+        viewer = self._made[wanted]
+        viewer.lists = self                              # for the switch
+        return viewer
+
+
 class LocalServer:
     """Routes requests to `Viewer` and serves the HTML it returns."""
 
     def __init__(self, app, port: int = 8765, host: str = LOOPBACK) -> None:
-        self._viewer = Viewer(app)
+        self._viewers = Viewers(app)
+        self._viewer = self._viewers.pick({})
         self._port = port
         self._host = host
 
     def serve(self, open_browser: bool = True) -> None:
-        viewer = self._viewer
-        handler = _make_handler(viewer)
+        handler = _make_handler(self._viewers)
         server = ThreadingHTTPServer((self._host, self._port), handler)
         url = f"http://{self._reachable_at()}:{self._port}/"
         # Flushed, both of them. Redirected output is block-buffered, so the
@@ -81,7 +124,12 @@ class LocalServer:
         return name if name.endswith(".local") else f"{name}.local"
 
 
-def _make_handler(viewer: Viewer):
+def _make_handler(viewers: "Viewers"):
+    """One handler, and the goal list chosen per request.
+
+    `?list=NAME` picks it; the form carries the same key back so a POST
+    lands on the list the page was showing rather than on the default.
+    """
     class Handler(BaseHTTPRequestHandler):
         protocol_version = "HTTP/1.1"
 
@@ -118,6 +166,7 @@ def _make_handler(viewer: Viewer):
             # many times, and keeping only the first silently drops the rest.
             form = {k: "\x00".join(v) for k, v in parse_qs(body).items()}
             posted = urlparse(self.path).path.rstrip("/")
+            viewer = viewers.pick(form)
             try:
                 if posted == "/known":
                     self._redirect(viewer.mark_known(form))
@@ -147,6 +196,7 @@ def _make_handler(viewer: Viewer):
             self.end_headers()
 
         def _route(self, path: str, query: dict) -> tuple[str, int]:
+            viewer = viewers.pick(query)
             if path == "/":
                 return viewer.next_up(query), 200
             if path == "/roadmap":
