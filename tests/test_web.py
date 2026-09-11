@@ -310,6 +310,67 @@ class UnblockedTest(unittest.TestCase):
         self.assertFalse(viewer.unblocked({}))
 
 
+class LoadedOnceTest(unittest.TestCase):
+    """`corpus_for` and `priority`, which exist so a page pays each once.
+
+    The blocked list wants the sentences and nothing else — it builds a
+    throwaway index of its own — so asking `scope` for them built an index,
+    a builder and an example index that were dropped unused. Splitting them
+    only helps if both callers still share one load, which is what these
+    check.
+    """
+
+    def viewer(self):
+        viewer = Viewer.__new__(Viewer)
+        viewer._corpora = {}
+        viewer._priority = None
+        self.loads = []
+        self.rankings = 0
+
+        def corpus(*builds, list_only=False, strict=False):
+            self.loads.append((builds, list_only, strict))
+            return [f"sentence-{len(self.loads)}"]
+
+        def priority():
+            self.rankings += 1
+            return f"ranking-{self.rankings}"
+
+        viewer.app = SimpleNamespace(corpus=corpus, priority=priority)
+        viewer._builds = lambda source: (source,)
+        return viewer
+
+    def test_the_same_corpus_is_loaded_once(self) -> None:
+        viewer = self.viewer()
+        first = viewer.corpus_for("subtitle", False)
+        self.assertIs(viewer.corpus_for("subtitle", False), first)
+        self.assertEqual(len(self.loads), 1)
+
+    def test_the_counting_mode_is_part_of_the_key(self) -> None:
+        """Narrowing gives genuinely different unknown counts, so the two
+        readings cannot share a load."""
+        viewer = self.viewer()
+        self.assertIsNot(viewer.corpus_for("subtitle", True),
+                         viewer.corpus_for("subtitle", False))
+        self.assertEqual(len(self.loads), 2)
+
+    def test_not_narrowed_asks_for_the_strict_corpus(self) -> None:
+        """`list_only=False` means strict, not raw — the duplicate surface
+        forms are still dropped."""
+        self.viewer().corpus_for("subtitle", False)
+        self.assertEqual(self.loads[0], (("subtitle",), False, True))
+
+    def test_narrowed_is_not_also_strict(self) -> None:
+        self.viewer().corpus_for("subtitle", True)
+        self.assertEqual(self.loads[0], (("subtitle",), True, False))
+
+    def test_the_ranking_is_built_once(self) -> None:
+        """`Application.priority` is a fresh build every call, and two of
+        the things a page does want the same one."""
+        viewer = self.viewer()
+        self.assertIs(viewer.priority(), viewer.priority())
+        self.assertEqual(self.rankings, 1)
+
+
 class ComingBackTest(unittest.TestCase):
     """`_here` — the address a form returns to.
 

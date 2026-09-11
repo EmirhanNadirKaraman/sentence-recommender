@@ -76,6 +76,13 @@ class Viewer:
         self.app = app
         self._known = None
         self._scopes: dict[str, Scope] = {}
+        # The sentences alone, keyed the same way. Held apart from `_scopes`
+        # because the blocked list wants them without the index, the builder
+        # and the example index that a `Scope` carries — it builds an index
+        # of its own from the same rows, so the one in the scope was made
+        # and thrown away.
+        self._corpora: dict[str, list[Sentence]] = {}
+        self._priority: UnitPriority | None = None
         self._store = RoadmapStore(app.settings.state_path)
         self._video_plan = VideoRoadmapStore(app.settings.state_path)
         # Blocked-set results, per source. The walk behind them is cheap on a
@@ -360,18 +367,12 @@ class Viewer:
         """
         key = f"{source}|{'list' if list_only else 'all'}"
         if key not in self._scopes:
-            # Not narrowed means strict, not raw: the bare lemma the
-            # analyser yields beside the goal that already teaches it is one
-            # word arriving twice, and counting it as unknown is bookkeeping
-            # rather than vocabulary. See `Application.covered_forms`.
-            sentences = self.app.corpus(*self._builds(source),
-                                        list_only=list_only,
-                                        strict=not list_only)
+            sentences = self.corpus_for(source, list_only)
             # The resolved vocabulary, not a fresh resolution: known_set()
             # re-runs the parser over every word in the files, which is
             # sixteen seconds, and this viewer already holds the answer.
             index = CorpusIndex(sentences, KnownSet(self.known))
-            priority = self.app.priority()
+            priority = self.priority()
             self._scopes[key] = Scope(
                 sentences=sentences,
                 index=index,
@@ -385,6 +386,39 @@ class Viewer:
                 priority=priority,
             )
         return self._scopes[key]
+
+    def corpus_for(self, source: str, list_only: bool) -> list[Sentence]:
+        """The sentences for one corpus and counting mode, loaded once.
+
+        Split out of `scope` because not every caller wants a scope. The
+        blocked list needs the rows and nothing else: it builds a throwaway
+        index of its own so the walk cannot leave the reader looking like
+        they know words they have never seen, which meant the scope's index,
+        its builder and its example index were all constructed and dropped.
+
+        Keyed exactly as `scope` is, and used by it, so nothing loads twice
+        whichever page asks first.
+        """
+        key = f"{source}|{'list' if list_only else 'all'}"
+        if key not in self._corpora:
+            # Not narrowed means strict, not raw: the bare lemma the
+            # analyser yields beside the goal that already teaches it is one
+            # word arriving twice, and counting it as unknown is bookkeeping
+            # rather than vocabulary. See `Application.covered_forms`.
+            self._corpora[key] = self.app.corpus(*self._builds(source),
+                                                 list_only=list_only,
+                                                 strict=not list_only)
+        return self._corpora[key]
+
+    def priority(self) -> UnitPriority:
+        """Ranked goals, built once a request rather than once a caller.
+
+        `Application.priority` is a fresh `UnitPriority.build` every call,
+        and two of the things a page does want the same ranking.
+        """
+        if self._priority is None:
+            self._priority = self.app.priority()
+        return self._priority
 
     def counting_switch(self, query: dict, page: str) -> str:
         """The three readings, minus any this corpus has no plan for.
@@ -1207,11 +1241,11 @@ class Viewer:
         key = f"{source}|{'list' if list_only else 'all'}"
         if key in self._stuck:
             return self._stuck[key]
-        scope = self.scope(source, list_only)
+        sentences = self.corpus_for(source, list_only)
         # Reuse the resolved vocabulary rather than asking for it again —
         # known_set() re-runs the parser over every word in the files, which
         # is seconds, and this page already has the answer.
-        spare = CorpusIndex(scope.sentences, KnownSet(self.known))
+        spare = CorpusIndex(sentences, KnownSet(self.known))
         # Replay the stored plan instead of deriving it again. Learning a unit
         # is a dictionary update; *choosing* one scores every candidate on the
         # frontier, and there are thousands of those. The walk below then only
@@ -1228,14 +1262,14 @@ class Viewer:
         # learning `Klausur` and then reports it as reachable. Saying so cost
         # two minutes a page load as well as being wrong.
         goals = frozenset(self.app.goal_units)
-        RoadmapBuilder(spare, scope.priority,
+        RoadmapBuilder(spare, self.priority(),
                        self.app.settings.priority_weight,
                        goals=goals, only_goals=True).build(max_steps=WALK_LIMIT)
         reached = spare.known
 
         appearances: Counter = Counter()
         easiest: dict = {}
-        for s in scope.sentences:
+        for s in sentences:
             unknown = s.units - reached
             if not unknown:
                 continue
@@ -1262,7 +1296,7 @@ class Viewer:
         # on the study list can these videos not teach me. A goal the analyser
         # would never emit even if it were said belongs in that answer too —
         # hiding it made the list shorter without making it truer.
-        priority = scope.priority
+        priority = self.priority()
         rows += [
             (unit, 0, 0, "", [])
             for unit in sorted(
