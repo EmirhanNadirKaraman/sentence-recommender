@@ -1295,10 +1295,22 @@ class Viewer:
         # `--goals-file` already means everywhere else.
         named = self.app.settings.goal_words.stem
         tail = "" if named == Settings().goal_words.stem else f":{named}"
-        strict = (f"{source}:good:strict:goals{tail}",
-                  f"{source}:strict:goals{tail}")
-        listed = (f"{source}:good:list:goals{tail}",
-                  f"{source}:list:goals{tail}")
+        # "Everything" is `all` on the page and `subtitle+transcript` in a
+        # label, because `build-roadmap --source subtitle transcript` names a
+        # plan after the builds it walked while `build-roadmap` with no
+        # --source names it `all`. The same corpus under two names meant the
+        # everything position never found a plan and fell back to walking
+        # live — 316 where the stored plan says 347, and a page that looked
+        # merely slow rather than wrong.
+        names = [source]
+        if source == ALL:
+            concrete = "+".join(sorted(b for b in self.sources() if b != ALL))
+            if concrete:
+                names.append(concrete)
+        strict = tuple(f"{name}:good:strict:goals{tail}" for name in names)
+        strict += tuple(f"{name}:strict:goals{tail}" for name in names)
+        listed = tuple(f"{name}:good:list:goals{tail}" for name in names)
+        listed += tuple(f"{name}:list:goals{tail}" for name in names)
         # Asked for first, never fallen back *to*: an unblocked plan teaches
         # words the reader did not choose, which is not something to hand
         # someone who did not ask. The reverse is fine — a missing unblocked

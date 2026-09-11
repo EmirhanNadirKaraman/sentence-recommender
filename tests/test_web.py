@@ -371,6 +371,51 @@ class LoadedOnceTest(unittest.TestCase):
         self.assertEqual(self.rankings, 1)
 
 
+class EverythingTest(unittest.TestCase):
+    """"Everything" is `all` on the page and `subtitle+transcript` in a label.
+
+    `build-roadmap --source subtitle transcript` names a plan after the
+    builds it walked; `build-roadmap` with no --source names it `all`. The
+    same corpus under two names meant the everything position never found a
+    plan and quietly walked live instead, showing 316 where the stored plan
+    said 347 — a page that looked slow rather than wrong.
+    """
+
+    def viewer(self, stored, goals="study_list"):
+        viewer = Viewer.__new__(Viewer)
+        viewer.app = SimpleNamespace(
+            settings=SimpleNamespace(goal_words=Path(f"data/{goals}.txt")))
+        viewer._store = SimpleNamespace(sources=lambda: stored)
+        viewer.sources = lambda: {"subtitle": 1, "transcript": 1, "all": 2}
+        return viewer
+
+    def test_all_finds_a_plan_named_after_its_builds(self) -> None:
+        stored = {"subtitle+transcript:good:strict:goals"}
+        self.assertEqual(self.viewer(stored)._stored_label("all", False),
+                         "subtitle+transcript:good:strict:goals")
+
+    def test_a_plan_actually_named_all_still_wins(self) -> None:
+        """Built with no --source, which is what `all` means."""
+        stored = {"all:good:strict:goals",
+                  "subtitle+transcript:good:strict:goals"}
+        self.assertEqual(self.viewer(stored)._stored_label("all", False),
+                         "all:good:strict:goals")
+
+    def test_it_carries_the_list_and_the_unblock(self) -> None:
+        stored = {"subtitle+transcript:good:strict:goals:b1_parsed:unblock"}
+        got = self.viewer(stored, "b1_parsed")._stored_label("all", False, True)
+        self.assertEqual(
+            got, "subtitle+transcript:good:strict:goals:b1_parsed:unblock")
+
+    def test_a_single_build_source_is_untouched(self) -> None:
+        stored = {"subtitle:good:strict:goals"}
+        self.assertEqual(self.viewer(stored)._stored_label("subtitle", False),
+                         "subtitle:good:strict:goals")
+
+    def test_nothing_stored_still_falls_back_to_the_source(self) -> None:
+        self.assertEqual(self.viewer(set())._stored_label("all", False), "all")
+
+
 class WordListPageTest(unittest.TestCase):
     """`/lists` — the page half of item 9.
 

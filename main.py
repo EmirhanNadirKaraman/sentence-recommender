@@ -269,6 +269,10 @@ def _parser() -> argparse.ArgumentParser:
     lists.add_argument("--from", dest="source_file", metavar="PATH",
                        help="read the entries to save from this file")
     lists.add_argument("--forget", metavar="NAME", help="delete a saved list")
+    lists.add_argument("--rename", metavar="NEW",
+                       help="rename the named list. A plan's label carries "
+                            "the list name, so a renamed list looks for "
+                            "plans built under the new name")
 
     captions = sub.add_parser(
         "caption-check",
@@ -320,7 +324,15 @@ def word_lists(app: Application, args) -> None:
     """Show, save or forget the lists the reader has built."""
     from vocab.word_lists import WordListStore            # noqa: PLC0415
     store = WordListStore(app.settings.state_path)
-    if args.forget:
+    if args.rename:
+        if not args.name:
+            raise SystemExit("--rename needs the current name: "
+                             "`word-list OLD --rename NEW`")
+        moved = store.rename(args.name, args.rename)
+        if not moved:
+            raise SystemExit(f"no saved list called {args.name!r}")
+        print(f"renamed {args.name!r} to {args.rename!r} — {moved:,} entries")
+    elif args.forget:
         store.forget(args.forget)
         print(f"forgot {args.forget!r}")
     elif args.save:

@@ -83,6 +83,24 @@ class WordListStore:
                 "  LEFT JOIN word_list w ON w.name = m.name"
                 " GROUP BY m.name, m.saved ORDER BY m.name")]
 
+    def rename(self, old: str, new: str) -> int:
+        """Give a list a different name, keeping its order.
+
+        Worth having because a list's name is not decoration: a roadmap's
+        label carries it, so a list called one thing cannot find plans built
+        under another, and the page silently falls back to walking live.
+        """
+        entries = self.entries(old)
+        if not entries:
+            return 0
+        with open_state(self._path) as conn:
+            note = conn.execute(
+                "SELECT note FROM word_list_meta WHERE name = ?",
+                (old,)).fetchone()
+        written = self.save(new, list(entries), note[0] if note else "")
+        self.forget(old)
+        return written
+
     def forget(self, name: str) -> None:
         with open_state(self._path) as conn:
             conn.execute("DELETE FROM word_list WHERE name = ?", (name,))
