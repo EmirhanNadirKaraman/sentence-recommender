@@ -43,6 +43,17 @@ BUSY_TIMEOUT_MS = 30_000
 # not because they were seen to help — the case they address is a cold read,
 # which is the one case a benchmark on this machine cannot produce.
 TUNING = (
+    # Declared and, until now, enforced almost nowhere. `sentence_units`
+    # references `sentences(id)` with ON DELETE CASCADE, but only the
+    # connection in `CorpusStore._connect` ever turned checking on — every
+    # other reader and writer of this file could have left a row pointing at
+    # a sentence that no longer exists, and the cascade would not have fired.
+    #
+    # Checked before switching it on: no orphan rows, and `foreign_key_check`
+    # reports nothing. Enabling it costs a comparison per write against an
+    # indexed parent key, which is not measurable beside the writes this
+    # program makes in bulk.
+    "PRAGMA foreign_keys = ON",
     "PRAGMA cache_size = -262144",
     "PRAGMA mmap_size = 536870912",
     "PRAGMA temp_store = MEMORY",
