@@ -308,6 +308,15 @@ the list and the build, or regenerating under one deletes the other;
 Worth: item 9 lets the reader say what they want to learn; this is the
 first answer here that takes the list whole and prices it in minutes.
 
+Blocked on item 9's page, by this entry's own reasoning. The measurement
+above says a cover only means anything for a hand-built list of tens of
+words — for the 4,007-unit default list it is 683 videos and 14,319 minutes,
+which is the catalogue with a price on it. Item 9's storage and search are
+built (`vocab/word_lists.py`, `vocab/search.py`, `--goals-list`), but until
+a reader can tick twenty words into a list there is nothing here worth
+solving. `pulp` is not installed; adding it is the first step after that,
+not before.
+
 ## Other people
 
 ### 11. Letting friends run it
