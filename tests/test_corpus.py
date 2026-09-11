@@ -52,6 +52,43 @@ class WordListLoaderTest(unittest.TestCase):
         self.assertEqual(self.load("zu Hause\n").surfaces, ("zu hause",))
 
 
+class GoalCorrectionTest(unittest.TestCase):
+    """`goal_lemmas.txt` has to be able to overrule a pattern match.
+
+    It is hand-checked, one line per entry the derived machinery gets wrong.
+    The pattern branch used to run first and `continue`, so a correction
+    written for a registered canonical was silently dead — which is what
+    `gucken, kucken` was: registered as a pattern, emitted by nothing, and
+    stranded while the corpus said `gucken` five hundred times.
+    """
+
+    def units(self, entries, patterns, corrections):
+        import tempfile
+        from pathlib import Path as P
+
+        from vocab.goal_list import GoalList
+        with tempfile.TemporaryDirectory() as d:
+            path = P(d) / "goals.txt"
+            path.write_text("\n".join(entries) + "\n", encoding="utf-8")
+            return GoalList(path).units(frozenset(patterns),
+                                        corrections=corrections)
+
+    def test_a_correction_beats_a_pattern(self) -> None:
+        got = self.units(["gucken, kucken"], {"gucken, kucken"},
+                         {"gucken, kucken": "gucken"})
+        self.assertEqual([u.key for u in got], ["gucken"])
+        self.assertFalse(got[0].is_pattern)
+
+    def test_a_pattern_with_no_correction_is_untouched(self) -> None:
+        got = self.units(["etw. (Akk) haben"], {"etw. (Akk) haben"}, {})
+        self.assertEqual([u.key for u in got], ["etw. (Akk) haben"])
+        self.assertTrue(got[0].is_pattern)
+
+    def test_alternatives_still_split_when_nothing_claims_them(self) -> None:
+        got = self.units(["gucken, kucken"], set(), {})
+        self.assertEqual(sorted(u.key for u in got), ["gucken", "kucken"])
+
+
 class MergeCorrectorTest(unittest.TestCase):
     def test_joins_a_sentence_split_across_subtitle_lines(self) -> None:
         result = MergeCorrector().correct([

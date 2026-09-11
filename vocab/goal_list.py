@@ -126,13 +126,19 @@ class GoalList:
         settled: dict[int, str] = {}
         out: list[Unit] = []
         for entry in self.entries():
-            if entry in patterns:
-                out.append(Unit.pattern(entry))
-                continue
+            # Corrections first, and deliberately ahead of the pattern
+            # branch. `goal_lemmas.txt` is hand-checked, one line per entry
+            # the derived machinery gets wrong, so it has to be able to
+            # overrule a pattern match as well as a lemma — otherwise a
+            # correction written for a registered canonical is silently
+            # dead, which is what `gucken, kucken` was.
             fix = corrections.get(entry)
             if fix is not None:
                 settled[len(wanted)] = fix
                 wanted.append(fix)
+                continue
+            if entry in patterns:
+                out.append(Unit.pattern(entry))
                 continue
             wanted.extend(self._alternatives(entry))
 

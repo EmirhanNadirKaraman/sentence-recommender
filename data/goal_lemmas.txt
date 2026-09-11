@@ -36,3 +36,10 @@ bewusst	bewusst
 einverstanden	einverstanden
 jdn. zu etw. einladen	einladen
 ander	anderer
+# `gucken, kucken` is registered as a pattern canonical, and no mechanism
+# emits it. The case-frame path produces a pattern only for a verb with
+# objects — `Ich gucke mir das an` yields the angucken frame — and the
+# variant path only rewrites a lemma that differs from the canonical's head,
+# which `gucken` does not. So the goal sat unreachable while the corpus said
+# `gucken` 100+ times. Corrected to the lemma the corpus actually emits.
+gucken, kucken	gucken

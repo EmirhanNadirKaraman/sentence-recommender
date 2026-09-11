@@ -817,41 +817,39 @@ counts.
 
 ## Goals
 
-### 18. One goal is unreachable because its pattern is never emitted
+### 18. A goal nothing emitted — DONE, and the answer was a data line
 
-Written twice before it was right, and both earlier readings were wrong.
+Written three times before it was right. Not `GoalList` failing to split
+alternatives (it splits them, and says so). Not six goals (five of the six
+are nominalised adjectives the corpus holds under neither spelling, so they
+are stranded for want of material, which is what `hunt` is for). One goal:
+`gucken, kucken`, registered as a pattern canonical, emitted by nothing,
+stranded while the corpus said `gucken` 531 times.
 
-Not `GoalList`: `units` already splits alternatives, and its docstring says
-so. These entries take the other branch — they are registered pattern
-canonicals, kept verbatim because that string is what the matcher emits.
-There are 43 canonicals containing a comma and **the matcher emits 37 of
-them**, so the mechanism is sound.
-
-Nor is it six goals. Of the six never emitted, five are nominalised
-adjectives the corpus contains under neither spelling:
+**Why nothing emitted it.** Two mechanisms can produce a comma canonical and
+neither applies:
 
 ```
-  der Abgeordnete, die Abgeordnete    corpus has neither
-  der Angestellte, die Angestellte    corpus has neither
-  der Beamte, die Beamte              corpus has neither
-  der Beschäftigte, die Beschäftigte  corpus has neither
-  der Vorsitzende, die Vorsitzende    corpus has neither
-  gucken, kucken                      corpus has `gucken`
+  Ich gucke gern Filme.      ->  w:gucken                        lemma only
+  Ich gucke mir das an.      ->  P:jdn./etw. (Akk) … angucken    case frame
 ```
 
-Those five are stranded because the material is missing, which is what the
-blocked list is for and what `hunt` is the remedy for. They are not a bug.
+The verb path emits a pattern only where there is a case frame, and a bare
+`gucken` has none. The variant path rewrites a lemma that differs from its
+canonical's head — `rauskommen` to `herauskommen, rauskommen`, `gerne` to
+`gern, gerne` — and `gucken` *is* the head, so there is nothing to rewrite.
+`angucken, ankucken` looked like a counter-example and is not: it is emitted
+once, against 149 for its case frame.
 
-**One is.** The corpus says `gucken` and emits it as a lemma; the goal wants
-the pattern `gucken, kucken`; the two never meet, so the goal is stranded
-whatever is hunted. `hunt_videos._search_terms` already splits the comma —
-its docstring records the round spent chasing `kucken`, which nobody writes
-— so the hunt looks for the right word and the goal still cannot be
-satisfied by finding it.
+So the matcher is right and the goal was written in a shape nothing
+produces. Fixed as data, in `data/goal_lemmas.txt`, which exists for exactly
+this — entries the derived machinery gets wrong, hand-checked one line at a
+time.
 
-Worth fixing only with care. The obvious change — let a lemma alternative
-satisfy a pattern canonical — touches all 43, and 37 of them work today. A
-fix that destabilises 37 working goals to reach one is a bad trade. The
-narrow version is to ask why this canonical is not emitted when
-`angucken, ankucken` is, since both are bare verbs; that is a matcher
-question, and the answer decides whether anything here is worth changing.
+One code change went with it, because the line would otherwise have been
+dead: `units` checked the pattern branch first and `continue`d, so a
+correction written for a registered canonical was never consulted.
+Corrections now outrank patterns. Verified safe first — none of the 19
+existing corrections names a canonical, so nothing else moves.
+
+`gucken` is a goal now, and off the blocked list.
