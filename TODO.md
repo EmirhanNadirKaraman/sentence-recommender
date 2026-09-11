@@ -814,3 +814,38 @@ ones because video can fix it, and that is fair — but it is not the only
 remedy for those 24, and the file should let the reader see which of the
 two they are looking at. A second column, and a header that says what each
 counts.
+
+## Goals
+
+### 18. A goal written as alternatives can never be reached
+
+`data/study_list.txt` writes alternatives with a comma — `gucken, kucken`,
+`der Beamte, die Beamte` — and `GoalList.entries` keeps the line whole, so
+the goal's unit key is the entire string. No corpus unit is ever equal to
+it, so the goal is stranded whatever the corpus holds.
+
+It is not hypothetical. Of the 52 study-list goals reported as never said,
+six are comma pairs, and the corpus already says half of one of them:
+
+```
+  gucken, kucken          corpus has gucken, does not have kucken
+  der Beamte, die Beamte  neither half
+  ... four more
+```
+
+So `gucken` is taught by the corpus today and the goal sits on the blocked
+list regardless, and `hunt --absent-only` will chase it forever.
+
+`commands/hunt_videos._search_terms` already splits on the comma — its
+docstring records the round that went looking for `kucken`, which nobody
+writes, while `gucken` was there all along. That fixed what the hunt
+*searches for* and not what the goal *matches*, which is the half that
+decides whether it is ever satisfied.
+
+The fix is in `GoalList.units`: an entry naming alternatives should resolve
+to a unit per alternative, satisfied by any of them. That changes the goal
+count and every plan built from it, so it wants the same treatment as any
+analyser change — measure how many goals move first, since a list that
+suddenly reaches six more is a list whose numbers no longer compare with
+yesterday's.
+
