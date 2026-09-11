@@ -173,12 +173,22 @@ already holds from a channel before fetching anything.
 
 ### 9. Lists built by searching, and a page that can choose between them
 
-Half done. The counting switch is built and has three positions; the
-storage (`vocab/word_lists.py`), the fuzzy search (`vocab/search.py`)
-and `--goals-list` are built and tested. **The page half is not**: no
-search box, no ticking words into a list, no list picker — `web/` does
-not mention either module. That is what is left here, and item 10 waits
-on it.
+DONE. The counting switch has three positions; the storage
+(`vocab/word_lists.py`), the fuzzy search (`vocab/search.py`) and
+`--goals-list` are built; and `/lists` is the page — search box, tick,
+name, remove, forget, with a list picker across the top.
+
+No script on it. Everything is a form and a 303, because the state that
+matters lives in `word_list` rather than in the page, and a page that
+keeps its own would be a second place for a list to be wrong.
+
+It is the only page here that never loads a corpus: the search reads
+`unit_counts`, which answers off the materialized view, so it stays
+usable on a machine with nothing left — which is how it was built.
+
+The walk is still a command. `--goals-list NAME` aims one at what you
+ticked, and the page says so rather than pretending a button could do it
+in a request.
 
 The roadmap's aim is a file: `data/study_list.txt`, or `--goals-file PATH`
 on the command line only. Wanted: search the vocabulary with a box that

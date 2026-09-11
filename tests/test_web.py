@@ -371,6 +371,70 @@ class LoadedOnceTest(unittest.TestCase):
         self.assertEqual(self.rankings, 1)
 
 
+class WordListPageTest(unittest.TestCase):
+    """`/lists` — the page half of item 9.
+
+    `WordListStore.save` replaces, deliberately, so that removing a word is
+    possible at all. Adding therefore has to be read-concat-write, and it
+    lives here rather than in the store: the page is the only thing that
+    means "and also this".
+    """
+
+    def viewer(self, start=()):
+        viewer = Viewer.__new__(Viewer)
+        self.held = {"mine": list(start)} if start else {}
+        store = SimpleNamespace(
+            entries=lambda n: tuple(self.held.get(n, ())),
+            save=lambda n, e, note="": self.held.__setitem__(n, list(e)),
+            forget=lambda n: self.held.pop(n, None),
+            names=lambda: [(n, len(v), "now") for n, v in self.held.items()])
+        viewer._lists = store
+        return viewer
+
+    def post(self, viewer, **form):
+        return viewer.save_word_list(form)
+
+    def test_adding_appends_rather_than_replacing(self) -> None:
+        viewer = self.viewer(["haus"])
+        self.post(viewer, action="add", name="mine", entry="hund")
+        self.assertEqual(self.held["mine"], ["haus", "hund"])
+
+    def test_several_ticks_arrive_joined(self) -> None:
+        """One checkbox name posted many times; see `web.server.do_POST`."""
+        viewer = self.viewer()
+        self.post(viewer, action="add", name="mine", entry="haus\x00hund")
+        self.assertEqual(self.held["mine"], ["haus", "hund"])
+
+    def test_ticking_nothing_changes_nothing(self) -> None:
+        viewer = self.viewer(["haus"])
+        self.post(viewer, action="add", name="mine", entry="")
+        self.assertEqual(self.held["mine"], ["haus"])
+
+    def test_removing_drops_only_that_entry(self) -> None:
+        viewer = self.viewer(["haus", "hund"])
+        self.post(viewer, action="remove", name="mine", entry="haus")
+        self.assertEqual(self.held["mine"], ["hund"])
+
+    def test_forgetting_takes_the_list(self) -> None:
+        viewer = self.viewer(["haus"])
+        self.assertEqual(self.post(viewer, action="forget", name="mine"),
+                         "/lists")
+        self.assertNotIn("mine", self.held)
+
+    def test_a_nameless_post_is_a_no_op(self) -> None:
+        """Otherwise a stray form writes a list called empty string."""
+        viewer = self.viewer(["haus"])
+        self.post(viewer, action="add", name="  ", entry="hund")
+        self.assertEqual(self.held, {"mine": ["haus"]})
+
+    def test_it_returns_where_it_came_from(self) -> None:
+        viewer = self.viewer()
+        self.assertEqual(
+            self.post(viewer, action="add", name="mine", entry="x",
+                      back="/lists?name=mine&q=hau"),
+            "/lists?name=mine&q=hau")
+
+
 class ComingBackTest(unittest.TestCase):
     """`_here` — the address a form returns to.
 

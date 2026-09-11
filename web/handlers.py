@@ -25,6 +25,8 @@ from threading import Lock, Thread
 from urllib.parse import quote
 
 from config import Settings
+from vocab.search import UnitSearch
+from vocab.word_lists import WordListStore
 from fingerprint import analyser_fingerprint
 from scores import ScoreStore
 from watchability import ENOUGH_LINES, watchability
@@ -71,6 +73,11 @@ class Scope:
     priority: UnitPriority
 
 
+# How many of a list's entries the page draws. Each carries a form of its
+# own, so this is a page-weight limit rather than a taste in page length.
+SHOWN_ENTRIES = 60
+
+
 class Viewer:
     def __init__(self, app) -> None:
         self.app = app
@@ -83,6 +90,12 @@ class Viewer:
         # and thrown away.
         self._corpora: dict[str, list[Sentence]] = {}
         self._priority: UnitPriority | None = None
+        # Trigram indexes for the list-building search, one per corpus. Built
+        # from `unit_counts`, which answers off a materialized view, so this
+        # page never loads a corpus — the only page that can say that and the
+        # reason it stays usable when the machine has nothing left.
+        self._searches: dict[str, UnitSearch] = {}
+        self._lists = WordListStore(app.settings.state_path)
         self._store = RoadmapStore(app.settings.state_path)
         self._video_plan = VideoRoadmapStore(app.settings.state_path)
         # Blocked-set results, per source. The walk behind them is cheap on a
@@ -419,6 +432,135 @@ class Viewer:
         if self._priority is None:
             self._priority = self.app.priority()
         return self._priority
+
+    def _search_index(self, source: str) -> UnitSearch:
+        if source not in self._searches:
+            builds = self._builds(source) or tuple(self.sources())
+            self._searches[source] = UnitSearch(
+                self.app.corpus_store.unit_counts(
+                    *(b for b in builds if b != ALL)))
+        return self._searches[source]
+
+    def word_lists(self, query: dict) -> str:
+        """Search the vocabulary, tick words, and keep them as a list.
+
+        The goal list has only ever been a file. This is the other way in:
+        look a word up the way someone half-remembers it, tick it, name the
+        collection. `--goals-list` then aims a roadmap at it.
+
+        Everything here is a form and a redirect — no script — because the
+        state that matters is in `word_list`, not in the page.
+        """
+        source = self.source(query)
+        name = (query.get("name") or "").strip()
+        needle = (query.get("q") or "").strip()
+        saved = self._lists.names()
+        entries = self._lists.entries(name) if name else ()
+        here = self._here("/lists", query, "name", "q", "src")
+
+        empty = "<span class='empty'>none saved yet</span>"
+        picker = "".join(
+            f"<a href=\"/lists?name={quote(n, safe='')}&src={quote(source)}\" "
+            f"class=\"{'on' if n == name else ''}\">{escape(n)}"
+            f" <small>{c:,}</small></a>"
+            for n, c, _ in saved)
+        body = [
+            "<h1>Word lists</h1>",
+            f"<div class='switch'><span>Lists</span>{picker or empty}</div>",
+            "<form method='get' action='/lists' class='row'>",
+            f"<input type='hidden' name='src' value='{escape(source)}'>",
+            f"<input name='name' placeholder='list name' value='{escape(name)}'"
+            " required>",
+            f"<input name='q' placeholder='search a word' value='{escape(needle)}'"
+            " autofocus>",
+            "<button>Search</button></form>",
+        ]
+
+        if needle and name:
+            found = self._search_index(source).find(needle, limit=40)
+            held = set(entries)
+            body.append(f"<p class='note'>{len(found)} like "
+                        f"{escape(needle)}.</p>")
+            body.append(f"<form method='post' action='/lists'>"
+                        f"<input type='hidden' name='action' value='add'>"
+                        f"<input type='hidden' name='name' value='{escape(name)}'>"
+                        f"<input type='hidden' name='back' value='{escape(here)}'>"
+                        "<ul class='plain'>")
+            for unit, said, score in found:
+                mark = " checked disabled" if unit.key in held else ""
+                kind = "pattern" if unit.is_pattern else "word"
+                body.append(
+                    f"<li><label><input type='checkbox' name='entry'"
+                    f" value='{escape(unit.key)}'{mark}> "
+                    f"<b>{escape(unit.key)}</b> <small>{kind} · said "
+                    f"{said:,} · {score:.2f}</small></label></li>")
+            body.append("</ul><button>Add to list</button></form>"
+                        if found else "</ul>")
+        elif needle:
+            body.append("<p class='empty'>Name the list first, so there is "
+                        "somewhere to put what you tick.</p>")
+
+        if name:
+            body.append(f"<h2>{escape(name)} — {len(entries):,} entries</h2>")
+            if entries:
+                # Newest first and capped. A list built by ticking is tens of
+                # words, but one imported from a syllabus is thousands, and
+                # rendering a remove form for each made this page 679 KB for
+                # a search that returned forty rows.
+                shown = list(reversed(entries))[:SHOWN_ENTRIES]
+                if len(entries) > len(shown):
+                    body.append(
+                        f"<p class='note'>Showing the {len(shown)} most "
+                        f"recently added of {len(entries):,}. The whole list "
+                        f"is <code>python main.py word-list "
+                        f"{escape(name)}</code>.</p>")
+                body.append("<ul class='plain'>")
+                for entry in shown:
+                    body.append(
+                        "<li>" + escape(entry) +
+                        "<form method='post' action='/lists' class='inline'>"
+                        "<input type='hidden' name='action' value='remove'>"
+                        f"<input type='hidden' name='name' value='{escape(name)}'>"
+                        f"<input type='hidden' name='entry' value='{escape(entry)}'>"
+                        f"<input type='hidden' name='back' value='{escape(here)}'>"
+                        "<button>remove</button></form></li>")
+                body.append("</ul>")
+                body.append(
+                    "<p class='note'>Aim a roadmap at it with "
+                    f"<code>python main.py build-roadmap --goals-list "
+                    f"{escape(name)} --quality --strict --unblock</code>, "
+                    "which is minutes and cannot run inside a page.</p>")
+            else:
+                body.append("<p class='empty'>Nothing in it yet — search "
+                            "above and tick what you mean to learn.</p>")
+        return layout("Lists", "".join(body), "/lists", source)
+
+    def save_word_list(self, form: dict) -> str:
+        """Add to a list, drop one entry, or forget the whole thing.
+
+        `save` replaces rather than merges, so adding is read-concat-write
+        here. That is the right split: the store stays a plain replace, and
+        the page — which is the only thing that means "and also this" — owns
+        what adding means.
+        """
+        name = (form.get("name") or "").strip()
+        back = form.get("back") or "/lists"
+        if not name:
+            return back
+        action = form.get("action")
+        if action == "forget":
+            self._lists.forget(name)
+            return "/lists"
+        existing = list(self._lists.entries(name))
+        if action == "remove":
+            entry = form.get("entry") or ""
+            self._lists.save(name, [e for e in existing if e != entry])
+        else:
+            # One checkbox name posted many times arrives joined; see
+            # `web.server.do_POST`. Blank when nothing was ticked.
+            ticked = [e for e in (form.get("entry") or "").split("\x00") if e]
+            self._lists.save(name, existing + ticked)
+        return back
 
     def counting_switch(self, query: dict, page: str) -> str:
         """The three readings, minus any this corpus has no plan for.

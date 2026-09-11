@@ -131,6 +131,8 @@ def _make_handler(viewer: Viewer):
                     self._redirect(viewer.hide_sentence(form))
                 elif posted == "/fix":
                     self._redirect(viewer.save_fix(form))
+                elif posted == "/lists":
+                    self._redirect(viewer.save_word_list(form))
                 else:
                     self._send(_missing(self.path), status=404)
             except Exception as error:            # noqa: BLE001
@@ -155,6 +157,8 @@ def _make_handler(viewer: Viewer):
                 return viewer.subtitles(query), 200
             if path == "/reels":
                 return viewer.reels(query), 200
+            if path == "/lists":
+                return viewer.word_lists(query), 200
             if path == "/blocked":
                 return viewer.blocked(query), 200
             if path == "/quiz":
