@@ -201,11 +201,25 @@ teaches and how well it plays. Nothing says whose videos the reader would
 actually sit through, and a channel they like is a stronger reason to watch
 than a tenth of a sentence a minute.
 
-The blocker is data, not design. Of 1,134 German videos, 17 know their
-channel: `channel_id` has only been written since 8e7a146, and the rest
-cannot be backfilled from anything stored — it is one yt-dlp metadata call
-per video, paced the way `hunt` paces its searches. `video.category` is no
-substitute for a genre: 1,155 of 1,382 are YouTube's "Education".
+The blocker was data, and it is gone. All 1,483 videos now carry a
+`channel_id` — a foreign key to `channel`, not the YouTube string — across
+280 named channels (item 8). `video.category` is still no substitute for a
+genre: 1,155 of 1,382 are YouTube's "Education".
+
+The catalogue is lopsided, which matters for what a preference is worth:
+
+```
+  Like Germans                 692
+  UNED                         246
+  Deutsch lernen mit der DW     28
+  Dinge Erklärt – Kurzgesagt    25
+  ... 276 more channels
+```
+
+Two channels are 63% of it. Preferring one of those changes little; the
+weight only has teeth on the long tail, and a preference for a channel with
+twelve videos will run out fast — which is the argument for a weight and a
+tie-break rather than a filter, already made below.
 
 Once the column is filled: a subscription is a reader's judgement, so it
 lives in `state.sqlite3` beside `known_units`, not in `channel.active`,
@@ -314,7 +328,7 @@ of the entry stands: keep auto videos in their own build and
 `transcript_source='auto'`, so the reader can see which text a machine wrote
 twice.
 
-### 8. Backfill `channel_id` on the videos that lack it
+### 8. Backfill `channel_id` on the videos that lack it — DONE
 
 Item 6 needs this and cannot start without it, which is why it is its own
 entry rather than a clause inside one. 1,117 of 1,382 videos have a null
