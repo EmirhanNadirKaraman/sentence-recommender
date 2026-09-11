@@ -143,10 +143,23 @@ class RoadmapStore:
                          ("beside_key", "TEXT"))),
             ("roadmap_meta", (("total", "INTEGER NOT NULL DEFAULT 0"),)),
         ):
-            columns = {row[1] for row in
-                       conn.execute(f"PRAGMA table_info({table})")}
+            existing = {row[1]: row for row in
+                        conn.execute(f"PRAGMA table_info({table})")}
             for name, kind in added:
-                if name not in columns:
+                row = existing.get(name)
+                if row is None:
+                    conn.execute(
+                        f"ALTER TABLE {table} ADD COLUMN {name} {kind}")
+                    continue
+                # Added once with the wrong shape, and skipping it because the
+                # name was present left the wrong shape in place. Every column
+                # here was a tally when this was written, so a later one that
+                # is a word arrived as `INTEGER NOT NULL DEFAULT 0` and made a
+                # plain step unwritable — the fix to the type did nothing to
+                # the databases that had already run the broken version.
+                wants_null = "NOT NULL" not in kind
+                if wants_null and row[3]:          # row[3] is `notnull`
+                    conn.execute(f"ALTER TABLE {table} DROP COLUMN {name}")
                     conn.execute(
                         f"ALTER TABLE {table} ADD COLUMN {name} {kind}")
 

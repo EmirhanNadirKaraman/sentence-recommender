@@ -11,7 +11,9 @@ one word away from readable and unreachable for ever.
 """
 from __future__ import annotations
 
+import tempfile
 import unittest
+from pathlib import Path
 
 from vocab.entry import Unit
 from vocab.goal_list import GoalList
@@ -58,6 +60,51 @@ class OneGoalPerVerbTest(unittest.TestCase):
         ranking."""
         a, b = Unit.pattern("etw. (Akk) sehen"), Unit.lemma("baum")
         self.assertEqual(GoalList._one_goal_per_verb((a, b)), (a, b))
+
+
+class EntriesTest(unittest.TestCase):
+    """Two shapes of word list, and the one that used to read as empty.
+
+    `build-study-list` writes two tab-separated columns and the blueprint is
+    column two, because that is the string the matcher and `phrase_table`
+    speak. A list copied out of a syllabus is one column — and taking column
+    two of that yielded nothing at all, silently, since a file of the wrong
+    shape and a file with no goals look identical from here.
+    """
+
+    def setUp(self) -> None:
+        self._dir = tempfile.TemporaryDirectory()
+        self.path = Path(self._dir.name) / "list.txt"
+
+    def tearDown(self) -> None:
+        self._dir.cleanup()
+
+    def entries(self, body: str) -> tuple[str, ...]:
+        self.path.write_text(body, encoding="utf-8")
+        return GoalList(self.path).entries()
+
+    def test_two_columns_take_the_blueprint(self) -> None:
+        self.assertEqual(self.entries("haben\tetw./jdn. (Akk) haben\n"),
+                         ("etw./jdn. (Akk) haben",))
+
+    def test_one_column_takes_the_word(self) -> None:
+        self.assertEqual(self.entries("die Abbildung\nder Abend\n"),
+                         ("die Abbildung", "der Abend"))
+
+    def test_order_is_kept(self) -> None:
+        """These files are written most-useful-first and that is the only
+        ranking a goal list carries."""
+        self.assertEqual(self.entries("zebra\nabend\nhaus\n"),
+                         ("zebra", "abend", "haus"))
+
+    def test_repeats_collapse(self) -> None:
+        self.assertEqual(self.entries("haus\nhaus\n"), ("haus",))
+
+    def test_comments_and_blanks_are_skipped(self) -> None:
+        self.assertEqual(self.entries("# a note\n\nhaus\n"), ("haus",))
+
+    def test_a_missing_file_is_not_a_crash(self) -> None:
+        self.assertEqual(GoalList(self.path.parent / "nope.txt").entries(), ())
 
 
 if __name__ == "__main__":

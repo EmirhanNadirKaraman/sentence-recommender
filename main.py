@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import replace
 
 from pathlib import Path
 
@@ -12,6 +13,7 @@ from commands import (
     BuildStudyListCommand, ExportSubtitlesCommand, FillGapsCommand,
     HuntVideosCommand, ReviewCommand, ServeCommand, StatusCommand,
 )
+from config import Settings
 from context import Application
 from db import Database, WordRepository
 from vocab.function_words import FunctionWordFile
@@ -100,6 +102,9 @@ def _parser() -> argparse.ArgumentParser:
                            "an article form")
     plan.add_argument("--quality", action="store_true",
                       help="teach only from well-formed sentences")
+    plan.add_argument("--goals-file", metavar="PATH",
+                      help="word list to aim at, instead of data/study_list.txt. "
+                           "One entry per line, or two tab-separated columns")
     plan.add_argument("--relax", action="store_true",
                       help="when nothing anywhere is one word away, teach two "
                            "from one sentence rather than stopping. Only at "
@@ -147,6 +152,8 @@ def _parser() -> argparse.ArgumentParser:
                          "study list, and what it would cost to free them")
     blockers.add_argument("--source", default="subtitle")
     blockers.add_argument("--limit", type=int, default=15)
+    blockers.add_argument("--goals-file", metavar="PATH",
+                          help="word list to report against")
     blockers.add_argument("--all-sentences", action="store_true",
                           help="count from every sentence, not only well-formed ones")
 
@@ -196,7 +203,17 @@ def function_words(app: Application) -> None:
 
 def main() -> int:
     args = _parser().parse_args()
-    app = Application()
+    settings = Settings()
+    if getattr(args, "goals_file", None):
+        # A different list changes the goals, and everything derived from them
+        # follows: `covered_forms`, the teaching order, what counts as
+        # stranded. The resolved cache is stamped on the file, so it
+        # invalidates itself.
+        chosen = Path(args.goals_file)
+        if not chosen.exists():
+            raise SystemExit(f"no word list at {chosen}")
+        settings = replace(settings, goal_words=chosen)
+    app = Application(settings)
     if args.command == "add-video":
         AddVideoCommand().run(app, args.video, args.language)
     elif args.command == "add-videos":

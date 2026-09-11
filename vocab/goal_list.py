@@ -44,7 +44,14 @@ class GoalList:
         self._path = path
 
     def entries(self) -> tuple[str, ...]:
-        """Column two, in file order, de-duplicated.
+        """The written entries, in file order, de-duplicated.
+
+        Two shapes. `build-study-list` writes two tab-separated columns, the
+        lemma and the blueprint it belongs to, and the blueprint is the one
+        that matters because it is what the matcher and `phrase_table` speak.
+        A word list copied out of a syllabus is one column, and taking column
+        two of that yields nothing at all — silently, since a file of the
+        wrong shape and a file of no goals look the same from here.
 
         Order is kept because these files are written most-useful-first, and
         that is the only ranking a goal list carries.
@@ -54,10 +61,10 @@ class GoalList:
             return ()
         seen: dict[str, None] = {}
         for raw in self._path.read_text(encoding="utf-8").splitlines():
-            columns = raw.split("\t")
-            if len(columns) < 2:
+            columns = [c.strip() for c in raw.split("\t")]
+            if not columns or columns[0].startswith("#"):
                 continue
-            entry = columns[1].strip()
+            entry = columns[1] if len(columns) > 1 else columns[0]
             if entry:
                 seen.setdefault(entry, None)
         return tuple(seen)

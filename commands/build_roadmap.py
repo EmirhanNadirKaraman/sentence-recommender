@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from config import Settings
 from corpus.quality import well_formed
 from roadmap import CorpusIndex, RoadmapBuilder, RoadmapStore
 from roadmap.store import ALL, current_stamp
@@ -75,6 +76,12 @@ class BuildRoadmapCommand:
             label = f"{label}:list"
         if goals:
             label = f"{label}:goals"
+            # Which list it aims at, when it is not the default one. Left off
+            # for the default so every plan built before this stays findable
+            # under the name it was stored with.
+            named = settings.goal_words.stem
+            if named != Settings().goal_words.stem:
+                label = f"{label}:{named}"
         # Stamped with what built it, so the reading page can tell whether
         # the decks stored with these steps still describe a corpus that
         # exists — they name their sentences by text alone.
