@@ -1,214 +1,353 @@
 # Goals this corpus cannot teach, most-said first.
-# The count is how often the corpus says it — a high count means
-# the word is here and always crowded, not that it is missing.
+# Two counts, tab separated, and they answer different things:
+#   shown    sentences good enough to learn from that say it
+#   said     times the corpus says it at all
+# shown 0 / said 0 is missing material and wants video. shown 0
+# with said above 0 means the quality bar refused every sentence
+# there is — read one before deciding which of the two is wrong.
 #
-# Regenerated 2026-09-11 from 169,155 sentences (subtitle+transcript),
+# Counting strict, clearing the way, which is what `_stored_label` serves.
+# Regenerated 2026-09-11 from 178,411 sentences (subtitle+transcript),
 # goals /Users/emir/Documents/GitHub/sentence-recommender/data/study_list.txt, well-formed only = True.
 # Rebuild with `python main.py out-of-reach` — do not hand-edit.
-die Qualifikation	1
-jdn./etw. (Akk) charakterisieren	1
-das Pro	0
-das stimmt	0
-der Beschäftigte, die Beschäftigte	0
-der Vorsitzende, die Vorsitzende	0
-der Sprecher	0
-die Geographie	0
-das BGB	0
-der Konzern	0
-die Weltmeisterschaft	0
-etw. (Akk) bedingen	0
-das Kilogramm	0
-gucken, kucken	0
-der Beamte, die Beamte	0
-die Einnahme	0
-der Abgeordnete, die Abgeordnete	0
-der Wechsel	0
-die Saison	0
-die Fotografie	0
-das HGB	0
-die Beschäftigung	0
-die Arbeitslosigkeit	0
-etw. (Akk) mit etw. vereinigen	0
-das Vorjahr	0
-angucken, ankucken	0
-das TV	0
-die Auffassung	0
-der Aktionär	0
-die Opposition	0
-auf jdn./etw. (Akk) weisen	0
-die Auskunft	0
-sich (Dat) etw. (Akk) / sich (Akk) sich ausziehen	0
-etw. (Akk) auf etw. zurückführen	0
-die Unternehmung	0
-die Ferne	0
-der Angestellte, die Angestellte	0
-die Aufwendungen	0
-das Entwicklungsland	0
-jdn./etw. (Akk) mit etw. bedecken	0
-die Fachhochschule	0
-der Rang	0
-der Schilling	0
-die Stasi	0
-die Bindung	0
-der Ehegatte	0
-der Gläubiger	0
-etw. (Akk) murmeln	0
-mit etw. (Dat) zucken	0
-die Gestaltung	0
-das Heim	0
-die Rechtsprechung	0
-die Erscheinung	0
-das Center	0
-jdn. (Akk) erstaunen	0
-die Phantasie	0
-die Interpretation	0
-der Schreck	0
-der Übersetzer	0
-der Gesichtspunkt	0
-der Empfang	0
-die Konjunktur	0
-die Übernahme	0
-die Benutzung	0
-herein, rein	0
-die Kammer	0
-der Moslem	0
-jdn. (Akk) reizen	0
-das Top	0
-die Verbreitung	0
-das Tennis	0
-für etw. (Akk) / an etw. (Dat) haften	0
-der Bube	0
-die Durchführung	0
-jdm. (Dat) nachfolgen	0
-die Realisierung	0
-das Wiedersehen	0
-die Bundesliga	0
-die Bereitschaft	0
-die Inszenierung	0
-die Epoche	0
-die Wechselwirkung	0
-die Unterscheidung	0
-der Abbau	0
-an jdm./etw. (Dat) verzweifeln	0
-etw. (Akk) ausstellen	0
-das Chinesisch	0
-jdn. (Akk) / sich an etw. (Dat) erfreuen	0
-das Fräulein	0
-jdn. (Akk) mit etw. infizieren	0
-der Personenkraftwagen, der PKW	0
-die Vereinigung	0
-die Unterlagen	0
-die Wange	0
-die Zeichnung	0
-der Aufsatz	0
-die Anregung	0
-das Betriebssystem	0
-die Datenverarbeitung	0
-die Bemühung	0
-die Blüte	0
-das Ensemble	0
-der Eigentümer	0
-der Konsument	0
-jdm./etw. (Dat) lauschen	0
-jdm./etw. (Dat) gleichen	0
-die Sportart	0
-der Schuldner	0
-die Überprüfung	0
-die Biologie	0
-die Entdeckung	0
-der Dirigent	0
-etw. (Akk) beleben	0
-der Champion	0
-die Gliederung	0
-das Milligramm	0
-der Parteitag	0
-das Olympia	0
-der Nacken	0
-der Schweiß	0
-die Steckdose	0
-der Zinssatz	0
-die Rezession	0
-etw. (Akk) aufreißen	0
-der Dolmetscher	0
-die Hypothese	0
-das Gremium	0
-das Glied	0
-die Kassette	0
-der Marktanteil	0
-das Präparat	0
-die Subvention	0
-die Zielsetzung	0
-die Volkswirtschaft	0
-jdm. (Dat) etw. (Akk) zuführen	0
-die Auswertung	0
-die Beschränkung	0
-der Absolvent	0
-die Fachleute	0
-das Industrieland	0
-die Tageszeitung	0
-der Zuwachs	0
-der Gemeinderat	0
-die Erfassung	0
-etw. (Akk) festsetzen	0
-die Ausrichtung	0
-jdn. (Akk) zu etw. mahnen	0
-die Koralle	0
-das Riff	0
-die Verbindlichkeit	0
-die Relation	0
-das Volumen	0
-jdm. (Dat) etw. (Akk) vortragen	0
-jdn. (Akk) / sich über jdn./etw. ärger	0
-besonder	0
-manch	0
-nochmals	0
-mittler	0
-freilich	0
-sämtlich	0
-empirisch	0
-aids	0
-touristisch	0
-vielfach	0
-indes	0
-musikalisch	0
-derart	0
-vorwiegend	0
-städtisch	0
-grinsen	0
-dynamisch	0
-kommunikativ	0
-außerordentlich	0
-konsequent	0
-selbe	0
-mitunter	0
-zumeist	0
-nachfolgend	0
-zugunsten	0
-klinisch	0
-nunmehr	0
-organisatorisch	0
-betrieblich	0
-qualitativ	0
-detaillieren	0
-mechanisch	0
-sogleich	0
-allenfalls	0
-agieren	0
-hinüber	0
-pakistanisch	0
-motorisch	0
-zueinander	0
-unterdessen	0
-gleichsam	0
-fotografisch	0
-gleichmäßig	0
-amtlich	0
-elementar	0
-naturwissenschaftlich	0
-fällig	0
-ländlich	0
-folglich	0
-vergleichsweise	0
-gentechnisch	0
-ostdeutsch	0
-westdeutsch	0
+etw. (Akk) erweitern	19	20
+geistig	19	24
+anhand	17	18
+erforderlich	16	16
+lediglich	16	18
+das Gen	16	20
+technologisch	15	16
+alternativ	13	14
+strikt	12	14
+das Grundstück	12	14
+bedeutend	12	13
+die Software	11	12
+etw. (Akk) anordnen	11	14
+zuverlässig	11	11
+jdn. (Akk) mit etw. konfrontieren	10	15
+etw. (Akk) entwerfen	10	10
+hierzu	10	10
+die Auseinandersetzung	10	10
+etw. (Akk) inszenieren	10	10
+chronisch	10	10
+palästinensisch	9	11
+die Niederlage	9	9
+das Motiv	9	10
+der Nachweis	9	9
+jdn./etw. (Akk) dominieren	9	10
+mobil	9	11
+die Teilnahme	8	8
+etw. (Akk) an etw. (Dat) anbringen	8	8
+seufzen	8	8
+ökologisch	8	9
+das Institut	8	9
+der Hang	8	8
+das Tempo	7	11
+die Stirn	7	10
+solch	7	8
+zugrunde	7	7
+jdm. (Dat) etw. (Akk) erschweren	7	8
+mühsam	7	9
+jdm. (Dat) etw. (Akk) / etw. (Akk) auslegen	7	9
+die Wärme	7	8
+prinzipiell	7	9
+inwieweit	6	6
+jdn. (Akk) / sich ansiedeln	6	8
+die Vereinbarung	6	7
+etw. (Akk) ausstellen	6	6
+der Strahl	6	6
+jdn./etw. (Akk) anführen	6	9
+das Marketing	6	7
+etw. (Akk) zurücklegen	6	6
+unerträglich	6	8
+radioaktiv	6	6
+jdm. (Dat) etw. (Akk) / sich (Dat) beschaffen	6	6
+etw. (Akk) erwecken	6	7
+bürgerlich	6	6
+der Absatz	6	7
+die Zone	6	7
+kontinuierlich	6	6
+etw. (Akk) fixieren	6	6
+der Anstieg	6	6
+die Auflage	6	6
+die Steigerung	6	10
+städtisch	6	7
+der Zugriff	6	7
+die Bekämpfung	5	5
+der Sänger	5	5
+das Forum	5	5
+bemerkenswert	5	6
+hinsichtlich	5	6
+etw. (Akk) in etw. umwandeln	5	7
+mittels	5	6
+der Stellvertreter	5	5
+das Weib	5	7
+der Sektor	5	8
+der Bogen	5	6
+das Auftreten	5	7
+etw. (Akk) auf etw. zurückführen	5	5
+die Tendenz	5	5
+die Übersicht	5	5
+etw. (Akk) erbringen	5	6
+der Horizont	5	6
+die Erzählung	5	5
+die Klinik	5	6
+der Juli	5	17
+konstant	5	6
+etw. (Akk) kennzeichnen	5	5
+der Regierungschef	5	5
+sofern	5	6
+sonstig	5	7
+einstig	5	5
+westdeutsch	5	5
+etw. (Akk) von jdm. / sich von jdm. abwenden	4	5
+gegebenenfalls	4	4
+einseitig	4	5
+zumal	4	4
+die Ausführung	4	4
+der Durchmesser	4	4
+eintreffen	4	4
+der Ausbau	4	4
+jdm. (Dat) etw. (Akk) flüstern	4	7
+die Veröffentlichung	4	5
+heimisch	4	6
+der Kritiker	4	5
+die Flüssigkeit	4	4
+das Griechisch	4	8
+der Eingriff	4	4
+die Konferenz	4	6
+ansteigen	4	6
+ausdrücklich	4	5
+steuerlich	4	4
+das Management	4	4
+allmählich	4	6
+die Zahlung	4	4
+die Bemerkung	4	4
+der Höhepunkt	4	6
+die Stellungnahme	4	4
+die Verteilung	4	4
+der Abfall	4	7
+der Zwang	4	4
+voraussichtlich	4	4
+die Klage	4	4
+evangelisch	4	4
+die Oper	4	7
+die Durchführung	3	3
+gleichwohl	3	3
+subjektiv	3	3
+analog	3	8
+das TV	3	3
+jdn. (Akk) zu etw. berechtigen	3	5
+der Wechsel	3	4
+das Kloster	3	5
+erwachen	3	5
+etw. (Dat) vorbeugen	3	3
+sämtlich	3	3
+die Vorschrift	3	4
+die Sicherung	3	3
+mittler	3	3
+das Gutachten	3	3
+dastehen	3	4
+ärztlich	3	3
+stellvertretend	3	3
+die Verbreitung	3	3
+die Übertragung	3	3
+die Steuerung	3	3
+die Statistik	3	4
+etw. (Akk) / sich verschärfen	3	3
+zulässig	3	3
+die Vereinigung	3	3
+samt	3	3
+derart	3	4
+gegenwärtig	3	3
+geradezu	3	4
+die Vermittlung	3	3
+der Rücktritt	3	3
+vergleichsweise	3	3
+die Schnittstelle	3	3
+der Pfarrer	3	8
+das Lokal	3	3
+zweifellos	3	3
+das Antibiotikum	3	5
+etw. (Akk) / sich abzeichnen	3	4
+das Quartal	3	3
+demnach	3	3
+die Bindung	3	4
+die Beschäftigung	3	5
+das Magazin	3	3
+die Rezession	3	3
+der Rückgang	2	2
+kommunikativ	2	2
+verbleiben	2	2
+die Äußerung	2	3
+die Konzeption	2	2
+organisatorisch	2	2
+dynamisch	2	3
+das Heft	2	2
+reichlich	2	2
+die Liga	2	2
+sich (Dat) etw. (Akk) / sich (Akk) sich ausziehen	2	2
+die Stiftung	2	2
+das Russisch	2	2
+die Betrachtung	2	2
+die Entdeckung	2	2
+die Verhaltensweise	2	2
+die Kammer	2	2
+methodisch	2	3
+jdn./etw. (Akk) / sich aufrichten	2	2
+etw. (Akk) beugen	2	2
+das Menschenrecht	2	2
+der Zuwachs	2	3
+therapeutisch	2	3
+die Unterscheidung	2	2
+der Parteitag	2	2
+der Kunststoff	2	2
+die Zunahme	2	2
+die Messe	2	2
+die Bemühung	2	2
+etw. (Akk) überziehen	2	3
+die Öffnung	2	3
+die Auskunft	2	3
+einheimisch	2	3
+vergeblich	2	2
+das Dunkel	2	2
+das Lebensjahr	2	3
+die Gestaltung	2	2
+der Erreger	2	2
+nachfolgend	2	3
+die Problematik	2	2
+die Gestalt	2	2
+eilen	2	2
+jdn. (Akk) / sich über jdn./etw. ärger	2	2
+die Zulassung	2	4
+das Entwicklungsland	2	2
+ländlich	2	6
+ostdeutsch	2	2
+die Subvention	2	2
+jdn. (Akk) verwundern	2	2
+das Niederländisch	2	3
+vorwiegend	2	3
+unverändert	2	2
+räumlich	2	2
+die Benutzung	2	2
+ferner	1	1
+die Sehnsucht	1	4
+die Zusammensetzung	1	1
+quantitativ	1	1
+diskret	1	1
+das Volumen	1	1
+infolge	1	1
+das Orchester	1	3
+jdn./etw. (Akk) charakterisieren	1	1
+die Hut	1	2
+der Beobachter	1	1
+vorig	1	1
+pakistanisch	1	1
+der Grundsatz	1	1
+die Beschränkung	1	1
+das Arzneimittel	1	1
+selbe	1	1
+etw. (Akk) von etw. / sich abgrenzen	1	2
+der Geliebte, die Geliebte	1	1
+jdm. (Dat) etw. (Akk) / etw. (Akk) herausgeben	1	2
+allenfalls	1	2
+das Kilogramm	1	3
+musikalisch	1	5
+die Biologie	1	1
+der Konsument	1	1
+der Benutzer	1	2
+die Auswertung	1	2
+das Milligramm	1	1
+elementar	1	1
+jdn./etw. (Akk) mit etw. bedecken	1	1
+die Sammlung	1	2
+vorherrschen	1	2
+das Vorjahr	1	3
+der Gläubiger	1	1
+die Anleihe	1	1
+der Schweiß	1	1
+charakteristisch	1	1
+amtlich	1	1
+das Center	1	1
+die Erfassung	1	1
+die Berücksichtigung	1	1
+der Zinssatz	1	1
+zugunsten	1	1
+die Saison	1	4
+die Bundesliga	1	2
+die Fachhochschule	1	1
+die Verbindlichkeit	1	2
+gleichsam	1	1
+die Tageszeitung	1	1
+etw. (Akk) beleben	1	1
+die Volkshochschule	1	1
+das Japanisch	1	2
+die Datenverarbeitung	1	1
+die Übernahme	1	1
+die Steckdose	1	2
+die Ausrichtung	1	1
+das Riff	1	2
+der Graf	1	1
+der Absolvent	1	1
+das Pro	0	3
+der Beschäftigte, die Beschäftigte	0	0
+der Vorsitzende, die Vorsitzende	0	0
+die Geographie	0	1
+das BGB	0	0
+gucken, kucken	0	0
+der Beamte, die Beamte	0	0
+der Abgeordnete, die Abgeordnete	0	0
+das HGB	0	0
+auf jdn./etw. (Akk) weisen	0	1
+die Unternehmung	0	0
+der Angestellte, die Angestellte	0	0
+die Aufwendungen	0	0
+der Schilling	0	0
+etw. (Akk) murmeln	0	0
+jdn. (Akk) erstaunen	0	1
+die Phantasie	0	0
+der Gesichtspunkt	0	1
+herein, rein	0	1
+das Top	0	0
+der Bube	0	0
+jdm. (Dat) nachfolgen	0	0
+die Realisierung	0	0
+die Inszenierung	0	0
+die Wechselwirkung	0	0
+die Unterlagen	0	0
+das Betriebssystem	0	0
+die Blüte	0	0
+das Ensemble	0	1
+der Schuldner	0	0
+die Überprüfung	0	0
+der Dirigent	0	0
+der Champion	0	1
+das Olympia	0	0
+etw. (Akk) aufreißen	0	0
+der Dolmetscher	0	0
+die Hypothese	0	0
+die Kassette	0	0
+der Marktanteil	0	0
+das Präparat	0	0
+die Zielsetzung	0	0
+das Industrieland	0	1
+der Gemeinderat	0	0
+jdn. (Akk) zu etw. mahnen	0	0
+die Koralle	0	0
+freilich	0	0
+empirisch	0	0
+aids	0	0
+indes	0	0
+mitunter	0	0
+zumeist	0	0
+klinisch	0	0
+nunmehr	0	0
+qualitativ	0	1
+detaillieren	0	0
+sogleich	0	0
+motorisch	0	0
+zueinander	0	0
+unterdessen	0	0
+fotografisch	0	0
+folglich	0	0
+gentechnisch	0	0

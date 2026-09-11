@@ -7,38 +7,17 @@
 # there is — read one before deciding which of the two is wrong.
 #
 # Counting strict, clearing the way, which is what `_stored_label` serves.
-# Regenerated 2026-09-11 from 172,730 sentences (subtitle+transcript),
+# Regenerated 2026-09-11 from 178,411 sentences (subtitle+transcript),
 # goals data/b1_parsed.txt, well-formed only = True.
 # Rebuild with `python main.py out-of-reach` — do not hand-edit.
-das Institut	6	9
-etw. (Akk) installieren	5	8
-die Flüssigkeit	3	4
-städtisch	3	7
-das Heft	2	2
-die Klinik	2	4
-sonstig	2	5
-das Lokal	2	3
-anwesend	2	5
-der Bogen	2	6
-die Sportart	2	7
-die Zone	2	7
-inner	1	3
+städtisch	6	7
+sämtlich	3	3
+das Lokal	3	3
+die Auskunft	2	3
+die Zulassung	2	4
 das Orchester	1	3
-die Qualifikation	1	3
-ökologisch	1	3
-der Band	1	4
-der Käufer	1	1
-das Quartal	1	2
-die Zulassung	1	3
-die Zahlung	1	3
-eilen	1	1
-die Auskunft	0	3
-das Kilogramm	0	3
+die Saison	1	4
+die Steckdose	1	2
 die Phantasie	0	0
-die Saison	0	4
-die Steckdose	0	2
 das Top	0	0
 die Unterlagen	0	0
-etw. (Akk) festsetzen	0	5
-der Übersetzer	0	1
-sämtlich	0	2
