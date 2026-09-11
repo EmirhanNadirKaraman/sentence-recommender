@@ -17,12 +17,31 @@ import re
 # Bump when the scale changes. Recorded against every experiment row, because
 # a mean score from one definition cannot be compared with a mean from
 # another — the history would show quality "improving" when only the ruler
-# moved.
-VERSION = 3
+# moved. It is also part of `current_stamp`, so a bump tells every stored
+# roadmap that the corpus it was walked over is not the one here now.
+#
+# 4: the band's floor from eight words to five.
+VERSION = 4
 
 # Speech, not prose. Long enough to show the word doing something, short
 # enough to hold in mind while reading it.
-BAND = (8, 15)          # the binary bar: is this worth showing at all
+#
+# The floor was eight, and eight was measured against prose intuition rather
+# than against this corpus. Subtitle German peaks at five words a line and
+# falls away from there monotonically, so the bar sat in the middle of the
+# mass: it admitted 33% of 169,155 sentences, and the three lengths it cut
+# off — five, six and seven — hold 75,171 of them between them.
+#
+# It also stranded goals the corpus does say. Of the 66 the b1 walk cannot
+# reach, 24 have a sentence and every one of those sentences was refused for
+# length alone: `Die Arbeitslosigkeit ist hoch und steigt weiter.` is seven
+# words. Five is where `filter.py` already stops, so this admits everything
+# that survived it and draws no second line of its own.
+#
+# Nothing is preferred for being short. `score` still peaks at 9-11 and
+# tapers both ways, so a five-word sentence wins only where there is no
+# longer one — which is the stranded case this exists for.
+BAND = (5, 15)          # the binary bar: is this worth showing at all
 IDEAL = (9, 11)         # equally good, and the tie is broken on merit
 
 # Deliberately asymmetric, where it used to be so by accident: a sentence
