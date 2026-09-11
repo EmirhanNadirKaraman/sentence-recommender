@@ -237,6 +237,14 @@ def _parser() -> argparse.ArgumentParser:
                        help=SOURCE_HELP)
     reach.add_argument("--out", metavar="PATH",
                        help="where to write it (default: beside the goal list)")
+    reach.add_argument("--counting", choices=("strict", "list"),
+                       default="strict",
+                       help="which reading to report on. Strict counts every "
+                            "word in a sentence and is what the page serves; "
+                            "list counts only what the goal file names")
+    reach.add_argument("--unblock", action="store_true",
+                       help="report against the plan that may teach a word "
+                            "off the list to clear the way to a goal")
     reach.add_argument("--all-sentences", action="store_true",
                        help="count badly-formed sentences as teaching material")
     reach.add_argument("--goals-file", metavar="PATH",
@@ -319,7 +327,8 @@ def main() -> int:
                                       args.give_up, args.dry_run)
     elif args.command == "out-of-reach":
         OutOfReachCommand().run(app, tuple(args.source), args.out,
-                                not args.all_sentences)
+                                not args.all_sentences, args.counting,
+                                args.unblock)
     elif args.command == "schema-doc":
         from db.schema_doc import write        # noqa: PLC0415 — only here
         print(f"wrote {write(app)}")

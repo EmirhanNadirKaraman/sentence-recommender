@@ -30,7 +30,8 @@ from commands.hunt_videos import HuntVideosCommand
 
 class OutOfReachCommand:
     def run(self, app, source: tuple[str, ...] = (), out: str | None = None,
-            quality_only: bool = True) -> None:
+            quality_only: bool = True, counting: str = "strict",
+            unblock: bool = False) -> None:
         settings = app.settings
         builds = list(source) or list(app.corpus_store.builds())
         if not builds:
@@ -38,7 +39,13 @@ class OutOfReachCommand:
         destination = Path(out) if out else self._beside(settings.goal_words)
 
         print(f"loading {'+'.join(builds)}…", flush=True)
-        sentences = app.corpus(*builds, list_only=True)
+        # The reading the page serves, not the one that is cheapest to
+        # report. `_stored_label` prefers the strict plan, so a report built
+        # under narrowed counting described a curriculum nobody reads: 28
+        # goals out of reach against the 218 the strict plan actually
+        # stranded, and 66 once it was allowed to clear the way.
+        sentences = app.corpus(*builds, list_only=counting == "list",
+                               strict=counting == "strict")
         if not sentences:
             raise SystemExit(f"nothing cached for {'+'.join(builds)}")
 
@@ -49,25 +56,40 @@ class OutOfReachCommand:
         label = "+".join(builds)
         HuntVideosCommand._corpus = (label, sentences)
         stuck = HuntVideosCommand._stranded(
-            app, label, app.known_set(), quality_only)
+            app, label, app.known_set(), quality_only, counting, unblock)
 
-        absent = [(u, n) for u, n in stuck if not n]
+        # Two questions, not one. The count beside each goal is how often a
+        # sentence *worth learning from* says it, so a zero covers both a
+        # word the corpus never says and a word it says only in sentences
+        # the quality bar refuses — and those want opposite remedies. The
+        # first needs video; the second is answered by reading one of the
+        # sentences and deciding whether the bar or the material is wrong.
+        said = app.corpus_store.unit_counts(*builds)
+        anywhere = {u: said.get((u.kind, u.key), 0) for u, _ in stuck}
+        absent = [(u, n) for u, n in stuck if not n and not anywhere[u]]
+        unshown = [(u, n) for u, n in stuck if not n and anywhere[u]]
         crowded = [(u, n) for u, n in stuck if n]
         before = self._count(destination)
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_text("\n".join(
-            self._header(settings, builds, len(sentences), quality_only)
-            + [f"{unit.key}\t{said}" for unit, said in stuck]) + "\n",
+            self._header(settings, builds, len(sentences), quality_only,
+                         counting, unblock)
+            + [f"{unit.key}\t{n}\t{anywhere[unit]}" for unit, n in stuck])
+            + "\n",
             encoding="utf-8")
 
         moved = f"  ({len(stuck) - before:+,} against the last run)" if before else ""
         print(f"\n{destination} — {len(stuck):,} goals out of reach{moved}")
-        print(f"  {len(absent):>4} never said here      "
+        print(f"  {len(absent):>4} never said at all    "
               "— video creates the first sentence (`hunt --absent-only`)")
+        print(f"  {len(unshown):>4} said, never shown    "
+              "— every sentence refused by the quality bar")
         print(f"  {len(crowded):>4} said but never alone "
-              "— more video rarely helps; these are the hard ones")
-        for unit, said in crowded[:8]:
-            print(f"         {unit.key:<34} said {said}")
+              "— these are the hard ones")
+        for unit, n in crowded[:8]:
+            print(f"         {unit.key:<34} shown {n}")
+        for unit, _ in unshown[:5]:
+            print(f"         {unit.key:<34} said {anywhere[unit]}, never shown")
 
     @staticmethod
     def _beside(goals: Path) -> Path:
@@ -92,13 +114,21 @@ class OutOfReachCommand:
 
     @staticmethod
     def _header(settings, builds: list[str], sentences: int,
-                quality_only: bool) -> list[str]:
+                quality_only: bool, counting: str = "strict",
+                unblock: bool = False) -> list[str]:
         """What produced it, so a stale copy can be recognised as one."""
         return [
             "# Goals this corpus cannot teach, most-said first.",
-            "# The count is how often the corpus says it — a high count means",
-            "# the word is here and always crowded, not that it is missing.",
+            "# Two counts, tab separated, and they answer different things:",
+            "#   shown    sentences good enough to learn from that say it",
+            "#   said     times the corpus says it at all",
+            "# shown 0 / said 0 is missing material and wants video. shown 0",
+            "# with said above 0 means the quality bar refused every sentence",
+            "# there is — read one before deciding which of the two is wrong.",
             "#",
+            f"# Counting {counting}"
+            + (", clearing the way" if unblock else "")
+            + f", which is what `_stored_label` serves.",
             f"# Regenerated {date.today().isoformat()} from {sentences:,}"
             f" sentences ({'+'.join(builds)}),",
             f"# goals {settings.goal_words}, well-formed only = {quality_only}.",

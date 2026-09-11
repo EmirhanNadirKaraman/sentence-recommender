@@ -13,6 +13,7 @@ import re
 
 from collections import Counter
 
+from config import Settings
 from corpus import CorpusUpdater
 from ingest import VideoHunter, VideoIngestor
 from corpus.quality import well_formed
@@ -163,7 +164,8 @@ class HuntVideosCommand:
         return absent
 
     @staticmethod
-    def _stranded(app, source: str, known=None, quality_only: bool = False
+    def _stranded(app, source: str, known=None, quality_only: bool = False,
+                  counting: str = "list", unblock: bool = False
                   ) -> list[tuple[Unit, int]]:
         """Every goal the roadmap cannot reach, most worth chasing first.
 
@@ -194,8 +196,21 @@ class HuntVideosCommand:
         goals = frozenset(app.goal_units)
         store = RoadmapStore(app.settings.state_path)
         stored = store.sources()
-        for label in (f"{source}:good:list:goals", f"{source}:list:goals",
-                      f"{source}:good:strict:goals"):
+        # Named for the list this process is aimed at, like every other
+        # reader of a stored plan. It composed the label from the source
+        # alone until now, so a run aimed at another list replayed the
+        # default list's plan. Measured both ways before changing it: the
+        # answers were identical, because the walk below runs to exhaustion
+        # and what a corpus can reach does not depend on the head start it
+        # was given. Corrected because it is wrong, not because it moved.
+        named = app.settings.goal_words.stem
+        tail = "" if named == Settings().goal_words.stem else f":{named}"
+        here = "list" if counting == "list" else "strict"
+        wanted = [f"{source}:good:{here}:goals{tail}",
+                  f"{source}:{here}:goals{tail}"]
+        if unblock:
+            wanted = [f"{name}:unblock" for name in wanted] + wanted
+        for label in wanted:
             if label in stored:
                 for step in store.load(label):
                     spare.learn(step.unit)
@@ -204,9 +219,14 @@ class HuntVideosCommand:
                        goals=goals, only_goals=True).build(max_steps=WALK_LIMIT)
         reached = spare.known
 
+        # Goals only, said out loud. Narrowed counting gave this for free
+        # by discarding every non-goal before the index was built, so the
+        # intersection read as redundant — but under strict counting the
+        # sentences keep every word, and without it this reports the whole
+        # unknown corpus: 25,137 entries led by `äh`, `ähm` and `'n`.
         appearances: Counter = Counter()
         for sentence in sentences:
-            for unit in sentence.units - reached:
+            for unit in (sentence.units - reached) & goals:
                 appearances[unit] += 1
         present = appearances.most_common()
 
