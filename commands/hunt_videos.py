@@ -16,7 +16,8 @@ from collections import Counter
 from corpus import CorpusUpdater
 from ingest import VideoHunter, VideoIngestor
 from corpus.quality import well_formed
-from roadmap import CorpusIndex, RoadmapBuilder, RoadmapRefresher
+from roadmap import (CorpusIndex, RoadmapBuilder, RoadmapRefresher,
+                     RoadmapStore)
 from vocab.entry import Unit
 
 # Ceiling on the walk behind the stranded set, so a huge corpus cannot stall
@@ -60,9 +61,15 @@ class HuntVideosCommand:
         hunter = VideoHunter(ingestor)
 
         known = app.known_set()
+        carried = None
         for round_number in range(1, rounds + 1):
             print(f"\n── round {round_number} of {rounds} " + "─" * 30)
-            stuck = self._stranded(app, source, known, quality_only)
+            # The previous round worked this out already, from the same corpus
+            # against the same known set. Asking again was a second exhaustive
+            # walk per round for an answer that could not have changed.
+            stuck = carried if carried is not None else self._stranded(
+                app, source, known, quality_only)
+            carried = None
             if absent_only:
                 stuck = self._never_said(app, source, stuck)
             if not stuck:
@@ -89,6 +96,7 @@ class HuntVideosCommand:
             if not hunt.added:
                 continue
 
+            self._corpus_changed()     # new video, so the cache is stale
             caught = CorpusUpdater(app).catch_up(source)
             print(f"  {caught.teachable} new sentences to study from")
             for label, steps in sorted(
@@ -102,11 +110,34 @@ class HuntVideosCommand:
                 after = [(u, n) for u, n in after
                          if not app.corpus_store.unit_counts(source)
                          .get((u.kind, u.key), 0)]
+            carried = after            # the next round starts from here
             closed = len(stuck) - len(after)
             print(f"  stranded: {len(stuck):,} → {len(after):,} "
                   f"({closed:,} fewer)" if closed >= 0
                   else f"  stranded: {len(stuck):,} → {len(after):,} "
                        f"({-closed:,} more)")
+
+    _corpus: tuple[str, list] | None = None
+
+    @classmethod
+    def _cached_corpus(cls, app, source: str) -> list:
+        """The corpus, loaded once per run rather than once per question.
+
+        Measured: of the 105 seconds an answer took, 36 were this and under
+        two were everything else — the index, the stored plan, the walk. The
+        walk was 0.0s, which is worth writing down because it is where the
+        obvious optimisation goes and it would have bought nothing.
+
+        Dropped when a round adds video, since that is the only thing that
+        changes what is here.
+        """
+        if cls._corpus is None or cls._corpus[0] != source:
+            cls._corpus = (source, app.corpus(source, list_only=True))
+        return cls._corpus[1]
+
+    @classmethod
+    def _corpus_changed(cls) -> None:
+        cls._corpus = None
 
     @staticmethod
     def _never_said(app, source: str, stuck: list) -> list:
@@ -145,15 +176,32 @@ class HuntVideosCommand:
 
         The walk runs on a throwaway index: taken to exhaustion it learns
         everything reachable, and that must not look like the reader knows it.
+
+        Two things keep it from being the slowest part of a round, both
+        borrowed from the page that asks the same question. A stored plan is
+        replayed rather than re-derived — roadmaps are built to exhaustion, so
+        the walk below usually has nothing left to do. And the walk is held to
+        goals: left to itself it spends its time learning words nobody asked
+        for and then reports them as reachable, which is two minutes an answer
+        for a worse answer.
         """
-        sentences = app.corpus(source, list_only=True)
+        sentences = HuntVideosCommand._cached_corpus(app, source)
         if not sentences:
             raise SystemExit(f"no cached corpus for {source!r}")
         if quality_only:
             sentences = [s for s in sentences if well_formed(s.text)]
         spare = CorpusIndex(sentences, known or app.known_set())
-        RoadmapBuilder(spare, app.priority(),
-                       app.settings.priority_weight).build(max_steps=WALK_LIMIT)
+        goals = frozenset(app.goal_units)
+        store = RoadmapStore(app.settings.state_path)
+        stored = store.sources()
+        for label in (f"{source}:good:list:goals", f"{source}:list:goals",
+                      f"{source}:good:strict:goals"):
+            if label in stored:
+                for step in store.load(label):
+                    spare.learn(step.unit)
+                break
+        RoadmapBuilder(spare, app.priority(), app.settings.priority_weight,
+                       goals=goals, only_goals=True).build(max_steps=WALK_LIMIT)
         reached = spare.known
 
         appearances: Counter = Counter()
