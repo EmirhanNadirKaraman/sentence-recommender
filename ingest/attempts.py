@@ -96,6 +96,10 @@ class AttemptLog:
             # already been scraped successfully minutes before: 176
             # sentences, from a video the log called subtitle-less.
             return "unfetchable"      # weather; try again later
+        if "off target" in low:
+            # Says nothing the hunt was chasing. Not a fault of the video —
+            # it may be exactly right for the next word — so never settled.
+            return "off-target"
         if "subtitle" in low:
             return "no-subtitles"
         return "error"

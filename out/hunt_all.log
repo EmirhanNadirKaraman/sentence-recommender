@@ -1,0 +1,273 @@
+
+── round 1 of 40 ──────────────────────────────
+  64 things this corpus cannot teach; looking for video that says the most common of them
+  searched Betrachter, Betriebssystem
+  8 videos not already held
+    [1/8] DtFm6LIH0_E … 55 lines — Dateien & Versionierung - bitfarm-Arch
+    [2/8] Z0Xnpyr5mc4 … 73 lines — Anders | Kurzfilm über Autismus | 1. P
+    [3/8] S6uHEDp-SqM … no German subtitles
+    [4/8] UaRp0is9NFw … 118 lines — Alle Windows Versionen en in 11 Minute
+    [5/8] IsvybKL9qls … 628 lines — Neues Betriebssystem auf altem MacBook
+    [6/8] q9KRDebumfc … 206 lines — Diese Betriebssysteme müsst ihr sehen!
+    [7/8] idviVM0KET4 … 132 lines — Wie Microsoft Windows ZERSTÖRT!
+    [8/8] 7NqC8t8fB2o … 117 lines — Zeit, Windows zu deinstallieren
+  7 added, 1 without German subtitles
+  564 new sentences to study from
+  roadmap [subtitle+transcript:good:list:goals]: 0 steps
+  roadmap [subtitle+transcript:good:strict:goals]: 3 steps
+  roadmap [subtitle:good:list:goals]: 2 steps
+  roadmap [subtitle:good:strict:goals]: 5 steps
+  roadmap [subtitle:list:goals]: 2 steps
+  stranded: 64 → 62 (2 fewer)
+
+── round 2 of 40 ──────────────────────────────
+  62 things this corpus cannot teach; looking for video that says the most common of them
+  searched stimmt, Beschäftigte, Vorsitzende, Geographie, BGB
+  8 videos not already held
+    [1/8] QeM5TEWhhP0 … no German subtitles
+    [2/8] r0dXFVqodNc … no German subtitles
+    [3/8] evAM-RU2-yU … no German subtitles
+    [4/8] GigWGfDlJME … no German subtitles
+    [5/8] dYHCEYhmxls … no German subtitles
+    [6/8] bnpmLdw4SG0 … no German subtitles
+    [7/8] Pu3fW1pu4lI … no German subtitles
+    [8/8] A1KXPpqlNZ4 … no German subtitles
+  0 added, 8 without German subtitles
+
+── round 3 of 40 ──────────────────────────────
+  62 things this corpus cannot teach; looking for video that says the most common of them
+  searched stimmt, Beschäftigte, Vorsitzende, Geographie, BGB, Beamte …
+  8 videos not already held
+    [1/8] 6XbTYXV8fSA … no German subtitles
+    [2/8] GZYSNCOED2k … no German subtitles
+    [3/8] fv_HwThJx7Y … no German subtitles
+    [4/8] uuOrHOlznsY … 123 lines — 9 Synonyme für "überrascht"
+    [5/8] 6f5NLA6Uk1Q … no German subtitles
+    [6/8] GjwxlUmIByw … 182 lines — Der Letzte seines Standes: Der Mollenh
+    [7/8] zZrhe3O_vJg … no German subtitles
+    [8/8] 6qp3QMTawss … 63 lines — fischer TherMax: 5 geniale Tipps (Nr. 
+  3 added, 5 without German subtitles
+  189 new sentences to study from
+  roadmap [subtitle+transcript:good:list:goals]: 0 steps
+  roadmap [subtitle+transcript:good:strict:goals]: 0 steps
+  roadmap [subtitle:good:list:goals]: 1 steps
+  roadmap [subtitle:good:strict:goals]: 0 steps
+  roadmap [subtitle:list:goals]: 1 steps
+  stranded: 62 → 61 (1 fewer)
+
+── round 4 of 40 ──────────────────────────────
+  61 things this corpus cannot teach; looking for video that says the most common of them
+  5 already looked for without luck are waiting their turn again
+  searched Beamte, Abgeordnete, HGB, Angestellte, Aufwendungen, Schilling …
+  8 videos not already held
+    [1/8] or69Rc75FAg … no German subtitles
+    [2/8] Mk2PSAgkYNU … 38 lines — #kurzerklärt: Wie viel Macht Bundestag
+    [3/8] V6VP115equM … 415 lines — Die Grausamsten Hinrichtungsmethoden i
+    [4/8] BkWOjWjRWls … no German subtitles
+    [5/8] 8R2TdC2eKrs … no German subtitles
+    [6/8] egMojZ11n1I … ERROR: [youtube] egMojZ11n1I: This video requires payment to watch
+yt-dlp could not fetch metadata for egMojZ11n1I
+Traceback (most recent call last):
+  File "/Users/emir/Documents/GitHub/sentence-recommender/.venv/lib/python3.12/site-packages/yt_dlp/YoutubeDL.py", line 1731, in wrapper
+    return func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emir/Documents/GitHub/sentence-recommender/.venv/lib/python3.12/site-packages/yt_dlp/YoutubeDL.py", line 1866, in __extract_info
+    ie_result = ie.extract(url)
+                ^^^^^^^^^^^^^^^
+  File "/Users/emir/Documents/GitHub/sentence-recommender/.venv/lib/python3.12/site-packages/yt_dlp/extractor/common.py", line 765, in extract
+    ie_result = self._real_extract(url)
+                ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emir/Documents/GitHub/sentence-recommender/.venv/lib/python3.12/site-packages/yt_dlp/extractor/youtube/_video.py", line 4076, in _real_extract
+    self.raise_no_formats(reason, expected=True)
+  File "/Users/emir/Documents/GitHub/sentence-recommender/.venv/lib/python3.12/site-packages/yt_dlp/extractor/common.py", line 1272, in raise_no_formats
+    raise ExtractorError(msg, expected=expected, video_id=video_id)
+yt_dlp.utils.ExtractorError: [youtube] egMojZ11n1I: This video requires payment to watch
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/emir/Documents/GitHub/language-app/subtitle-scraper/pipeline.py", line 233, in fetch_video_metadata
+    info = ydl.extract_info(url, download=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emir/Documents/GitHub/sentence-recommender/.venv/lib/python3.12/site-packages/yt_dlp/YoutubeDL.py", line 1720, in extract_info
+    return self.__extract_info(url, self.get_info_extractor(key), download, extra_info, process)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emir/Documents/GitHub/sentence-recommender/.venv/lib/python3.12/site-packages/yt_dlp/YoutubeDL.py", line 1749, in wrapper
+    self.report_error(str(e), e.format_traceback())
+  File "/Users/emir/Documents/GitHub/sentence-recommender/.venv/lib/python3.12/site-packages/yt_dlp/YoutubeDL.py", line 1165, in report_error
+    self.trouble(f'{self._format_err("ERROR:", self.Styles.ERROR)} {message}', *args, **kwargs)
+  File "/Users/emir/Documents/GitHub/sentence-recommender/.venv/lib/python3.12/site-packages/yt_dlp/YoutubeDL.py", line 1103, in trouble
+    raise DownloadError(message, exc_info)
+yt_dlp.utils.DownloadError: ERROR: [youtube] egMojZ11n1I: This video requires payment to watch
+no German subtitles
+    [7/8] VIsZxiiQwv0 … 649 lines — 🪿Jens Spahn, Ski Aggu & der Streisand-
+    [8/8] KGUpMoTJ4mE … no German subtitles
+  3 added, 5 without German subtitles
+  400 new sentences to study from
+  roadmap [subtitle+transcript:good:list:goals]: 0 steps
+  roadmap [subtitle+transcript:good:strict:goals]: 1 steps
+  roadmap [subtitle:good:list:goals]: 0 steps
+  roadmap [subtitle:good:strict:goals]: 1 steps
+  roadmap [subtitle:list:goals]: 0 steps
+  stranded: 61 → 61 (0 fewer)
+
+── round 5 of 40 ──────────────────────────────
+  61 things this corpus cannot teach; looking for video that says the most common of them
+  12 already looked for without luck are waiting their turn again
+  searched Phantasie, Gesichtspunkt, Übernahme, rein, Japanisch, Top …
+  8 videos not already held
+    [1/8] 1Cd_qW8rPB8 … 398 lines — Dragon Kingdom - Das Königreich der Dr
+    [2/8] yXrY3cL6rUg … 325 lines — Patricias Schwangerschaftsabbruch hat 
+    [3/8] NeQM1c-XCDc … 49 lines — Rammstein - Deutschland (Official Vide
+    [4/8] 2dvXpCSK4-Y … 48 lines — Satzreihe - Satzgefüge 🎓 Schülerhilfe 
+    [5/8] ZeaxkvMSLNg … 63 lines — Erörterung schreiben | Die besten Tipp
+    [6/8] DtuUym0KqO4 … no German subtitles
+    [7/8] YuOD0RGb69Q … no German subtitles
+    [8/8] 3cHqIjgdNSA … ERROR: [youtube] 3cHqIjgdNSA: This video is not available
+Transcript fetch attempt 1/3 failed for 3cHqIjgdNSA: ERROR: [youtube] 3cHqIjgdNSA: This video is not available. Retrying in 2.1s...
+ERROR: [youtube] 3cHqIjgdNSA: This video is not available
+Transcript fetch attempt 2/3 failed for 3cHqIjgdNSA: ERROR: [youtube] 3cHqIjgdNSA: This video is not available. Retrying in 4.3s...
+ERROR: [youtube] 3cHqIjgdNSA: This video is not available
+no German subtitles
+  5 added, 3 without German subtitles
+  148 new sentences to study from
+  roadmap [subtitle+transcript:good:list:goals]: 0 steps
+  roadmap [subtitle+transcript:good:strict:goals]: 0 steps
+  roadmap [subtitle:good:list:goals]: 0 steps
+  roadmap [subtitle:good:strict:goals]: 0 steps
+  roadmap [subtitle:list:goals]: 0 steps
+  stranded: 61 → 61 (0 fewer)
+
+── round 6 of 40 ──────────────────────────────
+  61 things this corpus cannot teach; looking for video that says the most common of them
+  16 already looked for without luck are waiting their turn again
+  searched Japanisch, Top, nachfolgen, Realisierung, Inszenierung, Chinesisch
+  8 videos not already held
+    [1/8] AfkgVPo2OSI … no German subtitles
+    [2/8] QlnwhjkrN_0 … ERROR: [youtube] QlnwhjkrN_0: This video is not available
+Transcript fetch attempt 1/3 failed for QlnwhjkrN_0: ERROR: [youtube] QlnwhjkrN_0: This video is not available. Retrying in 2.2s...
+ERROR: [youtube] QlnwhjkrN_0: This video is not available
+Transcript fetch attempt 2/3 failed for QlnwhjkrN_0: ERROR: [youtube] QlnwhjkrN_0: This video is not available. Retrying in 4.2s...
+ERROR: [youtube] QlnwhjkrN_0: This video is not available
+no German subtitles
+    [3/8] J8-8Hg8KzGA … no German subtitles
+    [4/8] mYYapWSIJFU … 30 lines — Neue TKS Mobilfunkmasten stärken Funk
+    [5/8] orYfAOCZKvA … no German subtitles
+    [6/8] tksH4J0ybfI … 70 lines — DT Heimspiel | "Messer in Hennen" Einf
+    [7/8] 9R2AdhJu76o … no German subtitles
+    [8/8] OendmU80-YA … no German subtitles
+  2 added, 6 without German subtitles
+  29 new sentences to study from
+  roadmap [subtitle+transcript:good:list:goals]: 0 steps
+  roadmap [subtitle+transcript:good:strict:goals]: 0 steps
+  roadmap [subtitle:good:list:goals]: 0 steps
+  roadmap [subtitle:good:strict:goals]: 0 steps
+  roadmap [subtitle:list:goals]: 0 steps
+  stranded: 61 → 61 (0 fewer)
+
+── round 7 of 40 ──────────────────────────────
+  61 things this corpus cannot teach; looking for video that says the most common of them
+  19 already looked for without luck are waiting their turn again
+  searched Realisierung, Inszenierung, Chinesisch, Polnisch, Unterlagen
+  8 videos not already held
+    [1/8] kxC3hL3KmAU … 31 lines — Teil 4 BTHG be-greifen: Das Herz und d
+    [2/8] KlIzZ-u5pOg … no German subtitles
+    [3/8] wgqpdr-m3k4 … no German subtitles
+    [4/8] BGYPsF60AJg … no German subtitles
+    [5/8] w2pS6yzdBq4 … no German subtitles
+    [6/8] f0lexxBVgNQ … no German subtitles
+    [7/8] kncNzcFGlU4 … no German subtitles
+    [8/8] EmT5f8lD14U … no German subtitles
+  1 added, 7 without German subtitles
+  20 new sentences to study from
+  roadmap [subtitle+transcript:good:list:goals]: 0 steps
+  roadmap [subtitle+transcript:good:strict:goals]: 0 steps
+  roadmap [subtitle:good:list:goals]: 0 steps
+  roadmap [subtitle:good:strict:goals]: 0 steps
+  roadmap [subtitle:list:goals]: 0 steps
+  stranded: 61 → 61 (0 fewer)
+
+── round 8 of 40 ──────────────────────────────
+  61 things this corpus cannot teach; looking for video that says the most common of them
+  22 already looked for without luck are waiting their turn again
+  searched Polnisch, Unterlagen, Datenverarbeitung, Ensemble
+  8 videos not already held
+    [1/8] Cd7vmSPpR6k … no German subtitles
+    [2/8] VF5A2JhiJug … 64 lines — Datenschutz einfach erklärt (explainit
+    [3/8] 2G3bNDXzgJI … 25 lines — Was ist ein Datenschutzverstoß?
+    [4/8] qQtxjcm0z1Y … 429 lines — Was SAP so erfolgreich macht
+    [5/8] NdeGhbf5Ncw … 108 lines — 5 Minuten zur Datenschutzfolgeabschätz
+    [6/8] 2goPVJOvJVY … 103 lines — SQL Einführung - SQL 1
+    [7/8] f7V_465MF8A … 33 lines — Was ist ein Auftragsverarbeitungsvertr
+    [8/8] MR_7MWokw7w … 1053 lines — Ensemble Studios Historie – Der große 
+  7 added, 1 without German subtitles
+  852 new sentences to study from
+  roadmap [subtitle+transcript:good:list:goals]: 2 steps
+  roadmap [subtitle+transcript:good:strict:goals]: 4 steps
+  roadmap [subtitle:good:list:goals]: 4 steps
+  roadmap [subtitle:good:strict:goals]: 5 steps
+  roadmap [subtitle:list:goals]: 3 steps
+  stranded: 61 → 57 (4 fewer)
+
+── round 9 of 40 ──────────────────────────────
+  57 things this corpus cannot teach; looking for video that says the most common of them
+  23 already looked for without luck are waiting their turn again
+  searched Jazz, Schuldner
+  8 videos not already held
+    [1/8] DvAgZG1HJDs … no German subtitles
+    [2/8] TliE9rTrzXg … no German subtitles
+    [3/8] Q4-XIKt-ADs … no German subtitles
+    [4/8] O1hAxv3ou7k … no German subtitles
+    [5/8] 5CYlK1w-Du4 … no German subtitles
+    [6/8] 2YnZu0ql_14 … 696 lines — Armut in Deutschland – ausgegrenzt und
+    [7/8] Kp54Sq0V_AY … 478 lines — Wut, Ohnmacht, Schulden - Unterwegs mi
+    [8/8] DibNfVSpuGg … 501 lines — Neue Fälle für die Gerichtsvollzieher 
+  3 added, 5 without German subtitles
+  959 new sentences to study from
+  roadmap [subtitle+transcript:good:list:goals]: 2 steps
+  roadmap [subtitle+transcript:good:strict:goals]: 4 steps
+  roadmap [subtitle:good:list:goals]: 3 steps
+  roadmap [subtitle:good:strict:goals]: 4 steps
+  roadmap [subtitle:list:goals]: 3 steps
+  stranded: 57 → 54 (3 fewer)
+
+── round 10 of 40 ──────────────────────────────
+  54 things this corpus cannot teach; looking for video that says the most common of them
+  23 already looked for without luck are waiting their turn again
+  searched Jazz, Überprüfung, Dirigent
+  8 videos not already held
+    [1/8] 8wYYCfl8F_Y … no German subtitles
+    [2/8] o5xEspzMQ30 … 203 lines — Deutsch B1 Sprechen. German B1 Speakin
+    [3/8] dKH1-TgByIw … 128 lines — C2 - Modul Schreiben: Übung und Prüfun
+    [4/8] lKNCOECiwsM … 637 lines — 🇩🇪 Einbürgerungstest 2025/2026 – Alle 
+    [5/8] Dcv8ADWgzFI … 27 lines — German Speaking Test Level A1, Mündlic
+    [6/8] B--v_SNZCFA … 227 lines — Technikfragen vom Prüfer - Abfahrtkont
+    [7/8] QQvvX-kAZKo … no German subtitles
+    [8/8] YOWU0HJcjeY … ERROR: [youtube] YOWU0HJcjeY: This video is not available
+Transcript fetch attempt 1/3 failed for YOWU0HJcjeY: ERROR: [youtube] YOWU0HJcjeY: This video is not available. Retrying in 2.0s...
+ERROR: [youtube] YOWU0HJcjeY: This video is not available
+Transcript fetch attempt 2/3 failed for YOWU0HJcjeY: ERROR: [youtube] YOWU0HJcjeY: This video is not available. Retrying in 4.4s...
+ERROR: [youtube] YOWU0HJcjeY: This video is not available
+135 lines — Welche Geheimnisse hat ein Orchester? 
+  6 added, 2 without German subtitles
+  869 new sentences to study from
+  roadmap [subtitle+transcript:good:list:goals]: 1 steps
+  roadmap [subtitle+transcript:good:strict:goals]: 3 steps
+  roadmap [subtitle:good:list:goals]: 1 steps
+  roadmap [subtitle:good:strict:goals]: 5 steps
+  roadmap [subtitle:list:goals]: 1 steps
+  stranded: 54 → 53 (1 fewer)
+
+── round 11 of 40 ──────────────────────────────
+  53 things this corpus cannot teach; looking for video that says the most common of them
+  24 already looked for without luck are waiting their turn again
+  searched Überprüfung, beleben, Olympia
+  8 videos not already held
+    [1/8] efuFNArdqRg … 131 lines — German Speaking Test Level B2, Mündlic
+    [2/8] fY0tx5Hn0Pg … 142 lines — 10 Verben mit "leben": Was bedeuten au
+    [3/8] WyeyiX97oP0 … 181 lines — 8 Verben mit „wirken“: Kennst du alle 
+    [4/8] HrOdf5tOGBo … 74 lines — Deutsch lernen mit Videos | Volksfeste
+    [5/8] lMW0ZS4FIvI … 132 lines — Verben mit "sprechen": Was bedeuten ab
+    [6/8] S5Yy7xrNe6E … 90 lines — PARIS MACHT'S VOR: Olympia 2040 in Deu
+    [7/8] btANijz08tw … 82 lines — Die olympischen Spiele 1936 | Olympia 
+    [8/8] 3TwEzQ-YINI … 72 lines — Matthias Steiner: Olympia-Gold für die

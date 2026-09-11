@@ -18,16 +18,24 @@ from vocab.entry import Unit
 
 
 class FakeIngestor:
-    def __init__(self, held=(), refuse=()) -> None:
+    """`add` takes the words the round was chasing, as the real one does."""
+
+    def __init__(self, held=(), refuse=(), off_target=()) -> None:
         self.held = set(held)
         self.refuse = set(refuse)
+        self.off_target = set(off_target)
         self.asked: list[str] = []
+        self.wanted: list[tuple] = []
 
     def already_have(self, video_id: str) -> bool:
         return video_id in self.held
 
-    def add(self, video_id: str, language=None):
+    def add(self, video_id: str, language=None, wanted=()):
         self.asked.append(video_id)
+        self.wanted.append(tuple(wanted))
+        if video_id in self.off_target:
+            raise SystemExit(
+                f"{video_id}: says none of {', '.join(wanted)} — off target.")
         if video_id in self.refuse:
             # The shape the hunt actually meets. It classifies `unfetchable`
             # — never settled, because it cannot be told from throttling.
@@ -75,7 +83,7 @@ class RememberingTest(unittest.TestCase):
         log = FakeLog()
         hunter = self.hunter(FakeIngestor(), log)
 
-        def refuse(video_id, language=None):
+        def refuse(video_id, language=None, wanted=()):
             raise SystemExit(f"{video_id}: no de subtitles came back.")
 
         hunter._ingestor.add = refuse
@@ -126,6 +134,31 @@ class RememberingTest(unittest.TestCase):
         self.assertNotIn("unfetchable", SETTLED)
         hunter = self.hunter(FakeIngestor(), FakeLog())
         hunter._record("maybe", "unfetchable")
+        self.assertNotIn("maybe", hunter._settled)
+
+    def test_the_round_words_reach_the_ingestor(self) -> None:
+        """Nothing checked them before: the search is YouTube's relevance
+        ranking over `<word> deutsch` and reads no captions."""
+        ingestor = FakeIngestor()
+        hunter = self.hunter(ingestor, FakeLog())
+        hunt = Hunt(candidates=["v"], searched=["Beamte", "BGB"])
+        hunter.take(hunt, say=lambda *a, **k: None)
+        self.assertEqual(ingestor.wanted, [("Beamte", "BGB")])
+
+    def test_a_video_saying_none_of_them_is_refused(self) -> None:
+        ingestor = FakeIngestor(off_target={"miss"})
+        log = FakeLog()
+        hunter = self.hunter(ingestor, log)
+        hunt = Hunt(candidates=["miss"], searched=["Beamte"])
+        hunter.take(hunt, say=lambda *a, **k: None)
+        self.assertEqual(hunt.added, [])
+        self.assertEqual(log.written, [("miss", "off-target")])
+
+    def test_off_target_is_never_settled(self) -> None:
+        """It may be exactly right for the next word."""
+        self.assertNotIn("off-target", SETTLED)
+        hunter = self.hunter(FakeIngestor(), FakeLog())
+        hunter._record("maybe", "off-target")
         self.assertNotIn("maybe", hunter._settled)
 
     def test_it_works_without_a_log_at_all(self) -> None:

@@ -73,10 +73,40 @@ class VideoIngestor:
             return bool(db.rows("SELECT 1 FROM video WHERE video_id = %s",
                                 (video_id,)))
 
-    def add(self, video_id: str, language: str | None = None) -> Ingested:
-        """Scrape one video and write it, or raise saying why not."""
+    @staticmethod
+    def _says(transcript, wanted) -> bool:
+        """Does this track say any of the words it was fetched for?
+
+        A prefix rather than the whole word, because German inflects: a
+        track saying `erzählt` is a track that says `erzählen`, and a track
+        saying `Beschäftigten` says `Beschäftigte`. Two characters off the
+        end catches the common endings without matching everything — short
+        terms keep at least four, so `Top` stays `Top`.
+        """
+        text = " ".join(line.get("text", "") for line in transcript).lower()
+        for term in wanted:
+            term = term.strip().lower()
+            if not term:
+                continue
+            if term[:max(4, len(term) - 2)] in text:
+                return True
+        return False
+
+    def add(self, video_id: str, language: str | None = None,
+            wanted: tuple[str, ...] = ()) -> Ingested:
+        """Scrape one video and write it, or raise saying why not.
+
+        `wanted` are the words the hunt went looking for. Nothing checked
+        them before: the search is YouTube's own relevance ranking over
+        `<word> deutsch`, which reads no captions, so a round could add
+        eight videos that say none of what it was chasing and report
+        progress. Checked here because this is where the caption text first
+        exists and before the write, which is the last moment a video can
+        be refused — the catalogue is shared and there is no command to
+        undo one.
+        """
         pipeline = self.pipeline
-        wanted = language or self._settings.language
+        wanted_lang = language or self._settings.language
 
         meta = pipeline.fetch_video_metadata(video_id)
         if meta is None:
@@ -97,7 +127,7 @@ class VideoIngestor:
                 f" gone, or the request may have been refused.{hint}")
 
         transcript, detected, dialect, source = pipeline.get_transcript(
-            video_id, wanted
+            video_id, wanted_lang
         )
         if transcript and len(transcript) < MIN_LINES:
             # A caption track with a couple of lines is a title card or a
@@ -108,7 +138,10 @@ class VideoIngestor:
                 "little to be worth keeping."
             )
         if not transcript:
-            raise SystemExit(f"{video_id}: {self._why_empty(video_id, wanted)}")
+            raise SystemExit(f"{video_id}: {self._why_empty(video_id, wanted_lang)}")
+        if wanted and not self._says(transcript, wanted):
+            raise SystemExit(
+                f"{video_id}: says none of {', '.join(wanted)} — off target.")
 
         with WritableDatabase(self._settings.own) as db:
             cursor = db.cursor()

@@ -124,16 +124,27 @@ class VideoHunter:
 
     def take(self, hunt: Hunt, language: str | None = None,
              say=print) -> Hunt:
-        """Try each candidate, keeping the ones that have German subtitles."""
+        """Try each candidate, keeping the ones worth keeping.
+
+        Worth keeping means German subtitles *and* saying something the
+        round went looking for. The search is YouTube's relevance ranking
+        over `<word> deutsch` and reads no captions, so without the second
+        test a round adds whatever the ranking liked — `Japanisch` returns
+        German videos about learning Japanese — and reports it as progress.
+        """
         for index, video_id in enumerate(hunt.candidates, start=1):
             say(f"    [{index}/{len(hunt.candidates)}] {video_id} … ", end="")
             self._tried.add(video_id)
             try:
-                landed = self._ingestor.add(video_id, language)
+                landed = self._ingestor.add(
+                    video_id, language, tuple(hunt.searched))
             except SystemExit as why:
-                hunt.refused.append((video_id, str(why).splitlines()[0]))
-                self._record(video_id, AttemptLog.classify(str(why)), str(why))
-                say("no German subtitles")
+                first = str(why).splitlines()[0]
+                hunt.refused.append((video_id, first))
+                outcome = AttemptLog.classify(str(why))
+                self._record(video_id, outcome, str(why))
+                say("says none of them" if outcome == "off-target"
+                    else "no German subtitles")
             except Exception as error:           # noqa: BLE001 — one bad video
                 hunt.refused.append((video_id, f"{type(error).__name__}"))
                 self._record(video_id, "error", f"{type(error).__name__}: {error}")
