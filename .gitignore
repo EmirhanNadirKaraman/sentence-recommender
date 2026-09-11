@@ -20,3 +20,6 @@ data/resolved.json
 # of them — the analysed sentences — lives in data/state.sqlite3, which is
 # ignored too. Point `--path` elsewhere if you keep them somewhere else.
 Easy German Transcripts/
+
+# Runtime log from `backfill-channels`, regenerated on every run.
+backfill.log
