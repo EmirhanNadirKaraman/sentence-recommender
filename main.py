@@ -209,6 +209,7 @@ def _parser() -> argparse.ArgumentParser:
 
     sub.add_parser("status", help="what is built and what is due")
     sub.add_parser("function-words", help="regenerate the closed-class review file")
+    sub.add_parser("schema-doc", help="regenerate DATABASE.md from both databases")
     return parser
 
 
@@ -282,6 +283,9 @@ def main() -> int:
         StatusCommand().run(app)
     elif args.command == "function-words":
         function_words(app)
+    elif args.command == "schema-doc":
+        from db.schema_doc import write        # noqa: PLC0415 — only here
+        print(f"wrote {write(app)}")
     return 0
 
 
