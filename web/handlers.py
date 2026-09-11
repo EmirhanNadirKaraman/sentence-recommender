@@ -91,6 +91,10 @@ class Viewer:
         # and thrown away.
         self._corpora: dict[str, list[Sentence]] = {}
         self._priority: UnitPriority | None = None
+        # Analysing a new video and re-walking the plans, off the request.
+        self._catching = False
+        self._catch_again = False
+        self._catching_lock = Lock()
         # Trigram indexes for the list-building search, one per corpus. Built
         # from `unit_counts`, which answers off a materialized view, so this
         # page never loads a corpus — the only page that can say that and the
@@ -2233,18 +2237,52 @@ class Viewer:
         except Exception as error:               # noqa: BLE001 — report, don't 500
             return f"/subtitles?problem={quote(f'{type(error).__name__}: {error}')}"
 
-        # Finish the job rather than telling them to. Only the new video is
-        # analysed, and only roadmaps over the subtitles are rebuilt.
-        from corpus import CorpusUpdater
-        from roadmap import RoadmapRefresher
-        caught = CorpusUpdater(self.app).catch_up()
-        self._sources = None            # a build just changed size
-        rebuilt = RoadmapRefresher(self.app).refresh(touching="subtitle")
-        self._scopes.clear()          # what is in memory no longer matches
-        self._stuck.clear()
-        done = (f"{landed.title} — {caught.teachable} sentences added"
-                + (f", roadmap now {max(rebuilt.values())} steps" if rebuilt else ""))
+        # The video is in. Analysing it and re-walking the plans is not
+        # something to do while a browser waits: `refresh(touching="subtitle")`
+        # re-walks every plan over that build, which is ten plans and 54,713
+        # steps, each loading the corpus first. It was five plans and a third
+        # of the steps when this was written, and it is minutes now.
+        self._queue_catch_up()
+        done = (f"{landed.title} — added. Analysing it and rebuilding the "
+                "roadmaps in the background; reload in a minute or two.")
         return f"/subtitles?added={quote(done)}"
+
+    def _queue_catch_up(self) -> None:
+        """Analyse what has landed and re-walk the plans, off the request.
+
+        Coalesced rather than queued: adding three videos should cost one
+        rebuild, not three, and the rebuild picks up everything uncaught
+        whenever it runs.
+        """
+        with self._catching_lock:
+            if self._catching:
+                self._catch_again = True
+                return
+            self._catching = True
+        Thread(target=self._catch_up_now, name="catch-up", daemon=True).start()
+
+    def _catch_up_now(self) -> None:
+        from corpus import CorpusUpdater                 # noqa: PLC0415
+        from roadmap import RoadmapRefresher             # noqa: PLC0415
+        try:
+            while True:
+                CorpusUpdater(self.app).catch_up()
+                RoadmapRefresher(self.app).refresh(touching="subtitle")
+                self._sources = None      # a build just changed size
+                self._corpora.clear()     # and what is in memory is stale
+                self._scopes.clear()
+                self._stuck.clear()
+                with self._catching_lock:
+                    if not self._catch_again:
+                        self._catching = False
+                        return
+                    self._catch_again = False
+        except Exception as error:                # noqa: BLE001
+            import traceback
+            print("\n--- catching up after a new video failed ---", flush=True)
+            traceback.print_exception(error)
+            with self._catching_lock:
+                self._catching = False
 
     # --- bits -------------------------------------------------------------
 
