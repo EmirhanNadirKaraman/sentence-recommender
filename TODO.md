@@ -214,7 +214,7 @@ tie-break in `VideoWalk.build`, never as a filter — the walk stops when
 nothing left teaches, and a walk over one channel is a different curriculum,
 not a preferred one. Say what the preference costs in sentences taught.
 
-### 7. Auto-generated captions, repaired by the local model
+### 7. Auto-generated captions — MEASURED, gate not opened
 
 Ingest refuses auto-generated captions (`ingest/video.py:173`, and
 language-app's fetcher before it) because ASR mangles the endings a learner
@@ -305,9 +305,11 @@ eight carry a usable German ASR track and the two that do not are
 non-German audio that should be refused. The attempt log holds 43 refusals
 in 140 videos met, so this is roughly a quarter more yield a round.
 
-What is still unmeasured is `--corrector llm` on the unpunctuated two. That
-is now its clear job — restoring boundaries, not endings — and it needs
-`LLM_BASE_URL` and `LLM_MODEL`, with the model on another machine. The rest
+`--corrector llm` was left unrun, deliberately. Its job turned out to be
+harder than this entry assumed — segmentation, not endings, is what costs
+the 31% — and even a perfect corrector would not move the stranded count,
+which is the thing it was reached for. Decided 2026-09-11: not worth the
+model hours. The command still exists if the aim ever becomes corpus size. The rest
 of the entry stands: keep auto videos in their own build and
 `transcript_source='auto'`, so the reader can see which text a machine wrote
 twice.
