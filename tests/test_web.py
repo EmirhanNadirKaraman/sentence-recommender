@@ -241,6 +241,75 @@ class StoredLabelTest(unittest.TestCase):
         self.assertEqual(got._stored_label("subtitle", False), "subtitle")
 
 
+class UnblockedTest(unittest.TestCase):
+    """The third counting position, and the one rule it must not break.
+
+    A held plan teaches only what the reader chose. An unblocked one also
+    teaches ordinary words standing in the way — which is worth offering and
+    wrong to substitute, so it is asked for and never fallen back to.
+    """
+
+    def viewer(self, stored: set[str], goals: str = "study_list"):
+        viewer = Viewer.__new__(Viewer)
+        viewer.app = SimpleNamespace(
+            settings=SimpleNamespace(goal_words=Path(f"data/{goals}.txt")))
+        viewer._store = SimpleNamespace(sources=lambda: stored)
+        return viewer
+
+    def test_it_is_served_when_asked_for(self) -> None:
+        stored = {"subtitle:good:strict:goals",
+                  "subtitle:good:strict:goals:unblock"}
+        got = self.viewer(stored)._stored_label("subtitle", False, True)
+        self.assertEqual(got, "subtitle:good:strict:goals:unblock")
+
+    def test_it_is_never_substituted_for_a_held_plan(self) -> None:
+        """Asking to be taught your list must not quietly teach other words."""
+        stored = {"subtitle:good:strict:goals",
+                  "subtitle:good:strict:goals:unblock"}
+        got = self.viewer(stored)._stored_label("subtitle", False)
+        self.assertEqual(got, "subtitle:good:strict:goals")
+
+    def test_a_missing_unblocked_plan_falls_back_to_the_held_one(self) -> None:
+        """The safe direction: stricter than asked for, never looser."""
+        got = self.viewer({"subtitle:good:strict:goals"})
+        self.assertEqual(got._stored_label("subtitle", False, True),
+                         "subtitle:good:strict:goals")
+
+    def test_it_carries_the_word_list_name(self) -> None:
+        stored = {"subtitle:good:strict:goals:b1_parsed:unblock"}
+        got = self.viewer(stored, goals="b1_parsed")
+        self.assertEqual(got._stored_label("subtitle", False, True),
+                         "subtitle:good:strict:goals:b1_parsed:unblock")
+
+    def test_the_switch_hides_a_position_with_no_plan(self) -> None:
+        """`_stored_label` falls back, so an offered position with nothing
+        behind it would serve the plan next door and look like it worked."""
+        viewer = self.viewer({"subtitle:good:strict:goals"})
+        viewer.source = lambda q: "subtitle"
+        html = viewer.counting_switch({}, "/")
+        self.assertNotIn("count=unblock", html)
+        self.assertIn("count=list", html)
+
+    def test_the_switch_offers_it_when_the_plan_is_there(self) -> None:
+        viewer = self.viewer({"subtitle:good:strict:goals",
+                              "subtitle:good:strict:goals:unblock"})
+        viewer.source = lambda q: "subtitle"
+        self.assertIn("count=unblock", viewer.counting_switch({}, "/"))
+
+    def test_the_three_readings_are_exclusive(self) -> None:
+        viewer = self.viewer(set())
+        for count, listed, opened in (("all", False, False),
+                                      ("list", True, False),
+                                      ("unblock", False, True)):
+            self.assertEqual(viewer.counting({"count": count}), listed, count)
+            self.assertEqual(viewer.unblocked({"count": count}), opened, count)
+
+    def test_the_default_is_held_strict_counting(self) -> None:
+        viewer = self.viewer(set())
+        self.assertFalse(viewer.counting({}))
+        self.assertFalse(viewer.unblocked({}))
+
+
 class ComingBackTest(unittest.TestCase):
     """`_here` — the address a form returns to.
 

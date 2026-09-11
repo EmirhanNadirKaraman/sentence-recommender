@@ -332,6 +332,21 @@ class Viewer:
         """
         return (query.get("count") or "all") == "list"
 
+    def unblocked(self, query: dict) -> bool:
+        """Whether the walk may teach a word that is not on the list.
+
+        A strict walk is held to goals, so a goal with one ordinary word in
+        front of it is stranded by policy rather than by the corpus — on the
+        B1 list that is 152 of 218. This asks for the plan that steps off the
+        list to clear the way.
+
+        Read off `count` rather than a parameter of its own, because it is
+        only meaningful beside strict counting: narrowing already discards
+        every non-goal, so there is nothing left to be blocked by, and a
+        `list`-and-`unblock` request would name a plan nobody builds.
+        """
+        return (query.get("count") or "all") == "unblock"
+
     def scope(self, source: str, list_only: bool = True) -> Scope:
         """The live index for one corpus, built once and kept current.
 
@@ -372,13 +387,25 @@ class Viewer:
         return self._scopes[key]
 
     def counting_switch(self, query: dict, page: str) -> str:
+        """The three readings, minus any this corpus has no plan for.
+
+        Offered only where one is stored, because `_stored_label` falls back
+        to the neighbouring reading when a plan is missing — so a position
+        with nothing behind it would look like it worked and quietly serve
+        the plan next door. A switch that silently does nothing is worse
+        than a switch with two positions.
+        """
         source = self.source(query)
-        here = "list" if self.counting(query) else "all"
+        here = ("list" if self.counting(query)
+                else "unblock" if self.unblocked(query) else "all")
+        offered = [("all", "every word in the sentence"),
+                   ("list", "only my study list")]
+        if self._stored_label(source, False, True).endswith(":unblock"):
+            offered.insert(1, ("unblock", "…and teach what blocks one"))
         links = "".join(
             f"<a href='{page}?src={quote(source)}&count={value}' "
             f"class='{'on' if here == value else ''}'>{label}</a>"
-            for value, label in (("all", "every word in the sentence"),
-                                 ("list", "only my study list"))
+            for value, label in offered
         )
         return f"<div class='switch'><span>Counting</span>{links}</div>"
 
@@ -404,7 +431,8 @@ class Viewer:
 
         # Both readings have a stored roadmap now, so the switch picks one
         # rather than choosing between a stored answer and a slow live walk.
-        planned = self._planned(source, only, self.counting(query))
+        planned = self._planned(source, only, self.counting(query),
+                                self.unblocked(query))
         if planned is not None:
             step, deck, total = planned
             readable, occurrences = step.readable, step.occurrences
@@ -480,7 +508,8 @@ class Viewer:
         # stored plan under study-list counting, and copying that condition
         # across sent every request down the live walk instead — 41s a swipe,
         # for the endpoint whose entire purpose was to make swiping instant.
-        planned = self._planned(source, only, self.counting(query))
+        planned = self._planned(source, only, self.counting(query),
+                                self.unblocked(query))
         if planned is not None:
             step, deck, total = planned
             readable, occurrences = step.readable, step.occurrences
@@ -508,7 +537,8 @@ class Viewer:
             "at": first.timing.start if first else 0,
         }
 
-    def _planned(self, source: str, only: str, list_only: bool
+    def _planned(self, source: str, only: str, list_only: bool,
+                 unblock: bool = False
                  ) -> tuple[RoadmapStep, list[Sentence], int] | None:
         """The next step of the stored plan the reader has not taken, and its
         deck.
@@ -531,7 +561,7 @@ class Viewer:
         longer matches the rules in force. The caller falls back to walking a
         live index, which is the same answer computed the slow way.
         """
-        label = self._stored_label(source, list_only)
+        label = self._stored_label(source, list_only, unblock)
         if self._store.stamp(label) != current_stamp():
             return None
         known = self.known
@@ -976,7 +1006,8 @@ class Viewer:
 
     def roadmap(self, query: dict) -> str:
         source = self.source(query)
-        label = self._stored_label(source, self.counting(query))
+        label = self._stored_label(source, self.counting(query),
+                                   self.unblocked(query))
         steps = self._store.load(label)
         needle = (query.get("q") or "").strip().lower()
         kind = query.get("kind") or ""
@@ -1028,7 +1059,8 @@ class Viewer:
                 f"{self._pager(page, pages, needle, kind, source, query.get('hide', ''))}")
         return layout("Roadmap", body, "/roadmap", source)
 
-    def _stored_label(self, source: str, list_only: bool) -> str:
+    def _stored_label(self, source: str, list_only: bool,
+                      unblock: bool = False) -> str:
         """The stored roadmap the switches are asking for.
 
         A roadmap's name carries the settings that built it, so the switches
@@ -1059,7 +1091,13 @@ class Viewer:
                   f"{source}:strict:goals{tail}")
         listed = (f"{source}:good:list:goals{tail}",
                   f"{source}:list:goals{tail}")
-        for wanted in (listed + strict) if list_only else (strict + listed):
+        # Asked for first, never fallen back *to*: an unblocked plan teaches
+        # words the reader did not choose, which is not something to hand
+        # someone who did not ask. The reverse is fine — a missing unblocked
+        # plan serves the held one, which is merely stricter.
+        opened = tuple(f"{name}:unblock" for name in strict) if unblock else ()
+        for wanted in opened + ((listed + strict) if list_only
+                                else (strict + listed)):
             if wanted in stored:
                 return wanted
         return source
@@ -1082,7 +1120,8 @@ class Viewer:
         the trouble.
         """
         source = self.source(query)
-        stranded = self._stranded(source, self.counting(query))
+        stranded = self._stranded(source, self.counting(query),
+                                  self.unblocked(query))
         near_only = query.get("gap") == "near"
         rows = [r for r in stranded if not near_only or r[2] == 2]
 
@@ -1150,7 +1189,8 @@ class Viewer:
         )
         return layout("Blocked", body, "/blocked", source)
 
-    def _stranded(self, source: str, list_only: bool = True):
+    def _stranded(self, source: str, list_only: bool = True,
+                  unblock: bool = False):
         """Goals left unknown once the walk runs out, most frequent first.
 
         Goals, not units: the walk takes only goals, so what it cannot reach
@@ -1177,7 +1217,8 @@ class Viewer:
         # frontier, and there are thousands of those. The walk below then only
         # has to cover what the stored plan did not — which, since roadmaps are
         # built to exhaustion, is usually nothing.
-        for step in self._store.load(self._stored_label(source, list_only)):
+        for step in self._store.load(
+                self._stored_label(source, list_only, unblock)):
             spare.learn(step.unit)
         # Only goals, because only goals are ever taught — the question is
         # what the roadmap cannot reach, and the roadmap does not reach for
