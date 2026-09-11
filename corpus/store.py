@@ -58,6 +58,21 @@ CREATE INDEX IF NOT EXISTS ix_units_sentence ON sentence_units(sentence_id);
 -- `sein`, said in 35,192 sentences, that is 35,192 row reads the query no
 -- longer does.
 CREATE INDEX IF NOT EXISTS ix_units_key ON sentence_units(kind, key, sentence_id);
+-- How often each unit is said, per build, counted once when the build is
+-- written rather than on every page that wants to know.
+--
+-- The live query has to join: `build` lives on `sentences` and the units live
+-- beside them, so grouping by unit within one build means a lookup per
+-- sentence — 169,156 of them — and a temp B-tree on top. Asking for *every*
+-- build was four times faster than asking for one, because only then can the
+-- group come straight off `ix_units_key` with no join at all.
+CREATE TABLE IF NOT EXISTS unit_count (
+    build TEXT NOT NULL,
+    kind  TEXT NOT NULL,
+    key   TEXT NOT NULL,
+    said  INTEGER NOT NULL,
+    PRIMARY KEY (build, kind, key)
+);
 CREATE TABLE IF NOT EXISTS build_meta (
     build       TEXT PRIMARY KEY,
     fingerprint TEXT NOT NULL,
@@ -192,6 +207,15 @@ class CorpusStore:
                  datetime.now().isoformat(timespec="seconds"),
                  packages_fingerprint()),
             )
+            # Counted here, where the data has just changed, rather than by
+            # every reader that wants it. Two seconds of CPU off the first
+            # page load, and the same answer.
+            conn.execute("DELETE FROM unit_count WHERE build = ?", (build,))
+            conn.execute(
+                "INSERT INTO unit_count (build, kind, key, said)"
+                " SELECT ?, su.kind, su.key, count(*) FROM sentence_units su"
+                " JOIN sentences s ON s.id = su.sentence_id"
+                " WHERE s.build = ? GROUP BY su.kind, su.key", (build, build))
             # Table statistics, refreshed whenever a build changes the data
             # they describe. Stale ones are worse than none: the planner
             # believes them. Seven tenths of a second at the end of a build
@@ -235,6 +259,20 @@ class CorpusStore:
         from collections import Counter
         if not builds:
             return Counter()
+        placeholders = ",".join("?" * len(builds))
+        with self._connect() as conn:
+            # Counted at build time when it is there. Falls through to the
+            # live query for a build written before this table existed, so an
+            # older cache still answers rather than answering nothing.
+            counted = {b for (b,) in conn.execute(
+                f"SELECT DISTINCT build FROM unit_count"
+                f" WHERE build IN ({placeholders})", builds)}
+            if counted >= set(builds):
+                rows = conn.execute(
+                    "SELECT kind, key, sum(said) FROM unit_count"
+                    f" WHERE build IN ({placeholders})"
+                    " GROUP BY kind, key", builds)
+                return Counter({(kind, key): n for kind, key, n in rows})
         # The join exists only to filter by build. When the builds asked for
         # are every build there is, it filters nothing and costs everything —
         # 1.18M unit rows walked against the sentence table to reach an answer
