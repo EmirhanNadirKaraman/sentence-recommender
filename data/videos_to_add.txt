@@ -1,0 +1,38 @@
+# Videos to add. One per line, in any form:
+#
+#   https://www.youtube.com/watch?v=mKlga_U3pmI&t=590s
+#   https://youtu.be/mKlga_U3pmI
+#   mKlga_U3pmI
+#
+# Timestamps, ?si= tracking and a trailing "# note" are all fine, and
+# blank lines and lines starting with # are ignored — so annotate freely.
+#
+# Then:   python main.py add-videos data/videos_to_add.txt
+#
+# Already-held videos are skipped, as are ones settled as hopeless in an
+# earlier run. Add --dry-run to see what it would fetch without fetching.
+
+https://www.youtube.com/watch?v=mKlga_U3pmI&t=590s   # says "Vorsitzende"
+https://youtu.be/jesltV5W5a4?si=abc
+
+mKlga_U3pmI
+https://www.youtube.com/watch?v=LRpzr2ZLKUI&t=79s
+https://www.youtube.com/watch?v=4836s3AC5_Y&t=871s
+https://www.youtube.com/watch?v=Bm3YvDiHWBY&t=199s
+https://www.youtube.com/watch?v=G3SEEdNapfU&t=11s
+https://www.youtube.com/watch?v=UORaosLTn80&t=67s
+https://www.youtube.com/watch?v=0yGRgERiPCI&t=121s
+https://www.youtube.com/watch?v=8L-i4kMlIEE&t=282s
+https://www.youtube.com/watch?v=YfbLPVqJi2k&t=320s
+https://www.youtube.com/watch?v=neyG9W8Lxpc&t=516s
+https://www.youtube.com/watch?v=8XvH7RAWO-Y&t=224s
+https://www.youtube.com/watch?v=C6OR82i2hA4&t=427s
+https://www.youtube.com/watch?v=HrpXgqFcN0k&t=509s
+https://www.youtube.com/watch?v=-5ADRpG7Tt8&t=659s
+https://www.youtube.com/watch?v=RZ__rgVdhLg&t=426s
+https://www.youtube.com/watch?v=Vf2wgqx4ffo&t=248s
+https://www.youtube.com/watch?v=sxWAnQyZ3Eg&t=128s
+https://www.youtube.com/watch?v=0n_ajjEkCoE&t=963s
+https://www.youtube.com/watch?v=stra6yebsO0&t=368s
+https://www.youtube.com/watch?v=is7Y5GJ7qxs&t=630s
+https://www.youtube.com/watch?v=DakRXeIEDy8&t=314s

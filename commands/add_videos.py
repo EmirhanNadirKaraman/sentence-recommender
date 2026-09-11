@@ -36,8 +36,18 @@ class AddVideosCommand:
         # of the work, and the reason an interrupted import had to start its
         # channel again rather than carry on.
         done = log.settled()
-        fresh = [v for v in ids
-                 if not ingestor.already_have(v) and v not in done]
+        # De-duplicated, keeping the first mention. A list pasted together
+        # from several searches repeats itself — the same video says more
+        # than one word — and a repeat costs a metadata fetch to discover
+        # that the second copy is already in the catalogue.
+        wanted: dict[str, None] = {}
+        for video in ids:
+            if not ingestor.already_have(video) and video not in done:
+                wanted.setdefault(video, None)
+        fresh = list(wanted)
+        if len(ids) != len(set(ids)):
+            print(f"  {len(ids) - len(set(ids))} repeated id"
+                  f"{'s' if len(ids) - len(set(ids)) != 1 else ''} in the list")
         if done:
             print(f"  {len(done):,} videos settled by an earlier run "
                   "are being skipped")

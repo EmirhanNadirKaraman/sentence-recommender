@@ -853,3 +853,48 @@ Corrections now outrank patterns. Verified safe first — none of the 19
 existing corrections names a canonical, so nothing else moves.
 
 `gucken` is a goal now, and off the blocked list.
+
+## Material, again
+
+### 19. Take the rest of MrWissen2go, and measure a channel before taking it
+
+Channels differ enormously in whether they hand-caption, and that decides
+everything — an auto-captioned video is refused by ingest, so a channel's
+worth is its manual-subtitle rate, not its size or its quality.
+
+Measured 2026-09-12, ten videos sampled from each:
+
+```
+  MrWissen2go              166 of 197 taken     84%
+  musstewissen Deutsch      60 of 106 taken     57%
+  Dinge Erklärt Kurzgesagt   2 of 10 sampled    20%   (every one has an auto track)
+```
+
+So Kurzgesagt is five times the fetching for a fifth of the material, and
+was left alone. MrWissen2go has **722 videos remaining**; at 84% that is
+roughly 600 more, by far the best ratio found. Take it in chunks —
+`add-channel @MrWissen2go --limit 200` — so a throttling burst costs one
+chunk rather than three hours.
+
+**What it bought, which is the reason to continue.** 81 videos hand-picked
+or from musstewissen took the study list from 347 goals out of reach to 266.
+Fifty-seven of those were "said but never alone" — the column this file has
+said all along that more video does not help. It does help; what does not
+help is more *bad* video. The earlier measurement that said otherwise used
+eight videos found by the hunt's relevance search, which were off-topic.
+MrWissen2go's 166 then added 23,089 sentences and 88 roadmap steps, and
+their effect on the blocked list is not measured yet.
+
+**Sample before committing.** Ten `extract_info` calls tell you a channel's
+manual rate for the price of ten metadata fetches, against hundreds of
+wasted ones. There is no command for it; `caption-check` is the nearest
+thing and answers a different question.
+
+**A note on what the errors say.** A run against Kurzgesagt reported "Sign
+in to confirm you're not a bot" on every video and looked throttled. It was
+not: `transcript_fetcher` tries cookieless first, and that attempt really is
+bot-checked, but the cookie path behind it works — cookies plus
+`js_runtimes` and `remote_components`, all three already configured and
+documented in `_scrape_opts`. The videos were skipped because they have no
+hand-written subtitles. Read the refusal before believing the error.
+
