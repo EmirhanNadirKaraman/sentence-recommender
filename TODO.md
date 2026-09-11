@@ -817,35 +817,41 @@ counts.
 
 ## Goals
 
-### 18. A goal written as alternatives can never be reached
+### 18. One goal is unreachable because its pattern is never emitted
 
-`data/study_list.txt` writes alternatives with a comma — `gucken, kucken`,
-`der Beamte, die Beamte` — and `GoalList.entries` keeps the line whole, so
-the goal's unit key is the entire string. No corpus unit is ever equal to
-it, so the goal is stranded whatever the corpus holds.
+Written twice before it was right, and both earlier readings were wrong.
 
-It is not hypothetical. Of the 52 study-list goals reported as never said,
-six are comma pairs, and the corpus already says half of one of them:
+Not `GoalList`: `units` already splits alternatives, and its docstring says
+so. These entries take the other branch — they are registered pattern
+canonicals, kept verbatim because that string is what the matcher emits.
+There are 43 canonicals containing a comma and **the matcher emits 37 of
+them**, so the mechanism is sound.
+
+Nor is it six goals. Of the six never emitted, five are nominalised
+adjectives the corpus contains under neither spelling:
 
 ```
-  gucken, kucken          corpus has gucken, does not have kucken
-  der Beamte, die Beamte  neither half
-  ... four more
+  der Abgeordnete, die Abgeordnete    corpus has neither
+  der Angestellte, die Angestellte    corpus has neither
+  der Beamte, die Beamte              corpus has neither
+  der Beschäftigte, die Beschäftigte  corpus has neither
+  der Vorsitzende, die Vorsitzende    corpus has neither
+  gucken, kucken                      corpus has `gucken`
 ```
 
-So `gucken` is taught by the corpus today and the goal sits on the blocked
-list regardless, and `hunt --absent-only` will chase it forever.
+Those five are stranded because the material is missing, which is what the
+blocked list is for and what `hunt` is the remedy for. They are not a bug.
 
-`commands/hunt_videos._search_terms` already splits on the comma — its
-docstring records the round that went looking for `kucken`, which nobody
-writes, while `gucken` was there all along. That fixed what the hunt
-*searches for* and not what the goal *matches*, which is the half that
-decides whether it is ever satisfied.
+**One is.** The corpus says `gucken` and emits it as a lemma; the goal wants
+the pattern `gucken, kucken`; the two never meet, so the goal is stranded
+whatever is hunted. `hunt_videos._search_terms` already splits the comma —
+its docstring records the round spent chasing `kucken`, which nobody writes
+— so the hunt looks for the right word and the goal still cannot be
+satisfied by finding it.
 
-The fix is in `GoalList.units`: an entry naming alternatives should resolve
-to a unit per alternative, satisfied by any of them. That changes the goal
-count and every plan built from it, so it wants the same treatment as any
-analyser change — measure how many goals move first, since a list that
-suddenly reaches six more is a list whose numbers no longer compare with
-yesterday's.
-
+Worth fixing only with care. The obvious change — let a lemma alternative
+satisfy a pattern canonical — touches all 43, and 37 of them work today. A
+fix that destabilises 37 working goals to reach one is a bad trade. The
+narrow version is to ask why this canonical is not emitted when
+`angucken, ankucken` is, since both are bare verbs; that is a matcher
+question, and the answer decides whether anything here is worth changing.
