@@ -9,12 +9,25 @@ from __future__ import annotations
 import re
 from collections import Counter
 
-from corpus.sentence import Sentence
+from corpus.sentence import TRANSCRIPT, Sentence
 from vocab.loader import normalize
 
 # `–` and `—` are the dash subtitles use to mark a change of speaker, so a
 # line carrying one is two people talking, not one sentence.
-LEFTOVER_ARTIFACT = re.compile(r"[\[\]<>_♪*…–—]|--|\.\.\.| - ")
+# Never a word, wherever it came from: bracketed stage directions, music
+# marks, markup that survived the scrape.
+LEFTOVER_ARTIFACT = re.compile(r"[\[\]<>_♪*]")
+
+# Junk in a caption and ordinary punctuation in prose. A subtitle uses a dash
+# to mark a change of speaker and an ellipsis to mark the line continuing into
+# the next cue, so either one means the sentence in hand is a piece of
+# something rather than the thing itself. A written transcript uses both the
+# way any writer does.
+#
+# Applied to subtitles only, and the difference is not small: of 148,553
+# sentences read out of the Easy German transcripts, 50,989 were refused as
+# artifacts and 50,794 of those carried nothing worse than a dash.
+CAPTION_ARTIFACT = re.compile(r"[…–—]|--|\.\.\.| - ")
 
 # Pictographs and emoji. Captions are full of them and they are not words.
 PICTOGRAPH = re.compile(
@@ -94,6 +107,8 @@ class SentenceFilter:
         if not text:
             return "empty"
         if LEFTOVER_ARTIFACT.search(text):
+            return "artifact"
+        if sentence.origin != TRANSCRIPT and CAPTION_ARTIFACT.search(text):
             return "artifact"
         if not text.endswith((".", "!", "?")):
             return "unterminated"

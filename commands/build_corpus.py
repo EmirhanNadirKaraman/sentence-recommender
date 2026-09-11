@@ -11,6 +11,7 @@ corpora and neither should overwrite the other.
 from __future__ import annotations
 
 import time
+from pathlib import Path
 
 from alignment import SubtitleAligner
 from corpus import (
@@ -28,12 +29,13 @@ class BuildCorpusCommand:
     """
 
     def run(self, app, source: str, limit: int | None = None,
-            corrector: str = "merge", min_words: int | None = None) -> None:
+            corrector: str = "merge", min_words: int | None = None,
+            path: str | None = None) -> None:
         settings = app.settings
         started = time.time()
         build = f"{source}:llm" if source == "subtitle" and corrector == "llm" else source
 
-        sentences = self._collect(app, source, corrector)
+        sentences = self._collect(app, source, corrector, path)
         print(f"{build}: {len(sentences)} sentences from source "
               f"({time.time() - started:.0f}s)")
 
@@ -59,10 +61,13 @@ class BuildCorpusCommand:
         print(f"  cached {len(analysed)} sentences, {units} distinct units "
               f"({time.time() - started:.0f}s total)")
 
-    def _collect(self, app, source: str, corrector: str):
+    def _collect(self, app, source: str, corrector: str, path: str | None = None):
         settings = app.settings
+        if source == "transcript":
+            return self._transcripts(path)
         if source != "subtitle":
-            raise SystemExit(f"unknown source {source!r} (expected subtitle)")
+            raise SystemExit(
+                f"unknown source {source!r} (expected subtitle or transcript)")
 
         with Database(settings.database) as db:
             videos = SubtitleSource(db, settings.language).videos()
@@ -83,6 +88,28 @@ class BuildCorpusCommand:
                       if engine.rejected else "")
             print(f"  {engine.fallbacks} of {engine.chunks} chunks fell back "
                   f"to the rule-based corrector{detail}")
+        return sentences
+
+    @staticmethod
+    def _transcripts(path: str | None):
+        """Written transcripts, which need neither aligner nor corrector.
+
+        Both of those exist to undo what subtitling does to a sentence — cut
+        it at a line width and stamp the pieces with times. A transcript is
+        already prose: it is wrapped, and its punctuation says where the
+        sentences end.
+        """
+        from corpus.transcripts import TranscriptSource   # noqa: PLC0415
+
+        root = Path(path or "Easy German Transcripts")
+        if not root.exists():
+            raise SystemExit(f"no transcripts at {root}")
+        source = TranscriptSource(root)
+        files = source.files()
+        print(f"  {len(files)} transcript files under {root}…", flush=True)
+        sentences = source.sentences()
+        withtr = sum(1 for s in sentences if s.translation)
+        print(f"  {len(sentences):,} sentences, {withtr:,} with a translation")
         return sentences
 
     @staticmethod

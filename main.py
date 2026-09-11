@@ -71,7 +71,9 @@ def _parser() -> argparse.ArgumentParser:
                          help="list what would be fetched, and stop")
 
     corpus = sub.add_parser("build-corpus", help="analyse and cache a sentence source")
-    corpus.add_argument("source", choices=["subtitle"])
+    corpus.add_argument("source", choices=["subtitle", "transcript"])
+    corpus.add_argument("--path", help="folder of .txt transcripts, for "
+                                       "`build-corpus transcript`")
     corpus.add_argument(
         "--corrector", choices=["merge", "llm"], default="merge",
         help="how to turn subtitle lines into sentences; 'llm' repairs them "
@@ -219,7 +221,7 @@ def main() -> int:
                               not args.all_sentences)
     elif args.command == "build-corpus":
         BuildCorpusCommand().run(app, args.source, args.limit,
-                                 args.corrector, args.min_words)
+                                 args.corrector, args.min_words, args.path)
     elif args.command == "build-video-roadmap":
         BuildVideoRoadmapCommand().run(app, args.source, args.floor, args.steps)
     elif args.command == "build-roadmap":

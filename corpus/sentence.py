@@ -13,6 +13,7 @@ if TYPE_CHECKING:                      # avoids a cycle: alignment imports corpu
 # for generated sentences, whether it was ever verified at all.
 SUBTITLE = "subtitle"     # reassembled from the language-app subtitle corpus
 GENERATED = "generated"   # synthesised by the local model to fill a gap
+TRANSCRIPT = "transcript"  # a written transcript, with no video behind it
 
 
 @dataclass(frozen=True)
