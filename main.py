@@ -56,6 +56,8 @@ def _parser() -> argparse.ArgumentParser:
                       help="chase what a well-formed-only roadmap cannot reach")
     hunt.add_argument("--dry-run", action="store_true",
                       help="show what it would fetch, and stop")
+    hunt.add_argument("--goals-file", metavar="PATH",
+                      help="word list to chase, instead of data/study_list.txt")
     hunt.add_argument("--absent-only", action="store_true",
                       help="chase only the goals this corpus never says. The "
                            "rest are said but never alone, which more video "

@@ -12,6 +12,8 @@ this is the file to change.
 """
 from __future__ import annotations
 
+from ingest.options import scrape
+
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -75,7 +77,21 @@ class VideoIngestor:
 
         meta = pipeline.fetch_video_metadata(video_id)
         if meta is None:
-            raise SystemExit(f"{video_id}: no such video, or it is unavailable.")
+            # The scraper returns None for every failure alike, so this
+            # cannot tell a deleted video from a refused request. It said
+            # "no such video" for forty in a row once, and every one of them
+            # existed — YouTube was answering the scrape with a bot check.
+            # Ambiguous on purpose, and `AttemptLog.classify` reads it as
+            # weather rather than settling it.
+            hint = ("" if self._settings.cookies_browser else
+                    " If this is happening to every video, YouTube is probably"
+                    " asking the scraper to sign in: set"
+                    " YTDLP_COOKIES_BROWSER=chrome (or safari, firefox) so"
+                    " yt-dlp can use a browser session you are already"
+                    " logged into.")
+            raise SystemExit(
+                f"{video_id}: metadata could not be fetched — the video may be"
+                f" gone, or the request may have been refused.{hint}")
 
         transcript, detected, dialect, source = pipeline.get_transcript(
             video_id, wanted
@@ -138,8 +154,7 @@ class VideoIngestor:
         import yt_dlp                            # noqa: PLC0415 — heavy
 
         try:
-            with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True,
-                                   "skip_download": True}) as ydl:
+            with yt_dlp.YoutubeDL(scrape(self._settings)) as ydl:
                 info = ydl.extract_info(
                     f"https://www.youtube.com/watch?v={video_id}", download=False)
         except Exception:                        # noqa: BLE001 — say less, not wrong

@@ -10,6 +10,8 @@ it is already catalogued, before committing to hours of fetching.
 """
 from __future__ import annotations
 
+from ingest.options import scrape
+
 import re
 import sys
 from pathlib import Path
@@ -83,8 +85,7 @@ class ChannelLister:
         """
         import yt_dlp                            # noqa: PLC0415 — heavy
 
-        options = {"quiet": True, "no_warnings": True, "skip_download": True,
-                   "extract_flat": "in_playlist"}
+        options = scrape(extract_flat="in_playlist")
         if limit:
             options["playlist_items"] = f"1:{limit}"
         try:

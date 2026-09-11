@@ -71,6 +71,19 @@ class Settings:
 
     database: DatabaseConfig = field(default_factory=DatabaseConfig.from_env)
     language: str = "de"
+
+    # Which browser yt-dlp should borrow cookies from, or "" for none.
+    #
+    # YouTube now answers an anonymous scrape with "Sign in to confirm you're
+    # not a bot", and yt-dlp cannot get so far as the metadata — every video
+    # comes back looking unavailable, whatever its subtitles. Borrowing the
+    # session from a browser you are already signed into is the documented
+    # way through, and it is your own account reading caption tracks that are
+    # public either way.
+    #
+    # Set YTDLP_COOKIES_BROWSER=chrome (or safari, firefox, edge, brave).
+    cookies_browser: str = field(
+        default_factory=lambda: os.environ.get("YTDLP_COOKIES_BROWSER", ""))
     data_dir: Path = ROOT / "data"
 
     # Vocabulary sources.  `known_words` and `function_words` together form the

@@ -12,6 +12,8 @@ written, and nothing is scraped from a service that offers no API for it.
 """
 from __future__ import annotations
 
+from ingest.options import scrape
+
 import time
 from dataclasses import dataclass, field
 
@@ -54,8 +56,7 @@ class VideoHunter:
         from urllib.parse import quote_plus      # noqa: PLC0415
         import yt_dlp                            # noqa: PLC0415 — heavy
 
-        options = {"quiet": True, "no_warnings": True, "skip_download": True,
-                   "extract_flat": "in_playlist", "playlistend": limit}
+        options = scrape(extract_flat="in_playlist", playlistend=limit)
         url = ("https://www.youtube.com/results?search_query="
                f"{quote_plus(word + ' deutsch')}&sp=EgIoAQ%253D%253D")
         try:

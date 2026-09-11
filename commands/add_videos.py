@@ -18,6 +18,7 @@ from commands.add_video import AddVideoCommand
 from corpus import CorpusUpdater
 from db import Database
 from ingest import VideoIngestor
+from ingest.attempts import AttemptLog
 from ingest.channel import CHANNEL_ID
 from roadmap import RoadmapRefresher
 
@@ -27,7 +28,18 @@ class AddVideosCommand:
             dry_run: bool = False, limit: int = 0) -> None:
         ids = self._collect(app, source, limit)
         ingestor = VideoIngestor(app.settings, app.analyzer)
-        fresh = [v for v in ids if not ingestor.already_have(v)]
+        log = AttemptLog(app.settings.state_path)
+        # Two reasons to pass a video over: it is already in the catalogue, or
+        # it was tried and settled. Without the second, every run re-listed
+        # the channel and re-fetched the metadata of the same refusals — most
+        # of the work, and the reason an interrupted import had to start its
+        # channel again rather than carry on.
+        done = log.settled()
+        fresh = [v for v in ids
+                 if not ingestor.already_have(v) and v not in done]
+        if done:
+            print(f"  {len(done):,} videos settled by an earlier run "
+                  "are being skipped")
 
         print(f"{len(ids)} ids, {len(fresh)} not yet in the catalogue")
         if dry_run:
@@ -45,16 +57,23 @@ class AddVideosCommand:
                 landed = ingestor.add(video_id, language)
             except SystemExit as why:
                 refused.append((video_id, str(why)))
+                log.record(video_id, AttemptLog.classify(str(why)), str(why))
                 print("skipped")
                 continue
             except Exception as error:          # noqa: BLE001 — one bad video
                 refused.append((video_id, f"{type(error).__name__}: {error}"))
+                log.record(video_id, "error", f"{type(error).__name__}: {error}")
                 print("failed")
                 continue
+            log.record(video_id, "added")
             added.append(landed)
             print(f"{landed.lines} lines, {landed.language}")
 
         print(f"\n{len(added)} added, {len(refused)} skipped")
+        settled = log.counts()
+        if settled:
+            print("  attempts on record: " + ", ".join(
+                f"{k} {v:,}" for k, v in sorted(settled.items())))
         for video_id, why in refused:
             print(f"  {video_id}: {why.splitlines()[0]}")
 
