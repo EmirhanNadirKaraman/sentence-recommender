@@ -1,0 +1,214 @@
+# Goals this corpus cannot teach, most-said first.
+# The count is how often the corpus says it — a high count means
+# the word is here and always crowded, not that it is missing.
+#
+# Regenerated 2026-09-11 from 169,155 sentences (subtitle+transcript),
+# goals /Users/emir/Documents/GitHub/sentence-recommender/data/study_list.txt, well-formed only = True.
+# Rebuild with `python main.py out-of-reach` — do not hand-edit.
+die Qualifikation	1
+jdn./etw. (Akk) charakterisieren	1
+das Pro	0
+das stimmt	0
+der Beschäftigte, die Beschäftigte	0
+der Vorsitzende, die Vorsitzende	0
+der Sprecher	0
+die Geographie	0
+das BGB	0
+der Konzern	0
+die Weltmeisterschaft	0
+etw. (Akk) bedingen	0
+das Kilogramm	0
+gucken, kucken	0
+der Beamte, die Beamte	0
+die Einnahme	0
+der Abgeordnete, die Abgeordnete	0
+der Wechsel	0
+die Saison	0
+die Fotografie	0
+das HGB	0
+die Beschäftigung	0
+die Arbeitslosigkeit	0
+etw. (Akk) mit etw. vereinigen	0
+das Vorjahr	0
+angucken, ankucken	0
+das TV	0
+die Auffassung	0
+der Aktionär	0
+die Opposition	0
+auf jdn./etw. (Akk) weisen	0
+die Auskunft	0
+sich (Dat) etw. (Akk) / sich (Akk) sich ausziehen	0
+etw. (Akk) auf etw. zurückführen	0
+die Unternehmung	0
+die Ferne	0
+der Angestellte, die Angestellte	0
+die Aufwendungen	0
+das Entwicklungsland	0
+jdn./etw. (Akk) mit etw. bedecken	0
+die Fachhochschule	0
+der Rang	0
+der Schilling	0
+die Stasi	0
+die Bindung	0
+der Ehegatte	0
+der Gläubiger	0
+etw. (Akk) murmeln	0
+mit etw. (Dat) zucken	0
+die Gestaltung	0
+das Heim	0
+die Rechtsprechung	0
+die Erscheinung	0
+das Center	0
+jdn. (Akk) erstaunen	0
+die Phantasie	0
+die Interpretation	0
+der Schreck	0
+der Übersetzer	0
+der Gesichtspunkt	0
+der Empfang	0
+die Konjunktur	0
+die Übernahme	0
+die Benutzung	0
+herein, rein	0
+die Kammer	0
+der Moslem	0
+jdn. (Akk) reizen	0
+das Top	0
+die Verbreitung	0
+das Tennis	0
+für etw. (Akk) / an etw. (Dat) haften	0
+der Bube	0
+die Durchführung	0
+jdm. (Dat) nachfolgen	0
+die Realisierung	0
+das Wiedersehen	0
+die Bundesliga	0
+die Bereitschaft	0
+die Inszenierung	0
+die Epoche	0
+die Wechselwirkung	0
+die Unterscheidung	0
+der Abbau	0
+an jdm./etw. (Dat) verzweifeln	0
+etw. (Akk) ausstellen	0
+das Chinesisch	0
+jdn. (Akk) / sich an etw. (Dat) erfreuen	0
+das Fräulein	0
+jdn. (Akk) mit etw. infizieren	0
+der Personenkraftwagen, der PKW	0
+die Vereinigung	0
+die Unterlagen	0
+die Wange	0
+die Zeichnung	0
+der Aufsatz	0
+die Anregung	0
+das Betriebssystem	0
+die Datenverarbeitung	0
+die Bemühung	0
+die Blüte	0
+das Ensemble	0
+der Eigentümer	0
+der Konsument	0
+jdm./etw. (Dat) lauschen	0
+jdm./etw. (Dat) gleichen	0
+die Sportart	0
+der Schuldner	0
+die Überprüfung	0
+die Biologie	0
+die Entdeckung	0
+der Dirigent	0
+etw. (Akk) beleben	0
+der Champion	0
+die Gliederung	0
+das Milligramm	0
+der Parteitag	0
+das Olympia	0
+der Nacken	0
+der Schweiß	0
+die Steckdose	0
+der Zinssatz	0
+die Rezession	0
+etw. (Akk) aufreißen	0
+der Dolmetscher	0
+die Hypothese	0
+das Gremium	0
+das Glied	0
+die Kassette	0
+der Marktanteil	0
+das Präparat	0
+die Subvention	0
+die Zielsetzung	0
+die Volkswirtschaft	0
+jdm. (Dat) etw. (Akk) zuführen	0
+die Auswertung	0
+die Beschränkung	0
+der Absolvent	0
+die Fachleute	0
+das Industrieland	0
+die Tageszeitung	0
+der Zuwachs	0
+der Gemeinderat	0
+die Erfassung	0
+etw. (Akk) festsetzen	0
+die Ausrichtung	0
+jdn. (Akk) zu etw. mahnen	0
+die Koralle	0
+das Riff	0
+die Verbindlichkeit	0
+die Relation	0
+das Volumen	0
+jdm. (Dat) etw. (Akk) vortragen	0
+jdn. (Akk) / sich über jdn./etw. ärger	0
+besonder	0
+manch	0
+nochmals	0
+mittler	0
+freilich	0
+sämtlich	0
+empirisch	0
+aids	0
+touristisch	0
+vielfach	0
+indes	0
+musikalisch	0
+derart	0
+vorwiegend	0
+städtisch	0
+grinsen	0
+dynamisch	0
+kommunikativ	0
+außerordentlich	0
+konsequent	0
+selbe	0
+mitunter	0
+zumeist	0
+nachfolgend	0
+zugunsten	0
+klinisch	0
+nunmehr	0
+organisatorisch	0
+betrieblich	0
+qualitativ	0
+detaillieren	0
+mechanisch	0
+sogleich	0
+allenfalls	0
+agieren	0
+hinüber	0
+pakistanisch	0
+motorisch	0
+zueinander	0
+unterdessen	0
+gleichsam	0
+fotografisch	0
+gleichmäßig	0
+amtlich	0
+elementar	0
+naturwissenschaftlich	0
+fällig	0
+ländlich	0
+folglich	0
+vergleichsweise	0
+gentechnisch	0
+ostdeutsch	0
+westdeutsch	0
