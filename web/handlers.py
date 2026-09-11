@@ -609,7 +609,7 @@ class Viewer:
         if self._stored_label(source, False, True).endswith(":unblock"):
             offered.insert(1, ("unblock", "…and teach what blocks one"))
         links = "".join(
-            f"<a href='{page}?src={quote(source)}&count={value}' "
+            f"<a href='{self._link(page, source, count=value)}' "
             f"class='{'on' if here == value else ''}'>{label}</a>"
             for value, label in offered
         )
@@ -1050,16 +1050,27 @@ class Viewer:
             self._stuck.clear()
         return f"{back}{'&' if '?' in back else '?'}src={quote(source)}"
 
-    @staticmethod
-    def _kind_picker(only: str, source: str) -> str:
+    def _kind_picker(self, only: str, source: str) -> str:
         choices = (("", "words and patterns"), ("word", "words only"))
         links = "".join(
-            f"<a href='/?src={quote(source)}"
-            + (f"&only={value}" if value else "")
-            + f"' class='{'on' if only == value else ''}'>{label}</a>"
+            f"<a href='{self._link('/', source, only=value)}'"
+            f" class='{'on' if only == value else ''}'>{label}</a>"
             for value, label in choices
         )
         return f"<div class='switch'><span>Teaching me</span>{links}</div>"
+
+    def _link(self, path: str, source: str, **params) -> str:
+        """A link that keeps where the reader is standing.
+
+        Every picker built its own address out of `src` alone, so choosing
+        "one word away" on a page showing b1 silently returned to the default
+        list — the switch appeared to undo itself. Anything a page is showing
+        has to survive a click inside it.
+        """
+        carried = {"src": source, "list": self.list_name()}
+        carried.update({k: v for k, v in params.items() if v})
+        return path + "?" + "&".join(
+            f"{k}={quote(str(v), safe='')}" for k, v in carried.items())
 
     @staticmethod
     def _here(path: str, query: dict, *keys: str) -> str:
@@ -1382,9 +1393,8 @@ class Viewer:
         )
         near = sum(1 for r in stranded if r[2] == 2)
         picker = "".join(
-            f"<a href='/blocked?src={quote(source)}"
-            + (f"&gap={v}" if v else "")
-            + f"' class='{'on' if (query.get('gap') or '') == v else ''}'>{label}</a>"
+            f"<a href='{self._link('/blocked', source, gap=v, count=query.get('count'))}'"
+            f" class='{'on' if (query.get('gap') or '') == v else ''}'>{label}</a>"
             for v, label in (("", f"all {len(stranded):,}"),
                              ("near", f"one word away ({near:,})"))
         )
@@ -1425,7 +1435,13 @@ class Viewer:
         everything reachable, and doing that to the live one would tell the
         reading page they know words they have never seen.
         """
-        key = f"{source}|{'list' if list_only else 'all'}"
+        # `unblock` belongs in the key: it changes whether the walk may step
+        # off the list, so two positions of the counting switch are two
+        # different answers. Without it the second one served the first one's
+        # cached result, which made the switch look inert and sent me
+        # looking for the inertness in the walk.
+        key = (f"{source}|{'list' if list_only else 'all'}"
+               f"|{'open' if unblock else 'held'}")
         if key in self._stuck:
             return self._stuck[key]
         sentences = self.corpus_for(source, list_only)
@@ -1449,9 +1465,18 @@ class Viewer:
         # learning `Klausur` and then reports it as reachable. Saying so cost
         # two minutes a page load as well as being wrong.
         goals = frozenset(self.app.goal_units)
+        # `only_goals` is what the counting switch's third position asks
+        # about, so it has to reach the walk. It only ever reached the
+        # replay, which is a head start and provably inert — the walk runs to
+        # exhaustion either way — so the position sat on the page changing
+        # nothing, which is the failure `counting_switch` is written to
+        # avoid. Held, a goal with one ordinary word in front of it is
+        # stranded by policy; unblocked, the walk may step off the list to
+        # clear it.
         RoadmapBuilder(spare, self.priority(),
                        self.app.settings.priority_weight,
-                       goals=goals, only_goals=True).build(max_steps=WALK_LIMIT)
+                       goals=goals,
+                       only_goals=not unblock).build(max_steps=WALK_LIMIT)
         reached = spare.known
 
         appearances: Counter = Counter()
@@ -2028,9 +2053,8 @@ class Viewer:
                  f"<th class='n'>length</th></tr>{rows}</table>" if rows
                  else "<p class='empty'>No aligned subtitles yet.</p>")
         picker = "".join(
-            f"<a href='/subtitles?src={quote(source)}"
-            + (f"&by={value}" if value != "watch" else "")
-            + f"' class='{'on' if order == value else ''}'>{label}</a>"
+            f"<a href='{self._link('/subtitles', source, by=value if value != 'watch' else '')}'"
+            f" class='{'on' if order == value else ''}'>{label}</a>"
             for value, label in (("watch", "easiest to follow"),
                                  ("density", "most to learn per minute"),
                                  ("teaching", "most of your list per minute"),
