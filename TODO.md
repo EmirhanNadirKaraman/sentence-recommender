@@ -470,6 +470,32 @@ more sentences per list word, which is `fill-gaps` writing five a word
 rather than one a step, or more video. Re-run `cover` on a hand-built list
 after either, and if the overlap column above moves, build the page.
 
+**Relaxing i+1 does not rescue it** — asked 2026-09-11, measured over the
+same seventeen words:
+
+```
+  reading                 overlap  videos  minutes  hours   clean sentences
+  i+1                        1.17      40     1119   18.6   100%   mean 0.00
+  unknowns on the list       1.18      42     1196   19.9    98%   mean 0.02
+  any sentence               1.91      21     1282   21.4    12%   mean 3.24
+```
+
+"Clean" is sentences with no unknown word besides the one being taught.
+
+Letting any sentence count doubles the overlap and halves the video count,
+and still costs *more* minutes — a shorter list of titles for a longer
+watch, where 88% of what is shown carries other unknown words, three on
+average. The middle reading, which this entry proposed as the interesting
+one, changes nothing at all: with twenty words two list words almost never
+share a sentence. It would only pay on a list large enough for co-occurrence,
+which is the size at which the cover is the catalogue with a price on it.
+There is no list size where relaxing helps.
+
+One thing would flip it. The objective is minutes; if it were *videos* —
+"how few things must I watch" — then any-sentence wins outright at 21
+against 40. That is a different question and worth its own entry if it is
+ever the one being asked.
+
 ## Other people
 
 ### 11. Letting friends run it
