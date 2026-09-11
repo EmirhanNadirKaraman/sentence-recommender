@@ -13,6 +13,7 @@ from commands import (
     BuildStudyListCommand, ExportSubtitlesCommand, FillGapsCommand,
     HuntVideosCommand, ReviewCommand, ServeCommand, StatusCommand,
     SyncCatalogueCommand, OutOfReachCommand,
+    BackfillChannelsCommand,
 )
 from config import Settings
 from context import Application
@@ -207,6 +208,19 @@ def _parser() -> argparse.ArgumentParser:
                       help="sync even though videos scraped here are not "
                            "upstream, discarding them")
 
+    fill = sub.add_parser(
+        "backfill-channels",
+        help="ask YouTube which channel each video came from")
+    fill.add_argument("--limit", type=int, default=0,
+                      help="stop after N videos (default: all of them)")
+    fill.add_argument("--delay", type=float, default=15.0,
+                      help="seconds between calls (default 15; five was "
+                           "enough to be throttled)")
+    fill.add_argument("--give-up", type=int, default=5, metavar="N",
+                      help="stop after N refusals in a row (default 5)")
+    fill.add_argument("--dry-run", action="store_true",
+                      help="say what it would ask about, and stop")
+
     sub.add_parser("status", help="what is built and what is due")
     sub.add_parser("function-words", help="regenerate the closed-class review file")
     sub.add_parser("schema-doc", help="regenerate DATABASE.md from both databases")
@@ -295,6 +309,9 @@ def main() -> int:
         StatusCommand().run(app)
     elif args.command == "function-words":
         function_words(app)
+    elif args.command == "backfill-channels":
+        BackfillChannelsCommand().run(app, args.limit, args.delay,
+                                      args.give_up, args.dry_run)
     elif args.command == "out-of-reach":
         OutOfReachCommand().run(app, tuple(args.source), args.out,
                                 not args.all_sentences)

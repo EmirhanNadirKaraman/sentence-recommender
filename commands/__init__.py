@@ -1,4 +1,5 @@
 from .add_video import AddVideoCommand
+from .backfill_channels import BackfillChannelsCommand
 from .add_videos import AddVideosCommand
 from .build_corpus import BuildCorpusCommand
 from .check_word import CheckWordCommand
@@ -19,7 +20,7 @@ from .status import StatusCommand
 from .sync_catalogue import SyncCatalogueCommand
 
 __all__ = [
-    "AddVideoCommand", "AddVideosCommand", "BuildCorpusCommand", "BuildRoadmapCommand",
+    "AddVideoCommand", "BackfillChannelsCommand", "AddVideosCommand", "BuildCorpusCommand", "BuildRoadmapCommand",
     "BuildVideoRoadmapCommand",
     "BuildStudyListCommand", "CheckWordCommand", "DifficultyCommand",
     "ExportSubtitlesCommand", "UnblockCommand",

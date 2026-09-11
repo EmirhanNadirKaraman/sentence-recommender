@@ -124,19 +124,21 @@ reply, so a crash at video 900 costs the first 899. Keep auto videos in
 their own build and `transcript_source='auto'`, so the reader can see
 which text a machine wrote twice.
 
-### 8. Backfill `channel_id` on the 1,117 videos that lack it
+### 8. Backfill `channel_id` on the 1,114 videos that lack it
 
 Item 6 needs this and cannot start without it, which is why it is its own
 entry rather than a clause inside one. 1,117 of 1,382 videos have a null
 `channel_id`, and every one of them is German — the non-German rows came
 from upstream with theirs already set.
 
-Nothing stored can supply it. The channel was never written down, so each
-video needs one `pipeline.fetch_video_metadata` call, which already returns
-`channel_id` and `channel_name` beside the title; `pipeline.upsert_channel`
-turns that into a row id and is idempotent — it keeps a name already
-recorded rather than overwriting it. Both were exercised on the live schema
-in 8e7a146, so the pieces exist and the work is a loop and a pace.
+**The command exists; the work is running it.** `backfill-channels` does one
+`fetch_video_metadata` call per video, upserts the channel and commits each
+row as it lands, so an interrupted run keeps what it earned and the work
+left is always `WHERE channel_id IS NULL` rather than a position in a queue.
+Three videos were filled this way on 2026-09-11; 1,114 remain.
+
+At the default 15s pace that is about four and a half hours, and it wants
+running in the background rather than watched.
 
 The pace is the whole difficulty. On 2026-09-11 five metadata calls five
 seconds apart drew "The page needs to be reloaded" from YouTube, and cookies
