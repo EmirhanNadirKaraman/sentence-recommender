@@ -59,7 +59,7 @@ timings taken at load average 50 were wrong by a factor of twenty-five.
 Re-measure the table on a quiet machine before trusting any line of it,
 including the ones under 2 and 3.
 
-### 2. NER — measured, and the case for dropping it is stronger than this said
+### 2. NER — DONE, and it was a correctness fix as much as a speed-up
 
 Still not a free win, and still an analyser change. But both numbers in the
 original entry were guesses, and both were wrong in the direction that
@@ -90,12 +90,41 @@ list of person nouns catches them without a model *and* does not invent the
 other two. That beats keeping NER and beats the bare `pos_` test this entry
 proposed, which would have lost all nine.
 
-Not done, because it is what this entry always said it was: a corpus change.
-It moves which patterns are extracted, so it needs a fingerprint bump, a
-`build-corpus`, all ten roadmaps re-walked and both out-of-reach reports
-regenerated — and the machine has been in the swapper for hours. Worth doing
-deliberately, on a quiet machine, with the person-noun list rather than the
-`pos_`-only test.
+Done, with the person-noun list rather than the `pos_`-only test — and it
+turned out to be the opposite of the risk this entry was written around.
+Against the model on the same 3,251 object tokens:
+
+```
+  3,153  agree
+     95  people under the list that NER never saw
+      3  people under NER that the list does not
+```
+
+NER fires on *named* entities, so ordinary person nouns were being called
+things all along. `Frauen unterstützen` was `etw. unterstützen` and is now
+`jdn.`; `den Menschen erklären` was `etw.` and is now `jdm.` Every one of
+ten spot-checked is a correction. Of the three going the other way two were
+NER's own mistakes, and the real loss is a surname that is also a common
+noun, which no word list can catch.
+
+Carried out as the entry required: fingerprint bumped (`phrase_finder.py` is
+in `SOURCES`), both corpora rebuilt, all ten roadmaps re-walked, both reports
+regenerated.
+
+```
+  subtitle     215,437 sentences   41,173 units   683s
+  transcript    53,134 sentences   19,211 units   205s
+  units, both    49,262            was 46,433
+  b1 out of reach     9            was 11
+  study list        347            was 341
+```
+
+The unit count rises because the person/thing split separates blueprints
+that used to collapse together — 500 patterns now name a person against 442
+naming only a thing — and that is also why the study list ticks up six: some
+goals map to a more specific and therefore rarer pattern. b1 improves. The
+trade is a slightly harder corpus that is describing German more accurately,
+bought alongside 51% of parse time.
 
 ### 3. Phrase extraction is serial — measured, and it is not the ceiling
 

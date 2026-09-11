@@ -11,13 +11,11 @@
 # goals data/b1_parsed.txt, well-formed only = True.
 # Rebuild with `python main.py out-of-reach` — do not hand-edit.
 städtisch	6	7
-sämtlich	3	3
-das Lokal	3	3
-die Auskunft	2	3
 die Zulassung	2	4
-das Orchester	1	3
-die Saison	1	4
+die Auskunft	2	3
 die Steckdose	1	2
+die Saison	1	4
+das Orchester	1	3
 die Phantasie	0	0
 das Top	0	0
 die Unterlagen	0	0
