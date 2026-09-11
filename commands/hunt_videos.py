@@ -17,6 +17,7 @@ from config import Settings
 from corpus import CorpusUpdater
 from ingest import VideoHunter, VideoIngestor
 from ingest.attempts import AttemptLog
+from ingest.searches import SearchLog
 from corpus.quality import well_formed
 from roadmap import (CorpusIndex, RoadmapBuilder, RoadmapRefresher,
                      RoadmapStore)
@@ -62,6 +63,7 @@ class HuntVideosCommand:
         ingestor = VideoIngestor(app.settings, app.analyzer)
         # The book `add-videos` has always kept, and the hunt never opened.
         log = AttemptLog(app.settings.state_path)
+        searches = SearchLog(app.settings.state_path)
         hunter = VideoHunter(ingestor, log)
         if rounds > 1:
             settled = len(log.settled())
@@ -87,7 +89,17 @@ class HuntVideosCommand:
             print(f"  {len(stuck):,} things this corpus cannot teach; "
                   f"looking for video that says the most common of them")
 
-            hunt = hunter.gather([u for u, _ in stuck[:batch * 3]], batch)
+            # A word that has been looked for and not found steps aside
+            # so the next one gets a turn. Ten rounds once searched the same
+            # six terms while fifty-five other stranded words were never
+            # looked for at all, because `gather` stops as soon as it has
+            # enough candidates and the list is always in the same order.
+            turn, waiting = searches.rota(stuck)
+            if waiting:
+                print(f"  {waiting:,} already looked for without luck are "
+                      "waiting their turn again")
+            hunt = hunter.gather([u for u, _ in turn[:batch * 3]], batch)
+            searches.record(hunt.tried)
             print(f"  searched {', '.join(hunt.searched[:6])}"
                   f"{' …' if len(hunt.searched) > 6 else ''}")
             print(f"  {len(hunt.candidates)} videos not already held")

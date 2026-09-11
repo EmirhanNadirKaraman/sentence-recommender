@@ -34,6 +34,10 @@ class Hunt:
     """What a round of searching turned up."""
 
     searched: list[str] = field(default_factory=list)
+    # The goals actually looked for, as units. `searched` holds the terms,
+    # which are derived from a unit and cannot be mapped back to one — a
+    # comma entry yields two, an article-noun pair yields the noun.
+    tried: list = field(default_factory=list)
     candidates: list[str] = field(default_factory=list)
     added: list[str] = field(default_factory=list)
     refused: list[tuple[str, str]] = field(default_factory=list)
@@ -94,6 +98,7 @@ class VideoHunter:
                 break
             term = unit.key.split()[-1] if unit.is_pattern else unit.key
             hunt.searched.append(term)
+            hunt.tried.append(unit)
             for video_id in self.search(term):
                 if (video_id in seen or video_id in self._tried
                         or video_id in self._settled
