@@ -124,7 +124,7 @@ reply, so a crash at video 900 costs the first 899. Keep auto videos in
 their own build and `transcript_source='auto'`, so the reader can see
 which text a machine wrote twice.
 
-### 14. Backfill `channel_id` on the 1,117 videos that lack it
+### 8. Backfill `channel_id` on the 1,117 videos that lack it
 
 Item 6 needs this and cannot start without it, which is why it is its own
 entry rather than a clause inside one. 1,117 of 1,382 videos have a null
@@ -158,7 +158,7 @@ already holds from a channel before fetching anything.
 
 ## Word lists
 
-### 8. Lists built by searching, and a page that can choose between them
+### 9. Lists built by searching, and a page that can choose between them
 
 The roadmap's aim is a file: `data/study_list.txt`, or `--goals-file PATH`
 on the command line only. Wanted: search the vocabulary with a box that
@@ -186,7 +186,7 @@ a relaxed step's `beside` word, which is already stored.
 
 ## Other people
 
-### 9. Letting friends run it
+### 10. Letting friends run it
 
 Two questions, in order. First, the state is one reader's: `known_units`,
 `cards`, `roadmap`, `video_score` and the rest of `state.sqlite3` have no
@@ -223,7 +223,7 @@ Measured 2026-09-11, after 7b739a3 moved unit filtering into the read:
     CorpusIndex                    0.58s
     cold /blocked                  4.54s
 
-### 10. The load is now object building, not querying
+### 11. The load is now object building, not querying
 
 1.54s of the 3.66s is 1.74M unit rows crossing the wire; most of the balance
 is assembling 169,155 `Sentence` objects and interning their units. There is
@@ -238,9 +238,9 @@ walk is *also* SQL, and quoting it as an available saving is how this gets
 started and abandoned.
 
 Cheaper first: find out whether the pages that pay this actually need it —
-see 11.
+see 12.
 
-### 11. Do the stored-plan pages need an index at all?
+### 12. Do the stored-plan pages need an index at all?
 
 `/roadmap` and `/quiz` read a plan that was already walked and stored. If
 `Viewer.scope` builds a `CorpusIndex` for them regardless, they are paying a
@@ -254,7 +254,7 @@ What would go wrong: `scope` is cached per source and counting mode, so a
 page that looks cheap in isolation may be warming the index another page then
 uses. Measure the pair, not the page.
 
-### 12. What the 84,849 overlay sentences cost
+### 13. What the 84,849 overlay sentences cost
 
 84,849 of 254,005 sentences are `teachable = False` — kept so the transcript
 panel beside the player has no holes. Every study query filters them out in
@@ -266,7 +266,7 @@ query and a join, which is the panel's whole cost. The answer may well be
 that they are fine where they are — but 33% of the corpus existing for one
 panel is worth knowing the price of.
 
-### 13. `roadmap_example` is 65% repeated text
+### 14. `roadmap_example` is 65% repeated text
 
 114,473 rows carrying 40,062 distinct texts, inside a `state.sqlite3` that is
 now 63 MB total — the corpus having left for Postgres.
