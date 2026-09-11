@@ -329,17 +329,26 @@ class Application:
         # Both files stamp the cache: a correction added to `goal_lemmas`
         # has to invalidate it, or editing the file would appear to do
         # nothing at all.
+        stored = self.settings.goal_entries
         files = [self.settings.goal_words, self.settings.goal_lemmas]
-        cached = self.resolved.get("goals", files)
-        if cached is not None:
-            return tuple(Unit(kind, key) for kind, key in cached)
+        if stored is None:
+            cached = self.resolved.get("goals", files)
+            if cached is not None:
+                return tuple(Unit(kind, key) for kind, key in cached)
         with Database(self.settings.own) as db:
             patterns = PatternRepository(db, self.settings.language).canonicals()
-        units = GoalList(self.settings.goal_words).units(
+        units = GoalList(self.settings.goal_words, stored).units(
             patterns, self.analyzer.lemmatise_each,
             GoalList.corrections(self.settings.goal_lemmas),
         )
-        self.resolved.put("goals", files, [[u.kind, u.key] for u in units])
+        if stored is None:
+            self.resolved.put("goals", files, [[u.kind, u.key] for u in units])
+        else:
+            # Nothing to stamp a cache with: the entries came from a table
+            # the file-mtime cache cannot see, and a stale answer here is a
+            # roadmap aimed at the list as it used to be. Two seconds a run,
+            # against silently teaching the wrong thing.
+            pass
         return units
 
     def priority(self) -> UnitPriority:

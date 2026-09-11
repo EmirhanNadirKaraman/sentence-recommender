@@ -58,6 +58,8 @@ def _parser() -> argparse.ArgumentParser:
                       help="chase what a well-formed-only roadmap cannot reach")
     hunt.add_argument("--dry-run", action="store_true",
                       help="show what it would fetch, and stop")
+    hunt.add_argument("--goals-list", metavar="NAME",
+                       help="saved word list to use, by name, instead of a file. `python main.py word-list` shows what there is")
     hunt.add_argument("--goals-file", metavar="PATH",
                       help="word list to chase, instead of data/study_list.txt")
     hunt.add_argument("--absent-only", action="store_true",
@@ -106,6 +108,8 @@ def _parser() -> argparse.ArgumentParser:
                            "an article form")
     plan.add_argument("--quality", action="store_true",
                       help="teach only from well-formed sentences")
+    plan.add_argument("--goals-list", metavar="NAME",
+                       help="saved word list to use, by name, instead of a file. `python main.py word-list` shows what there is")
     plan.add_argument("--goals-file", metavar="PATH",
                       help="word list to aim at, instead of data/study_list.txt. "
                            "One entry per line, or two tab-separated columns")
@@ -161,6 +165,8 @@ def _parser() -> argparse.ArgumentParser:
                          "study list, and what it would cost to free them")
     blockers.add_argument("--source", default="subtitle")
     blockers.add_argument("--limit", type=int, default=15)
+    blockers.add_argument("--goals-list", metavar="NAME",
+                       help="saved word list to use, by name, instead of a file. `python main.py word-list` shows what there is")
     blockers.add_argument("--goals-file", metavar="PATH",
                           help="word list to report against")
     blockers.add_argument("--all-sentences", action="store_true",
@@ -247,8 +253,26 @@ def _parser() -> argparse.ArgumentParser:
                             "off the list to clear the way to a goal")
     reach.add_argument("--all-sentences", action="store_true",
                        help="count badly-formed sentences as teaching material")
+    reach.add_argument("--goals-list", metavar="NAME",
+                       help="saved word list to use, by name, instead of a file. `python main.py word-list` shows what there is")
     reach.add_argument("--goals-file", metavar="PATH",
                        help="word list to report on, instead of the default")
+    lists = sub.add_parser(
+        "word-list", help="the word lists you have saved, and their contents")
+    lists.add_argument("name", nargs="?", help="show one list's entries")
+    lists.add_argument("--save", metavar="NAME",
+                       help="save a list under this name")
+    lists.add_argument("--from", dest="source_file", metavar="PATH",
+                       help="read the entries to save from this file")
+    lists.add_argument("--forget", metavar="NAME", help="delete a saved list")
+
+    look = sub.add_parser(
+        "search", help="find a word in the corpus vocabulary, misspellings and all")
+    look.add_argument("term", help="what to look for")
+    look.add_argument("--limit", type=int, default=20)
+    look.add_argument("--source", nargs="+", default=[], metavar="BUILD",
+                      help=SOURCE_HELP)
+
     return parser
 
 
@@ -259,10 +283,73 @@ def function_words(app: Application) -> None:
     print(f"wrote {app.settings.function_words} — {count} lemmas")
 
 
+def word_lists(app: Application, args) -> None:
+    """Show, save or forget the lists the reader has built."""
+    from vocab.word_lists import WordListStore            # noqa: PLC0415
+    store = WordListStore(app.settings.state_path)
+    if args.forget:
+        store.forget(args.forget)
+        print(f"forgot {args.forget!r}")
+    elif args.save:
+        if not args.source_file:
+            raise SystemExit("--save needs --from PATH to read entries from")
+        source = Path(args.source_file)
+        if not source.exists():
+            raise SystemExit(f"no file at {source}")
+        entries = [line.split("\t")[-1].strip()
+                   for line in source.read_text(encoding="utf-8").splitlines()
+                   if line.strip() and not line.startswith("#")]
+        n = store.save(args.save, entries, note=str(source))
+        print(f"saved {args.save!r} — {n:,} entries from {source}")
+    elif args.name:
+        entries = store.entries(args.name)
+        if not entries:
+            raise SystemExit(f"no saved list called {args.name!r}")
+        print(f"{args.name} — {len(entries):,} entries")
+        for entry in entries:
+            print(f"  {entry}")
+    else:
+        rows = store.names()
+        if not rows:
+            print("no saved lists yet — `word-list --save NAME --from PATH`")
+        for name, count, saved in rows:
+            print(f"  {name:<24} {count:>6,} entries   saved {saved}")
+
+
+def search_vocabulary(app: Application, term: str, limit: int,
+                      builds: tuple[str, ...]) -> None:
+    """What the corpus says that looks like this."""
+    from vocab.search import UnitSearch                   # noqa: PLC0415
+    wanted = list(builds) or list(app.corpus_store.builds())
+    if not wanted:
+        raise SystemExit("no cached corpus — run `build-corpus` first")
+    search = UnitSearch(app.corpus_store.unit_counts(*wanted))
+    found = search.find(term, limit=limit)
+    print(f"{len(search):,} units in {'+'.join(wanted)}; "
+          f"{len(found)} like {term!r}")
+    for unit, said, score in found:
+        kind = "pattern" if unit.is_pattern else "word"
+        print(f"  {score:>5.2f}  {said:>6,}x  [{kind}] {unit.key}")
+
+
 def main() -> int:
     args = _parser().parse_args()
     settings = Settings()
-    if getattr(args, "goals_file", None):
+    if getattr(args, "goals_list", None):
+        # Named rather than pathed, but still given a path: the stem is what
+        # a plan's label carries, and a stored list needs a name there like
+        # any other. The file need not exist — the entries come from the
+        # table, and `goal_entries` is what tells `Application` to use them.
+        from vocab.word_lists import WordListStore      # noqa: PLC0415
+        store = WordListStore(settings.state_path)
+        if args.goals_list not in store:
+            raise SystemExit(f"no saved list called {args.goals_list!r} — "
+                             "`python main.py word-list` shows what there is")
+        settings = replace(
+            settings,
+            goal_words=settings.data_dir / f"{args.goals_list}.txt",
+            goal_entries=store.entries(args.goals_list))
+    elif getattr(args, "goals_file", None):
         # A different list changes the goals, and everything derived from them
         # follows: `covered_forms`, the teaching order, what counts as
         # stranded. The resolved cache is stamped on the file, so it
@@ -329,6 +416,10 @@ def main() -> int:
         OutOfReachCommand().run(app, tuple(args.source), args.out,
                                 not args.all_sentences, args.counting,
                                 args.unblock)
+    elif args.command == "word-list":
+        word_lists(app, args)
+    elif args.command == "search":
+        search_vocabulary(app, args.term, args.limit, tuple(args.source))
     elif args.command == "schema-doc":
         from db.schema_doc import write        # noqa: PLC0415 — only here
         print(f"wrote {write(app)}")

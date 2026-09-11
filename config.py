@@ -144,6 +144,10 @@ class Settings:
     order_words: Path = ROOT / "data" / "old_data" / "words_4000.txt"
     form_words: Path = ROOT / "data" / "final_result.txt"
     goal_words: Path = ROOT / "data" / "study_list.txt"
+    # A list the reader built and saved, handed over instead of read. The
+    # path above still names it — a plan's label carries the stem — but the
+    # entries come from `word_list` in the state file. See `vocab.word_lists`.
+    goal_entries: tuple[str, ...] | None = None
     goal_lemmas: Path = ROOT / "data" / "goal_lemmas.txt"
 
     # Local mutable state (SRS cards, generated roadmap).
