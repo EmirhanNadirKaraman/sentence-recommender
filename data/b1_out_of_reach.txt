@@ -6,112 +6,39 @@
 # with said above 0 means the quality bar refused every sentence
 # there is — read one before deciding which of the two is wrong.
 #
-# Counting strict, which is what `_stored_label` serves.
-# Regenerated 2026-09-11 from 169,155 sentences (subtitle+transcript),
+# Counting strict, clearing the way, which is what `_stored_label` serves.
+# Regenerated 2026-09-11 from 172,730 sentences (subtitle+transcript),
 # goals data/b1_parsed.txt, well-formed only = True.
 # Rebuild with `python main.py out-of-reach` — do not hand-edit.
-schriftlich	24	33
-die Maßnahme	21	40
-die Produktion	16	27
-der Stock	16	31
-die Philosophie	15	25
-die Einrichtung	14	22
-der Dienst	14	26
-die Intelligenz	13	23
-die Mehrheit	12	28
-etw. (Akk) analysieren	12	26
-elektrisch	12	31
-das Gewissen	10	17
-etw. (Akk) erfordern	9	10
-die Herkunft	9	12
-die Breite	9	17
-erforderlich	8	16
-zuverlässig	8	10
-der Verband	7	16
-der Rock	7	11
-der Februar	7	22
-der Vertreter	6	8
-das Tempo	6	10
-die Konkurrenz	6	14
-der Passagier	6	9
-die Geburt	6	14
-solch	6	8
-der Ersatz	6	7
-die Wärme	6	6
-jdm. (Dat) etw. (Akk) berechnen	6	16
-die Empfehlung	6	14
-der Ordner	5	7
-der Sänger	5	5
-der Musiker	5	9
-die Stirn	5	9
-das Band	5	5
+das Institut	6	9
 etw. (Akk) installieren	5	8
-beinahe	5	9
-das Institut	5	7
-der Juli	5	17
-das Grundstück	5	11
-kräftig	5	10
-die Software	4	11
-die Datei	4	8
-der Sportler	4	9
-die Enttäuschung	4	5
-die Entfernung	4	11
-der Weltmeister	4	6
-gegen etw. protestieren	4	8
-der Januar	3	31
-die Teilnahme	3	5
-die Gewerkschaft	3	5
 die Flüssigkeit	3	4
-der Empfänger	3	7
 städtisch	3	7
-das Rathaus	3	9
-das Tennis	2	4
 das Heft	2	2
-die Münze	2	5
-die Vorschrift	2	4
-interkulturell	2	7
-die Einnahme	2	7
 die Klinik	2	4
-etw. (Akk) ausstellen	2	6
-die Einzelheit	2	3
-die Vermittlung	2	3
-der Kunststoff	2	2
-der Abfall	2	5
 sonstig	2	5
 das Lokal	2	3
-voraussichtlich	2	3
 anwesend	2	5
-die Oper	2	6
-mittler	2	3
+der Bogen	2	6
+die Sportart	2	7
 die Zone	2	7
-das Wiedersehen	1	2
 inner	1	3
 das Orchester	1	3
-die Qualifikation	1	2
-die Hut	1	1
+die Qualifikation	1	3
 ökologisch	1	3
 der Band	1	4
-jdm. (Dat) genügen	1	4
-vorig	1	1
-die Messe	1	1
 der Käufer	1	1
-der Bogen	1	5
 das Quartal	1	2
-die Sportart	1	6
-die Beschäftigung	1	4
-nächst	1	7
-die Fachleute	1	4
 die Zulassung	1	3
 die Zahlung	1	3
 eilen	1	1
 die Auskunft	0	3
 das Kilogramm	0	3
 die Phantasie	0	0
-die Saison	0	3
+die Saison	0	4
 die Steckdose	0	2
 das Top	0	0
 die Unterlagen	0	0
-die Weltmeisterschaft	0	0
 etw. (Akk) festsetzen	0	5
 der Übersetzer	0	1
 sämtlich	0	2
