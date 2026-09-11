@@ -1511,9 +1511,17 @@ class Viewer:
         source = self.source(query)
         ranked = self._watchable(source)
         if not ranked:
-            return layout("Reels", "<h1>Nothing to watch</h1><p class='empty'>"
-                          "No video in this corpus has enough subtitle lines.</p>",
-                          "/reels", source)
+            # Two different emptinesses, and saying the wrong one sends
+            # someone looking for a bug. `transcript` is written prose with
+            # no video behind it at all; a subtitle build with nothing here
+            # really has only clips.
+            timed = any(s.timing for s in self.corpus_for(source, True))
+            why = ("These are written transcripts — there is no video behind "
+                   "them to watch. Try the subtitle build."
+                   if not timed else
+                   "No video in this corpus has enough subtitle lines.")
+            return layout("Reels", f"<h1>Nothing to watch</h1>"
+                          f"<p class='empty'>{why}</p>", "/reels", source)
 
         here = min(max(int(query.get("i") or 0), 0), len(ranked) - 1)
         row = ranked[here]
