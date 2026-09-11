@@ -14,6 +14,7 @@ from __future__ import annotations
 import re
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
 from web import render, watch
 from web.handlers import Viewer
@@ -195,6 +196,49 @@ class OrderingTest(unittest.TestCase):
         """Rather than dividing by a guess."""
         viewer = Viewer.__new__(Viewer)
         self.assertEqual(viewer._density({"i+1": 50, "minutes": None}), 0.0)
+
+
+class StoredLabelTest(unittest.TestCase):
+    """Which stored plan the page asks for.
+
+    Untested until a `NameError` in it survived a full green run: nothing
+    here reaches `_stored_label`, so a plan aimed at the wrong list — or no
+    plan at all — looked exactly like a working page. Stubbed rather than
+    wired to an Application, like everything else in this file.
+    """
+
+    def viewer(self, stored: set[str], goals: str = "study_list"):
+        viewer = Viewer.__new__(Viewer)
+        viewer.app = SimpleNamespace(
+            settings=SimpleNamespace(goal_words=Path(f"data/{goals}.txt")))
+        viewer._store = SimpleNamespace(sources=lambda: stored)
+        return viewer
+
+    def test_it_prefers_the_well_formed_plan(self) -> None:
+        got = self.viewer({"subtitle:good:strict:goals",
+                           "subtitle:strict:goals"})
+        self.assertEqual(got._stored_label("subtitle", False),
+                         "subtitle:good:strict:goals")
+
+    def test_the_counting_mode_chooses(self) -> None:
+        both = {"subtitle:strict:goals", "subtitle:list:goals"}
+        self.assertEqual(self.viewer(both)._stored_label("subtitle", True),
+                         "subtitle:list:goals")
+        self.assertEqual(self.viewer(both)._stored_label("subtitle", False),
+                         "subtitle:strict:goals")
+
+    def test_a_non_default_list_is_asked_for_by_name(self) -> None:
+        """Without the name it served the default list's plan instead, which
+        is a different curriculum wearing the right page."""
+        stored = {"subtitle:strict:goals", "subtitle:strict:goals:b1_parsed"}
+        got = self.viewer(stored, goals="b1_parsed")
+        self.assertEqual(got._stored_label("subtitle", False),
+                         "subtitle:strict:goals:b1_parsed")
+
+    def test_it_does_not_fall_back_to_another_list(self) -> None:
+        """A missing b1 plan is no plan, not the default one."""
+        got = self.viewer({"subtitle:strict:goals"}, goals="b1_parsed")
+        self.assertEqual(got._stored_label("subtitle", False), "subtitle")
 
 
 class ComingBackTest(unittest.TestCase):

@@ -36,6 +36,7 @@ GOALS = ":goals"
 LIST = ":list"
 GOOD = ":good"
 STRICT = ":strict"
+RELAX = ":relax"
 
 
 class Plan(NamedTuple):
@@ -54,6 +55,10 @@ class Plan(NamedTuple):
     # Which word list, when it is not the default. Last because a
     # NamedTuple will not take a defaulted field before an undefaulted one.
     goal_list: str = ""
+    # Whether the walk was allowed to teach two words from one sentence at
+    # the wall. Part of the name since it changes what the plan *is*, and a
+    # plan that differs has to be stored apart from one that does not.
+    relax: bool = False
 
 
 def read_label(label: str) -> Plan:
@@ -75,6 +80,12 @@ def read_label(label: str) -> Plan:
     # first test fail and the whole chain go unparsed. That happened: a B1
     # plan was read as an unrestricted walk over a build named after the
     # entire label, and a refresh appended 23,957 steps to a 2,016-goal plan.
+    # First, because it is appended last — and before the `:goals:` partition
+    # below, which would otherwise take `b1_parsed:relax` for a list name.
+    relax = label.endswith(RELAX)
+    if relax:
+        label = label[: -len(RELAX)]
+
     goal_list = ""
     marker = GOALS + ":"
     if marker in label:
@@ -94,7 +105,8 @@ def read_label(label: str) -> Plan:
     if quality_only:
         label = label[: -len(GOOD)]
     builds = () if label == ALL else tuple(label.split("+"))
-    return Plan(builds, list_only, goals, quality_only, strict, goal_list)
+    return Plan(builds, list_only, goals, quality_only, strict, goal_list,
+                relax)
 
 
 class RoadmapRefresher:
@@ -161,6 +173,9 @@ class RoadmapRefresher:
                 self._app.settings.priority_weight,
                 goal_units if plan.goals else frozenset(),
                 only_goals=plan.strict,
+                # Or a refresh quietly rebuilds a relaxed plan as a plain
+                # one, under the name that says it is relaxed.
+                relax=plan.relax,
                 video_minutes=self._app.video_minutes,
             ).build(
                 first_position=len(done) + 1,

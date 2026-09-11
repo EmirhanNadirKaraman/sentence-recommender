@@ -24,6 +24,7 @@ from queue import Queue
 from threading import Lock, Thread
 from urllib.parse import quote
 
+from config import Settings
 from fingerprint import analyser_fingerprint
 from scores import ScoreStore
 from watchability import ENOUGH_LINES, watchability
@@ -1048,8 +1049,16 @@ class Viewer:
         so the page works before `build-roadmap --quality` has ever been run.
         """
         stored = self._store.sources()
-        strict = (f"{source}:good:strict:goals", f"{source}:strict:goals")
-        listed = (f"{source}:good:list:goals", f"{source}:list:goals")
+        # A plan aimed at a list other than the default carries its name, so
+        # the page has to ask for it by that name or never find it. Served
+        # from whichever list this process was started with, which is what
+        # `--goals-file` already means everywhere else.
+        named = self.app.settings.goal_words.stem
+        tail = "" if named == Settings().goal_words.stem else f":{named}"
+        strict = (f"{source}:good:strict:goals{tail}",
+                  f"{source}:strict:goals{tail}")
+        listed = (f"{source}:good:list:goals{tail}",
+                  f"{source}:list:goals{tail}")
         for wanted in (listed + strict) if list_only else (strict + listed):
             if wanted in stored:
                 return wanted

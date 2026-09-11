@@ -82,6 +82,14 @@ class BuildRoadmapCommand:
             named = settings.goal_words.stem
             if named != Settings().goal_words.stem:
                 label = f"{label}:{named}"
+        if relax:
+            # Last, because `read_label` strips suffixes off the end in the
+            # reverse of the order they are appended and the list name is
+            # already the tail. Without this a relaxed build stored under the
+            # plain build's name, and `save` deletes what the name held — so
+            # running the documented flag destroyed the plan it was meant to
+            # improve on.
+            label = f"{label}:relax"
         # Stamped with what built it, so the reading page can tell whether
         # the decks stored with these steps still describe a corpus that
         # exists — they name their sentences by text alone.

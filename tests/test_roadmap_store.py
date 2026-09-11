@@ -316,8 +316,18 @@ class LabelTest(unittest.TestCase):
     """
 
     def test_every_flag_is_read_back_off_the_end(self) -> None:
-        self.assertEqual(read_label("subtitle:good:list:goals"),
-                         (("subtitle",), True, True, True, False, ""))
+        # Field by field, not against a bare tuple. Comparing to a tuple is
+        # how this drifted before: `Plan` has grown a field three times now,
+        # and each time the literal on the right silently meant something
+        # else. A named field that moves fails here saying which.
+        plan = read_label("subtitle:good:list:goals")
+        self.assertEqual(plan.builds, ("subtitle",))
+        self.assertTrue(plan.list_only)
+        self.assertTrue(plan.goals)
+        self.assertTrue(plan.quality_only)
+        self.assertFalse(plan.strict)
+        self.assertEqual(plan.goal_list, "")
+        self.assertFalse(plan.relax)
 
     def test_the_quality_flag_does_not_end_up_in_the_corpus_name(self) -> None:
         """`subtitle:good` is not a build, and asking for it loads nothing."""
@@ -326,10 +336,13 @@ class LabelTest(unittest.TestCase):
         self.assertTrue(plan.quality_only)
 
     def test_a_plain_roadmap_carries_no_flags(self) -> None:
-        self.assertEqual(read_label("subtitle"),
-                         (("subtitle",), False, False, False, False, ""))
-        self.assertEqual(read_label("all"),
-                         ((), False, False, False, False, ""))
+        for label, builds in (("subtitle", ("subtitle",)), ("all", ())):
+            plan = read_label(label)
+            self.assertEqual(plan.builds, builds)
+            self.assertFalse(any((plan.list_only, plan.goals,
+                                  plan.quality_only, plan.strict,
+                                  plan.relax)))
+            self.assertEqual(plan.goal_list, "")
 
     def test_a_word_list_is_read_off_the_tail(self) -> None:
         """The suffixes come off the end in a fixed order, so a list name
@@ -346,10 +359,36 @@ class LabelTest(unittest.TestCase):
         self.assertEqual(read_label("subtitle:good:strict:goals").goal_list, "")
 
     def test_the_flags_are_independent(self) -> None:
-        self.assertEqual(read_label("subtitle:list"),
-                         (("subtitle",), True, False, False, False, ""))
-        self.assertEqual(read_label("subtitle:good"),
-                         (("subtitle",), False, False, True, False, ""))
+        listed = read_label("subtitle:list")
+        self.assertTrue(listed.list_only)
+        self.assertFalse(listed.quality_only or listed.goals)
+        good = read_label("subtitle:good")
+        self.assertTrue(good.quality_only)
+        self.assertFalse(good.list_only or good.goals)
+
+    def test_relax_is_part_of_the_name(self) -> None:
+        """It was not, and `save` deletes whatever the name held — so a
+        relaxed build destroyed the plain plan it was meant to improve on.
+
+        Read first because it is appended last, and before the list name is
+        partitioned off, or `b1_parsed:relax` is taken for a list called
+        that."""
+        plan = read_label("subtitle:good:strict:goals:relax")
+        self.assertTrue(plan.relax)
+        self.assertTrue(plan.strict and plan.goals and plan.quality_only)
+        self.assertEqual(plan.builds, ("subtitle",))
+        self.assertEqual(plan.goal_list, "")
+
+    def test_relax_and_a_word_list_do_not_swallow_each_other(self) -> None:
+        plan = read_label("subtitle:good:strict:goals:b1_parsed:relax")
+        self.assertEqual(plan.goal_list, "b1_parsed")
+        self.assertTrue(plan.relax)
+        self.assertEqual(plan.builds, ("subtitle",))
+
+    def test_a_plain_plan_and_a_relaxed_one_are_different_names(self) -> None:
+        """The whole point: two plans that differ must not share a label."""
+        self.assertNotEqual(read_label("subtitle:strict:goals"),
+                            read_label("subtitle:strict:goals:relax"))
 
     def test_strict_is_read_and_does_not_narrow(self) -> None:
         """The two are alternatives: strict counts every word in a sentence,
