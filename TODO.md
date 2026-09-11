@@ -361,8 +361,15 @@ whatever the storage is. That query is the right shape for a design where the
 walk is *also* SQL, and quoting it as an available saving is how this gets
 started and abandoned.
 
-Cheaper first: find out whether the pages that pay this actually need it —
-see 13.
+Which pages actually pay it, from 13: exactly one. `/blocked` needs the
+sentences and genuinely walks them. `/roadmap` and `/quiz` never load a
+corpus at all — they read a stored plan — and `next_up` and `next_json` load
+one only when the plan's stamp has gone stale, which a rebuild fixes rather
+than a query does.
+
+That changes what this entry is worth. Interning units and packing them per
+sentence would speed up one page and the occasional stale fallback, not five
+pages. Worth doing when `/blocked` is the thing in the way, and not before.
 
 ### 13. Do the stored-plan pages need an index at all? — DONE, but not there
 
@@ -383,9 +390,20 @@ Fixed as the entry predicted — a narrower accessor, not an optimisation.
 `scope` reads through it, so the pairing hazard the entry raises does not
 arise: whichever page asks first, the load is shared.
 
-Still unmeasured, deliberately. The machine was rebuilding every roadmap at
-the time, and timing a page against a loaded machine is how this file's
-predecessor came to be wrong by a factor of twenty-five.
+Measured afterwards, on a quiet machine, CPU time best of three with no
+profiler attached:
+
+```
+  CorpusIndex     0.59s      built and dropped  (this entry guessed 0.58)
+  ExampleIndex    0.17s      built and dropped
+  RoadmapBuilder  0.00s      built and dropped
+  CorpusIndex     0.59s      its own, and it needs this one
+```
+
+So 0.76s of CPU a cold `/blocked`, and nothing at all on the other pages,
+which never reached `scope` to begin with. Small against the corpus load
+beside it — which is the honest shape of this: the load is the cost, and
+entry 12 is where that lives.
 
 ### 14. What the 84,849 overlay sentences cost — DONE, they are cheap
 
