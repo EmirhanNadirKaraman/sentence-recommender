@@ -364,31 +364,44 @@ started and abandoned.
 Cheaper first: find out whether the pages that pay this actually need it —
 see 13.
 
-### 13. Do the stored-plan pages need an index at all?
+### 13. Do the stored-plan pages need an index at all? — DONE, but not there
 
-`/roadmap` and `/quiz` read a plan that was already walked and stored. If
-`Viewer.scope` builds a `CorpusIndex` for them regardless, they are paying a
-full corpus load and a 0.58s index to read rows they could read directly.
+The guess about which pages pay was wrong. `/roadmap` and `/quiz` never
+reach `scope` at all: they read the stored plan through `_planned`, and fall
+back to `_walked` only when the stamp is stale.
 
-Worth the whole cold cost on two of the five pages, and the check is an
-afternoon: follow `scope`'s callers and see which of them ever walk. If none
-do, the fix is a narrower accessor, not an optimisation.
+`scope` has exactly two callers. `_walked` really does walk and needs
+everything a `Scope` carries. `_stranded` — the blocked list — wants the
+sentences and the ranking and nothing else: it builds a throwaway index of
+its own so the walk cannot leave the reader looking like they know words
+they have never seen. Asking `scope` for the rows therefore built a
+`CorpusIndex`, a `RoadmapBuilder` and an `ExampleIndex`, and dropped all
+three.
 
-What would go wrong: `scope` is cached per source and counting mode, so a
-page that looks cheap in isolation may be warming the index another page then
-uses. Measure the pair, not the page.
+Fixed as the entry predicted — a narrower accessor, not an optimisation.
+`corpus_for` caches the sentences under the same key `scope` uses and
+`scope` reads through it, so the pairing hazard the entry raises does not
+arise: whichever page asks first, the load is shared.
 
-### 14. What the 84,849 overlay sentences cost
+Still unmeasured, deliberately. The machine was rebuilding every roadmap at
+the time, and timing a page against a loaded machine is how this file's
+predecessor came to be wrong by a factor of twenty-five.
 
-84,849 of 254,005 sentences are `teachable = False` — kept so the transcript
-panel beside the player has no holes. Every study query filters them out in
-SQL (`teachable_only=True`), so they are not being assembled into objects;
-what they cost is table and index size, and rows the planner walks past.
+### 14. What the 84,849 overlay sentences cost — DONE, they are cheap
 
-Measure before moving them: a separate table would make the overlay a second
-query and a join, which is the panel's whole cost. The answer may well be
-that they are fine where they are — but 33% of the corpus existing for one
-panel is worth knowing the price of.
+Measured, and they cost less than the entry assumed. `corpus_unit` holds
+**no** overlay rows at all: all 1,742,479 belong to teachable sentences. So
+the overlay is 84,849 rows of text and metadata in `corpus_sentence` and
+nothing else — roughly a third of that table's 96 MB, against 260 MB for
+`corpus_unit` next to it.
+
+The filter is free as well. Counting every row and counting only the
+teachable ones touch the same 7,007 blocks and finish within a few
+milliseconds of each other, both sequential scans, so the rows the planner
+"walks past" are rows it would walk anyway.
+
+Leave them. A separate table would save perhaps 32 MB of a 356 MB corpus and
+buy the transcript panel a join, which is the panel's whole cost.
 
 ### 15. `roadmap_example` is 65% repeated text
 
