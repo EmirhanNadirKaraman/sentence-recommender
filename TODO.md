@@ -228,44 +228,50 @@ as its own build `subtitle:llm`, with a retention check and a per-chunk
 fallback — but no `subtitle:llm` build has ever been made, so whether a
 local model can put the endings back is unmeasured.
 
-Measured, half of it. `python main.py caption-check --limit N` fetches the
-machine track for videos whose manual one is already held, runs it through
-the same corrector and analyser, and compares unit sets.
+Measured. `python main.py caption-check --limit N` fetches the machine track
+for videos whose manual one is already held, runs it through the same
+corrector and analyser, and compares both unit sets and sentence counts.
 
-Which track counts is load-bearing and nearly went wrong here: YouTube
-offers auto captions in 150-odd languages and all but one are machine
-translations of the ASR. `de-orig` is the original transcript; a bare `de`
-beside a hundred others is a translation into German. The command takes
-`de-orig` where it exists and a bare `de` only when the video's own audio is
-German.
+Which track counts is load-bearing: YouTube offers auto captions in 150-odd
+languages and all but one are machine translations of the ASR. `de-orig` is
+the original transcript; a bare `de` beside a hundred others is a
+translation into German. The command takes `de-orig` where it exists, and a
+bare `de` only when the video's own audio is German — which correctly
+refused the Indonesian and Dutch videos in a sample of ten.
 
-Eight of the longest videos, seven with an original-language track:
+**The answer is yes, with one gate.** Ten videos, all with an
+original-language track:
 
 ```
-  keeps 95.9% of the units the hand-written track yields
-  and yields 1.65 units for every one of theirs
+  8 of 10   punctuated      99.4-99.8% of the units, ~1.5x the sentences
+  2 of 10   no punctuation  collapse to a single sentence; 88% and 90%
 ```
 
-So ASR is *richer*, not poorer, which the policy did not expect. On the
-worst keeper of the eight (90.0%): 724 words only the machine found, 90% of
-them in the lexicon — the same rate as the 69 words only the manual track
-had. The 10% that fail are the real thing the policy feared, and they look
-like it: `angreif`, `beispi`, `entdeck`, `entgegehen`, stems with the ending
-cut. The manual track's own 10% are compounds the lexicon lacks —
-`kopfüber`, `wildkatzen` — which is a different kind of miss.
+Where the machine punctuates, its track is *better* material than the
+hand-written one: it keeps essentially every unit and yields half again as
+many sentences, because subtitles condense and ASR does not. Where it does
+not punctuate, `MergeCorrector` — which finds boundaries by punctuation —
+returns one enormous sentence whose vocabulary looks excellent and which
+teaches nothing, since no word can be the only unknown in it. There is no
+middle: a track punctuates about a third of its lines or none at all, so
+`PUNCTUATED = 0.05` separates them.
 
-The sample is biased: they are the eight videos with the most sentences, so
-films and parliament rather than the short lessons a learner watches. Run it
-wider before deciding.
+Counting units alone hides this completely, which is how it was first
+measured here and first reported wrongly. The command now prints sentence
+counts and the punctuation rate beside the units.
 
-What is still unmeasured is whether the corrector puts those endings back —
-`build-corpus subtitle --corrector llm` exists and no `subtitle:llm` build
-has ever been made. That needs `LLM_BASE_URL` and `LLM_MODEL`, and the model
-is on another machine. At scale: 248,598 German subtitle rows at 25 rows a
-call is ~10,000 model calls, hours on a local model, and nothing caches a
-reply, so a crash at video 900 costs the first 899. Keep auto videos in
-their own build and `transcript_source='auto'`, so the reader can see
-which text a machine wrote twice.
+**Worth doing, for the case it was asked about** — videos with no manual
+track, where the alternative is nothing. Of ten videos the hunt refused,
+eight carry a usable German ASR track and the two that do not are
+non-German audio that should be refused. The attempt log holds 43 refusals
+in 140 videos met, so this is roughly a quarter more yield a round.
+
+What is still unmeasured is `--corrector llm` on the unpunctuated two. That
+is now its clear job — restoring boundaries, not endings — and it needs
+`LLM_BASE_URL` and `LLM_MODEL`, with the model on another machine. The rest
+of the entry stands: keep auto videos in their own build and
+`transcript_source='auto'`, so the reader can see which text a machine wrote
+twice.
 
 ### 8. Backfill `channel_id` on the videos that lack it
 

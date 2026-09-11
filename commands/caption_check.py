@@ -31,6 +31,22 @@ from db import Database
 PAUSE = 1.5
 ORIGINAL = ("de-orig", "de-DE", "de")
 
+# A machine track is usable only if it punctuates. `MergeCorrector` finds
+# sentence boundaries by punctuation, so a track without any becomes one
+# enormous sentence: excellent vocabulary, and nothing a word can be the
+# only unknown in. Measured over ten videos, eight punctuate about a third
+# of their lines and two punctuate none at all — there is no middle, so the
+# threshold only has to separate "some" from "none".
+PUNCTUATED = 0.05
+
+
+def punctuation_rate(lines) -> float:
+    if not lines:
+        return 0.0
+    ended = sum(1 for line in lines
+                if line.content.rstrip().endswith((".", "!", "?")))
+    return ended / len(lines)
+
 
 def _options() -> dict:
     """Cookieless, like language-app's fetcher tries first.
@@ -128,19 +144,40 @@ class CaptionCheckCommand:
             mine = {u for s in by_video[video] for u in s.units}
             theirs = {u for s in auto for u in s.units}
             kept = len(mine & theirs) / len(mine) if mine else 0.0
-            rows.append((video, track, len(mine), len(theirs), kept))
-            print(f"{head}  {track:<8} manual {len(mine):>5} units · "
-                  f"auto {len(theirs):>5} · keeps {100 * kept:>5.1f}%  "
-                  f"{(titles.get(video) or '')[:26]}", flush=True)
+            # Sentences, not only units. ASR writes no punctuation, and the
+            # corrector finds boundaries by punctuation, so a machine track
+            # collapses into one enormous "sentence" whose vocabulary looks
+            # excellent and which teaches nothing. Counting units alone hid
+            # that completely.
+            ended = sum(1 for line in lines
+                        if line.content.rstrip().endswith((".", "!", "?")))
+            rows.append((video, track, len(mine), len(theirs), kept,
+                         len(by_video[video]), len(auto), len(lines), ended))
+            print(f"{head}  {track:<8} sentences {len(by_video[video]):>4} → "
+                  f"{len(auto):<5} units {len(mine):>5} → {len(theirs):<5} "
+                  f"keeps {100 * kept:>5.1f}%  punct {ended:>4}/{len(lines)}",
+                  flush=True)
             time.sleep(pause)
 
         if not rows:
             raise SystemExit("nothing to compare")
         kept = sum(r[4] for r in rows) / len(rows)
         gained = sum(r[3] for r in rows) / sum(r[2] for r in rows)
+        manual_sentences = sum(r[5] for r in rows)
+        auto_sentences = sum(r[6] for r in rows)
+        punctuated = sum(r[8] for r in rows)
+        all_lines = sum(r[7] for r in rows)
         print(f"\n{len(rows)} videos compared")
-        print(f"  the machine track keeps {100 * kept:.1f}% of the units the "
-              "hand-written one yields")
-        print(f"  and yields {gained:.2f} units for every one of theirs")
-        print("  units, not words: a unit the roadmap never sees is a unit it "
-              "cannot teach.")
+        print(f"  units:     keeps {100 * kept:.1f}% of the hand-written "
+              f"track's, and yields {gained:.2f} for each")
+        print(f"  sentences: {manual_sentences:,} by hand → "
+              f"{auto_sentences:,} by machine")
+        print(f"  of {all_lines:,} machine lines, {punctuated:,} end in "
+              "punctuation")
+        if auto_sentences < manual_sentences / 10:
+            print("\n  The machine track has no punctuation, and the corrector"
+                  "\n  finds sentence boundaries by punctuation — so it becomes"
+                  "\n  one enormous sentence. Its vocabulary is excellent and"
+                  "\n  it teaches nothing: there is no sentence for a word to"
+                  "\n  be the only unknown in. Restoring boundaries, not"
+                  "\n  endings, is what `--corrector llm` has to do.")
