@@ -53,22 +53,43 @@ timings taken at load average 50 were wrong by a factor of twenty-five.
 Re-measure the table on a quiet machine before trusting any line of it,
 including the ones under 2 and 3.
 
-### 2. NER — NOT a free win, do not simply disable it
+### 2. NER — measured, and the case for dropping it is stronger than this said
 
-The pipeline loads `tok2vec, tagger, morphologizer, parser, lemmatizer,
-attribute_ruler, ner` and NER is typically 15-25% of parse time. It looks like
-dead weight because the analyser only wants tags and lemmas.
+Still not a free win, and still an analyser change. But both numbers in the
+original entry were guesses, and both were wrong in the direction that
+matters.
 
-It is not. `matcher/phrase_finder.py:215` reads `child.ent_type_ == "PER"` to
-decide whether a dependent is a person, which decides whether a phrase matches.
-Disabling NER changes which patterns are extracted — a corpus change dressed
-as a speed-up, and one that would be found weeks later as patterns quietly
-missing.
+**NER is 44% of parse time, not 15-25%.** 4,000 sentences parse in 12.83s
+with it and 7.25s without.
 
-If it is worth doing, do it deliberately: replace the `ent_type_` test with
-something that does not need the model (`pos_ in ("PRON", "PROPN")` is already
-half of that condition), measure how many phrase matches move, and treat it as
-an analyser change with its own rebuild.
+**It decides 11 of 3,251 object tokens** — 0.338%. `get_object_token` asks
+`pos_ in ("PRON","PROPN") or ent_type_ == "PER"`, and a person's name is
+normally PROPN already, so NER only speaks where a token is PER and neither
+PRON nor PROPN.
+
+Read the eleven and the picture sharpens further:
+
+```
+  Herrn  Kraft  Herrn  Mutter  Sohn  Sohn  Herrn  Bruder  Bruder   people
+  Straße  Bescheid                                                 not people
+```
+
+Nine right, two wrong. So the model is bought for nine correct decisions in
+3,251, and it introduces two errors of its own — `Straße` and `Bescheid`
+become `jdn.`
+
+**The obvious replacement is better than either option.** Nine of the nine
+are titles and kinship terms — `Herr`, `Mutter`, `Sohn`, `Bruder`. A short
+list of person nouns catches them without a model *and* does not invent the
+other two. That beats keeping NER and beats the bare `pos_` test this entry
+proposed, which would have lost all nine.
+
+Not done, because it is what this entry always said it was: a corpus change.
+It moves which patterns are extracted, so it needs a fingerprint bump, a
+`build-corpus`, all ten roadmaps re-walked and both out-of-reach reports
+regenerated — and the machine has been in the swapper for hours. Worth doing
+deliberately, on a quiet machine, with the person-noun list rather than the
+`pos_`-only test.
 
 ### 3. Phrase extraction is serial — the real ceiling
 
