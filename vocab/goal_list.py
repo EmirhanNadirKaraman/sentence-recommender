@@ -40,8 +40,14 @@ CASE_FRAME = re.compile(r"\((?:Akk|Dat|Gen)\)|\b(?:etw|jdn|jdm)\.")
 class GoalList:
     """A target vocabulary, resolved into the units the roadmap deals in."""
 
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: Path,
+                 entries: tuple[str, ...] | None = None) -> None:
         self._path = path
+        # A list the reader assembled by searching, handed over rather than
+        # read. The path is still carried because it names the list —
+        # `build-roadmap` puts its stem in the plan's label, and a stored
+        # list needs a name there like any other.
+        self._entries = entries
 
     def entries(self) -> tuple[str, ...]:
         """The written entries, in file order, de-duplicated.
@@ -56,6 +62,8 @@ class GoalList:
         Order is kept because these files are written most-useful-first, and
         that is the only ranking a goal list carries.
         """
+        if self._entries is not None:
+            return self._entries
         if not self._path.exists():
             print(f"warning: no goal list at {self._path}", file=sys.stderr)
             return ()
