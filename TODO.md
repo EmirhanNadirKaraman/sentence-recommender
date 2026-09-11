@@ -247,21 +247,41 @@ original-language track:
   2 of 10   no punctuation  collapse to a single sentence; 88% and 90%
 ```
 
-Where the machine punctuates, its track is *better* material than the
-hand-written one: it keeps essentially every unit and yields half again as
-many sentences, because subtitles condense and ASR does not. Where it does
-not punctuate, `MergeCorrector` — which finds boundaries by punctuation —
-returns one enormous sentence whose vocabulary looks excellent and which
-teaches nothing, since no word can be the only unknown in it. There is no
-middle: a track punctuates about a third of its lines or none at all, so
-`PUNCTUATED = 0.05` separates them.
+Where it does not punctuate, `MergeCorrector` — which finds boundaries by
+punctuation — returns one enormous sentence whose vocabulary looks excellent
+and which teaches nothing, since no word can be the only unknown in it.
+There is no middle: a track punctuates about a third of its lines or none at
+all, so `PUNCTUATED = 0.05` separates them.
+
+Where it does punctuate, the material is **worse than the hand-written
+track, not better** — the opposite of what was first recorded here, and the
+count that shows it is the last one, not the first:
+
+```
+                        by hand   by machine
+  sentences               1,112        1,769
+  well-formed             1,001        1,030
+  i+1                       316          507
+  i+1 and well-formed       294          242
+```
+
+Raw sentence counts flatter the machine by half again, and the bar takes it
+all back: it punctuates aggressively and over-segments, median six words
+against eight, 34% of its sentences under five words against none by hand.
+The vocabulary is genuinely good — 98.7% of the words only it found are in
+the lexicon, and most of the misses are real German the lexicon lacks rather
+than ASR debris — but vocabulary was never the question.
+
+So on a video that already has a manual track the machine one is 18% worse,
+and there is no reason to use it.
 
 Counting units alone hides this completely, which is how it was first
 measured here and first reported wrongly. The command now prints sentence
 counts and the punctuation rate beside the units.
 
-**Worth doing, for the case it was asked about** — videos with no manual
-track, where the alternative is nothing. Of ten videos the hunt refused,
+**Worth doing only for the case it was asked about** — videos with no manual
+track, where 242 usable sentences is 242 more than nothing, and the 18% is
+measured against something that does not exist. Of ten videos the hunt refused,
 eight carry a usable German ASR track and the two that do not are
 non-German audio that should be refused. The attempt log holds 43 refusals
 in 140 videos met, so this is roughly a quarter more yield a round.
