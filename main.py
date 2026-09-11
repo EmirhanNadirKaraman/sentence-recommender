@@ -270,6 +270,17 @@ def _parser() -> argparse.ArgumentParser:
                        help="read the entries to save from this file")
     lists.add_argument("--forget", metavar="NAME", help="delete a saved list")
 
+    captions = sub.add_parser(
+        "caption-check",
+        help="measure what auto-generated captions would cost, against the "
+             "hand-written tracks already held")
+    captions.add_argument("--limit", type=int, default=20,
+                          help="how many videos to compare (default 20)")
+    captions.add_argument("--source", default="subtitle", metavar="BUILD",
+                          help="which build holds the manual side")
+    captions.add_argument("--pause", type=float, default=1.5,
+                          help="seconds between videos")
+
     cover = sub.add_parser(
         "cover", help="the fewest minutes of video that teach a saved list")
     cover.add_argument("--source", nargs="+", default=[], metavar="BUILD",
@@ -439,6 +450,9 @@ def main() -> int:
         OutOfReachCommand().run(app, tuple(args.source), args.out,
                                 not args.all_sentences, args.counting,
                                 args.unblock)
+    elif args.command == "caption-check":
+        from commands.caption_check import CaptionCheckCommand  # noqa: PLC0415
+        CaptionCheckCommand().run(app, args.limit, args.source, args.pause)
     elif args.command == "cover":
         from commands.cover_list import CoverListCommand   # noqa: PLC0415
         CoverListCommand().run(app, tuple(args.source), args.depth,

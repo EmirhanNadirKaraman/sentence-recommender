@@ -228,12 +228,40 @@ as its own build `subtitle:llm`, with a retention check and a per-chunk
 fallback — but no `subtitle:llm` build has ever been made, so whether a
 local model can put the endings back is unmeasured.
 
-Measure before opening the gate, and the ground truth is free: videos that
-carry both a manual and an auto track. Fetch the auto track for fifty, run
-it through the corrector, and compare the *unit set* from `UnitAnalyzer`
-against the manual track's — units are what the roadmap consumes, and
-`MIN_RETENTION` catches a summary but not `dem` → `den`, which is the
-failure that matters. At scale: 248,598 German subtitle rows at 25 rows a
+Measured, half of it. `python main.py caption-check --limit N` fetches the
+machine track for videos whose manual one is already held, runs it through
+the same corrector and analyser, and compares unit sets.
+
+Which track counts is load-bearing and nearly went wrong here: YouTube
+offers auto captions in 150-odd languages and all but one are machine
+translations of the ASR. `de-orig` is the original transcript; a bare `de`
+beside a hundred others is a translation into German. The command takes
+`de-orig` where it exists and a bare `de` only when the video's own audio is
+German.
+
+Eight of the longest videos, seven with an original-language track:
+
+```
+  keeps 95.9% of the units the hand-written track yields
+  and yields 1.65 units for every one of theirs
+```
+
+So ASR is *richer*, not poorer, which the policy did not expect. On the
+worst keeper of the eight (90.0%): 724 words only the machine found, 90% of
+them in the lexicon — the same rate as the 69 words only the manual track
+had. The 10% that fail are the real thing the policy feared, and they look
+like it: `angreif`, `beispi`, `entdeck`, `entgegehen`, stems with the ending
+cut. The manual track's own 10% are compounds the lexicon lacks —
+`kopfüber`, `wildkatzen` — which is a different kind of miss.
+
+The sample is biased: they are the eight videos with the most sentences, so
+films and parliament rather than the short lessons a learner watches. Run it
+wider before deciding.
+
+What is still unmeasured is whether the corrector puts those endings back —
+`build-corpus subtitle --corrector llm` exists and no `subtitle:llm` build
+has ever been made. That needs `LLM_BASE_URL` and `LLM_MODEL`, and the model
+is on another machine. At scale: 248,598 German subtitle rows at 25 rows a
 call is ~10,000 model calls, hours on a local model, and nothing caches a
 reply, so a crash at video 900 costs the first 899. Keep auto videos in
 their own build and `transcript_source='auto'`, so the reader can see
