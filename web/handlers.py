@@ -1382,8 +1382,8 @@ class Viewer:
             + self.counting_switch(query, "/blocked")
             + f"<div class='switch'><span>Showing</span>{picker}</div>"
             "<h1>Where the roadmap stops</h1>"
-            f"<p class='note'>{len(stranded):,} words on your study list this "
-            "corpus cannot teach, because none of them is ever the only new "
+            f"<p class='note'>{len(stranded):,} words on {escape(self.list_name())}"
+            " this corpus cannot teach, because none of them is ever the only new "
             "thing in a sentence. Every sentence saying one says something "
             "else you do not know as well — often a word that is not on your "
             "list at all, which the walk will therefore never teach, so no "
