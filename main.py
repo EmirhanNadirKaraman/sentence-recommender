@@ -285,6 +285,17 @@ def _parser() -> argparse.ArgumentParser:
     captions.add_argument("--pause", type=float, default=1.5,
                           help="seconds between videos")
 
+    look_up = sub.add_parser(
+        "lookup", help="the stranded words, as caption-search links to click")
+    look_up.add_argument("--limit", type=int, default=25,
+                         help="how many to print (default 25)")
+    look_up.add_argument("--source", nargs="+", default=[], metavar="BUILD")
+    look_up.add_argument("--all", action="store_true", dest="every",
+                         help="include words the corpus says but never alone "
+                              "— more video rarely helps those")
+    look_up.add_argument("--goals-list", metavar="NAME")
+    look_up.add_argument("--goals-file", metavar="PATH")
+
     cover = sub.add_parser(
         "cover", help="the fewest minutes of video that teach a saved list")
     cover.add_argument("--source", nargs="+", default=[], metavar="BUILD",
@@ -465,6 +476,10 @@ def main() -> int:
     elif args.command == "caption-check":
         from commands.caption_check import CaptionCheckCommand  # noqa: PLC0415
         CaptionCheckCommand().run(app, args.limit, args.source, args.pause)
+    elif args.command == "lookup":
+        from commands.lookup_links import LookupCommand      # noqa: PLC0415
+        LookupCommand().run(app, args.limit, tuple(args.source),
+                            not args.every)
     elif args.command == "cover":
         from commands.cover_list import CoverListCommand   # noqa: PLC0415
         CoverListCommand().run(app, tuple(args.source), args.depth,
