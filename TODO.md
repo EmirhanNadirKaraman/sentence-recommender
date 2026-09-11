@@ -171,7 +171,7 @@ already holds from a channel before fetching anything.
 
 ## Word lists
 
-### 9. Lists built by searching, and a page that can choose between them
+### 9. Lists built by searching, and a page that can choose between them — DONE
 
 DONE. The counting switch has three positions; the storage
 (`vocab/word_lists.py`), the fuzzy search (`vocab/search.py`) and
