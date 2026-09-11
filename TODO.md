@@ -173,6 +173,13 @@ already holds from a channel before fetching anything.
 
 ### 9. Lists built by searching, and a page that can choose between them
 
+Half done. The counting switch is built and has three positions; the
+storage (`vocab/word_lists.py`), the fuzzy search (`vocab/search.py`)
+and `--goals-list` are built and tested. **The page half is not**: no
+search box, no ticking words into a list, no list picker — `web/` does
+not mention either module. That is what is left here, and item 10 waits
+on it.
+
 The roadmap's aim is a file: `data/study_list.txt`, or `--goals-file PATH`
 on the command line only. Wanted: search the vocabulary with a box that
 tolerates misspelling, tick words, name the list; then choose on the page
@@ -458,7 +465,7 @@ Worth knowing for next time: a plan nobody reads still costs a full walk on
 every refresh. `RoadmapStore` has no way to forget one, so it was deleted by
 hand. If experiments like that become normal, it wants a command.
 
-### 16. The 66 gaps that are left, and what each kind needs
+### 16. `--unblock` — DONE, and the gaps are now 11
 
 `--strict` sets `only_goals`, so the walk may never teach a word that is
 not itself a goal — a goal with one ordinary word in the way is stranded by
@@ -490,13 +497,24 @@ What is left is 66, and the three kinds want different things:
     38   genuinely deep              more material, or accept them
 ```
 
-The 24 are the interesting ones: the corpus says them 4-7 times each and
-`well_formed` rejects every sentence. Either the bar is too high for these,
-or the material really is that bad — worth reading a sample before deciding
-which, because the answer picks between lowering a threshold and writing 24
-sentences.
+The 24 were the interesting ones: the corpus said them 4-7 times each and
+`well_formed` rejected every sentence. The bar was too high, at both ends —
+see the band's history in `corpus/quality.py`. The floor took that 24 to 7
+and the ceiling took it to 0.
 
-### 17. `out-of-reach` reports one cell of four, and says "said" for two things
+Where b1 stands now, same reading, over a catalogue 99 videos larger:
+
+```
+    11   out of reach
+     3   never said at all       die Phantasie, das Top, die Unterlagen
+     0   refused by the bar
+     8   said but never alone
+```
+
+Nothing here is blocked by a threshold any more. The three absent ones want
+video; the eight want either a sentence that isolates them or acceptance.
+
+### 17. `out-of-reach` reported one reading of four — DONE
 
 Two separate problems with `data/*_out_of_reach.txt`, both committed
 (`6e5230b`).
