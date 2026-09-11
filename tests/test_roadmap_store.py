@@ -317,7 +317,7 @@ class LabelTest(unittest.TestCase):
 
     def test_every_flag_is_read_back_off_the_end(self) -> None:
         self.assertEqual(read_label("subtitle:good:list:goals"),
-                         (("subtitle",), True, True, True, False))
+                         (("subtitle",), True, True, True, False, ""))
 
     def test_the_quality_flag_does_not_end_up_in_the_corpus_name(self) -> None:
         """`subtitle:good` is not a build, and asking for it loads nothing."""
@@ -327,14 +327,29 @@ class LabelTest(unittest.TestCase):
 
     def test_a_plain_roadmap_carries_no_flags(self) -> None:
         self.assertEqual(read_label("subtitle"),
-                         (("subtitle",), False, False, False, False))
-        self.assertEqual(read_label("all"), ((), False, False, False, False))
+                         (("subtitle",), False, False, False, False, ""))
+        self.assertEqual(read_label("all"),
+                         ((), False, False, False, False, ""))
+
+    def test_a_word_list_is_read_off_the_tail(self) -> None:
+        """The suffixes come off the end in a fixed order, so a list name
+        left on the tail makes the first test fail and the whole chain go
+        unparsed. That happened: a B1 plan was read as an unrestricted walk
+        over a build named after the entire label, and one refresh appended
+        23,957 steps to a plan with 2,016 goals in it."""
+        plan = read_label("subtitle+transcript:good:strict:goals:b1_parsed")
+        self.assertEqual(plan.builds, ("subtitle", "transcript"))
+        self.assertEqual(plan.goal_list, "b1_parsed")
+        self.assertTrue(plan.goals and plan.strict and plan.quality_only)
+
+    def test_the_default_list_leaves_no_name(self) -> None:
+        self.assertEqual(read_label("subtitle:good:strict:goals").goal_list, "")
 
     def test_the_flags_are_independent(self) -> None:
         self.assertEqual(read_label("subtitle:list"),
-                         (("subtitle",), True, False, False, False))
+                         (("subtitle",), True, False, False, False, ""))
         self.assertEqual(read_label("subtitle:good"),
-                         (("subtitle",), False, False, True, False))
+                         (("subtitle",), False, False, True, False, ""))
 
     def test_strict_is_read_and_does_not_narrow(self) -> None:
         """The two are alternatives: strict counts every word in a sentence,

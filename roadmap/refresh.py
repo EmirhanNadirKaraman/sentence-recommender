@@ -29,6 +29,7 @@ from typing import NamedTuple
 from corpus.quality import well_formed
 from roadmap.builder import RoadmapBuilder
 from roadmap.index import CorpusIndex
+from config import Settings
 from roadmap.store import ALL, RoadmapStore, current_stamp
 
 GOALS = ":goals"
@@ -50,6 +51,9 @@ class Plan(NamedTuple):
     goals: bool
     quality_only: bool
     strict: bool
+    # Which word list, when it is not the default. Last because a
+    # NamedTuple will not take a defaulted field before an undefaulted one.
+    goal_list: str = ""
 
 
 def read_label(label: str) -> Plan:
@@ -65,6 +69,18 @@ def read_label(label: str) -> Plan:
     loaded nothing for the quality roadmap and skipped it, silently, which is
     the one roadmap the reading page actually serves.
     """
+    # A word list other than the default appends its name after `:goals`,
+    # which has to come off before the suffixes are read — they are stripped
+    # from the end in a fixed order, so a name left on the tail makes the very
+    # first test fail and the whole chain go unparsed. That happened: a B1
+    # plan was read as an unrestricted walk over a build named after the
+    # entire label, and a refresh appended 23,957 steps to a 2,016-goal plan.
+    goal_list = ""
+    marker = GOALS + ":"
+    if marker in label:
+        label, _, goal_list = label.partition(marker)
+        label += GOALS
+
     goals = label.endswith(GOALS)
     if goals:
         label = label[: -len(GOALS)]
@@ -78,7 +94,7 @@ def read_label(label: str) -> Plan:
     if quality_only:
         label = label[: -len(GOOD)]
     builds = () if label == ALL else tuple(label.split("+"))
-    return Plan(builds, list_only, goals, quality_only, strict)
+    return Plan(builds, list_only, goals, quality_only, strict, goal_list)
 
 
 class RoadmapRefresher:
@@ -111,8 +127,16 @@ class RoadmapRefresher:
         # ranks it the same way.
         priority = self._app.priority()
 
+        # Which list this process is aimed at, so plans built for another one
+        # can be left alone. Refreshing them here would extend a plan with
+        # goals it was never about.
+        active = self._app.settings.goal_words.stem
+        default = Settings().goal_words.stem
         for label in sorted(self._store.sources()):
             plan = read_label(label)
+            wants = plan.goal_list or default
+            if plan.goals and wants != active:
+                continue
             builds, list_only = plan.builds, plan.list_only
             if touching and touching not in (builds or (ALL,)):
                 continue
