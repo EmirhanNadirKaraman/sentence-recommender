@@ -21,7 +21,8 @@ import re
 # roadmap that the corpus it was walked over is not the one here now.
 #
 # 4: the band's floor from eight words to five.
-VERSION = 4
+# 5: the band's ceiling from fifteen to twenty-five.
+VERSION = 5
 
 # Speech, not prose. Long enough to show the word doing something, short
 # enough to hold in mind while reading it.
@@ -41,7 +42,18 @@ VERSION = 4
 # Nothing is preferred for being short. `score` still peaks at 9-11 and
 # tapers both ways, so a five-word sentence wins only where there is no
 # longer one — which is the stranded case this exists for.
-BAND = (5, 15)          # the binary bar: is this worth showing at all
+#
+# The ceiling moved for the same reason and on the same evidence. At fifteen
+# it refused every sentence there was for 63 goals the corpus does say — 74
+# of those sentences were merely long, none was short — and raising it to
+# twenty-five gives 52 of the 63 an example for 9% more of the corpus.
+# Twenty-five rather than a rounder number because nothing here is longer:
+# `filter.py` stops first, so this again draws no second line of its own.
+#
+# This is the asymmetry noted below, taken seriously. Falling short means
+# missing context and teaching less; running long means being harder to
+# read. The second is the cheaper error, and `score` charges for it anyway.
+BAND = (5, 25)          # the binary bar: is this worth showing at all
 IDEAL = (9, 11)         # equally good, and the tie is broken on merit
 
 # Deliberately asymmetric, where it used to be so by accident: a sentence
