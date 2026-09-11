@@ -165,28 +165,139 @@ on the command line only. Wanted: search the vocabulary with a box that
 tolerates misspelling, tick words, name the list; then choose on the page
 which list the plan chases, and whether the walk may pay two words at once.
 
-The tightest constraint is naming, not search. A plan is stored under a
-label composed from its builds, `:good`, `:strict`/`:list`, `:goals` and a
-non-default list's stem (`commands/build_roadmap.py:74-84`), and `save`
-deletes whatever that label held. The label says nothing about `--relax`,
-so a relaxed build silently overwrites the plain one; and `_stored_label`
-looks only for the default names, so a plan aimed at any other list cannot
-be reached from the page. Until the label names both, the switches have
-nothing to switch between.
+Naming is done. A plan's label carries its builds, `:good`,
+`:strict`/`:list`, `:goals`, a non-default list's stem, and `:relax` last
+(`commands/build_roadmap.py:70-92`); `read_label` strips them in the
+reverse order, and `_stored_label` asks for the list this process was
+started with. Before that, a relaxed build overwrote the plain one it was
+meant to improve on, and a plan aimed at any other list could not be
+reached from the page at all.
+
+`data/b1_parsed.txt` now has all four cells built, which is what made the
+rest of this measurable. Three things it showed:
+
+  * A second list costs 2.26s of goal resolution, not a corpus reload —
+    `goal_units`, `covered_forms` and `priority()` are the whole of what
+    differs. But `_scopes` is keyed `(source, counting)`
+    (`web/handlers.py:346`), so a list dimension makes every new cell a
+    3.66s cold corpus load: two lists by two counting modes by two sources
+    is eight cold builds where there are four. A switch that doubles the
+    cold paths spends back what dropping `_drop_duplicates` bought. Settle
+    that before building it, not after.
+  * Where a cell is missing, `_stored_label` falls back to the other
+    counting mode by design, so a switch would offer two positions that
+    quietly serve the same plan — which is what b1 did before its strict
+    cell existed. Either build every cell a list offers, or have the page
+    say which of them are real.
+  * `_stranded` composes its replay label from the source alone
+    (`commands/hunt_videos.py:197`), so a run aimed at any other list
+    replays the *default* list's plan. Measured both ways: identical
+    results, because the walk after the replay runs to exhaustion under
+    `only_goals`, and what a corpus can reach does not depend on the head
+    start it was given. Worth correcting for honesty — but nothing moves
+    when it is corrected, so do not expect the numbers to.
 
 Then: lists are judgements, so a `word_list` table in `state.sqlite3` with
-`GoalList` reading from it as well as from a file. The walk is minutes and
-cannot run inside a request; queue it the way `_queue_rescore` does. Search
-the build's 35k lemma units in memory — a trigram index is thirty lines —
-rather than `pg_trgm`, which migration dd0d9cf4b307 declined because
-nothing issued a fuzzy query; the first one that does should reopen that
-decision, not step past it. i+2 keeps `--relax`'s meaning, only at the wall
-(weighing pairs throughout degrades the whole sequence), and the page shows
-a relaxed step's `beside` word, which is already stored.
+`GoalList` reading from it as well as from a file. That file holds
+judgements and caches now — the corpus left for Postgres — so a search box
+cannot read units from beside it. `unit_counts` returns all 46,433 from the
+`corpus_unit_count` matview in 59ms, so a trigram index is thirty lines
+over a query rather than over a corpus load; `pg_trgm`, which migration
+dd0d9cf4b307 declined because nothing issued a fuzzy query, should be
+reopened rather than stepped past if that stops being enough. The walk is
+minutes and cannot run inside a request; queue it the way `_queue_rescore`
+does. i+2 keeps `--relax`'s meaning, only at the wall (weighing pairs
+throughout degrades the whole sequence), and the page shows a relaxed
+step's `beside` word, which is already stored.
+
+### 10. The smallest cover of a saved list, five i+1 sentences a word
+
+Take a list the reader built and saved (item 9's `word_list`) and find the
+smallest set that gives every word on it at least five different i+1
+sentences; show it on the page. Recompute only when a regenerate button is
+pressed. Until it is, serve what was stored, however old.
+
+The solver is language-app's `ilp/optimal_set_finder.py`: PuLP over CBC, a
+binary per *file*, cost the file's word count, one constraint per target
+word that at least `min_occurrences` chosen files contain it — and a word
+that fewer files contain is asked for as many as there are, rather than
+making the model infeasible. Solved at `gapRel=0.08`. Lift the model, not
+the module: it reads that project's `word_occurrences` table, writes its
+answer to text files under `ilp/`, and prints as its output. `pulp` is a new
+dependency, pinned in neither project; its wheel ships CBC.
+
+What is being chosen decides whether there is anything to solve, and the
+request reads three ways. Decide this first.
+
+- **Videos — the literal port.** A binary per video, cost `video_minutes`,
+  and for each word the chosen videos must hold five sentences in which it
+  is the sole unknown. Sentences stay strictly i+1 and one video serves many
+  words, so the cover is real: the fewest minutes that meet the whole list
+  five deep. `VideoWalk` already picks videos, greedily and in sequence, by
+  what each teaches given the ones before it; this is the same material
+  asked a different question — a set, not an order, aimed at a list. Only
+  the `subtitle` build is timed; the `transcript` build has no video and
+  cannot be in this cover.
+- **Sentences, strictly i+1.** An i+1 sentence has one unknown, so it
+  covers one word and no other. The sets are disjoint, the smallest cover
+  is five a word by `examples.rank`, and an ILP is a slow way to take the
+  top of a sort.
+- **Sentences, i+1 against the list.** Let a sentence count for every list
+  word in it, provided nothing unknown in it is *off* the list — the
+  language-app reading, where the reader will learn the whole list anyway.
+  Overlap returns and the ILP earns its place, at the price that what is
+  served is no longer i+1 as this project defines it: item 9's i+2, made
+  the rule rather than the wall.
+
+Measured 2026-09-11 over `corpus(strict=True)`, `subtitle` and `transcript`
+builds, 169,155 sentences, against a known set of 984 units and the
+*default* study list — 4,007 units, 3,639 of them not known. A list built
+by hand will be tens of words, and these ratios will not carry:
+
+    i+1 sentences per unknown list word
+      none                                       1,326
+      one to four                                1,281
+      five or more                               1,032   829 with five or more from a video
+    the pool: i+1 sentences over the list       28,453
+      of them untimed (transcript build)         6,479   241 words have nothing else
+      repeated texts                                21
+    videos holding some of it                      850   list words each: median 13, max 229
+    greedy once-cover, by list words a minute      396   videos, 10,560 minutes
+    sentences with 2+ unknowns, all on the list 26,053
+
+Under either strict reading, 1,032 words — 28% of that list — can be
+covered five deep, 829 if the sentences must come from a video, and no
+solver moves either number: the pool is bounded by the known set — 984
+units — not by the corpus, and the only thing that adds to it is
+`fill-gaps`, which today writes one sentence per roadmap step that lacks
+one, not five per list word. The cover is its natural client; the 1,326
+words with nothing are its work order. The language-app fallback — as many
+as there are — is what keeps a short list from being unsolvable. The greedy
+cover is an upper bound, and once deep rather than five; what it says is
+that the video answer for a list this size is measured in days of watching,
+and that the model CBC is handed has 850 binaries, not 28,453.
+
+The button is where this departs from every other cache here. A cover is a
+snapshot of one known set, and the reader's grows daily, so yesterday's
+cover holds sentences that are readable today. `_queue_rescore`'s stamp
+carries the known-set version and "a disagreeing stamp means recompute,
+never serve". This is asked to serve anyway. So: key the stored cover by
+list alone, keep the stamp beside it, and let the page say how old it is
+and how many of its sentences are no longer i+1 — stale, never in secret.
+Keep the solve off the request thread: queue it as `_queue_rescore`
+does, show that it is running, and make a second press a no-op — that
+queue dedupes nothing, and two presses are two solves. And the label has to
+name the list *and* the reading that made the cover, or regenerating under
+one deletes the other; 660fe47 is what happened the last time a name said
+less than the settings.
+
+Worth: item 9 lets the reader say what they want to learn; this is the
+first thing that answers with material for the whole list at once — and,
+in the video reading, with a number of minutes.
 
 ## Other people
 
-### 10. Letting friends run it
+### 11. Letting friends run it
 
 Two questions, in order. First, the state is one reader's: `known_units`,
 `cards`, `roadmap`, `video_score` and the rest of `state.sqlite3` have no
@@ -223,7 +334,7 @@ Measured 2026-09-11, after 7b739a3 moved unit filtering into the read:
     CorpusIndex                    0.58s
     cold /blocked                  4.54s
 
-### 11. The load is now object building, not querying
+### 12. The load is now object building, not querying
 
 1.54s of the 3.66s is 1.74M unit rows crossing the wire; most of the balance
 is assembling 169,155 `Sentence` objects and interning their units. There is
@@ -238,9 +349,9 @@ walk is *also* SQL, and quoting it as an available saving is how this gets
 started and abandoned.
 
 Cheaper first: find out whether the pages that pay this actually need it —
-see 12.
+see 13.
 
-### 12. Do the stored-plan pages need an index at all?
+### 13. Do the stored-plan pages need an index at all?
 
 `/roadmap` and `/quiz` read a plan that was already walked and stored. If
 `Viewer.scope` builds a `CorpusIndex` for them regardless, they are paying a
@@ -254,7 +365,7 @@ What would go wrong: `scope` is cached per source and counting mode, so a
 page that looks cheap in isolation may be warming the index another page then
 uses. Measure the pair, not the page.
 
-### 13. What the 84,849 overlay sentences cost
+### 14. What the 84,849 overlay sentences cost
 
 84,849 of 254,005 sentences are `teachable = False` — kept so the transcript
 panel beside the player has no holes. Every study query filters them out in
@@ -266,7 +377,7 @@ query and a join, which is the panel's whole cost. The answer may well be
 that they are fine where they are — but 33% of the corpus existing for one
 panel is worth knowing the price of.
 
-### 14. `roadmap_example` is 65% repeated text
+### 15. `roadmap_example` is 65% repeated text
 
 114,473 rows carrying 40,062 distinct texts, inside a `state.sqlite3` that is
 now 63 MB total — the corpus having left for Postgres.
@@ -277,3 +388,67 @@ a step showed rather than redundancy. Reopen it only with a reason the
 earlier measurement did not cover — the file shrinking by 150 MB changes the
 ratio the decision rested on, so "it is most of what is left" is such a
 reason, and "it looks duplicated" is not.
+
+## The walk
+
+### 16. `--strict` strands 127 goals it could reach in one step
+
+`build-roadmap --strict` sets `only_goals=True`
+(`commands/build_roadmap.py:66`), so the walk may never take a step that is
+not itself a goal. Aimed at `data/b1_parsed.txt` over
+`subtitle+transcript`, well-formed only, that leaves 218 of 2,016 goals
+unreached against 28 for the same corpus counted `--list-only`. The
+difference is not material, it is the flag:
+
+```
+  shallowest well-formed sentence per unreached goal
+     2 unknowns   127 goals     one unblocking step frees each
+     3 unknowns    33
+     4 unknowns    11
+   5-8 unknowns    16
+     none           3           no sentence where it is the only goal unknown
+```
+
+So 127 of the 218 are one non-goal word away. `--list-only` does not have
+the problem because its narrowing leaves no non-goal unknowns to be blocked
+by — which is why both walks print "0 are steps taken to unblock one" for
+quite different reasons, and why that line is not evidence of anything on
+its own.
+
+The question is what strict counting is *for*. Held to goals it answers
+"what can this list teach using only itself", which is a real question and
+gives an honest 218. Allowed one unblocking step it would answer "what can
+this list teach", which is what the page implies when it prefers the strict
+plan. Pick one deliberately; the numbers above are the cost of the current
+choice. An `--unblock` flag separating the two is cheap — `only_goals` is
+already a parameter — and would need a label suffix so the plans do not
+overwrite each other, exactly as `:relax` does.
+
+### 17. `out-of-reach` reports one cell of four, and says "said" for two things
+
+Two separate problems with `data/*_out_of_reach.txt`, both committed
+(`6e5230b`).
+
+It loads the corpus `list_only=True` with no flag for anything else
+(`commands/out_of_reach.py:41`), so the report only ever describes list
+counting — while `_stored_label` prefers the *strict* plan. For b1 the
+report says 28 and the page serves a plan that strands 218.
+
+And its `said` column counts appearances over the well-formed sentences
+only, because `_stranded` filters before counting. The header calls that
+"how often the corpus says it", which is not what it is. `die
+Arbeitslosigkeit 0` means no well-formed sentence has it; the corpus says
+it seven times. The two hide inside one number:
+
+```
+  b1, subtitle+transcript, well-formed, list counting — 28 unreached
+     4   never said at all           only new video helps
+    24   said, never well-formed     the quality bar, or a written sentence
+     0   well-formed, never alone
+```
+
+`_stranded`'s own comment says a badly-said word belongs with the absent
+ones because video can fix it, and that is fair — but it is not the only
+remedy for those 24, and the file should let the reader see which of the
+two they are looking at. A second column, and a header that says what each
+counts.
