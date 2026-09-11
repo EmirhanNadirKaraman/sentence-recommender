@@ -10,11 +10,17 @@ video goes through `CorpusUpdater.catch_up`, which parses only what is new. A
 full rebuild is needed only when the analyser rules change, so these matter
 about once a month — but when they matter, they cost a quarter of an hour.
 
-Measured 2026-09-10, 8 cores:
+Measured 2026-09-10, 8 cores — **and not to be trusted**:
 
     subtitle correction   342s   single process, before spaCy starts
     spaCy parse + units   486s   4 workers parsing, parent extracting
     total                 828s
+
+Re-measured 2026-09-11 on a quiet machine, the first line is 125s, and the
+parent/worker split the third entry rests on comes back inverted. Three
+figures from that session have now been about three times too large. Treat
+the table as a shape, not as numbers, and re-measure before designing
+against any line of it.
 
 ### 1. Parallelise the subtitle correction — DONE, worth 50s not 280s
 
@@ -91,13 +97,39 @@ regenerated — and the machine has been in the swapper for hours. Worth doing
 deliberately, on a quiet machine, with the person-noun list rather than the
 `pos_`-only test.
 
-### 3. Phrase extraction is serial — the real ceiling
+### 3. Phrase extraction is serial — measured, and it is not the ceiling
 
-`analyze_all` forks four workers for the parse and then runs `_units` and
-phrase extraction in the parent, one Doc at a time. Parent CPU was 5:52
-against ~1:47 per worker: the parent is the bottleneck, so a bigger
-`batch_size` buys nothing. Moving extraction into the workers means shipping
-`Doc`s or re-parsing there, and is the largest of these three by far.
+The premise is inverted. This says the parent is the bottleneck and calls
+itself "the largest of these three by far". Measured over 4,000 sentences,
+single process:
+
+```
+  parse                    13.59s    88%
+  _units (parent)           1.91s    12%
+  _normalise etc (parent)   0.01s     0%
+```
+
+The parent does 12% of the work, not the bulk of it. Give the parse four
+workers and its wall time falls to about 3.4s against 1.9s of serial parent
+— so the parent is 36% of the wall clock and the parse is still 64%.
+
+That caps the prize. Moving extraction into the workers can remove at most
+that 36%, and on this platform it has to get `Doc`s there to do it —
+Python spawns rather than forks here (see 1), so they would be pickled
+whole, and re-parsing in the worker would spend more than the 36% it saves.
+
+**The cheaper lever is 2.** NER is 44% of parse time and parse is 64% of the
+wall, so dropping it is worth about 28% of the analysis phase — against 36%
+for a restructure that fights the process model, and it is a constant and a
+word list rather than a redesign. Do 2 first, then re-measure this; the
+ratio will have moved and this entry's answer may change with it.
+
+One caveat on the numbers above: they are single-process CPU, and the
+original 5:52-against-1:47 was taken with four workers running. That does
+not rescue the premise — the per-sentence costs are what they are — but it
+is the third figure from that session to come back roughly three times too
+large, after 342s of correction that is 125s and a parent cost that is a
+seventh of the parse rather than triple it.
 
 ## Vocabulary
 
