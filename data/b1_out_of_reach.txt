@@ -1,0 +1,35 @@
+# Goals this corpus cannot teach, most-said first.
+# The count is how often the corpus says it — a high count means
+# the word is here and always crowded, not that it is missing.
+#
+# Regenerated 2026-09-11 from 169,155 sentences (subtitle+transcript),
+# goals data/b1_parsed.txt, well-formed only = True.
+# Rebuild with `python main.py out-of-reach` — do not hand-edit.
+die Arbeitslosigkeit	0
+die Auskunft	0
+die Beschäftigung	0
+der Ehegatte	0
+die Einnahme	0
+der Empfang	0
+die Fachleute	0
+die Fotografie	0
+das Heim	0
+das Kilogramm	0
+die Phantasie	0
+die Saison	0
+die Sportart	0
+die Steckdose	0
+das Tennis	0
+das Top	0
+die Unterlagen	0
+die Weltmeisterschaft	0
+das Wiedersehen	0
+etw. (Akk) ausstellen	0
+etw. (Akk) festsetzen	0
+der Übersetzer	0
+fällig	0
+manch	0
+mittler	0
+nochmals	0
+städtisch	0
+sämtlich	0

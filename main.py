@@ -12,7 +12,7 @@ from commands import (
     CheckWordCommand, DifficultyCommand, QuizCommand, UnblockCommand,
     BuildStudyListCommand, ExportSubtitlesCommand, FillGapsCommand,
     HuntVideosCommand, ReviewCommand, ServeCommand, StatusCommand,
-    SyncCatalogueCommand,
+    SyncCatalogueCommand, OutOfReachCommand,
 )
 from config import Settings
 from context import Application
@@ -210,6 +210,18 @@ def _parser() -> argparse.ArgumentParser:
     sub.add_parser("status", help="what is built and what is due")
     sub.add_parser("function-words", help="regenerate the closed-class review file")
     sub.add_parser("schema-doc", help="regenerate DATABASE.md from both databases")
+
+    reach = sub.add_parser(
+        "out-of-reach",
+        help="write down the goals the corpus cannot teach, and why")
+    reach.add_argument("--source", nargs="+", default=[], metavar="BUILD",
+                       help=SOURCE_HELP)
+    reach.add_argument("--out", metavar="PATH",
+                       help="where to write it (default: beside the goal list)")
+    reach.add_argument("--all-sentences", action="store_true",
+                       help="count badly-formed sentences as teaching material")
+    reach.add_argument("--goals-file", metavar="PATH",
+                       help="word list to report on, instead of the default")
     return parser
 
 
@@ -283,6 +295,9 @@ def main() -> int:
         StatusCommand().run(app)
     elif args.command == "function-words":
         function_words(app)
+    elif args.command == "out-of-reach":
+        OutOfReachCommand().run(app, tuple(args.source), args.out,
+                                not args.all_sentences)
     elif args.command == "schema-doc":
         from db.schema_doc import write        # noqa: PLC0415 — only here
         print(f"wrote {write(app)}")

@@ -14,6 +14,7 @@ from .quiz import QuizCommand
 from .review import ReviewCommand
 from .blockers import BlockersCommand
 from .serve import ServeCommand
+from .out_of_reach import OutOfReachCommand
 from .status import StatusCommand
 from .sync_catalogue import SyncCatalogueCommand
 
@@ -24,5 +25,5 @@ __all__ = [
     "ExportSubtitlesCommand", "UnblockCommand",
     "FillGapsCommand",
     "HuntVideosCommand", "QuizCommand", "ReviewCommand", "ServeCommand", "BlockersCommand",
-    "StatusCommand", "SyncCatalogueCommand",
+    "OutOfReachCommand", "StatusCommand", "SyncCatalogueCommand",
 ]
