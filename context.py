@@ -102,16 +102,17 @@ class Application:
         which is which.
         """
         self.check_freshness()
+        # Decided once and applied while the units are read, rather than by a
+        # pass over the finished sentences — see `_keep_rule`.
+        keep = self._keep_rule(strict, list_only)
         # `holding` asks for the sentences saying one word. A page that wants
         # twenty-five of them has no business materialising a hundred and
         # fifteen thousand, which is what it did before the index existed.
-        sentences = self.apply_overrides(self.corpus_store.load(
+        return self.apply_overrides(self.corpus_store.load(
             *(builds or self.corpus_store.builds()),
             teachable_only=teachable_only, holding=holding, text=text,
-        ))
-        if strict:
-            return self._drop_duplicates(sentences)
-        return self._narrow_to_list(sentences) if list_only else sentences
+            keep=keep,
+        ), keep)
 
     @cached_property
     def check_freshness(self):
@@ -180,15 +181,33 @@ class Application:
                     words.add(word.lower())
         return frozenset(words)
 
-    def _drop_duplicates(self, sentences: list) -> list:
-        """Every sentence, less the units the list already teaches elsewhere.
+    def _keep_rule(self, strict: bool, list_only: bool):
+        """Which units count, as a test applied while they are read.
 
-        What is left is what strict counting wants: the goals, the words
-        already known, and the genuine strangers — words neither known nor on
-        the list, which the walk will never teach and which therefore keep a
-        sentence out of an i+1 reading for good.
+        Returns None when everything counts, so the common path pays nothing.
+
+        `strict` keeps every word in the sentence and drops only the ones the
+        list already teaches under another name — `Kugel` arriving a second
+        time as a bare `kugel`. What is left is the goals, the words already
+        known, and the genuine strangers: words neither known nor on the list,
+        which the walk will never teach and which therefore keep a sentence
+        out of an i+1 reading for good.
+
+        `list_only` keeps only what the list names. That removes the duplicate
+        too, and removes unknowns with it, so sentences that were two or three
+        away become i+1 — at the price of calling a sentence readable while it
+        holds a word you do not know, because that word was never something
+        you set out to learn.
+
+        This was two passes over the finished corpus, each rebuilding every
+        sentence it touched. Doing it during the read costs one dictionary
+        lookup per unit row and rebuilds nothing.
         """
+        if not strict and not list_only:
+            return None
         goals = frozenset(self.goal_units)
+        if list_only and not strict:
+            return lambda unit: unit in goals
         covered = self.covered_forms
 
         def keep(unit) -> bool:
@@ -202,25 +221,9 @@ class Application:
             # which holds single words.
             return unit in goals or unit.key not in covered
 
-        return [
-            s.with_units(
-                frozenset(u for u in s.units if keep(u)),
-                tuple((u, x) for u, x in s.surfaces if keep(u)),
-            )
-            for s in sentences
-        ]
+        return keep
 
-    def _narrow_to_list(self, sentences: list) -> list:
-        goals = frozenset(self.goal_units)
-        return [
-            s.with_units(
-                s.units & goals,
-                tuple((u, x) for u, x in s.surfaces if u in goals),
-            )
-            for s in sentences
-        ]
-
-    def apply_overrides(self, sentences: list) -> list:
+    def apply_overrides(self, sentences: list, keep=None) -> list:
         """What the reader has said about particular sentences, applied.
 
         Public because the reading page needs it too: a deck stored with a
@@ -239,9 +242,16 @@ class Application:
                 continue
             fix = corrected.get(sentence.text)
             if fix is not None:
+                # A correction replaces the units outright, and those units
+                # have not been past `keep` — the store applied it to what it
+                # read, and this did not come from the store. Filtering here
+                # keeps a corrected sentence counted the same way as every
+                # other one.
+                items = [(unit, surface) for unit, surface in fix.items()
+                         if keep is None or keep(unit)]
                 sentence = sentence.with_units(
-                    frozenset(fix),
-                    tuple((unit, surface) for unit, surface in fix.items() if surface),
+                    frozenset(unit for unit, _ in items),
+                    tuple((unit, surface) for unit, surface in items if surface),
                 )
             out.append(sentence)
         return out

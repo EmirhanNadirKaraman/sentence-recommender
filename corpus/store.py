@@ -267,7 +267,8 @@ class CorpusStore:
     def load(self, *builds: str, teachable_only: bool = True,
              video: str | None = None,
              holding: tuple[str, str] | None = None,
-             text: str | None = None) -> list[Sentence]:
+             text: str | None = None,
+             keep=None) -> list[Sentence]:
         """Stored sentences. By default only the ones worth studying from —
         pass `teachable_only=False` for the full transcript, which is what an
         overlay needs.
@@ -284,6 +285,14 @@ class CorpusStore:
         panel wants and the only thing it wants. Asked without it, that panel
         loaded every sentence of every build to keep the two hundred it
         needed.
+
+        `keep` decides which units survive — `Application.corpus` passes the
+        rule that strict and list counting each want. It belongs here rather
+        than in a pass afterwards because a pass afterwards has to rebuild
+        every sentence it touches: 169,155 objects thrown away and 169,155
+        made, each with a fresh frozenset and tuple, to drop a few units from
+        some of them. That rebuild was 3.35 of the 7.7 seconds a cold
+        `/blocked` cost, and none of it was the test itself.
         """
         if not builds:
             return []          # `= ANY('{}')` matches nothing, but say so here
@@ -317,7 +326,12 @@ class CorpusStore:
             # nearly every one is a repeat. Interning them turns most of those
             # rows into a dict lookup instead of an object, which is most of
             # the cost of loading a large corpus.
-            seen: dict[tuple[str, str], Unit] = {}
+            # (kind, key) -> the interned unit, or None where `keep` refused
+            # it. The verdict depends on the unit alone, so it is reached once
+            # per distinct unit rather than once per row — 46,433 decisions
+            # instead of 1,742,479.
+            seen: dict[tuple[str, str], Unit | None] = {}
+            unseen = object()          # None already means "refused"
             cur.execute(
                 "SELECT su.sentence_id, su.kind, su.key, su.surface"
                 " FROM corpus_unit su"
@@ -325,9 +339,13 @@ class CorpusStore:
                 f" WHERE s.build = ANY(%s){joined_video}"
                 f"{joined_here}{joined_text}", args)
             for sid, kind, key, surface in cur:
-                unit = seen.get((kind, key))
+                unit = seen.get((kind, key), unseen)
+                if unit is unseen:
+                    made = Unit(kind, key)
+                    unit = seen[(kind, key)] = (
+                        made if keep is None or keep(made) else None)
                 if unit is None:
-                    unit = seen[(kind, key)] = Unit(kind, key)
+                    continue
                 units.setdefault(sid, set()).add(unit)
                 if surface:
                     surfaces.setdefault(sid, []).append((unit, surface))
