@@ -9,24 +9,13 @@ Two stores, and the split is deliberate. Postgres holds the catalogue
 — what German exists. SQLite holds what has been made of it, and what
 the reader has decided.
 
-## `data/state.sqlite3` — what the reader does (21 tables)
+## `data/state.sqlite3` — what the reader does (17 tables)
 
-Everything this program writes about a person: the analysed corpus,
-the roadmaps it walks, the decisions made while reading. Gitignored
-and rebuildable *except* the judgements — `known_units`, `checked_units`, `snoozed_units`, `hidden_sentences`, `corrected_sentences`, `video_attempts` —
-which nothing can regenerate.
+What the reader has done, and nothing else — the corpus itself moved to
+Postgres. Roadmaps and scores are derived and rebuildable. The judgements are
+not: `known_units`, `checked_units`, `snoozed_units`, `hidden_sentences`, `corrected_sentences`, `video_attempts` hold decisions
+nothing can regenerate. The file is gitignored either way.
 
-
-### `build_meta` — 2 rows
-
-| column | type | null |
-|---|---|---|
-| `build` | TEXT | yes |
-| `fingerprint` | TEXT | no |
-| `made_at` | TEXT | no |
-| `packages` | TEXT | no |
-
-- primary key: `build`
 
 ### `cards` — 55,413 rows
 
@@ -142,18 +131,6 @@ which nothing can regenerate.
 
 - primary key: `source`
 
-### `sentence_units` — 1,742,479 rows
-
-| column | type | null |
-|---|---|---|
-| `sentence_id` | INTEGER | no |
-| `kind` | TEXT | no |
-| `key` | TEXT | no |
-| `surface` | TEXT | yes |
-
-- primary key: `sentence_id`, `kind`, `key`
-- index `ix_units_key` on (kind, key, sentence_id)
-
 ### `sentence_units_override` — 0 rows
 
 | column | type | null |
@@ -164,26 +141,6 @@ which nothing can regenerate.
 | `surface` | TEXT | yes |
 
 - primary key: `text`, `kind`, `key`
-
-### `sentences` — 254,005 rows
-
-| column | type | null |
-|---|---|---|
-| `id` | INTEGER | yes |
-| `build` | TEXT | no |
-| `origin` | TEXT | no |
-| `text` | TEXT | no |
-| `translation` | TEXT | yes |
-| `raw_text` | TEXT | yes |
-| `source_ids` | TEXT | no |
-| `video_id` | TEXT | yes |
-| `start_time` | REAL | yes |
-| `end_time` | REAL | yes |
-| `teachable` | INTEGER | no |
-
-- primary key: `id`
-- index `ix_sentences_video` on (video_id)
-- index `ix_sentences_build` on (build)
 
 ### `snoozed_units` — 0 rows
 
@@ -206,17 +163,6 @@ which nothing can regenerate.
 | `tick` | INTEGER | no |
 
 - primary key: `id`
-
-### `unit_count` — 57,319 rows
-
-| column | type | null |
-|---|---|---|
-| `build` | TEXT | no |
-| `kind` | TEXT | no |
-| `key` | TEXT | no |
-| `said` | INTEGER | no |
-
-- primary key: `build`, `kind`, `key`
 
 ### `video_attempts` — 7 rows
 
@@ -282,7 +228,7 @@ which nothing can regenerate.
 
 ## Postgres `sentence_recommender` — the catalogue (12 tables)
 
-This project's own database, under `alembic` at revision `85f526a480c5`. Every
+This project's own database, under `alembic` at revision `6f2a1c84bb70`. Every
 read and every write goes here; `DB_NAME` names it.
 
 It began as a copy of language-app's `german_vocabulary`, made by
@@ -469,3 +415,74 @@ ingestion and read by nothing in this project.
 | `video_id` | text | no |  |
 
 - primary key: `PRIMARY KEY (video_id)`
+
+## Postgres `sentence_recommender` — the analysed corpus (3 tables + 1 view)
+
+What the matcher made of the catalogue: one row per sentence worth
+reading, and one per learning unit in it. `build` names both the source
+and how it was assembled, so two ways of cutting the same subtitles can
+coexist; `build_meta` records which rules produced each.
+
+These were SQLite until the i+1 subtraction — 3.48M set operations per
+load — was measured at 2.18s in SQL against 10.04s in Python.
+
+
+### `corpus_sentence` — 254,005 rows
+
+| column | type | null | default |
+|---|---|---|---|
+| `id` | integer | no |  |
+| `build` | text | no |  |
+| `origin` | text | no |  |
+| `text` | text | no |  |
+| `translation` | text | yes |  |
+| `raw_text` | text | yes |  |
+| `source_ids` | text | no | `''` |
+| `video_id` | text | yes |  |
+| `start_time` | double precision | yes |  |
+| `end_time` | double precision | yes |  |
+| `teachable` | boolean | no | `true` |
+
+- primary key: `PRIMARY KEY (id)`
+- index `ix_corpus_sentence_build` — `btree (build, teachable, id)`
+- index `ix_corpus_sentence_text` — `hash (text)`
+- index `ix_corpus_sentence_video` — `btree (build, video_id, start_time)`
+
+### `corpus_unit` — 1,742,479 rows
+
+| column | type | null | default |
+|---|---|---|---|
+| `sentence_id` | integer | no |  |
+| `kind` | text | no |  |
+| `key` | text | no |  |
+| `surface` | text | yes |  |
+
+- foreign key: `FOREIGN KEY (sentence_id) REFERENCES corpus_sentence(id) ON DELETE CASCADE`
+- primary key: `PRIMARY KEY (sentence_id, kind, key)`
+- index `ix_corpus_unit_key` — `btree (kind, key, sentence_id)`
+
+### `build_meta` — 2 rows
+
+| column | type | null | default |
+|---|---|---|---|
+| `build` | text | no |  |
+| `fingerprint` | text | no |  |
+| `made_at` | text | no |  |
+| `packages` | text | no | `''` |
+
+- primary key: `PRIMARY KEY (build)`
+
+### `corpus_unit_count` — 57,319 rows *(materialized view)*
+
+Refreshed CONCURRENTLY when a build is written. 59ms to read,
+against 197ms to group the unit rows live.
+
+```sql
+SELECT s.build,
+    u.kind,
+    u.key,
+    (count(*))::integer AS said
+   FROM (corpus_unit u
+     JOIN corpus_sentence s ON ((s.id = u.sentence_id)))
+  GROUP BY s.build, u.kind, u.key;
+```

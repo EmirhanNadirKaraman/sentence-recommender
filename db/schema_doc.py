@@ -6,9 +6,10 @@ version in git went stale the moment the schema moved. This is that generator,
 kept where it can be run again.
 
 It reports both stores, because the split between them is the thing worth
-understanding. SQLite holds what the reader does — the corpus as analysed,
-the roadmaps, the judgements nothing can regenerate. Postgres holds the
-catalogue: the subtitles, the words, the phrases.
+understanding. Postgres holds the German — the catalogue as scraped, and the
+corpus analysed out of it. SQLite holds only what the reader has done about
+it: the roadmaps walked, the cards scheduled, the judgements nothing can
+regenerate.
 
 For Postgres it prints keys, foreign keys and indexes as well as columns.
 That would have been noise when the schema belonged to another project and
@@ -26,6 +27,11 @@ CATALOGUE = ("channel", "video", "sentence", "word_table", "phrase_table",
              "grammar_rule", "phrase_blueprint", "sentence_to_grammar_rule",
              "word_to_sentence", "sentence_to_phrase", "lemma_override",
              "video_blacklist")
+
+# What this project analysed out of the catalogue, and the bookkeeping that
+# says which rules produced it. Moved here from SQLite; see migrations
+# 29e0c9733097 and 6f2a1c84bb70.
+CORPUS = ("corpus_sentence", "corpus_unit", "build_meta")
 
 # Written by language-app's scraper, read by nothing here. Worth marking, so
 # nobody optimises a table this project never queries.
@@ -46,11 +52,13 @@ def _sqlite_section(path: Path, w) -> None:
             " AND name NOT LIKE 'sqlite_%' ORDER BY name")]
         w(f"\n## `{path.relative_to(Path.cwd())}` — what the reader does"
           f" ({len(tables)} tables)\n")
-        w("Everything this program writes about a person: the analysed corpus,")
-        w("the roadmaps it walks, the decisions made while reading. Gitignored")
-        w("and rebuildable *except* the judgements — "
-          + ", ".join(f"`{t}`" for t in IRREPLACEABLE) + " —")
-        w("which nothing can regenerate.\n")
+        w("What the reader has done, and nothing else — the corpus itself"
+          " moved to")
+        w("Postgres. Roadmaps and scores are derived and rebuildable. The"
+          " judgements are")
+        w("not: " + ", ".join(f"`{t}`" for t in IRREPLACEABLE) + " hold"
+          " decisions")
+        w("nothing can regenerate. The file is gitignored either way.\n")
         for table in tables:
             rows = conn.execute(f'SELECT count(*) FROM "{table}"').fetchone()[0]
             cols = list(conn.execute(f'PRAGMA table_info("{table}")'))
@@ -91,7 +99,32 @@ def _postgres_section(db, name: str, w) -> None:
     w("Tables marked *write-only* are filled by language-app's scraper during")
     w("ingestion and read by nothing in this project.\n")
 
-    for table in CATALOGUE:
+    _tables(db, CATALOGUE, present, w)
+
+    w(f"\n## Postgres `{name}` — the analysed corpus"
+      f" ({len(CORPUS)} tables + 1 view)\n")
+    w("What the matcher made of the catalogue: one row per sentence worth")
+    w("reading, and one per learning unit in it. `build` names both the source")
+    w("and how it was assembled, so two ways of cutting the same subtitles can")
+    w("coexist; `build_meta` records which rules produced each.\n")
+    w("These were SQLite until the i+1 subtraction — 3.48M set operations per")
+    w("load — was measured at 2.18s in SQL against 10.04s in Python.\n")
+    _tables(db, CORPUS, present, w)
+
+    for view, definition in db.rows(
+            "SELECT matviewname, definition FROM pg_matviews"
+            " WHERE schemaname = 'public' ORDER BY matviewname"):
+        rows = db.rows(f'SELECT count(*) FROM "{view}"')[0][0]
+        w(f"\n### `{view}` — {rows:,} rows *(materialized view)*\n")
+        w("Refreshed CONCURRENTLY when a build is written. 59ms to read,")
+        w("against 197ms to group the unit rows live.\n")
+        w("```sql")
+        w(definition.strip())
+        w("```")
+
+
+def _tables(db, names, present, w) -> None:
+    for table in names:
         if table not in present:
             w(f"\n### `{table}` — **missing**\n")
             continue
