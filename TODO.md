@@ -277,9 +277,30 @@ Counting units alone hides this completely, which is how it was first
 measured here and first reported wrongly. The command now prints sentence
 counts and the punctuation rate beside the units.
 
-**Worth doing only for the case it was asked about** — videos with no manual
-track, where 242 usable sentences is 242 more than nothing, and the 18% is
-measured against something that does not exist. Of ten videos the hunt refused,
+**And it would not close a single gap worth mentioning.** Eight videos the
+hunt refused, all carrying a usable German ASR track, against the 347 goals
+the study list cannot reach:
+
+```
+   21   stranded goals appear in them
+    1   is the sole unknown somewhere
+    1   in a sentence that passes the quality bar   (`erwachen`)
+```
+
+The words are not missing from those videos — twenty-one of them are said.
+They are said beside other unknowns, so none becomes teachable. That is the
+same thing `study_out_of_reach.txt` already reports in its own words: 288 of
+the 347 are "said but never alone", and more video is what that column is
+explicitly not waiting for.
+
+So the gate buys material, not reach. Only the 52 never-said goals are ones
+video can help with at all, and eight videos produced none of them.
+
+**Where that leaves it.** Auto captions are usable where nothing else exists
+— 242 teachable sentences a video against zero — but they are 31% worse than
+a hand-written track and they do not unstrand anything. Worth opening if the
+aim is a bigger corpus; not worth opening if the aim is the blocked list,
+which is what it was reached for. Of ten videos the hunt refused,
 eight carry a usable German ASR track and the two that do not are
 non-German audio that should be refused. The attempt log holds 43 refusals
 in 140 videos met, so this is roughly a quarter more yield a round.
