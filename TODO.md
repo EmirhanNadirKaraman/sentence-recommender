@@ -210,72 +210,71 @@ does. i+2 keeps `--relax`'s meaning, only at the wall (weighing pairs
 throughout degrades the whole sequence), and the page shows a relaxed
 step's `beside` word, which is already stored.
 
-### 10. The smallest cover of a saved list, five i+1 sentences a word
+### 10. Cover a saved list in the fewest minutes of video
 
-Take a list the reader built and saved (item 9's `word_list`) and find the
-smallest set that gives every word on it at least five different i+1
-sentences; show it on the page. Recompute only when a regenerate button is
-pressed. Until it is, serve what was stored, however old.
+Take a list the reader built and saved (item 9's `word_list`) and choose
+the videos: the set with the fewest minutes in which every word on the list
+has at least five different sentences where it is the sole unknown. Show
+the videos, and under each word its five sentences. Recompute only when a
+regenerate button is pressed; until it is, serve what was stored, however
+old.
+
+Decided 2026-09-11 over two other readings of the same request. A cover of
+*sentences* is nothing to solve: an i+1 sentence has one unknown, so it
+covers one word and no other, the sets are disjoint, and the answer is five
+a word by `examples.rank`. Letting a sentence count for every list word in
+it — nothing unknown *off* the list — gives a solver something to do,
+26,053 such sentences over the default list, at the price of serving what
+is not i+1 as this project defines it. Videos keep i+1 strict and still
+overlap, because one video holds sole-unknown sentences for many words; the
+cover is real, and it answers in minutes.
 
 The solver is language-app's `ilp/optimal_set_finder.py`: PuLP over CBC, a
-binary per *file*, cost the file's word count, one constraint per target
-word that at least `min_occurrences` chosen files contain it — and a word
-that fewer files contain is asked for as many as there are, rather than
-making the model infeasible. Solved at `gapRel=0.08`. Lift the model, not
-the module: it reads that project's `word_occurrences` table, writes its
-answer to text files under `ilp/`, and prints as its output. `pulp` is a new
-dependency, pinned in neither project; its wheel ships CBC.
+binary per file, cost the file's word count, one constraint per target word
+that at least `min_occurrences` chosen files contain it — a word that fewer
+files contain is asked for as many as there are, rather than making the
+model infeasible; solved at `gapRel=0.08`. It is this problem with `file`
+read as `video`: the cost is `video_minutes`, "contains" is "holds a
+sentence where the word is the sole unknown", and the constraint counts
+sentences rather than videos, so one video may supply all five — cap what
+one video may contribute if five from one speaker turns out to be no
+lesson. Lift the model, not the module: it reads that project's
+`word_occurrences` table, writes its answer to text files under `ilp/`, and
+prints as its output. `pulp` is a new dependency, pinned in neither
+project; its wheel ships CBC.
 
-What is being chosen decides whether there is anything to solve, and the
-request reads three ways. Decide this first.
+The pool is `CorpusIndex.candidates()` — the sole-unknown positions per
+unit — grouped by `timing.video_id` as `build-video-roadmap` groups. Count
+texts, not positions: 21 of 28,453 repeat. Only the `subtitle` build is
+timed; the `transcript` build has no video and cannot be in a cover.
+`VideoWalk` is the nearest thing here, the same material walked greedily in
+sequence by what each video teaches given the ones before it; this is a
+set, not an order, aimed at a list, so it gets its own store beside
+`VideoRoadmapStore` rather than a mode of it. Keep the walk's `ENOUGH_LINES`
+floor: minimising minutes rewards clips, and a cover of forty ninety-second
+videos is not a watching plan.
 
-- **Videos — the literal port.** A binary per video, cost `video_minutes`,
-  and for each word the chosen videos must hold five sentences in which it
-  is the sole unknown. Sentences stay strictly i+1 and one video serves many
-  words, so the cover is real: the fewest minutes that meet the whole list
-  five deep. `VideoWalk` already picks videos, greedily and in sequence, by
-  what each teaches given the ones before it; this is the same material
-  asked a different question — a set, not an order, aimed at a list. Only
-  the `subtitle` build is timed; the `transcript` build has no video and
-  cannot be in this cover.
-- **Sentences, strictly i+1.** An i+1 sentence has one unknown, so it
-  covers one word and no other. The sets are disjoint, the smallest cover
-  is five a word by `examples.rank`, and an ILP is a slow way to take the
-  top of a sort.
-- **Sentences, i+1 against the list.** Let a sentence count for every list
-  word in it, provided nothing unknown in it is *off* the list — the
-  language-app reading, where the reader will learn the whole list anyway.
-  Overlap returns and the ILP earns its place, at the price that what is
-  served is no longer i+1 as this project defines it: item 9's i+2, made
-  the rule rather than the wall.
+Measured 2026-09-11 over `corpus(strict=True)`, against a known set of 984
+units and the *default* study list — 4,007 units, 3,639 of them not known.
+A hand-built list will be tens of words, and none of this carries:
 
-Measured 2026-09-11 over `corpus(strict=True)`, `subtitle` and `transcript`
-builds, 169,155 sentences, against a known set of 984 units and the
-*default* study list — 4,007 units, 3,639 of them not known. A list built
-by hand will be tens of words, and these ratios will not carry:
+    list words with sole-unknown sentences in videos
+      five or more                                        829
+      one to four                                       1,243
+      none in a video, some in the transcript build       241
+      none anywhere                                     1,326
+    videos holding any of it — the binaries               850   list words each: median 13, max 229
+    greedy five-deep cover, by words a minute             683   videos, 14,319 minutes
 
-    i+1 sentences per unknown list word
-      none                                       1,326
-      one to four                                1,281
-      five or more                               1,032   829 with five or more from a video
-    the pool: i+1 sentences over the list       28,453
-      of them untimed (transcript build)         6,479   241 words have nothing else
-      repeated texts                                21
-    videos holding some of it                      850   list words each: median 13, max 229
-    greedy once-cover, by list words a minute      396   videos, 10,560 minutes
-    sentences with 2+ unknowns, all on the list 26,053
-
-Under either strict reading, 1,032 words — 28% of that list — can be
-covered five deep, 829 if the sentences must come from a video, and no
-solver moves either number: the pool is bounded by the known set — 984
-units — not by the corpus, and the only thing that adds to it is
-`fill-gaps`, which today writes one sentence per roadmap step that lacks
-one, not five per list word. The cover is its natural client; the 1,326
-words with nothing are its work order. The language-app fallback — as many
-as there are — is what keeps a short list from being unsolvable. The greedy
-cover is an upper bound, and once deep rather than five; what it says is
-that the video answer for a list this size is measured in days of watching,
-and that the model CBC is handed has 850 binaries, not 28,453.
+The greedy cover is an upper bound, and for this list it is most of the
+catalogue: a list this size is not a cover but the whole corpus, priced. No
+solver moves the top of that table either — the pool is bounded by the
+known set, 984 units, not by the corpus, and the only thing that adds to it
+is `fill-gaps`, which today writes one sentence per roadmap step that lacks
+one, not five per list word, and writes it to the `generated` build, which
+has no video. The words a cover cannot reach are listed on the page, not
+dropped: language-app prints a WARNING count and moves on, and a page that
+does the same shows a cover that looks complete.
 
 The button is where this departs from every other cache here. A cover is a
 snapshot of one known set, and the reader's grows daily, so yesterday's
@@ -284,16 +283,17 @@ carries the known-set version and "a disagreeing stamp means recompute,
 never serve". This is asked to serve anyway. So: key the stored cover by
 list alone, keep the stamp beside it, and let the page say how old it is
 and how many of its sentences are no longer i+1 — stale, never in secret.
-Keep the solve off the request thread: queue it as `_queue_rescore`
-does, show that it is running, and make a second press a no-op — that
-queue dedupes nothing, and two presses are two solves. And the label has to
-name the list *and* the reading that made the cover, or regenerating under
-one deletes the other; 660fe47 is what happened the last time a name said
-less than the settings.
+Keep the solve off the request thread: queue it as `_queue_rescore` does,
+show that it is running, and make a second press a no-op — that queue
+dedupes nothing, and two presses are two solves. The solve wants a strict
+index for its list, which by item 9's measurement is a cold corpus load per
+list; pay it in the worker, once a press, rather than adding a cell to
+`_scopes`. And the label has to name
+the list and the build, or regenerating under one deletes the other;
+660fe47 is what happened the last time a name said less than the settings.
 
 Worth: item 9 lets the reader say what they want to learn; this is the
-first thing that answers with material for the whole list at once — and,
-in the video reading, with a number of minutes.
+first answer here that takes the list whole and prices it in minutes.
 
 ## Other people
 
@@ -391,38 +391,43 @@ reason, and "it looks duplicated" is not.
 
 ## The walk
 
-### 16. `--strict` strands 127 goals it could reach in one step
+### 16. The 66 gaps that are left, and what each kind needs
 
-`build-roadmap --strict` sets `only_goals=True`
-(`commands/build_roadmap.py:66`), so the walk may never take a step that is
-not itself a goal. Aimed at `data/b1_parsed.txt` over
-`subtitle+transcript`, well-formed only, that leaves 218 of 2,016 goals
-unreached against 28 for the same corpus counted `--list-only`. The
-difference is not material, it is the flag:
+`--strict` sets `only_goals`, so the walk may never teach a word that is
+not itself a goal — a goal with one ordinary word in the way is stranded by
+policy rather than by the corpus. `--unblock` lifts that and stores the
+result under its own name, since it is a different curriculum.
+
+Measured on `data/b1_parsed.txt`, `subtitle+transcript`, well-formed only,
+against 2,016 goals of which 336 were already known:
 
 ```
-  shallowest well-formed sentence per unreached goal
-     2 unknowns   127 goals     one unblocking step frees each
-     3 unknowns    33
-     4 unknowns    11
-   5-8 unknowns    16
-     none           3           no sentence where it is the only goal unknown
+  narrowing  may step off list   goals reached   out of reach
+  list             —                  1652            28
+  strict           no                 1462           218
+  strict           yes                1614            66
+  none             yes                1354           326
 ```
 
-So 127 of the 218 are one non-goal word away. `--list-only` does not have
-the problem because its narrowing leaves no non-goal unknowns to be blocked
-by — which is why both walks print "0 are steps taken to unblock one" for
-quite different reasons, and why that line is not evidence of anything on
-its own.
+Unblocking closes 152 of the 218. Dropping the narrowing as well is worse
+than either — `--goals` alone keeps every duplicate surface form in the
+sentences, so more of them carry a second unknown that is only bookkeeping.
+Those two were changed together in the first run here, which made the flag
+look useless; they have to move one at a time.
 
-The question is what strict counting is *for*. Held to goals it answers
-"what can this list teach using only itself", which is a real question and
-gives an honest 218. Allowed one unblocking step it would answer "what can
-this list teach", which is what the page implies when it prefers the strict
-plan. Pick one deliberately; the numbers above are the cost of the current
-choice. An `--unblock` flag separating the two is cheap — `only_goals` is
-already a parameter — and would need a label suffix so the plans do not
-overwrite each other, exactly as `:relax` does.
+What is left is 66, and the three kinds want different things:
+
+```
+     4   never said at all           only new video (`hunt --absent-only`)
+    24   said, never well-formed     the quality bar, or a written sentence
+    38   genuinely deep              more material, or accept them
+```
+
+The 24 are the interesting ones: the corpus says them 4-7 times each and
+`well_formed` rejects every sentence. Either the bar is too high for these,
+or the material really is that bad — worth reading a sample before deciding
+which, because the answer picks between lowering a threshold and writing 24
+sentences.
 
 ### 17. `out-of-reach` reports one cell of four, and says "said" for two things
 

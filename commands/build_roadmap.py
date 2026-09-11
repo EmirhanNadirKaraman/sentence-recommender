@@ -32,7 +32,7 @@ class BuildRoadmapCommand:
     def run(self, app, steps: int | None = None, builds: tuple[str, ...] = (),
             goals: bool = False, list_only: bool = False,
             quality_only: bool = False, strict: bool = False,
-            relax: bool = False) -> None:
+            relax: bool = False, unblock: bool = False) -> None:
         settings = app.settings
         # Strict counting only makes sense aimed at the list: it leaves the
         # words the list will never teach in the sentences, and the walk has
@@ -61,9 +61,15 @@ class BuildRoadmapCommand:
               + (f" · aiming at {len(targets):,} goals" if goals else ""))
 
         index = CorpusIndex(sentences, known)
+        # Strict counting holds the walk to the list: it may only teach
+        # goals, never an ordinary word that happens to stand in the way.
+        # That is a real question — what can this list teach using nothing
+        # but itself — but it is not the only one, and the page implies the
+        # other when it prefers the strict plan. `--unblock` asks that one.
         builder = RoadmapBuilder(index, app.priority(),
                                  settings.priority_weight, targets,
-                                 only_goals=strict, relax=relax,
+                                 only_goals=strict and not unblock,
+                                 relax=relax,
                                  video_minutes=app.video_minutes)
 
         plan = builder.build(max_steps=steps, on_progress=self._report)
@@ -82,6 +88,10 @@ class BuildRoadmapCommand:
             named = settings.goal_words.stem
             if named != Settings().goal_words.stem:
                 label = f"{label}:{named}"
+        if unblock:
+            # Before `:relax` and after the list name, which is the order
+            # `read_label` unwinds them in.
+            label = f"{label}:unblock"
         if relax:
             # Last, because `read_label` strips suffixes off the end in the
             # reverse of the order they are appended and the list name is

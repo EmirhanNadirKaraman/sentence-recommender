@@ -317,7 +317,7 @@ class LabelTest(unittest.TestCase):
 
     def test_every_flag_is_read_back_off_the_end(self) -> None:
         # Field by field, not against a bare tuple. Comparing to a tuple is
-        # how this drifted before: `Plan` has grown a field three times now,
+        # how this drifted before: `Plan` has grown a field four times now,
         # and each time the literal on the right silently meant something
         # else. A named field that moves fails here saying which.
         plan = read_label("subtitle:good:list:goals")
@@ -328,6 +328,7 @@ class LabelTest(unittest.TestCase):
         self.assertFalse(plan.strict)
         self.assertEqual(plan.goal_list, "")
         self.assertFalse(plan.relax)
+        self.assertFalse(plan.unblock)
 
     def test_the_quality_flag_does_not_end_up_in_the_corpus_name(self) -> None:
         """`subtitle:good` is not a build, and asking for it loads nothing."""
@@ -341,7 +342,7 @@ class LabelTest(unittest.TestCase):
             self.assertEqual(plan.builds, builds)
             self.assertFalse(any((plan.list_only, plan.goals,
                                   plan.quality_only, plan.strict,
-                                  plan.relax)))
+                                  plan.relax, plan.unblock)))
             self.assertEqual(plan.goal_list, "")
 
     def test_a_word_list_is_read_off_the_tail(self) -> None:
@@ -389,6 +390,28 @@ class LabelTest(unittest.TestCase):
         """The whole point: two plans that differ must not share a label."""
         self.assertNotEqual(read_label("subtitle:strict:goals"),
                             read_label("subtitle:strict:goals:relax"))
+
+    def test_unblock_is_part_of_the_name(self) -> None:
+        """`--strict` holds the walk to the list; `--unblock` lets it step
+        off to clear the way. Two different curricula, so two names — or
+        the second `save` deletes the first."""
+        plan = read_label("subtitle:good:strict:goals:unblock")
+        self.assertTrue(plan.unblock)
+        self.assertTrue(plan.strict and plan.goals and plan.quality_only)
+        self.assertEqual(plan.builds, ("subtitle",))
+        self.assertEqual(plan.goal_list, "")
+
+    def test_unblock_sits_between_the_list_name_and_relax(self) -> None:
+        """All three on one label, since that is the order they are
+        appended and the order they have to come off in."""
+        plan = read_label("subtitle:good:strict:goals:b1_parsed:unblock:relax")
+        self.assertEqual(plan.goal_list, "b1_parsed")
+        self.assertTrue(plan.unblock and plan.relax and plan.strict)
+        self.assertEqual(plan.builds, ("subtitle",))
+
+    def test_a_held_walk_and_an_unblocked_one_are_different_names(self) -> None:
+        self.assertNotEqual(read_label("subtitle:strict:goals"),
+                            read_label("subtitle:strict:goals:unblock"))
 
     def test_strict_is_read_and_does_not_narrow(self) -> None:
         """The two are alternatives: strict counts every word in a sentence,

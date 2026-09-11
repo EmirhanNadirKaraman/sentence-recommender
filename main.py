@@ -113,6 +113,11 @@ def _parser() -> argparse.ArgumentParser:
                       help="when nothing anywhere is one word away, teach two "
                            "from one sentence rather than stopping. Only at "
                            "that wall — the order stays i+1 while it can")
+    plan.add_argument("--unblock", action="store_true",
+                      help="with --strict, let the walk teach a word that is "
+                           "not on the list when one stands between it and a "
+                           "goal. Stored under its own name, since it is a "
+                           "different curriculum")
     plan.add_argument("--strict", action="store_true",
                       help="only offer sentences where every other word is "
                            "already known, rather than every other word on "
@@ -289,7 +294,7 @@ def main() -> int:
     elif args.command == "build-roadmap":
         BuildRoadmapCommand().run(app, args.steps, tuple(args.source),
                                   args.goals, args.list_only, args.quality,
-                                  args.strict, args.relax)
+                                  args.strict, args.relax, args.unblock)
     elif args.command == "export-subtitles":
         ExportSubtitlesCommand().run(
             app, args.out, tuple(args.source), args.translation

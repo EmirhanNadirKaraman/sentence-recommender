@@ -37,6 +37,7 @@ LIST = ":list"
 GOOD = ":good"
 STRICT = ":strict"
 RELAX = ":relax"
+UNBLOCK = ":unblock"
 
 
 class Plan(NamedTuple):
@@ -59,6 +60,10 @@ class Plan(NamedTuple):
     # the wall. Part of the name since it changes what the plan *is*, and a
     # plan that differs has to be stored apart from one that does not.
     relax: bool = False
+    # Whether a walk aimed strictly at the list was allowed to step off it
+    # to unblock a goal. Strict counting normally forbids that, which is a
+    # different curriculum and so a different name.
+    unblock: bool = False
 
 
 def read_label(label: str) -> Plan:
@@ -85,6 +90,9 @@ def read_label(label: str) -> Plan:
     relax = label.endswith(RELAX)
     if relax:
         label = label[: -len(RELAX)]
+    unblock = label.endswith(UNBLOCK)
+    if unblock:
+        label = label[: -len(UNBLOCK)]
 
     goal_list = ""
     marker = GOALS + ":"
@@ -106,7 +114,7 @@ def read_label(label: str) -> Plan:
         label = label[: -len(GOOD)]
     builds = () if label == ALL else tuple(label.split("+"))
     return Plan(builds, list_only, goals, quality_only, strict, goal_list,
-                relax)
+                relax, unblock)
 
 
 class RoadmapRefresher:
@@ -172,7 +180,9 @@ class RoadmapRefresher:
                 index, priority,
                 self._app.settings.priority_weight,
                 goal_units if plan.goals else frozenset(),
-                only_goals=plan.strict,
+                # Strict counting holds the walk to the list unless the
+                # name says otherwise; see `BuildRoadmapCommand.run`.
+                only_goals=plan.strict and not plan.unblock,
                 # Or a refresh quietly rebuilds a relaxed plan as a plain
                 # one, under the name that says it is relaxed.
                 relax=plan.relax,
