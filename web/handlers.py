@@ -38,6 +38,7 @@ SCORE_VERSION = 4
 # How many next-best words to keep per video. The panel shows eight;
 # storing more would be paying to remember what nobody reads.
 NEXT_WORDS = 8
+from corpus.quality import well_formed
 from corpus.sentence import Sentence
 from db import Database
 from roadmap import (
@@ -1444,7 +1445,15 @@ class Viewer:
                f"|{'open' if unblock else 'held'}")
         if key in self._stuck:
             return self._stuck[key]
-        sentences = self.corpus_for(source, list_only)
+        # Well-formed only, because every stored plan is a `:good:` one.
+        # Without this the page replayed a plan built under the quality bar
+        # and then walked over the sentences that bar rejects — the head
+        # start and the walk disagreeing about what teaches, inside one
+        # function. It reported 5 goals out of reach for b1 where the
+        # curriculum the reader actually follows leaves 9, by crediting
+        # sentences the roadmap will never show them.
+        sentences = [s for s in self.corpus_for(source, list_only)
+                     if well_formed(s.text)]
         # Reuse the resolved vocabulary rather than asking for it again —
         # known_set() re-runs the parser over every word in the files, which
         # is seconds, and this page already has the answer.
