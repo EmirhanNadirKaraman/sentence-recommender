@@ -29,7 +29,11 @@ _DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 # `schreien` rather than becoming `schreie`, `gesamt` stays `gesamt` rather
 # than `samen`, and `erinnere` reaches `erinnern` so the reflexive pattern
 # can match at all.
-nlp = spacy.load("de_core_news_md")
+# `exclude`, not `disable`: the component is never loaded rather than
+# loaded and skipped. Nothing here reads `ent_type_` or `doc.ents` any more
+# — `get_object_token` used to, and PERSON_NOUNS replaced it — and NER was
+# 44% of parse time for eleven decisions in 3,251.
+nlp = spacy.load("de_core_news_md", exclude=["ner"])
 
 def load_verb_dictionary(file_path):
     """
@@ -209,10 +213,38 @@ def find_best_match(target_word, threshold=0.6):
         return best_match, best_score
     return None, 0.0
 
+# Nouns that are people, for the object slots. This replaced
+# `ent_type_ == "PER"`, which was the only thing in this project reading the
+# entity recogniser and cost 44% of parse time to decide 11 of 3,251 object
+# tokens — nine of them right and two wrong (`Straße` and `Bescheid` became
+# `jdn.`).
+#
+# Lemmas, lower-cased, because the parser hands back `Herrn` as `Herr`.
+# Titles and kinship carry almost all of it; what a list cannot do is
+# recognise a surname that is also an ordinary noun, so `Dr. Kraft` is now
+# `etw.` where the model had it right. One such against two the model
+# invented.
+#
+# Only words that are people in every reading. `Typ` is left out for meaning
+# "kind of thing" as often as "bloke", and group nouns like `Familie` are
+# out because the slot is asking about a person, not a set of them.
+PERSON_NOUNS = frozenset("""
+herr frau dame fräulein doktor professor
+mutter vater sohn tochter bruder schwester kind eltern geschwister
+oma opa großmutter großvater onkel tante cousin cousine neffe nichte
+enkel enkelin ehemann ehefrau gatte gattin mann junge mädchen
+mensch person leute kerl baby freund freundin
+kollege kollegin nachbar nachbarin gast kunde kundin patient patientin
+schüler schülerin student studentin lehrer lehrerin arzt ärztin
+chef chefin partner partnerin
+""".split())
+
+
 def get_object_token(child):
     """Maps spaCy dependency labels to jdn./jdm./etw. tokens."""
     # Check if person vs thing
-    is_person = child.pos_ in ["PRON", "PROPN"] or child.ent_type_ == "PER"
+    is_person = (child.pos_ in ["PRON", "PROPN"]
+                 or child.lemma_.lower() in PERSON_NOUNS)
     
     # da = dative object, oa = accusative object
     if child.dep_ == "da":
