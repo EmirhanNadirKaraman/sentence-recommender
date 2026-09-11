@@ -30,6 +30,7 @@ SETTLED = frozenset({"no-subtitles", "unavailable", "not-wanted-language"})
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS video_attempts (
     video_id TEXT PRIMARY KEY,
+    tries   INTEGER NOT NULL DEFAULT 0,
     outcome  TEXT NOT NULL,
     detail   TEXT,
     tried    TEXT NOT NULL
@@ -45,21 +46,53 @@ class AttemptLog:
         self._path.parent.mkdir(parents=True, exist_ok=True)
         with open_state(self._path) as conn:
             conn.executescript(SCHEMA)
+            # CREATE TABLE IF NOT EXISTS leaves an existing table alone, so
+            # a column added later has to be asked for separately.
+            self._widen(conn)
+
+    GIVE_UP = 3
+
+    def _widen(self, conn) -> None:
+        """`tries` arrived after the table did."""
+        have = {row[1] for row in conn.execute("PRAGMA table_info(video_attempts)")}
+        if "tries" not in have:
+            conn.execute("ALTER TABLE video_attempts ADD COLUMN"
+                         " tries INTEGER NOT NULL DEFAULT 0")
 
     def record(self, video_id: str, outcome: str, detail: str = "") -> None:
         with open_state(self._path) as conn:
+            self._widen(conn)
             conn.execute(
-                "INSERT OR REPLACE INTO video_attempts"
-                " (video_id, outcome, detail, tried) VALUES (?, ?, ?, ?)",
+                "INSERT INTO video_attempts"
+                " (video_id, outcome, detail, tried, tries) VALUES (?, ?, ?, ?, 1)"
+                " ON CONFLICT(video_id) DO UPDATE SET"
+                " outcome = excluded.outcome, detail = excluded.detail,"
+                " tried = excluded.tried, tries = video_attempts.tries + 1",
                 (video_id, outcome, detail[:400],
                  datetime.now().isoformat(timespec="seconds")))
 
     def settled(self) -> frozenset[str]:
-        """Videos there is no point asking about again."""
+        """Videos there is no point asking about again.
+
+        Two ways to earn that. A definite verdict — no subtitles, unavailable,
+        wrong language — settles a video at once. An indefinite one settles it
+        after `GIVE_UP` attempts, which is the compromise this needed: the
+        ambiguous outcomes are never settled on a single failure, because
+        `unfetchable` cannot tell a deleted video from a throttled request and
+        writing those off once cost forty good videos. But refusing to settle
+        them *ever* is its own bug — a second pass over a channel spent its
+        first thirty-four videos re-asking questions the first pass had
+        already failed to answer, and a third would have done it again.
+
+        Three failures is not weather.
+        """
         with open_state(self._path) as conn:
+            self._widen(conn)
             rows = conn.execute(
-                "SELECT video_id FROM video_attempts WHERE outcome IN"
-                f" ({','.join('?' * len(SETTLED))})", tuple(SETTLED))
+                "SELECT video_id FROM video_attempts"
+                f" WHERE outcome IN ({','.join('?' * len(SETTLED))})"
+                "    OR (outcome <> 'added' AND tries >= ?)",
+                (*SETTLED, self.GIVE_UP))
             return frozenset(r[0] for r in rows)
 
     def counts(self) -> dict[str, int]:
