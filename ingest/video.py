@@ -133,15 +133,38 @@ class VideoIngestor:
                 nlp=self._analyzer.matcher.nlp,
                 sentence_types=sentence_types,
                 category=meta.get("category", "other"),
-                # `video.channel_id` points at the `channel` table, which this
-                # project never populates. A video added on its own belongs to
-                # no channel row, and the column is nullable for that case.
-                channel_id=None,
+                channel_id=self._channel(cursor, meta, detected),
                 transcript_source=source,
             )
 
         return Ingested(video_id=video_id, title=meta["title"],
                         language=detected, lines=len(transcript), source=source)
+
+
+    def _channel(self, cursor, meta: dict, language: str) -> int | None:
+        """The `channel` row this video belongs to, made if it is not there.
+
+        `fetch_video_metadata` has always returned the channel's id and name
+        alongside the title — the same yt-dlp call — and this threw them away
+        and wrote NULL. So the catalogue could not answer "what do I already
+        have from this channel", which is the first thing you want to know
+        before scraping one: 1,134 German videos, 17 of them attached to the
+        channel they came from.
+
+        Taken from the video rather than passed down from `add-channel`, so a
+        video added on its own is linked too. `upsert_channel` is
+        language-app's, and idempotent — it keeps a name already recorded
+        rather than overwriting it with whatever yt-dlp says today.
+
+        None when the metadata has no channel, which is what the column
+        expects and what every row written until now holds.
+        """
+        youtube_id = (meta.get("channel_id") or "").strip()
+        if not youtube_id:
+            return None
+        return self.pipeline.upsert_channel(
+            cursor, youtube_id, (meta.get("channel_name") or "").strip(),
+            language)
 
     @staticmethod
     def _why_empty(video_id: str, wanted: str) -> str:
