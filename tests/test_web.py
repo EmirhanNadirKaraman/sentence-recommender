@@ -508,3 +508,62 @@ class ComingBackTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class MachineCaptionMarkTest(unittest.TestCase):
+    """Saying which videos a machine wrote the subtitles for.
+
+    The Studying switch is the filter — pick `video subtitles` and the
+    `subtitle:auto` build is not consulted at all — but under `everything`
+    both kinds are listed together, and a reader deciding what to watch
+    should be able to tell them apart without checking the catalogue.
+    """
+
+    def viewer(self, machine=("AUTO1",)):
+        from web.handlers import Viewer         # noqa: PLC0415
+
+        # No `__init__`: the marker reads one cached set and nothing else, and
+        # building a real Viewer would load a corpus to render a span.
+        made = Viewer.__new__(Viewer)
+        made._machine = frozenset(machine)
+        return made
+
+    def row(self, video: str) -> dict:
+        return {"video": video, "minutes": 12.0, "comprehension": 0.61,
+                "lines": 240, "i+1": 30, "teaches": 4, "watch": 0.42}
+
+    def test_a_machine_captioned_video_is_marked(self) -> None:
+        self.assertIn(">auto<", self.viewer()._wrote_it("AUTO1"))
+
+    def test_a_hand_written_one_is_not(self) -> None:
+        self.assertEqual(self.viewer()._wrote_it("MANUAL1"), "")
+
+    def test_the_mark_says_what_it_means_on_hover(self) -> None:
+        """`auto` alone reads as a setting rather than a provenance note."""
+        self.assertIn("machine-transcribed", self.viewer()._wrote_it("AUTO1"))
+
+    def test_the_reel_says_so_in_the_scoreboard(self) -> None:
+        board = self.viewer()._scoreboard(self.row("AUTO1"))
+        self.assertIn("machine", board)
+        self.assertIn("captions", board)
+
+    def test_a_hand_written_reel_gains_no_cell(self) -> None:
+        made = self.viewer()
+        self.assertEqual(made._scoreboard(self.row("MANUAL1")).count("<span>"),
+                         made._scoreboard(self.row("AUTO1")).count("<span>") - 1)
+
+    def test_the_scoreboard_survives_a_swipe(self) -> None:
+        """`reels_json` re-renders the scoreboard; the heading it does not.
+
+        app.js sets the title with `textContent`, which replaces the
+        element's children — so a marker put in the heading appeared on load
+        and vanished on the first swipe. It lives in the scoreboard for that
+        reason, and this is the test that keeps it there.
+        """
+        import inspect                           # noqa: PLC0415
+        from web.handlers import Viewer          # noqa: PLC0415
+
+        reels = inspect.getsource(Viewer.reels)
+        self.assertNotIn("_wrote_it", reels)
+        self.assertIn("_machine_written",
+                      inspect.getsource(Viewer._scoreboard))
