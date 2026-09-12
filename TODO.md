@@ -1005,3 +1005,32 @@ The one thing worth doing cheaply if it ever comes up again: `teilche` and
 `gewiß` are analyser artifacts, not vocabulary, and a corrections file for
 *analyser output* — the mirror of `data/goal_lemmas.txt`, which corrects
 list input — would take them without touching the walk.
+
+**Asked for, 2026-09-12.** A reader hit `das Teilchen` "needs 1 other new
+word here: teilche" on the page and asked for it fixed, so the measurement
+above is overtaken: it is worth building, because it is being read.
+
+**The shape, decided after looking for a cheaper way twice.** Not the
+per-sentence override (`sentence_units_override`) — that is keyed by sentence
+text, so it would mean correcting fourteen sentences by hand for one word and
+would not generalise. Not `data/lemma_overrides.txt` either: that is keyed by
+*surface* and consulted only for tokens tagged as verbs, and widening it to
+nouns would apply `muss → müssen` to the noun in `ein Muss`.
+
+What fits is a **lemma-to-lemma** file — `teilche → teilchen` — applied to
+analyser output. Keyed on the observed lemma rather than the surface, it is
+unambiguous exactly where these cases live: `teilche` is not a German word,
+so rewriting it is always right, and no real token loses a reading.
+
+**What it cannot fix, and why that is the honest boundary.** `das Gewissen`
+blocked by `gewiß` is not this. The surface *Gewissen* genuinely is both the
+noun and an inflected form of the adjective `gewiss`, so which one is meant
+is context, not spelling. A lemma rewrite would have to pick one and would be
+wrong wherever the adjective was meant. Same for `lokale` and `innerer`. So
+this takes `teilche` and leaves the ambiguous three.
+
+**Sequencing.** `analyser_fingerprint` hashes `analyzer.py` and its data
+files, so this invalidates every stored plan and needs a full
+`build-corpus subtitle`. With an import running that would make
+`RoadmapRefresher` rebuild all ten plans after every chunk, so the change
+waits for the imports to finish and one rebuild then covers both.
