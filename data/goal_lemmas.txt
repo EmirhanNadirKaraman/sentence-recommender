@@ -43,3 +43,8 @@ ander	anderer
 # which `gucken` does not. So the goal sat unreachable while the corpus said
 # `gucken` 100+ times. Corrected to the lemma the corpus actually emits.
 gucken, kucken	gucken
+# `die Unterlagen` is written as article-plus-plural and the analyser emits
+# the bare singular lemma, so the goal matched nothing while the corpus said
+# `unterlage` 104 times. Same shape as `gucken, kucken` above: a goal in a
+# form no mechanism produces.
+die Unterlagen	unterlage

@@ -7,140 +7,99 @@
 # there is — read one before deciding which of the two is wrong.
 #
 # Counting strict, clearing the way, which is what `_stored_label` serves.
-# Regenerated 2026-09-12 from 219,382 sentences (subtitle+transcript),
+# Regenerated 2026-09-12 from 249,938 sentences (subtitle+transcript),
 # goals /Users/emir/Documents/GitHub/sentence-recommender/data/study_list.txt, well-formed only = True.
 # Rebuild with `python main.py out-of-reach` — do not hand-edit.
-lediglich	29	31
-anhand	28	31
-geistig	22	27
-das Gen	22	29
-technologisch	21	22
-erforderlich	19	19
-alternativ	19	20
-etw. (Akk) anordnen	16	19
-der Absatz	15	17
-die Niederlage	15	15
-jdm. (Dat) etw. (Akk) erschweren	15	16
-das Grundstück	14	18
-der Ausbau	12	12
-mühsam	12	14
-sämtlich	11	11
-das Marketing	11	12
+das Gen	38	45
+anhand	31	34
+geistig	24	29
+alternativ	23	24
+jdm. (Dat) etw. (Akk) erschweren	18	19
+das Grundstück	15	19
+der Absatz	15	18
+etw. (Akk) zurücklegen	14	15
+die Bekämpfung	14	14
+das Teilchen	13	19
+mühsam	13	15
+zugrunde	13	13
+die Flüssigkeit	13	14
+die Bindung	12	13
 ausdrücklich	11	12
+der Strahl	11	11
 hinsichtlich	10	11
-die Wärme	10	12
-stellvertretend	10	11
+der Hang	10	11
+zugunsten	10	12
+derart	9	11
+das Forum	9	9
 die Stirn	9	12
-evangelisch	9	9
-der Höhepunkt	9	11
-die Bekämpfung	9	9
-derart	8	9
-etw. (Akk) kennzeichnen	8	8
-zumal	8	8
-die Stellungnahme	8	8
-der Hang	8	8
-zugrunde	8	8
-etw. (Akk) zurücklegen	8	8
-die Flüssigkeit	8	9
-voraussichtlich	8	8
+geradezu	9	10
+steuerlich	8	9
+das Management	8	8
 etw. (Akk) ausstellen	8	9
-zugunsten	8	8
 seufzen	8	8
-einstig	7	7
-das Forum	7	7
-steuerlich	7	7
+die Liga	8	8
 samt	7	7
-das Management	7	7
+etw. (Akk) von etw. / sich abgrenzen	7	9
 etw. (Akk) fixieren	7	7
 die Sicherung	7	8
-die Bindung	7	8
-die Zone	7	8
+infolge	7	7
+qualitativ	7	8
+die Wechselwirkung	7	7
 das Kunstwerk	6	6
-die Verbreitung	6	6
-der Pfarrer	6	11
-die Klage	6	6
+etw. (Akk) beugen	6	6
+die Verhaltensweise	6	6
 die Ausführung	6	6
-der Strahl	6	6
 die Durchführung	6	6
-das Teilchen	5	10
-etw. (Akk) beugen	5	5
-der Horizont	5	6
-etw. (Akk) von etw. / sich abgrenzen	5	7
-geradezu	5	6
 das Weib	5	7
-mittels	5	6
+der Kunststoff	5	7
+die Auswertung	5	7
 die Zulassung	5	7
-der Durchmesser	5	5
-organisch	5	5
-das Antibiotikum	5	7
+zweifellos	5	5
 amtlich	5	5
-die Rezession	5	5
 die Steuerung	5	5
+jdn. (Akk) verwundern	5	5
 das Auftreten	5	8
-infolge	5	5
-qualitativ	5	6
+die Tageszeitung	5	5
+das TV	5	9
 gegenwärtig	4	4
-die Betrachtung	4	4
-der Parteitag	4	4
-die Bemühung	4	4
-die Sammlung	4	5
-der Abfall	4	7
-zweifellos	4	4
+gleichwohl	4	4
+die Biologie	4	6
+organisatorisch	4	4
+die Zunahme	4	5
+etw. (Akk) überziehen	4	5
+die Schnittstelle	4	4
 die Beschäftigung	4	6
 das Griechisch	4	8
+die Erfassung	4	4
 die Datenverarbeitung	4	4
+räumlich	4	4
+die Benutzung	4	4
 jdm. (Dat) etw. (Akk) flüstern	4	8
-die Stasi	3	3
-die Verhaltensweise	3	3
+kommunikativ	4	4
+der Zuwachs	3	4
 die Verbindlichkeit	3	4
-das Entwicklungsland	3	3
-gleichwohl	3	3
-organisatorisch	3	3
-die Auswertung	3	4
-die Entdeckung	3	3
-die Schnittstelle	3	3
 die Öffnung	3	4
-nachfolgend	3	5
+vorherrschen	3	4
 das Lokal	3	3
-jdn. (Akk) verwundern	3	3
-die Tageszeitung	3	3
+das Lebensjahr	3	6
+die Gestaltung	3	3
 etw. (Akk) beleben	3	3
-räumlich	3	3
-die Benutzung	3	3
-auf jdn./etw. (Akk) weisen	3	4
 das Kloster	3	4
-kommunikativ	3	3
-das TV	3	5
 die Konzeption	3	4
-reichlich	3	3
+klinisch	3	3
 der Schilling	3	4
-die Beschränkung	2	2
-der Zuwachs	2	3
 therapeutisch	2	3
 das Heft	2	2
-die Biologie	2	2
-der Kunststoff	2	2
-die Zunahme	2	2
 die Messe	2	2
-etw. (Akk) überziehen	2	3
-jdn./etw. (Akk) mit etw. bedecken	2	2
-vorherrschen	2	3
 vergeblich	2	2
 der Schweiß	2	2
-das Lebensjahr	2	4
-die Gestaltung	2	2
-der Erreger	2	2
-die Erfassung	2	2
 das Russisch	2	2
 das Niederländisch	2	3
 vorwiegend	2	3
-das Volumen	2	2
-die Zusammensetzung	2	3
-quantitativ	2	2
-die Liga	2	2
 sich (Dat) etw. (Akk) / sich (Akk) sich ausziehen	2	2
 der Dolmetscher	2	2
-die Wechselwirkung	2	2
+die Hut	2	2
+unterdessen	2	2
 vorig	2	2
 der Champion	2	3
 die Phantasie	2	2
@@ -148,29 +107,27 @@ methodisch	2	3
 das Arzneimittel	1	1
 der Geliebte, die Geliebte	1	1
 allenfalls	1	2
-musikalisch	1	5
 der Benutzer	1	2
-das Milligramm	1	1
+das Milligramm	1	2
 elementar	1	1
 die Fachhochschule	1	1
 die Anleihe	1	1
 das Center	1	1
 gleichsam	1	1
 die Berücksichtigung	1	1
-der Zinssatz	1	1
 das Japanisch	1	2
 der Gemeinderat	1	1
 das Riff	1	2
 der Absolvent	1	1
 ferner	1	1
 jdn./etw. (Akk) charakterisieren	1	1
+motorisch	1	1
+die Koralle	1	1
 etw. (Akk) aufreißen	1	1
 der Bube	1	1
-unterdessen	1	1
 freilich	1	1
 folglich	1	1
 nunmehr	1	1
-die Hut	1	1
 das Pro	1	4
 pakistanisch	1	1
 der Beschäftigte, die Beschäftigte	0	0
@@ -185,21 +142,15 @@ die Aufwendungen	0	0
 jdn. (Akk) erstaunen	0	1
 herein, rein	0	1
 das Top	0	0
-jdm. (Dat) nachfolgen	0	0
 die Realisierung	0	0
 die Unterlagen	0	0
 das Olympia	0	0
 das Präparat	0	0
 die Zielsetzung	0	0
-das Industrieland	0	1
 jdn. (Akk) zu etw. mahnen	0	0
-die Koralle	0	0
 aids	0	0
 indes	0	0
 zumeist	0	0
-klinisch	0	0
 detaillieren	0	0
 sogleich	0	0
-motorisch	0	0
 fotografisch	0	0
-gentechnisch	0	0
