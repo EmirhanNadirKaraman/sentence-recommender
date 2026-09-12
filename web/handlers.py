@@ -53,6 +53,9 @@ from web import watch as video
 from web.render import layout, sentence, stamped
 
 PAGE_SIZE = 40
+# Sentences kept per stranded word, for the arrows on its row. Enough to
+# find a blocker you already know, few enough not to weigh the page down.
+EXAMPLES = 6
 
 # Ceiling on the exhaustive walk behind the blocked list, so a large corpus
 # cannot hang the page.
@@ -1338,6 +1341,34 @@ class Viewer:
                 return wanted
         return source
 
+    def _shown(self, row, chosen: str, at: int, source: str, query: dict):
+        """One blocked row, showing whichever of its sentences was asked for.
+
+        The arrows ride on the example itself rather than on the actions,
+        because what they change is the sentence — and the blockers named
+        underneath change with it, which is the whole point: a word with
+        thirty-one sentences has thirty-one different ways to be unblocked.
+        """
+        unit, count, gap, example, rest, alts = row
+        if len(alts) < 2:
+            return unit, count, gap, example, rest
+        here = at if unit.key == chosen else 0
+        here = min(max(here, 0), len(alts) - 1)
+        gap, example, rest = alts[here]
+
+        def arrow(to: int, label: str) -> str:
+            if not 0 <= to < len(alts):
+                return f"<span class='link off'>{label}</span>"
+            where = self._link("/blocked", source, page=query.get("page"),
+                               count=query.get("count"), gap=query.get("gap"),
+                               ex=f"{unit.key}~{to}")
+            return f"<a class='link' href='{where}#{quote(unit.key, safe='')}'>{label}</a>"
+
+        turn = (f"<span class='note'>{arrow(here - 1, '&larr;')}"
+                f" sentence {here + 1} of {len(alts)} "
+                f"{arrow(here + 1, '&rarr;')}</span>")
+        return unit, count, gap, example + "\x00" + turn, rest
+
     @staticmethod
     def _hidden_note(hidden: int) -> str:
         if not hidden:
@@ -1360,6 +1391,17 @@ class Viewer:
                                   self.unblocked(query))
         near_only = query.get("gap") == "near"
         rows = [r for r in stranded if not near_only or r[2] == 2]
+        # Forty at a time. It showed the first forty of a hundred and
+        # twenty-eight and offered no way to the rest, so the tail of the
+        # list — which is where the words nobody has looked at are — could
+        # not be reached at all.
+        # `ex=<key>~<n>` says which sentence one row is showing. One row at
+        # a time is enough: the reader is looking at a word, not at forty.
+        chosen, at = (query.get("ex") or "~").rsplit("~", 1)
+        at = int(at) if at.isdigit() else 0
+        pages = max(1, -(-len(rows) // PAGE_SIZE))
+        page = min(max(int(query.get("page") or 0), 0), pages - 1)
+        showing = rows[page * PAGE_SIZE:(page + 1) * PAGE_SIZE]
 
         entries = "".join(
             "<div class='entry'>"
@@ -1367,7 +1409,8 @@ class Viewer:
             f"<span class='kind'>{'pattern' if unit.is_pattern else 'word'}</span>"
             "</div><div class='body'>"
             f"<div class='unit'>{escape(unit.key)}</div>"
-            + (f"<p class='de'>{escape(example)}</p>"
+            + (f"<p class='de'>{escape(example.split(chr(0))[0])}</p>"
+               f"{example.split(chr(0))[1] if chr(0) in example else ''}"
                # `gap` counts this word too; `rest` does not. Printing the one
                # beside the other read as "2 new things: geiselnehmer", a
                # count of two above a list of one, and the obvious reading —
@@ -1389,13 +1432,36 @@ class Viewer:
                 extra=self._blocker_actions(
                     rest, gap, source,
                     self._here("/blocked", query, "gap", "count"))
+                # Every sentence this corpus has for the word, not just the
+                # one shown. Which blocker to learn is a choice, and it
+                # cannot be made from a single example: `lediglich` has 31
+                # sentences blocked by 20-odd different words, and one of
+                # them is usually a word the reader already knows.
+                + (f"<a class='link' href='/unit/{unit.kind}/"
+                   f"{quote(unit.key, safe='')}?src={quote(source)}'>"
+                   f"Other sentences</a>" if count else "")
                 + "<a class='link' target='_blank' rel='noreferrer' "
                   "href='https://de.youglish.com/pronounce/"
                   f"{quote(_hunt_term(unit), safe='')}"
                   "/german'>Find it on YouGlish</a>")
             + "</div></div>"
-            for unit, count, gap, example, rest in rows[:PAGE_SIZE]
+            for unit, count, gap, example, rest in
+            (self._shown(r, chosen, at, source, query) for r in showing)
         )
+        def turner() -> str:
+            """Back and on, with the page's own switches carried along."""
+            if pages < 2:
+                return ""
+            here = f"{page * PAGE_SIZE + 1}-{page * PAGE_SIZE + len(showing)}"
+            back = (f"<a class='link' href='{self._link('/blocked', source, page=page - 1 or None, count=query.get('count'), gap=query.get('gap'))}'>"
+                    "&larr; back</a>" if page else
+                    "<span class='link off'>&larr; back</span>")
+            on = (f"<a class='link' href='{self._link('/blocked', source, page=page + 1, count=query.get('count'), gap=query.get('gap'))}'>"
+                  "on &rarr;</a>" if page + 1 < pages else
+                  "<span class='link off'>on &rarr;</span>")
+            return (f"<div class='actions'>{back}"
+                    f"<span class='note'>{here} of {len(rows):,}</span>{on}</div>")
+
         near = sum(1 for r in stranded if r[2] == 2)
         picker = "".join(
             f"<a href='{self._link('/blocked', source, gap=v, count=query.get('count'))}'"
@@ -1417,11 +1483,12 @@ class Viewer:
             f"amount of progress will free it. {near:,} are a single word "
             "away — learn that word, or find a clip that says this one "
             "plainly, and the chain continues.</p>"
+            + turner()
             + (f"<div class='ledger'>{entries}</div>" if entries
                else "<p class='empty'>Nothing is stranded — the roadmap "
                     "reaches everything in this corpus.</p>")
-            + (f"<p class='note'>Showing the {PAGE_SIZE} most frequent of "
-               f"{len(rows):,}.</p>" if len(rows) > PAGE_SIZE else "")
+            # Again underneath: forty entries is a long way to scroll back.
+            + turner()
         )
         return self._page("Blocked", body, "/blocked", source)
 
@@ -1493,6 +1560,10 @@ class Viewer:
         reached = spare.known
 
         appearances: Counter = Counter()
+        # Several sentences a word, not just the easiest one. Which blocker
+        # to learn is a choice and cannot be made from a single example:
+        # `lediglich` has thirty-one sentences blocked by twenty-odd
+        # different words, and one of them is usually already known.
         easiest: dict = {}
         for s in sentences:
             unknown = s.units - reached
@@ -1504,14 +1575,19 @@ class Viewer:
             # goals get a row of their own.
             for u in unknown & goals:
                 appearances[u] += 1
-                if u not in easiest or len(unknown) < easiest[u][0]:
-                    # Units rather than keys. The page offers to mark a
-                    # blocker known, and `/known` is addressed by kind and
-                    # key together — a bare string cannot say whether a word
-                    # is the lemma or the pattern.
-                    easiest[u] = (len(unknown), s.text,
-                                  sorted(unknown - {u}, key=lambda x: x.key)[:4])
-        rows = [(u, n, *easiest[u]) for u, n in appearances.most_common()]
+                # Units rather than keys. The page offers to mark a blocker
+                # known, and `/known` is addressed by kind and key together —
+                # a bare string cannot say whether a word is the lemma or the
+                # pattern.
+                here = (len(unknown), s.text,
+                        sorted(unknown - {u}, key=lambda x: x.key)[:4])
+                kept = easiest.setdefault(u, [])
+                if len(kept) < EXAMPLES or here[0] < kept[-1][0]:
+                    kept.append(here)
+                    kept.sort(key=lambda row: (row[0], row[1]))
+                    del kept[EXAMPLES:]
+        rows = [(u, n, *easiest[u][0], easiest[u])
+                for u, n in appearances.most_common()]
 
         # Goals this corpus never says at all. Far more numerous than the
         # ones it says but cannot isolate, and the actual work — so they
@@ -1523,7 +1599,7 @@ class Viewer:
         # hiding it made the list shorter without making it truer.
         priority = self.priority()
         rows += [
-            (unit, 0, 0, "", [])
+            (unit, 0, 0, "", [], [])
             for unit in sorted(
                 (u for u in goals
                  if u not in reached and u not in appearances),
