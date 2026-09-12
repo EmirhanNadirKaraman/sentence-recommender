@@ -54,8 +54,24 @@ class CoveredFormsTest(unittest.TestCase):
             self.assertNotIn(junk, forms, junk)
 
     def test_short_words_are_skipped(self) -> None:
-        """Two letters carry no evidence and collide with everything."""
+        """Two letters carry no evidence and collide with everything.
+
+        Named in PLACEHOLDERS rather than caught by a length guard: the guard
+        also discarded `Öl` and `CD`, which are ordinary nouns.
+        """
         self.assertNotIn("im", covered(Unit.pattern("im Jahr")))
+
+    def test_a_two_letter_noun_is_covered(self) -> None:
+        """`das Öl` and `die CD` were blocked by their own bare lemma: the
+        corpus said `öl` 179 times and could not teach the goal once."""
+        self.assertIn("öl", covered(Unit.pattern("das Öl")))
+        self.assertIn("cd", covered(Unit.pattern("die CD")))
+
+    def test_a_hyphenated_noun_is_covered_whole(self) -> None:
+        """`[^\W\d_]+` split `die E-Mail` into `E` and `Mail`, so the lemma
+        the analyser produces was never covered — 121 sentences saying it,
+        none able to teach it."""
+        self.assertIn("e-mail", covered(Unit.pattern("die E-Mail")))
 
 
 if __name__ == "__main__":

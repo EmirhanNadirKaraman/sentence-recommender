@@ -142,6 +142,14 @@ class Application:
         "jdm", "jdn", "etw", "sich", "der", "die", "das",
         "ein", "eine", "einer", "einem", "einen", "zu", "an", "auf", "in",
         "mit", "von", "bei", "um", "vor", "nach", "aus", "über",
+        # Preposition-article contractions. They belong here for the same
+        # reason the prepositions above do — `im Jahr` names a role, and `im`
+        # is not vocabulary the list teaches. They used to be excluded by a
+        # `len(word) > 2` guard, which also discarded `Öl` and `CD`: ordinary
+        # nouns, blocked by their own bare lemma because the goal never
+        # covered it.
+        "im", "am", "beim", "zum", "zur", "vom", "ins", "ans", "aufs",
+        "fürs", "durchs", "ums", "übers", "unterm", "hinterm",
     })
 
     @cached_property
@@ -184,8 +192,18 @@ class Application:
             # Case markers first, as whole parenthesised groups, so a noun
             # that happens to spell one survives.
             written = re.sub(r"\([^)]*\)", " ", unit.key)
-            for word in re.findall(r"[^\W\d_]+", written):
-                if len(word) > 2 and word.lower() not in self.PLACEHOLDERS:
+            # Hyphenated words are one word. `[^\W\d_]+` alone split
+            # `die E-Mail` into `E` and `Mail`, so the lemma `e-mail` the
+            # analyser produces was never covered and the goal was blocked by
+            # its own bare form — 121 sentences saying it, none able to teach
+            # it.
+            for word in re.findall(r"[^\W\d_]+(?:-[^\W\d_]+)*", written):
+                # Two letters, not three. `das Öl` and `die CD` are ordinary
+                # nouns that the length guard discarded, with the same result.
+                # Single letters stay out, which is what the guard was for —
+                # and the particles it was also catching are named explicitly
+                # in PLACEHOLDERS anyway.
+                if len(word) >= 2 and word.lower() not in self.PLACEHOLDERS:
                     words.add(word)
                     words.add(word.lower())
         return frozenset(words)
