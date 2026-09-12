@@ -48,6 +48,9 @@ def _parser() -> argparse.ArgumentParser:
                       help="list what would be fetched, and stop; with "
                            "--auto, fetch and judge each track without "
                            "writing")
+    many.add_argument("--pause", type=float, default=5.0,
+                      help="seconds between videos on the --auto path "
+                           "(default 5; the caption endpoint throttles)")
     many.add_argument("--auto", action="store_true",
                       help="where a video has no hand-written track, take a machine-generated one if it passes the quality gate; it lands in the `subtitle:auto` build, never beside the hand-written subtitles")
 
@@ -83,6 +86,9 @@ def _parser() -> argparse.ArgumentParser:
                          help="list what would be fetched, and stop; with "
                               "--auto, fetch and judge each track without "
                               "writing")
+    channel.add_argument("--pause", type=float, default=5.0,
+                         help="seconds between videos on the --auto path "
+                              "(default 5; the caption endpoint throttles)")
     channel.add_argument("--auto", action="store_true",
                          help="where a video has no hand-written track, take a machine-generated one if it passes the quality gate; it lands in the `subtitle:auto` build, never beside the hand-written subtitles")
 
@@ -440,13 +446,14 @@ def main() -> int:
         AddVideoCommand().run(app, args.video, args.language)
     elif args.command == "add-videos":
         AddVideosCommand().run(app, args.source, args.language, args.dry_run,
-                               accept_auto=args.auto)
+                               accept_auto=args.auto, pause=args.pause)
     elif args.command == "hunt":
         HuntVideosCommand().run(app, args.batch, args.rounds, args.source,
                                 args.dry_run, args.quality, args.absent_only)
     elif args.command == "add-channel":
         AddVideosCommand().run(app, args.channel, args.language, args.dry_run,
-                               args.limit, accept_auto=args.auto)
+                               args.limit, accept_auto=args.auto,
+                               pause=args.pause)
     elif args.command == "quiz":
         QuizCommand().run(app, args.limit, args.source, args.files)
     elif args.command == "difficulty":

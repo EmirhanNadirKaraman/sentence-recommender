@@ -19,6 +19,7 @@ find out what a channel would give before giving the catalogue anything.
 from __future__ import annotations
 
 import sys
+import time
 from pathlib import Path
 
 from commands.add_video import AddVideoCommand
@@ -35,11 +36,24 @@ from roadmap import RoadmapRefresher
 # read the other way, and the two have to agree.
 BUILD_OF = {"manual": "subtitle", "auto": "subtitle:auto"}
 
+# Seconds between videos. Nothing waited at all until a channel of 882 was
+# attempted: YouTube's caption endpoint answered the forty-seventh with HTTP
+# 429 and everything after it, while the metadata endpoint beside it was
+# still replying. The manual path survived without this because
+# `fetch_with_retries` backs off on its own and a manual track is rare enough
+# that few videos reach the download; `--auto` downloads a track for almost
+# every video it sees.
+#
+# Five seconds is chosen against the rate that broke, not against a guess at
+# the limit — one video every 1.5s broke it, so this is what a throttled
+# survey's own pacing says is too fast, tripled.
+PAUSE = 5.0
+
 
 class AddVideosCommand:
     def run(self, app, source: str, language: str | None = None,
             dry_run: bool = False, limit: int = 0,
-            accept_auto: bool = False) -> None:
+            accept_auto: bool = False, pause: float = PAUSE) -> None:
         ids = self._collect(app, source, limit)
         ingestor = VideoIngestor(app.settings, app.analyzer)
         log = AttemptLog(app.settings.state_path)
@@ -83,10 +97,15 @@ class AddVideosCommand:
             # channel of several hundred — what they want is how many would
             # survive the gate, and that cannot be answered without fetching
             # the track. So this one fetches and judges, and writes nothing.
-            return self._survey(app, ingestor, fresh, language)
+            return self._survey(app, ingestor, fresh, language, pause)
 
         added, refused = [], []
         for index, video_id in enumerate(fresh, start=1):
+            if index > 1 and accept_auto:
+                # Only on this path: the manual one has fetched channels for
+                # a long time without waiting, and slowing it down would be a
+                # change nobody asked for.
+                time.sleep(pause)
             print(f"  [{index}/{len(fresh)}] {video_id} … ", end="", flush=True)
             try:
                 landed = ingestor.add(video_id, language,
@@ -140,7 +159,8 @@ class AddVideosCommand:
                     print(f"  roadmap [{label}]: {steps} steps")
 
     @staticmethod
-    def _survey(app, ingestor, fresh: list[str], language: str | None) -> None:
+    def _survey(app, ingestor, fresh: list[str], language: str | None,
+                pause: float = PAUSE) -> None:
         """Judge every track without writing anything.
 
         The gate's verdicts, counted. Reported as a tally rather than a rate,
@@ -156,7 +176,6 @@ class AddVideosCommand:
         question `sample-channel` already answers for a tenth of them.
         """
         from collections import Counter          # noqa: PLC0415
-        import time                              # noqa: PLC0415
 
         tally: Counter = Counter()
         for index, video_id in enumerate(fresh, start=1):
@@ -175,7 +194,7 @@ class AddVideosCommand:
             if index % 25 == 0:
                 print(f"    … {index} of {len(fresh)}: {dict(tally)}",
                       flush=True)
-            time.sleep(1.0)
+            time.sleep(pause)
 
         print(f"\n{sum(tally.values())} judged, nothing written")
         for verdict, count in tally.most_common():
