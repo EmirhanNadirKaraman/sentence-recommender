@@ -905,6 +905,26 @@ documented in `_scrape_opts`. The videos were skipped because they have no
 hand-written subtitles. Read the refusal before believing the error.
 
 
+**Exhausted, 2026-09-12 — and the 68-84% did not hold.** The channel lists
+926 videos; 400 are in the catalogue and the other 526 have no hand-written
+German subtitles. Twelve sampled evenly across the whole listing — from the
+newest down to the channel's first upload, "Los geht's!" — returned
+`manual=[]` every time, and a previous run had already tried all 526 and
+failed on all of them, so this is a census with a spot-check, not a sample.
+
+The 68-84% rates were measured on the newest tranches, which is where this
+channel writes subtitles. Its back catalogue does not have them. Read the
+earlier warning about Kurzgesagt the other way round: a rate measured at the
+head of a listing does not describe the tail, and it can be wrong in either
+direction.
+
+**`--limit` does not chunk what you think.** `_collect` passes it to
+`lister.videos(channel, limit)`, so it caps the *listing*, before the
+already-have filter. With 400 of the newest already held, `--limit 100`
+re-walks videos already in the catalogue and fetches almost nothing. To
+chunk for real, dry-run the channel, keep the ids it prints, and split that
+file across several `add-videos` runs.
+
 ## Goals, again
 
 ### 20. Goals blocked by their own word — measured, and too small to build

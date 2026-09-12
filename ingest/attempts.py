@@ -133,6 +133,14 @@ class AttemptLog:
             # Says nothing the hunt was chasing. Not a fault of the video —
             # it may be exactly right for the next word — so never settled.
             return "off-target"
+        if "auto-generated" in low:
+            # A definite verdict, and it has to be said separately because
+            # `_why_empty` calls this track "captions" — YouTube's own word
+            # for it — so the `subtitle` test below never saw it and every
+            # auto-only video classified as `error`, which is never settled.
+            # The video has a track; it is simply the wrong kind, and
+            # fetching it again will not make it hand-written.
+            return "no-subtitles"
         if "subtitle" in low:
             return "no-subtitles"
         return "error"

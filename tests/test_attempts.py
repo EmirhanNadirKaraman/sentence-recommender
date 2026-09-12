@@ -62,3 +62,44 @@ class SettlingTest(unittest.TestCase):
     def test_unfetchable_is_still_not_in_the_settled_outcomes(self) -> None:
         """The repeat rule is what settles it, not the outcome itself."""
         self.assertNotIn("unfetchable", SETTLED)
+
+
+class ClassifyingTest(unittest.TestCase):
+    """Which refusals are verdicts and which are weather.
+
+    Getting this wrong is expensive in both directions, and it has been wrong
+    in both. Calling weather a verdict wrote off forty good videos. Calling a
+    verdict weather is quieter and was live for longer: 526 MrWissen2go
+    videos with only auto-generated captions classified as `error`, which is
+    never settled, so every run re-fetched all of them.
+    """
+
+    def test_auto_generated_captions_are_a_verdict(self) -> None:
+        """The one that was missed. `_why_empty` writes "captions" — it is
+        YouTube's word for the auto track — so the `subtitle` test never saw
+        it and it fell through to `error`, which is never settled. Fetching
+        it again will not make the track hand-written."""
+        outcome = AttemptLog.classify(
+            "only auto-generated de captions, which are not used — they "
+            "mangle the endings you are learning.")
+        self.assertEqual(outcome, "no-subtitles")
+        self.assertIn(outcome, SETTLED)
+
+    def test_no_hand_written_track_is_a_verdict(self) -> None:
+        outcome = AttemptLog.classify(
+            "no hand-written subtitles at all, in any language.")
+        self.assertIn(outcome, SETTLED)
+
+    def test_a_refusal_to_say_why_is_still_weather(self) -> None:
+        """Deliberately not settled: a throttled burst arrives looking
+        exactly like a verdict, and this is the shape it arrives in."""
+        outcome = AttemptLog.classify(
+            "no de subtitles came back, and the video could not be "
+            "inspected to say why.")
+        self.assertEqual(outcome, "unfetchable")
+        self.assertNotIn(outcome, SETTLED)
+
+    def test_a_sign_in_demand_is_weather(self) -> None:
+        self.assertEqual(
+            AttemptLog.classify("Sign in to confirm you're not a bot"),
+            "blocked")

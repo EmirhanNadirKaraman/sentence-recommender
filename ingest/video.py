@@ -199,8 +199,7 @@ class VideoIngestor:
             cursor, youtube_id, (meta.get("channel_name") or "").strip(),
             language)
 
-    @staticmethod
-    def _why_empty(video_id: str, wanted: str) -> str:
+    def _why_empty(self, video_id: str, wanted: str) -> str:
         """Say which reason it was, rather than listing the possibilities.
 
         Only manually written subtitles are accepted — auto-generated ones
