@@ -11,4 +11,3 @@
 # goals data/b1_parsed.txt, well-formed only = True.
 # Rebuild with `python main.py out-of-reach` — do not hand-edit.
 das Top	0	0
-die Unterlagen	0	0

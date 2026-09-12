@@ -48,3 +48,14 @@ gucken, kucken	gucken
 # `unterlage` 104 times. Same shape as `gucken, kucken` above: a goal in a
 # form no mechanism produces.
 die Unterlagen	unterlage
+# Nominalised adjectives and a plural, all written the way a dictionary
+# writes them and all emitted by the analyser as a bare lemma. Each was on
+# the blocked list as "never said at all" while the corpus said it dozens of
+# times — 61, 51, 30, 18 and 19 respectively. Found by comparing the raw
+# sentence text against the unit counts, which disagree whenever a goal is
+# written in a form nothing produces.
+der Abgeordnete, die Abgeordnete	abgeordneter
+der Vorsitzende, die Vorsitzende	vorsitzend
+der Beamte, die Beamte	beamter
+der Angestellte, die Angestellte	angestellter
+die Aufwendungen	aufwendung
