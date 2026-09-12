@@ -866,15 +866,21 @@ Measured 2026-09-12, ten videos sampled from each:
 
 ```
   MrWissen2go              166 of 197 taken     84%
+  MrWissen2go (next 230)   156 of 230 taken     68%
+  Dinge Erklärt Kurzgesagt 137 of 162 taken     85%
   musstewissen Deutsch      60 of 106 taken     57%
-  Dinge Erklärt Kurzgesagt   2 of 10 sampled    20%   (every one has an auto track)
 ```
 
-So Kurzgesagt is five times the fetching for a fifth of the material, and
-was left alone. MrWissen2go has **722 videos remaining**; at 84% that is
-roughly 600 more, by far the best ratio found. Take it in chunks —
-`add-channel @MrWissen2go --limit 200` — so a throttling burst costs one
-chunk rather than three hours.
+**And do not trust a twelve-video sample.** Kurzgesagt was sampled twice,
+before and after the cookie fix, and both said 20-25%; it is 85%. The whole
+run is the only measurement that counts, because a sample lands wherever the
+channel listing starts — newest-first, and a channel's newest uploads are
+not its typical ones. Two sampling rounds nearly cost 137 videos and 10,181
+sentences on the strength of a number that was wrong by a factor of four.
+
+MrWissen2go has roughly **490 videos remaining**; at 68-84% that is several
+hundred more. Take it in chunks — `add-channel @MrWissen2go --limit N` —
+so a throttling burst costs one chunk rather than hours.
 
 **What it bought, which is the reason to continue.** 81 videos hand-picked
 or from musstewissen took the study list from 347 goals out of reach to 266.

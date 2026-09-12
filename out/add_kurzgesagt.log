@@ -1,26 +1,200 @@
 listing UCwRH985XgMYXQ6NxXDo8npw…
 188 ids, 162 not yet in the catalogue
-  [1/162] TX9tgi3aZOg … skipped
-  [2/162] QWm_gX4Xrso … ERROR: [youtube] QWm_gX4Xrso: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
-Transcript fetch attempt 1/3 failed for QWm_gX4Xrso: ERROR: [youtube] QWm_gX4Xrso: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies. Retrying in 2.2s...
-ERROR: [youtube] QWm_gX4Xrso: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
-Transcript fetch attempt 2/3 failed for QWm_gX4Xrso: ERROR: [youtube] QWm_gX4Xrso: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies. Retrying in 4.2s...
-ERROR: [youtube] QWm_gX4Xrso: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
-skipped
-  [3/162] x5GH-I8bz0M … ERROR: [youtube] x5GH-I8bz0M: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
-Transcript fetch attempt 1/3 failed for x5GH-I8bz0M: ERROR: [youtube] x5GH-I8bz0M: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies. Retrying in 2.1s...
-ERROR: [youtube] x5GH-I8bz0M: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
-Transcript fetch attempt 2/3 failed for x5GH-I8bz0M: ERROR: [youtube] x5GH-I8bz0M: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies. Retrying in 4.4s...
-ERROR: [youtube] x5GH-I8bz0M: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
-skipped
-  [4/162] AXoj4FCnHaI … ERROR: [youtube] AXoj4FCnHaI: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
-Transcript fetch attempt 1/3 failed for AXoj4FCnHaI: ERROR: [youtube] AXoj4FCnHaI: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies. Retrying in 2.2s...
-ERROR: [youtube] AXoj4FCnHaI: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
-Transcript fetch attempt 2/3 failed for AXoj4FCnHaI: ERROR: [youtube] AXoj4FCnHaI: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies. Retrying in 4.1s...
-ERROR: [youtube] AXoj4FCnHaI: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
-skipped
-  [5/162] W5Bscl7ALrE … ERROR: [youtube] W5Bscl7ALrE: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
-Transcript fetch attempt 1/3 failed for W5Bscl7ALrE: ERROR: [youtube] W5Bscl7ALrE: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies. Retrying in 2.1s...
-ERROR: [youtube] W5Bscl7ALrE: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
-Transcript fetch attempt 2/3 failed for W5Bscl7ALrE: ERROR: [youtube] W5Bscl7ALrE: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies. Retrying in 4.1s...
-ERROR: [youtube] W5Bscl7ALrE: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
+  [1/162] TX9tgi3aZOg … 176 lines, de
+  [2/162] QWm_gX4Xrso … skipped
+  [3/162] x5GH-I8bz0M … skipped
+  [4/162] AXoj4FCnHaI … skipped
+  [5/162] W5Bscl7ALrE … skipped
+  [6/162] hxPLRPQo5UI … skipped
+  [7/162] jdBlpyCom3U … skipped
+  [8/162] qMEM3RemoPA … skipped
+  [9/162] kqIMDgepyqo … skipped
+  [10/162] 4zBFUAW6on0 … skipped
+  [11/162] 3BaCX-vzvBU … skipped
+  [12/162] NE-7UBbbhSA … skipped
+  [13/162] y9Qk-y9Ov5I … skipped
+  [14/162] gaF1Yjdwq0w … skipped
+  [15/162] Q6p4kz35g4Q … skipped
+  [16/162] Ri5RzmaCHLU … skipped
+  [17/162] ZU0A3AiJKc4 … skipped
+  [18/162] YC7JGcTvdBk … skipped
+  [19/162] ICuT4TqEHsE … skipped
+  [20/162] eOKY06SD6Yk … skipped
+  [21/162] t5QSSKXzwNw … skipped
+  [22/162] WX7FslRtwu0 … 101 lines, de
+  [23/162] l9UGB_V6A8g … 138 lines, de
+  [24/162] gI-A5rikt2U … 114 lines, de
+  [25/162] FYh4dWI-bqQ … 111 lines, de
+  [26/162] Q4J5bZayjJs … 116 lines, de
+  [27/162] 4bQ_MwQfGd0 … 111 lines, de
+  [28/162] wxIRpmzzhVU … 119 lines, de
+  [29/162] 86MUyplj7ZE … 122 lines, de
+  [30/162] 8vhV8ccSh7A … 124 lines, de
+  [31/162] CNm8vsqY9nI … 120 lines, de
+  [32/162] jLKCQIgphq0 … skipped
+  [33/162] 4RORE0MpCcc … 121 lines, de
+  [34/162] 8wQkM-znhjY … 130 lines, de
+  [35/162] O6DMcdMohAw … skipped
+  [36/162] AYoe70bMdAo … 198 lines, de
+  [37/162] PziYusMyo-M … 126 lines, de
+  [38/162] -LgHUAUragk … 194 lines, de
+  [39/162] CKc1MRS2XNc … 116 lines, de
+  [40/162] cviuWqEIfAM … 103 lines, de
+  [41/162] IMjbueZU98o … 125 lines, de
+  [42/162] zbup1WK3qS0 … 121 lines, de
+  [43/162] xK-FEU4VowY … 45 lines, de
+  [44/162] Tv708p4gq5g … 213 lines, de
+  [45/162] L3GZo3UNt3A … 216 lines, de
+  [46/162] VDoYGCE-3P4 … 224 lines, de
+  [47/162] awwCj4NnGdk … 202 lines, de
+  [48/162] yzzkb3YayGo … 234 lines, de
+  [49/162] ZYiNS1WW3pk … 241 lines, de
+  [50/162] HYuqC13LZ1Q … skipped
+  [51/162] i9CXV2pzwzQ … 233 lines, de
+  [52/162] Z0X95l0bHa4 … 246 lines, de
+  [53/162] 3ICfs-XMp0s … 248 lines, de
+  [54/162] OSk0AUT4_8o … 221 lines, de
+  [55/162] 0unvBW91wY0 … 192 lines, de
+  [56/162] cNSqxm22SOw … 194 lines, de
+  [57/162] FvjbhiILmPk … 330 lines, de
+  [58/162] WhbGobY3hUg … 249 lines, de
+  [59/162] XBQEvKPytxw … 245 lines, de
+  [60/162] _aWSE2TqRn0 … 204 lines, de
+  [61/162] IZ7DQaribZg … 225 lines, de
+  [62/162] YW3rHvMh5AE … 229 lines, de
+  [63/162] 8eeYdcCql24 … 233 lines, de
+  [64/162] oRgN9I8vp4k … 246 lines, de
+  [65/162] P6v4rbgeAiY … 206 lines, de
+  [66/162] cMhE5BfmFkM … 220 lines, de
+  [67/162] P3xKpMa5Bos … 208 lines, de
+  [68/162] nek0lyV8D9o … 217 lines, de
+  [69/162] hHvIrQKy90w … 291 lines, de
+  [70/162] T87ZtZAoiiQ … 180 lines, de
+  [71/162] x0WbGMS3cHE … 221 lines, de
+  [72/162] QlAeYmWSNSY … 242 lines, de
+  [73/162] 1xoLGmPEQuE … 252 lines, de
+  [74/162] VOYuMywDnXI … 241 lines, de
+  [75/162] CnoQuq633yU … 162 lines, de
+  [76/162] 0sOkKmdyhq4 … 179 lines, de
+  [77/162] w9J6D4r30HY … 199 lines, de
+  [78/162] vcsmWBqa2LQ … 240 lines, de
+  [79/162] 8HtnfA0nErw … 183 lines, de
+  [80/162] 3IpcM5gqRM4 … 229 lines, de
+  [81/162] 9sf-3Q8EcAE … 166 lines, de
+  [82/162] KCTvl8KuCR0 … skipped
+  [83/162] ukj00RbvZaQ … 210 lines, de
+  [84/162] dEesh2R0M94 … 184 lines, de
+  [85/162] VmHAuMGJwe4 … 154 lines, de
+  [86/162] ME6xH8jrNK4 … 181 lines, de
+  [87/162] bRu7i011Fxo … 154 lines, de
+  [88/162] Vl4FotUbbBA … 180 lines, de
+  [89/162] mztvStKHQRQ … 127 lines, de
+  [90/162] j-fXZNgE67c … 191 lines, de
+  [91/162] 9WbK7CafeZY … 168 lines, de
+  [92/162] lj4IC70kDIU … 126 lines, de
+  [93/162] erDUXM8mCS8 … 176 lines, de
+  [94/162] -1FvAEaE0fc … 154 lines, de
+  [95/162] HGKn3iUA5M0 … 182 lines, de
+  [96/162] UOdCyVADESI … 147 lines, de
+  [97/162] eEgOXuJsaT0 … 152 lines, de
+  [98/162] YifXOFSbGO0 … 138 lines, de
+  [99/162] 03EcKq3EYbs … 165 lines, de
+  [100/162] VcVsV9Yn4P4 … 174 lines, de
+  [101/162] q6YkYx7-Y_k … 180 lines, de
+  [102/162] NU31mw90re0 … 158 lines, de
+  [103/162] Gih8R-f_KMo … 158 lines, de
+  [104/162] 2K4h6O3uTiM … 165 lines, de
+  [105/162] 6DPVWbJAWpY … 181 lines, de
+  [106/162] r0Af_AT31tc … 119 lines, de
+  [107/162] 7xm21hsJ65c … 134 lines, de
+  [108/162] YdLRHbP6DT8 … 175 lines, de
+  [109/162] FNFd559dEAE … 114 lines, de
+  [110/162] EpkzT-AeVZU … 149 lines, de
+  [111/162] aMaghFZWq2A … 83 lines, de
+  [112/162] 4YsaZQzT7Z8 … 140 lines, de
+  [113/162] 5IpAsztfBBA … 160 lines, de
+  [114/162] SfbFbIL1oAA … 165 lines, de
+  [115/162] SN2iidFin2Q … 119 lines, de
+  [116/162] J5LodnKnLYU … 149 lines, de
+  [117/162] RLsMTN9_qM4 … 171 lines, de
+  [118/162] pb4YoMjcYM4 … 144 lines, de
+  [119/162] aoMOSa9kXPw … 151 lines, de
+  [120/162] SorIEgajNd0 … 112 lines, de
+  [121/162] _WP9Piwsexo … 150 lines, de
+  [122/162] 4E0dwFS72gk … 199 lines, de
+  [123/162] q6fgbYWsMgw … 194 lines, de
+  [124/162] t_3AvnL10w4 … 189 lines, de
+  [125/162] c5aLYMBnFZc … 169 lines, de
+  [126/162] hcmSh9cerv8 … 177 lines, de
+  [127/162] YkBX8KyBAcs … 142 lines, de
+  [128/162] 0RRU0sdgoQI … 127 lines, de
+  [129/162] mhmpeIyG0uM … 165 lines, de
+  [130/162] NBeeRVkTeJg … 159 lines, de
+  [131/162] j_Nzlb33Y4o … 144 lines, de
+  [132/162] w7daiJHfjoY … 195 lines, de
+  [133/162] y6f3dwxexZM … 163 lines, de
+  [134/162] ZAz1GutJGbg … 344 lines, de
+  [135/162] DwqwRYe6fKA … 203 lines, de
+  [136/162] 0pQSWRdtrf8 … 135 lines, de
+  [137/162] _hcvUfc2Lww … 159 lines, de
+  [138/162] rt9_zRTG1cA … 138 lines, de
+  [139/162] KV1NVltMZjQ … 143 lines, de
+  [140/162] -9xNrBQpFt4 … 133 lines, de
+  [141/162] R9_5GY1cNjQ … 165 lines, de
+  [142/162] mOJSuBTNkY8 … 144 lines, de
+  [143/162] ap6VS5anhCc … 116 lines, de
+  [144/162] AR3Ynx0s8gE … 147 lines, de
+  [145/162] E1K-4Z4tVKo … 147 lines, de
+  [146/162] hHzA5S_usnM … 125 lines, de
+  [147/162] 1Q76na-m8s0 … skipped
+  [148/162] V3OrmIuN_QQ … 86 lines, de
+  [149/162] 9PugxoigU8U … 83 lines, de
+  [150/162] CtD7xLLNODg … 111 lines, de
+  [151/162] TGm_QTD5yKM … 184 lines, de
+  [152/162] 8o2yaqECGc0 … 148 lines, de
+  [153/162] m62QcCAkm88 … 132 lines, de
+  [154/162] SigkkLej2Bk … 71 lines, de
+  [155/162] vuoIs5_J0rw … 114 lines, de
+  [156/162] q8vE0LJ5yF8 … 122 lines, de
+  [157/162] _UG_AtiyEmQ … 127 lines, de
+  [158/162] tq7i9OzSNSQ … 115 lines, de
+  [159/162] DE11uy4spho … 155 lines, de
+  [160/162] b9TiWLDAPqk … 108 lines, de
+  [161/162] M2PYkZ2Y_Ls … 123 lines, de
+  [162/162] wWSJYr1Lr0E … 80 lines, de
+
+137 added, 25 skipped
+  attempts on record: added 764, error 12, unfetchable 202
+  QWm_gX4Xrso: QWm_gX4Xrso: no de subtitles came back, and the video could not be inspected to say why.
+  x5GH-I8bz0M: x5GH-I8bz0M: no de subtitles came back, and the video could not be inspected to say why.
+  AXoj4FCnHaI: AXoj4FCnHaI: no de subtitles came back, and the video could not be inspected to say why.
+  W5Bscl7ALrE: W5Bscl7ALrE: no de subtitles came back, and the video could not be inspected to say why.
+  hxPLRPQo5UI: hxPLRPQo5UI: no de subtitles came back, and the video could not be inspected to say why.
+  jdBlpyCom3U: jdBlpyCom3U: no de subtitles came back, and the video could not be inspected to say why.
+  qMEM3RemoPA: qMEM3RemoPA: no de subtitles came back, and the video could not be inspected to say why.
+  kqIMDgepyqo: kqIMDgepyqo: no de subtitles came back, and the video could not be inspected to say why.
+  4zBFUAW6on0: 4zBFUAW6on0: no de subtitles came back, and the video could not be inspected to say why.
+  3BaCX-vzvBU: 3BaCX-vzvBU: no de subtitles came back, and the video could not be inspected to say why.
+  NE-7UBbbhSA: NE-7UBbbhSA: no de subtitles came back, and the video could not be inspected to say why.
+  y9Qk-y9Ov5I: y9Qk-y9Ov5I: no de subtitles came back, and the video could not be inspected to say why.
+  gaF1Yjdwq0w: gaF1Yjdwq0w: no de subtitles came back, and the video could not be inspected to say why.
+  Q6p4kz35g4Q: Q6p4kz35g4Q: no de subtitles came back, and the video could not be inspected to say why.
+  Ri5RzmaCHLU: Ri5RzmaCHLU: no de subtitles came back, and the video could not be inspected to say why.
+  ZU0A3AiJKc4: ZU0A3AiJKc4: no de subtitles came back, and the video could not be inspected to say why.
+  YC7JGcTvdBk: YC7JGcTvdBk: no de subtitles came back, and the video could not be inspected to say why.
+  ICuT4TqEHsE: ICuT4TqEHsE: no de subtitles came back, and the video could not be inspected to say why.
+  eOKY06SD6Yk: eOKY06SD6Yk: no de subtitles came back, and the video could not be inspected to say why.
+  t5QSSKXzwNw: t5QSSKXzwNw: no de subtitles came back, and the video could not be inspected to say why.
+  jLKCQIgphq0: jLKCQIgphq0: no de subtitles came back, and the video could not be inspected to say why.
+  O6DMcdMohAw: O6DMcdMohAw: no de subtitles came back, and the video could not be inspected to say why.
+  HYuqC13LZ1Q: HYuqC13LZ1Q: no de subtitles came back, and the video could not be inspected to say why.
+  KCTvl8KuCR0: KCTvl8KuCR0: no de subtitles came back, and the video could not be inspected to say why.
+  1Q76na-m8s0: 1Q76na-m8s0: no de subtitles came back, and the video could not be inspected to say why.
+
+analysing the new videos…
+  10181 sentences to study from, 2222 more for the overlay
+  roadmap [subtitle+transcript:good:list:goals]: 3 steps
+  roadmap [subtitle+transcript:good:strict:goals]: 20 steps
+  roadmap [subtitle:good:list:goals]: 3 steps
+  roadmap [subtitle:good:strict:goals]: 21 steps
+  roadmap [subtitle:list:goals]: 2 steps
