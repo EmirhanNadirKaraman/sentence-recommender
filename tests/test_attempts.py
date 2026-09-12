@@ -183,3 +183,41 @@ class AutoSettledTest(unittest.TestCase):
             self.log.record("stubborn", "unfetchable", "still nothing")
         self.assertIn("stubborn", self.log.settled())
         self.assertIn("stubborn", self.log.settled(accept_auto=True))
+
+
+class ThrottlingTest(unittest.TestCase):
+    """Being rate-limited says nothing about the video.
+
+    A run against four channels whose sampled hand-written rate was 90-100%
+    returned 413 HTTP 429s and added nothing. Those arrived as `error`, which
+    is not a settled outcome but does count towards `GIVE_UP` -- so a second
+    and third pass would have written off four channels that are entirely
+    good. Throttling has to be exempt from the counter, not merely from the
+    verdicts.
+    """
+
+    def setUp(self) -> None:
+        self._dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._dir.cleanup)
+        self.log = AttemptLog(Path(self._dir.name) / "state.sqlite3")
+
+    def test_a_429_is_throttling(self) -> None:
+        self.assertEqual(
+            AttemptLog.classify("HTTPError: HTTP Error 429: Too Many Requests"),
+            "throttled")
+
+    def test_the_words_count_too(self) -> None:
+        self.assertEqual(AttemptLog.classify("Too Many Requests"), "throttled")
+
+    def test_throttling_never_settles_however_often(self) -> None:
+        for _ in range(AttemptLog.GIVE_UP + 4):
+            self.log.record("good", "throttled", "429")
+        self.assertNotIn("good", self.log.settled())
+
+    def test_other_failures_still_settle_on_repetition(self) -> None:
+        """The exemption is for throttling alone -- `unfetchable` still gives
+        up after GIVE_UP, which is what stops a second pass re-asking every
+        question the first pass failed to answer."""
+        for _ in range(AttemptLog.GIVE_UP):
+            self.log.record("bad", "unfetchable", "no idea")
+        self.assertIn("bad", self.log.settled())

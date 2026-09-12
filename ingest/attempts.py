@@ -110,7 +110,8 @@ class AttemptLog:
             rows = conn.execute(
                 "SELECT video_id FROM video_attempts"
                 f" WHERE outcome IN ({','.join('?' * len(verdicts))})"
-                "    OR (outcome <> 'added' AND tries >= ?)",
+                "    OR (outcome NOT IN ('added', 'throttled')"
+                "        AND tries >= ?)",
                 (*verdicts, self.GIVE_UP))
             return frozenset(r[0] for r in rows)
 
@@ -145,6 +146,15 @@ class AttemptLog:
         low = why.lower()
         if "not a bot" in low or "sign in to confirm" in low:
             return "blocked"          # weather, and the fix is cookies
+        if "429" in low or "too many requests" in low:
+            # The most transient weather there is: it says nothing whatever
+            # about the video, only that we asked for too much too quickly.
+            # It used to land in `error`, which is not a settled outcome but
+            # does count towards `GIVE_UP` -- so three throttled runs would
+            # write a video off for good. One run against four channels whose
+            # sample rate was 90-100% produced 413 of these and added
+            # nothing; a second and third pass would have buried them.
+            return "throttled"
         if "metadata could not be fetched" in low or "refused" in low:
             # Cannot tell a deleted video from a blocked request, so it is
             # never settled — blacklisting these would have thrown away forty
