@@ -23,3 +23,6 @@ Easy German Transcripts/
 
 # Runtime log from `backfill-channels`, regenerated on every run.
 backfill.log
+
+# Symlink to this session scratchpad, where the background job logs land.
+logs

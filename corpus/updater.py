@@ -19,15 +19,27 @@ from db import Database
 
 @dataclass(frozen=True)
 class Caught:
-    """What the update added."""
+    """What the update added, or why it would not."""
 
     videos: int
     teachable: int
     context: int
+    refused: str = ""
+    """The fingerprint the build was made with, when appending was refused."""
 
     @property
     def anything(self) -> bool:
         return self.videos > 0
+
+    def report(self) -> str:
+        """One line for a person, whichever of the two happened."""
+        if self.refused:
+            return ("not analysed — this build was made by different rules "
+                    f"(fingerprint {self.refused}), so new sentences cannot "
+                    "be appended beside the old ones; rebuild it with "
+                    "`python main.py build-corpus subtitle`")
+        return (f"{self.teachable} sentences to study from, "
+                f"{self.context} more for the overlay")
 
 
 class CorpusUpdater:
@@ -38,7 +50,25 @@ class CorpusUpdater:
 
     def catch_up(self, build: str = "subtitle") -> Caught:
         settings = self._app.settings
-        have = self._app.corpus_store.video_ids(build)
+        store = self._app.corpus_store
+
+        # Appending is only safe under the rules the build was made with. The
+        # stored units and the ones about to go beside them have to mean the
+        # same thing: `keep` and `well_formed` and the phrase matcher all
+        # decide what a unit *is*, and a corpus whose halves disagree about
+        # that has no marker saying where one half ends. A full rebuild is the
+        # only fix, so this says so rather than quietly making the mess.
+        #
+        # Only the analyser fingerprint blocks. `parser_changed` — a different
+        # spaCy than the one that built it — is deliberately a warning here as
+        # it is everywhere else in this file's neighbours: it is environment
+        # drift rather than a decision, and a patch release of the parser
+        # should not silently stop every import from being analysed at all.
+        made_with = store.stale().get(build)
+        if made_with:
+            return Caught(0, 0, 0, refused=made_with)
+
+        have = store.video_ids(build)
 
         with Database(settings.own) as db:
             videos = SubtitleSource(db, settings.language).videos()
@@ -59,12 +89,12 @@ class CorpusUpdater:
         # already cached — otherwise a line repeated from an older video
         # sneaks in as new.
         sentence_filter = self._app.filter()
-        sentence_filter.apply(self._app.corpus_store.load(build,
+        sentence_filter.apply(store.load(build,
                                                           teachable_only=False))
         sentence_filter.rejected.clear()
         kept, dropped = sentence_filter.split(sentences)
 
         analysed = self._app.analyzer.analyze_all(kept)
         analysed += [s.as_context() for s in dropped]
-        self._app.corpus_store.append(analysed, build)
+        store.append(analysed, build)
         return Caught(len(fresh), len(kept), len(dropped))

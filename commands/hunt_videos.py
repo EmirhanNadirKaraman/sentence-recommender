@@ -119,7 +119,7 @@ class HuntVideosCommand:
 
             self._corpus_changed()     # new video, so the cache is stale
             caught = CorpusUpdater(app).catch_up(source)
-            print(f"  {caught.teachable} new sentences to study from")
+            print(f"  {caught.report()}")
             for label, steps in sorted(
                 RoadmapRefresher(app).refresh(touching=source).items()
             ):

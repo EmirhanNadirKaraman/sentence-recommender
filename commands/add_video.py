@@ -35,8 +35,7 @@ class AddVideoCommand:
 
         print("analysing the new video…", flush=True)
         caught = CorpusUpdater(app).catch_up()
-        print(f"  {caught.teachable} sentences to study from, "
-              f"{caught.context} more for the overlay")
+        print(f"  {caught.report()}")
 
         rebuilt = RoadmapRefresher(app).refresh(touching="subtitle")
         for label, steps in sorted(rebuilt.items()):
