@@ -20,7 +20,7 @@ import unittest
 
 from corpus.sentence import RawLine
 from ingest.auto_captions import (
-    GERMAN, PUNCTUATED, Judgement, Refused, Throttled, Unfetchable,
+    GERMAN, LAST_CUE, PUNCTUATED, Judgement, Refused, Throttled, Unfetchable,
     _payload, german_share, judge, punctuation_rate, track_from_info,
 )
 
@@ -330,3 +330,77 @@ class OutcomeTest(unittest.TestCase):
     def test_both_are_systemexit_so_the_ingest_path_catches_them(self) -> None:
         for error in (Refused("no", "auto-no-track"), Unfetchable("later")):
             self.assertIsInstance(error, SystemExit)
+
+
+class CueLengthTest(unittest.TestCase):
+    """A caption line that does not say how long it lasts.
+
+    Manual json3 always says — forty cached tracks, not one missing value —
+    and ASR json3 is a different shape and need not. A zero is not a
+    cosmetic default: `RawLine.duration` is what `SubtitleAligner` matches
+    against, and it reaches `video.duration`, which feeds `watchability` and
+    the `i+1/min` column.
+    """
+
+    def track(self, events, whole=None):
+        payload = {"events": events}
+        info = {"automatic_captions": {"de-orig": [{"ext": "json3",
+                                                    "url": "https://x/de"}]},
+                "language": "de"}
+        if whole is not None:
+            info["duration"] = whole
+
+        class Opener:
+            @staticmethod
+            def urlopen(url):
+                import json                                   # noqa: PLC0415
+
+                class Body:
+                    @staticmethod
+                    def read():
+                        return json.dumps(payload).encode()
+                return Body
+
+        _, lines = track_from_info(info, "vid", Opener)
+        return lines
+
+    def event(self, start_ms, text, duration_ms=None):
+        out = {"tStartMs": start_ms, "segs": [{"utf8": text}]}
+        if duration_ms is not None:
+            out["dDurationMs"] = duration_ms
+        return out
+
+    def test_a_stated_length_is_used(self) -> None:
+        lines = self.track([self.event(0, "eins", 2500),
+                            self.event(3000, "zwei", 1500)])
+        self.assertEqual([l.duration for l in lines], [2.5, 1.5])
+
+    def test_a_missing_one_runs_to_the_next_line(self) -> None:
+        lines = self.track([self.event(0, "eins"),
+                            self.event(3000, "zwei", 1500)])
+        self.assertEqual(lines[0].duration, 3.0)
+
+    def test_the_last_line_takes_what_is_left_of_the_video(self) -> None:
+        lines = self.track([self.event(0, "eins", 1000),
+                            self.event(5000, "zwei")], whole=8.0)
+        self.assertEqual(lines[1].duration, 3.0)
+
+    def test_with_no_video_length_the_last_line_still_has_one(self) -> None:
+        """Zero would give the final sentence a zero-length span."""
+        lines = self.track([self.event(0, "eins", 1000),
+                            self.event(5000, "zwei")])
+        self.assertEqual(lines[1].duration, LAST_CUE)
+
+    def test_no_line_ever_lasts_no_time(self) -> None:
+        lines = self.track([self.event(0, "eins"), self.event(2000, "zwei"),
+                            self.event(4000, "drei")], whole=6.0)
+        for line in lines:
+            self.assertGreater(line.duration, 0.0)
+
+    def test_empty_events_are_skipped_without_shifting_the_rest(self) -> None:
+        """A blank event must not become the neighbour a length is read from."""
+        lines = self.track([self.event(0, "eins"),
+                            {"tStartMs": 1000, "segs": [{"utf8": "  "}]},
+                            self.event(3000, "zwei", 1000)])
+        self.assertEqual([l.content for l in lines], ["eins", "zwei"])
+        self.assertEqual(lines[0].duration, 3.0)

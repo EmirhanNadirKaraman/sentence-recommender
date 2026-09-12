@@ -2,7 +2,7 @@
 
 Ingest takes hand-written subtitles only, and for the corpus at large that
 policy is right: `caption-check` measured thirty videos holding both kinds
-and every machine track was worse than its hand-written counterpart —  31%
+and every machine track was worse than its hand-written counterpart — 31%
 fewer teachable sentences, because ASR over-segments.
 
 That measurement compared a machine track against a manual one. It says
@@ -33,9 +33,10 @@ ORIGINAL = ("de-orig", "de-DE", "de")
 # A machine track is usable only if it punctuates. `MergeCorrector` finds
 # sentence boundaries by punctuation, so a track without any becomes one
 # enormous sentence: excellent vocabulary, and nothing a word can be the only
-# unknown in. The rate is bimodal — a track punctuates about a fifth of its
-# lines or none at all — so the threshold only has to separate "some" from
-# "none".
+# unknown in. The rate is bimodal, and measured twice: 18-56% across the
+# thirty videos `caption-check` compared, 11-29% across lingoni's, and
+# nothing at all in between those and zero. So the threshold only has to
+# separate "some" from "none", and sits in clear air wherever it is put.
 PUNCTUATED = 0.05
 
 # Below this a caption track is a title card or a burned-in credit, not
@@ -320,21 +321,60 @@ def track_from_info(info: dict, video_id: str, opener
         return None, None
     payload = _payload(entry["url"], opener)
 
-    lines: list[RawLine] = []
-    for number, event in enumerate(payload.get("events") or []):
+    timed: list[tuple[float, float, str]] = []
+    for event in payload.get("events") or []:
         segments = event.get("segs") or []
         text = "".join(s.get("utf8", "") for s in segments).strip()
         if not text:
             continue
-        start = (event.get("tStartMs") or 0) / 1000
-        lines.append(RawLine(
+        timed.append(((event.get("tStartMs") or 0) / 1000,
+                      (event.get("dDurationMs") or 0) / 1000,
+                      text))
+
+    lines = [
+        RawLine(
             sentence_id=-(number + 1),          # negative: never a real row
             video_id=video_id,
             start_time=start,
-            duration=(event.get("dDurationMs") or 0) / 1000,
+            duration=_cue_length(timed, number, duration,
+                                 info.get("duration")),
             content=text,
             # Empty: the column exists because `sentence` has one, and
             # neither the corrector nor the aligner reads it.
             tokens=(),
-        ))
+        )
+        for number, (start, duration, text) in enumerate(timed)
+    ]
     return chosen, lines
+
+
+# A cue with no length of its own, and no next cue to borrow one from.
+LAST_CUE = 2.0
+
+
+def _cue_length(timed: list, number: int, duration: float,
+                whole: float | None) -> float:
+    """How long one caption line lasts, when the track does not say.
+
+    Manual json3 carries `dDurationMs` on every event — forty cached tracks,
+    not one missing value. ASR json3 is a different shape and need not, and a
+    zero here is not a cosmetic default: `RawLine.duration` is what
+    `SubtitleAligner` matches sentences against, so a track of zero-length
+    cues gives every sentence a zero-length span and the overlay and the clip
+    links both point at an instant.
+
+    It also reaches `video.duration`, which `pipeline.populate` computes as
+    the last line's start plus its length — and that feeds both
+    `watchability` and the `i+1/min` column, where understating a video's
+    length makes it look denser than it is.
+
+    So a missing length is taken from the start of the next line, which is
+    what it means, and the last line falls back to what is left of the video.
+    """
+    if duration > 0:
+        return duration
+    if number + 1 < len(timed):
+        return max(0.0, timed[number + 1][0] - timed[number][0])
+    if whole:
+        return max(0.0, whole - timed[number][0])
+    return LAST_CUE
