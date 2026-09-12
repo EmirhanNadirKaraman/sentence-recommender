@@ -35,6 +35,8 @@ SOURCES = (
     ROOT / "data" / "lemma_overrides.txt",
     # Which nouns are kept apart from the verb they share a lemma with.
     ROOT / "data" / "noun_verb_splits.txt",
+    # Lemmas the parser invented, and what they should have been.
+    ROOT / "data" / "lemma_fixes.txt",
 )
 
 PACKAGES = ("spacy", "de_core_news_md", "de_core_news_sm")

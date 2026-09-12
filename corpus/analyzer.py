@@ -33,6 +33,8 @@ _MATCHER_DIR = Path(__file__).resolve().parents[1] / "matcher"
 _OVERRIDES = Path(__file__).resolve().parents[1] / "data" / "lemma_overrides.txt"
 _NOUN_SPLITS = (Path(__file__).resolve().parents[1] / "data"
                 / "noun_verb_splits.txt")
+_LEMMA_FIXES = (Path(__file__).resolve().parents[1] / "data"
+                / "lemma_fixes.txt")
 
 VERB_TAGS = ("VV", "VA", "VM")
 
@@ -79,6 +81,7 @@ class UnitAnalyzer:
         self._matcher = None
         self._verb_lemmas: "_LemmaLookup | None" = None
         self._noun_splits: frozenset[str] | None = None
+        self._lemma_fixes: dict[str, str] | None = None
 
     @property
     def verb_lemmas(self) -> "_LemmaLookup":
@@ -155,6 +158,24 @@ class UnitAnalyzer:
                         found.add(word)
             self._noun_splits = frozenset(found)
         return self._noun_splits
+
+    @staticmethod
+    def _read_fixes() -> dict[str, str]:
+        """Observed lemma -> the lemma it should have been."""
+        if not _LEMMA_FIXES.exists():
+            return {}
+        out: dict[str, str] = {}
+        for raw in _LEMMA_FIXES.read_text(encoding="utf-8").splitlines():
+            line = raw.split("#", 1)[0].split()
+            if len(line) == 2:
+                out[line[0].lower()] = line[1].lower()
+        return out
+
+    @property
+    def lemma_fixes(self) -> dict[str, str]:
+        if self._lemma_fixes is None:
+            self._lemma_fixes = self._read_fixes()
+        return self._lemma_fixes
 
     @staticmethod
     def _read_overrides() -> dict[str, str]:
@@ -353,7 +374,12 @@ class UnitAnalyzer:
             # is correctable; being wrong in that direction is the point.
             if lemma != surface and not self.verb_lemmas.is_lemma(lemma):
                 return surface
-        return lemma
+        # Last, and on every path that reaches here: a lemma the parser
+        # invented outright. The verb branch above has its own repair, keyed
+        # on the surface; this is keyed on the invented lemma itself, which
+        # is what lets it apply to a noun without touching a word that has a
+        # real reading. See `data/lemma_fixes.txt`.
+        return self.lemma_fixes.get(lemma, lemma)
 
     # --- second pass -----------------------------------------------------
 

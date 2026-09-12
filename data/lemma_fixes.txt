@@ -1,0 +1,29 @@
+# Lemmas the parser invents, and what they should have been.
+#
+# One line per correction: the lemma the analyser produced, then the lemma it
+# belongs to. Keyed on the *observed lemma*, not on the surface — which is
+# what makes it safe. `data/lemma_overrides.txt` is keyed on the surface and
+# consulted only for tokens tagged as verbs, and it has to be: widening it
+# would apply "muss -> müssen" to the noun in "ein Muss". A line here fires
+# only when the analyser has already produced a particular string, so it can
+# never take a reading away from a word that has one.
+#
+# Only put a line here when the observed lemma is not a German word at all.
+# If it is a real word, the parser is making a judgement between two readings
+# and the right answer depends on context, which a table cannot supply:
+#
+#   das Gewissen  blocked by  gewiß     — "Gewissen" really is both the noun
+#                                          and an inflected form of the
+#                                          adjective "gewiss"
+#   das Lokal     blocked by  lokale    — same shape
+#   inner         blocked by  innerer
+#
+# Those stay unfixed on purpose. A rewrite would have to pick one reading and
+# would be wrong wherever the other was meant.
+
+# An edit-tree model predicts a transformation and never checks the result is
+# a word: "Teilchen" and "Teilchens" both came back as "teilche". It was read
+# off the blocked page, where `das Teilchen` — said fourteen times — showed
+# as "needs 1 other new word here: teilche", blocked by a misspelling of
+# itself.
+teilche	teilchen
