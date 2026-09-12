@@ -7,14 +7,12 @@
 # there is — read one before deciding which of the two is wrong.
 #
 # Counting strict, clearing the way, which is what `_stored_label` serves.
-# Regenerated 2026-09-12 from 249,938 sentences (subtitle+transcript),
+# Regenerated 2026-09-12 from 257,507 sentences (subtitle+transcript),
 # goals /Users/emir/Documents/GitHub/sentence-recommender/data/study_list.txt, well-formed only = True.
 # Rebuild with `python main.py out-of-reach` — do not hand-edit.
-das Gen	38	45
-anhand	31	34
-geistig	24	29
-alternativ	23	24
-jdm. (Dat) etw. (Akk) erschweren	18	19
+das Gen	39	46
+anhand	34	37
+jdm. (Dat) etw. (Akk) erschweren	19	20
 das Grundstück	15	19
 der Absatz	15	18
 etw. (Akk) zurücklegen	14	15
@@ -23,9 +21,7 @@ das Teilchen	13	19
 mühsam	13	15
 zugrunde	13	13
 die Flüssigkeit	13	14
-die Bindung	12	13
 ausdrücklich	11	12
-der Strahl	11	11
 hinsichtlich	10	11
 der Hang	10	11
 zugunsten	10	12
@@ -37,7 +33,8 @@ steuerlich	8	9
 das Management	8	8
 etw. (Akk) ausstellen	8	9
 seufzen	8	8
-die Liga	8	8
+die Liga	8	11
+etw. (Akk) beugen	7	7
 samt	7	7
 etw. (Akk) von etw. / sich abgrenzen	7	9
 etw. (Akk) fixieren	7	7
@@ -46,29 +43,27 @@ infolge	7	7
 qualitativ	7	8
 die Wechselwirkung	7	7
 das Kunstwerk	6	6
-etw. (Akk) beugen	6	6
 die Verhaltensweise	6	6
+amtlich	6	6
 die Ausführung	6	6
-die Durchführung	6	6
+der Zuwachs	5	6
 das Weib	5	7
 der Kunststoff	5	7
 die Auswertung	5	7
 die Zulassung	5	7
 zweifellos	5	5
-amtlich	5	5
 die Steuerung	5	5
 jdn. (Akk) verwundern	5	5
 das Auftreten	5	8
 die Tageszeitung	5	5
-das TV	5	9
+das TV	5	10
 gegenwärtig	4	4
 gleichwohl	4	4
 die Biologie	4	6
-organisatorisch	4	4
 die Zunahme	4	5
 etw. (Akk) überziehen	4	5
 die Schnittstelle	4	4
-die Beschäftigung	4	6
+die Öffnung	4	5
 das Griechisch	4	8
 die Erfassung	4	4
 die Datenverarbeitung	4	4
@@ -76,18 +71,16 @@ räumlich	4	4
 die Benutzung	4	4
 jdm. (Dat) etw. (Akk) flüstern	4	8
 kommunikativ	4	4
-der Zuwachs	3	4
 die Verbindlichkeit	3	4
-die Öffnung	3	4
 vorherrschen	3	4
 das Lokal	3	3
 das Lebensjahr	3	6
 die Gestaltung	3	3
-etw. (Akk) beleben	3	3
 das Kloster	3	4
 die Konzeption	3	4
 klinisch	3	3
 der Schilling	3	4
+das Arzneimittel	2	3
 therapeutisch	2	3
 das Heft	2	2
 die Messe	2	2
@@ -96,18 +89,16 @@ der Schweiß	2	2
 das Russisch	2	2
 das Niederländisch	2	3
 vorwiegend	2	3
+ferner	2	2
 sich (Dat) etw. (Akk) / sich (Akk) sich ausziehen	2	2
 der Dolmetscher	2	2
-die Hut	2	2
 unterdessen	2	2
 vorig	2	2
 der Champion	2	3
 die Phantasie	2	2
 methodisch	2	3
-das Arzneimittel	1	1
 der Geliebte, die Geliebte	1	1
 allenfalls	1	2
-der Benutzer	1	2
 das Milligramm	1	2
 elementar	1	1
 die Fachhochschule	1	1
@@ -119,7 +110,6 @@ das Japanisch	1	2
 der Gemeinderat	1	1
 das Riff	1	2
 der Absolvent	1	1
-ferner	1	1
 jdn./etw. (Akk) charakterisieren	1	1
 motorisch	1	1
 die Koralle	1	1
@@ -131,19 +121,13 @@ nunmehr	1	1
 das Pro	1	4
 pakistanisch	1	1
 der Beschäftigte, die Beschäftigte	0	0
-der Vorsitzende, die Vorsitzende	0	0
 die Geographie	0	1
 das BGB	0	0
-der Beamte, die Beamte	0	0
-der Abgeordnete, die Abgeordnete	0	0
 das HGB	0	0
-der Angestellte, die Angestellte	0	0
-die Aufwendungen	0	0
 jdn. (Akk) erstaunen	0	1
 herein, rein	0	1
 das Top	0	0
 die Realisierung	0	0
-die Unterlagen	0	0
 das Olympia	0	0
 das Präparat	0	0
 die Zielsetzung	0	0

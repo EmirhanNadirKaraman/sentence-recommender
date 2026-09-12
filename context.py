@@ -132,8 +132,14 @@ class Application:
     # Bits of a pattern that name a role rather than a word. Without these
     # out of the way, `etw.` and `jdm.` would count as vocabulary the list
     # teaches, and every sentence containing them would look covered.
+    # `dat`, `akk` and `gen` are deliberately absent: they are case markers
+    # and only ever appear parenthesised — `jds. (Gen) gedenken` — so they
+    # are removed by stripping the parentheses instead. Listing them here as
+    # bare words made `das Gen` strip its own noun, so the goal was blocked
+    # by `gen`, the lemma of the very word it teaches. A reader saw it on the
+    # page: "needs 1 other new word here: gen".
     PLACEHOLDERS = frozenset({
-        "jdm", "jdn", "etw", "dat", "akk", "gen", "sich", "der", "die", "das",
+        "jdm", "jdn", "etw", "sich", "der", "die", "das",
         "ein", "eine", "einer", "einem", "einen", "zu", "an", "auf", "in",
         "mit", "von", "bei", "um", "vor", "nach", "aus", "über",
     })
@@ -175,7 +181,10 @@ class Application:
             # `jdn. (Akk) ... nennen` is lowercase throughout, so it covers
             # the verb and leaves any noun `Nennen` alone, which is the whole
             # distinction the split exists for.
-            for word in re.findall(r"[^\W\d_]+", unit.key):
+            # Case markers first, as whole parenthesised groups, so a noun
+            # that happens to spell one survives.
+            written = re.sub(r"\([^)]*\)", " ", unit.key)
+            for word in re.findall(r"[^\W\d_]+", written):
                 if len(word) > 2 and word.lower() not in self.PLACEHOLDERS:
                     words.add(word)
                     words.add(word.lower())
