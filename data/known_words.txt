@@ -1,771 +1,794 @@
-der Abend
-die Adresse
-die Ahnung
-das Alter
-der Anfang
-das Angebot
-die Angst
-der Anschluss
-die Antwort
-die Anzeige
-der Anzug
-der Apfel
-der April
-die Arbeit
-der Arbeitsplatz
-der Arm
-der Arzt
-die Aufgabe
-das Auge
-der August
-der Ausflug
-der Ausgang
-die Auskunft
-das Ausland
-der Ausländer
-die Aussage
-der Ausweis
-das Auto
-die Autobahn
-das Baby
-das Bad
-die Bahn
-der Bahnhof
-der Ball
-die Bank
-der Bauch
-der Baum
-das Bein
-das Beispiel
-der Beruf
-der Besuch
-das Bett
-die Bibliothek
-das Bier
-das Bild
-die Bitte
-der Blick
-die Blume
-der Bogen
-der Brief
-die Brille
-das Brot
-der Bruder
-die Brücke
-das Buch
-der Buchstabe
-der Bus
-die Butter
-die CD
-das Café
-der Chef
-der Computer
-die Dame
-der Dank
-das Datum
-der Dezember
-der Dienstag
-das Ding
-der Doktor
-der Donnerstag
-das Dorf
-die E-Mail
-die Ecke
-das Ei
-der Eingang
-die Einladung
-der Eintritt
-die Eltern
-der Empfänger
-das Ende
-die Entschuldigung
-das Ergebnis
-das Essen
-der Fahrer
-das Fahrrad
-die Familie
-die Farbe
-der Februar
-der Fehler
-die Feier
-das Feuer
-das Fieber
-der Film
-die Firma
-der Fisch
-die Flasche
-das Fleisch
-der Flug
-der Flughafen
-das Flugzeug
-das Foto
-die Frage
-die Frau
-der Freitag
-die Freizeit
-der Freund
-die Freundin
-der Frühling
-das Frühstück
-der Fuß
-der Fußball
-die Führung
-der Garten
-der Gast
-der Geburtstag
-das Gegenteil
-das Geld
-das Gemüse
-das Gepäck
-das Geschenk
-die Geschwister
-das Geschäft
-das Gesicht
-das Gespräch
-das Getränk
-das Gewicht
-das Glas
-das Glück
-das Gramm
-die Großmutter
-der Großvater
-die Gruppe
-der Gruß
-die Größe
-das Haar
-die Halle
-der Hals
-die Hand
-das Handy
-das Haus
-das Heft
-die Heimat
-das Hemd
-der Herbst
-der Herr
-die Hilfe
-der Himmel
-das Hobby
-die Hochzeit
-das Hotel
-der Hund
-der Hunger
-die Idee
-die Information
-das Instrument
-das Internet
-die Jacke
-das Jahr
-der Januar
-der Job
-der Juli
-der Junge
-der Juni
-der Kaffee
-die Karte
-die Kartoffel
-die Kasse
-die Katze
-die Kette
-das Kilogramm
-das Kind
-der Kindergarten
-das Kino
-die Kirche
-die Klasse
-die Kleidung
-der Koffer
-der Kollege
-das Konto
-das Konzert
-der Kopf
-das Krankenhaus
-der Kunde
-der Kurs
-der Käse
-die Küche
-der Laden
-die Lampe
-das Land
-das Leben
-das Lebensmittel
-der Lehrer
-die Leute
-das Licht
-das Lied
-der Liter
-das Lokal
-die Lust
-die Lösung
-der Mai
-das Mal
-der Mann
-der Mantel
-die Maschine
-das Meer
-der Mensch
-der Meter
-die Miete
-die Milch
-die Milliarde
-die Million
-die Minute
-der Mittag
-die Mitte
-der Mittwoch
-Moment
-der Montag
-der Morgen
-der Motor
-der Mund
-die Musik
-die Mutter
-das Mädchen
-der März
-das Möbel
-der Nachbar
-der Nachmittag
-die Nacht
-der Name
-der Norden
-der November
-die Nummer
-Nähe
-das Ohr
-der Oktober
-die Oma
-die Ordnung
-der Ort
-der Osten
-das Papier
-der Partner
-die Party
-der Pass
-die Pause
-die Person
-der Plan
-der Platz
-die Polizei
-die Post
-das Praktikum
-die Praxis
-der Preis
-das Problem
-das Projekt
-das Prozent
-die Prüfung
-der Quadratmeter
-das Radio
-der Raum
-die Rechnung
-der Regen
-die Reise
-die Reparatur
-das Restaurant
-der Ring
-der Rucksack
-der Rücken
-die Sache
-das Salz
-der Samstag
-der Satz
-das Schiff
-der Schluss
-der Schlüssel
-der Schnee
-der Schrank
-der Schuh
-die Schule
-das Schwein
-die Schwester
-der Schüler
-der See
-die See
-die Seite
-die Sekunde
-der September
-Sie
-die Situation
-der Sohn
-der Sommer
-die Sonne
-der Sonntag
-der Spaß
-der Sport
-die Sprache
-die Stadt
-die Stelle
-der Stock
-der Strand
-die Straße
-der Student
-das Studium
-die Stunde
-das Stück
-der Süden
-die Tafel
-der Tag
-die Tasche
-die Tasse
-das Taxi
-das Team
-der Tee
-das Telefon
-das Tennis
-der Termin
-der Test
-der Text
-das Thema
-das Ticket
-der Tisch
-die Tochter
-die Treppe
-die Uhr
-der Unterricht
-die Unterschrift
-der Urlaub
-der Vater
-der Verein
-der Verkäufer
-der Vermieter
-der Vormittag
-die Vorsicht
-das Wasser
-der Weg
-der Wein
-die Welt
-der Westen
-das Wetter
-das Wiedersehen
-der Wind
-der Winter
-der Witz
-die Woche
-das Wochenende
-die Wohnung
-die Wolke
-das Wort
-die Wäsche
-die Zeit
-die Zeitung
-das Zelt
-der Zentimeter
-das Zentrum
-die Zigarette
-das Zimmer
-der Zucker
-der Zug
-ab
-aber
-etw. (Akk) bei jdm. abgeben
-jdn./etw. (Akk) abholen
-abhängig
-als
-also
-alt
-am
-an
-jdm. (Dat) etw. (Akk) anbieten
-mit etw. anfangen
-auf etw. / an etw. ankommen
-jdn./etw. (Akk) anmelden
-jdn. (Akk) anrufen
-jdm. (Dat) auf etw. antworten
-etw. (Akk) / sich (Akk) anziehen anziehen
-arbeiten
-arbeitslos
-arm
-auch
-auf
-mit etw. aufhören
-aufstehen
-aus
-etw. (Akk) ausfüllen
-ausländisch
-etw. (Akk) / jdm. (Dat) etw. ausmachen
-nach etw. aussehen
-aus etw. (Dat) aussteigen
-etw. (Akk) / aus etw. (Dat) ausziehen
-automatisch
-außer
-bald
-jdm. (Dat) etw. (Akk) bedeuten
-etw. (Akk) beenden
-mit etw. / etw. (Akk) beginnen
-bei
-beide
-bekannt
-etw. (Akk) bekommen
-etw. (Akk) benutzen
-jdn. (Akk) beraten
-jdm. (Dat) etw. (Akk) beschreiben
-besser
-aus etw. / etw. (Akk) bestehen bestehen
-jdm. (Dat) etw. (Akk) bestellen
-jdn./etw. (Akk) besuchen
-etw. (Akk) / jdn. (Akk) bezahlen
-billig
-bis
-bisschen
-bitte
-jdn. (Akk) um etw. bitten
-bitter
-blau
-bleiben
-jdm. (Dat) etw. (Akk) braten
-etw./jdn. (Akk) brauchen
-braun
-breit
-jdm. (Dat) etw. (Akk) bringen
-böse
-da
-dabei
-dafür
-daneben
-danke
-jdm. (Dat) für etw. danken
-dann
-darauf
-darüber
-das Gehalt
-das Institut
-das Zuhause
-dass
-dauern
-dein
-demokratisch
-denken
-denn
-der Rücken
-der Übersetzer
-deshalb
-die Arbeitslosigkeit
-die Mehrheit
-die Minderheit
-die Steuer
-direkt
-mit jdm. über etw. diskutieren
-doch
-dort
-dorthin
-draußen
-drei
-drüben
-etw. (Akk) drücken
-du
-dumm
-dunkel
-durch
-dünn
-dürfen
-echt
-eigentlich
-ein
-einfach
-einige
-etw. (Akk) einkaufen
-jdn. (Akk) zu etw. einladen
-einmal
-eins
-in etw. (Akk) einsteigen
-einzeln
-in etw. (Akk) / etw. (Akk) einziehen
-jdm. (Dat) etw. (Akk) empfehlen
-mit etw. enden
-endlich
-jdn. (Akk) / sich bei jdm. entschuldigen
-er
-jdm. (Dat) etw. (Akk) erklären
-jdm. (Dat) etw. (Akk) erlauben
-erst
-erste
-jdm. (Dat) etw. (Akk) erzählen
-es
-etw. (Akk) essen
-etwas
-euer
-etw. (Akk) fahren
-fallen
-falsch
-fast
-jdm. (Dat) fehlen
-etw. (Akk) feiern
-fertig
-etw./jdn. (Akk) finden
-fliegen
-jdn./etw. (Akk) fotografieren
-jdn. (Akk) fragen
-frei
-fremd
-jdn. (Akk) freuen
-frisch
-früh
-früher
-furchtbar
-für
-ganz
-jdm. (Dat) etw. (Akk) geben
-geboren
-jdm. (Dat) gefallen
-gegen
-gegenüber
-gehen
-jdm. (Dat) gehören
-gelb
-genau
-gerade
-gestern
-etw. (Akk) gewinnen
-jdm. (Dat) / etw. (Akk) glauben
-gleich
-glücklich
-grau
-groß
-grün
-gut
-gültig
-günstig
-etw./jdn. (Akk) haben
-hallo
-etw./jdn. (Akk) halten
-jdn. (Akk) heiraten
-heiß
-heißen
-jdm. (Dat) helfen
-hell
-herzlich
-heute
-hier
-hin
-hinten
-hinter
-hoch
-auf etw. (Akk) hoffen
-jdm. (Dat) etw. (Akk) holen
-etw./jdn. (Akk) hören
-ich
-im
-immer
-in
-international
-ja
-jemand
-jetzt
-jung
-jdm. (Dat) etw. (Akk) kaufen
-kein
-etw./jdn. (Akk) kennen
-kennenlernen
-klappen
-klar
-klein
-klug
-jdm. (Dat) etw. (Akk) kochen
-komisch
-kommen
-jdn./etw. (Akk) kontrollieren
-jdn. (Akk) etw. (Akk) kosten
-krank
-etw. (Akk) kriegen
-kulturell
-kurz
-etw. (Akk) können
-kühl
-über jdn./etw. lachen
-lang
-langsam
-langweilig
-etw./jdn. (Akk) lassen
-laufen
-laut
-leben
-etw./jdn. (Akk) legen
-leicht
-leider
-leise
-etw. (Akk) lernen
-etw. (Akk) lesen
-letzt
-jdn./etw. (Akk) lieben
-lieber
-liegen
-links
-lustig
-jdn. (Akk) an / --- lügen
-etw. (Akk) machen
-mal
-man
-manchmal
-mehr
-mein
-jdm. (Dat) etw. (Akk) / sich (Dat) etw. (Akk) merken
-mit
-jdm. (Dat) etw. (Akk) mitbringen
-etw. (Akk) mitmachen
-jdn./etw. (Akk) mitnehmen
-morgen
-männlich
-etw./jdn. (Akk) mögen
-möglich
-müde
-müssen
-nach
-nass
-natürlich
-neben
-etw./jdn. (Akk) nehmen
-nein
-neu
-nicht
-nie
-noch
-normal
-sich (Dat) etw. (Akk) notieren
-notwendig
-nur
-nützlich
-oben
-oder
-oft
-ohne
-jdm. (Dat) / zu etw. passen
-etw. (Akk) probieren
-etw. (Akk) rauchen
-rechts
-mit jdm. / über etw. reden
-regnen
-reisen
-richtig
-nach etw. riechen
-rot
-ruhig
-jdm. (Dat) etw. (Akk) sagen
-sauber
-schade
-etw. (Akk) schaffen
-scharf
-jdm. (Dat) scheinen
-jdm. (Dat) etw. (Akk) schicken
-schlafen
-schlecht
-etw. (Akk) schließen
-jdm. (Dat) nach etw. schmecken
-etw. (Akk) schneiden
-schnell
-schon
-jdm. (Dat) etw. (Akk) schreiben
-schwarz
-schwer
-schwimmen
-schön
-etw./jdn. (Akk) sehen
-sehr
-sein
-seit
-selbstständig
-sich
-sie
-sitzen
-so
-sofort
-sogar
-sollen
-sondern
-etw. (Akk) speichern
-etw. (Akk) spielen
-mit jdm. / über etw./jdn. sprechen
-spät
-später
-stark
-stattfinden
-jdm. (Dat) stehen
-etw./jdn. (Akk) stellen
-etw. (Akk) studieren
-etw./jdn. (Akk) suchen
-super
-tanzen
-mit jdm. telefonieren
-teuer
-tot
-total
-etw./jdn. (Akk) tragen
-traurig
-jdn. (Akk) / sich mit jdm. treffen
-etw. (Akk) trinken
-trocken
-etw. (Akk) tun
-um
-unbedingt
-und
-unser
-unten
-unter
-etw. (Akk) unterschreiben
-etw. (Akk) verdienen
-etw./jdn. (Akk) vergessen
-jdm. (Dat) etw. (Akk) verkaufen
-jdn./etw. (Akk) verletzen
-jdm. (Dat) etw. (Akk) / etw. (Akk) verpassen
-etw. (Akk) verschieben
-verschieden
-etw./jdn. (Akk) verstehen
-etw. (Akk) versuchen
-viel
-vielleicht
-von
-vor
-etw. (Akk) / sich auf etw. vorbereiten
-jdm. (Dat) jdn./etw. (Akk) / sich (Dat) etw. (Akk) vorstellen
-wach
-wandern
-wann
-warm
-auf jdn./etw. warten
-warum
-was
-etw./jdn. (Akk) / sich (Dat/Akk) waschen
-weg
-weggehen
-weiblich
-weich
-weil
-weit
-weiter
-weiß
-wenig
-wenn
-wer
-werden
-wichtig
-wie
-wieder
-etw. (Akk) wiederholen
-willkommen
-wir
-wirklich
-etw. (Akk) wissen
-wo
-woher
-wohin
-wohnen
-etw. (Akk) wollen
-wunderbar
-jdm. (Dat) etw. (Akk) wünschen
-etw. (Akk) an jdn. zahlen
-jdm. (Dat) etw. (Akk) zeigen
-zu
-zufrieden
-zurzeit
-zurück
-jdm. (Dat) etw. (Akk) zurückgeben
-zusammen
-zwei
-zwischen
-das Öl
-die Übersetzung
-etw. (Akk) ändern
-ärgern
-jdm. (Dat) etw. (Akk) öffnen
-etw. (Akk) üben
-über
-sich (Dat) etw. (Akk) überlegen
+# Vocabulary the reader is assumed to know before the roadmap starts.
+#
+# Every line is commented out, which is this file's own way of saying "not
+# known" -- the quiz writes a `#` in front of a word when you answer no.
+#
+# They were commented out together, deliberately. The roadmap is meant to
+# teach someone starting from nothing but pronouns, articles and the other
+# function words in `function_words.txt`, and 771 assumed nouns is not
+# nothing: a reader was expected to arrive already knowing `der Abend`, `die
+# Adresse`, `die Ahnung`, `das Alter`.
+#
+# Measured over 277,825 sentences and 4,006 goals before doing it:
+#
+#     assumed known (978 units)   71 out of reach   3,571 goals taught
+#     function words only (196)   79 out of reach   3,788 goals taught
+#
+# So assuming these costs 217 goals of curriculum to save 8 goals of reach.
+# They are words on the goal list that the roadmap would otherwise teach, and
+# presuming them removed them from the syllabus.
+#
+# To put one back, delete its `#`. To put them all back, strip the comment
+# markers below this header.
+
+# der Abend
+# die Adresse
+# die Ahnung
+# das Alter
+# der Anfang
+# das Angebot
+# die Angst
+# der Anschluss
+# die Antwort
+# die Anzeige
+# der Anzug
+# der Apfel
+# der April
+# die Arbeit
+# der Arbeitsplatz
+# der Arm
+# der Arzt
+# die Aufgabe
+# das Auge
+# der August
+# der Ausflug
+# der Ausgang
+# die Auskunft
+# das Ausland
+# der Ausländer
+# die Aussage
+# der Ausweis
+# das Auto
+# die Autobahn
+# das Baby
+# das Bad
+# die Bahn
+# der Bahnhof
+# der Ball
+# die Bank
+# der Bauch
+# der Baum
+# das Bein
+# das Beispiel
+# der Beruf
+# der Besuch
+# das Bett
+# die Bibliothek
+# das Bier
+# das Bild
+# die Bitte
+# der Blick
+# die Blume
+# der Bogen
+# der Brief
+# die Brille
+# das Brot
+# der Bruder
+# die Brücke
+# das Buch
+# der Buchstabe
+# der Bus
+# die Butter
+# die CD
+# das Café
+# der Chef
+# der Computer
+# die Dame
+# der Dank
+# das Datum
+# der Dezember
+# der Dienstag
+# das Ding
+# der Doktor
+# der Donnerstag
+# das Dorf
+# die E-Mail
+# die Ecke
+# das Ei
+# der Eingang
+# die Einladung
+# der Eintritt
+# die Eltern
+# der Empfänger
+# das Ende
+# die Entschuldigung
+# das Ergebnis
+# das Essen
+# der Fahrer
+# das Fahrrad
+# die Familie
+# die Farbe
+# der Februar
+# der Fehler
+# die Feier
+# das Feuer
+# das Fieber
+# der Film
+# die Firma
+# der Fisch
+# die Flasche
+# das Fleisch
+# der Flug
+# der Flughafen
+# das Flugzeug
+# das Foto
+# die Frage
+# die Frau
+# der Freitag
+# die Freizeit
+# der Freund
+# die Freundin
+# der Frühling
+# das Frühstück
+# der Fuß
+# der Fußball
+# die Führung
+# der Garten
+# der Gast
+# der Geburtstag
+# das Gegenteil
+# das Geld
+# das Gemüse
+# das Gepäck
+# das Geschenk
+# die Geschwister
+# das Geschäft
+# das Gesicht
+# das Gespräch
+# das Getränk
+# das Gewicht
+# das Glas
+# das Glück
+# das Gramm
+# die Großmutter
+# der Großvater
+# die Gruppe
+# der Gruß
+# die Größe
+# das Haar
+# die Halle
+# der Hals
+# die Hand
+# das Handy
+# das Haus
+# das Heft
+# die Heimat
+# das Hemd
+# der Herbst
+# der Herr
+# die Hilfe
+# der Himmel
+# das Hobby
+# die Hochzeit
+# das Hotel
+# der Hund
+# der Hunger
+# die Idee
+# die Information
+# das Instrument
+# das Internet
+# die Jacke
+# das Jahr
+# der Januar
+# der Job
+# der Juli
+# der Junge
+# der Juni
+# der Kaffee
+# die Karte
+# die Kartoffel
+# die Kasse
+# die Katze
+# die Kette
+# das Kilogramm
+# das Kind
+# der Kindergarten
+# das Kino
+# die Kirche
+# die Klasse
+# die Kleidung
+# der Koffer
+# der Kollege
+# das Konto
+# das Konzert
+# der Kopf
+# das Krankenhaus
+# der Kunde
+# der Kurs
+# der Käse
+# die Küche
+# der Laden
+# die Lampe
+# das Land
+# das Leben
+# das Lebensmittel
+# der Lehrer
+# die Leute
+# das Licht
+# das Lied
+# der Liter
+# das Lokal
+# die Lust
+# die Lösung
+# der Mai
+# das Mal
+# der Mann
+# der Mantel
+# die Maschine
+# das Meer
+# der Mensch
+# der Meter
+# die Miete
+# die Milch
+# die Milliarde
+# die Million
+# die Minute
+# der Mittag
+# die Mitte
+# der Mittwoch
+# Moment
+# der Montag
+# der Morgen
+# der Motor
+# der Mund
+# die Musik
+# die Mutter
+# das Mädchen
+# der März
+# das Möbel
+# der Nachbar
+# der Nachmittag
+# die Nacht
+# der Name
+# der Norden
+# der November
+# die Nummer
+# Nähe
+# das Ohr
+# der Oktober
+# die Oma
+# die Ordnung
+# der Ort
+# der Osten
+# das Papier
+# der Partner
+# die Party
+# der Pass
+# die Pause
+# die Person
+# der Plan
+# der Platz
+# die Polizei
+# die Post
+# das Praktikum
+# die Praxis
+# der Preis
+# das Problem
+# das Projekt
+# das Prozent
+# die Prüfung
+# der Quadratmeter
+# das Radio
+# der Raum
+# die Rechnung
+# der Regen
+# die Reise
+# die Reparatur
+# das Restaurant
+# der Ring
+# der Rucksack
+# der Rücken
+# die Sache
+# das Salz
+# der Samstag
+# der Satz
+# das Schiff
+# der Schluss
+# der Schlüssel
+# der Schnee
+# der Schrank
+# der Schuh
+# die Schule
+# das Schwein
+# die Schwester
+# der Schüler
+# der See
+# die See
+# die Seite
+# die Sekunde
+# der September
+# Sie
+# die Situation
+# der Sohn
+# der Sommer
+# die Sonne
+# der Sonntag
+# der Spaß
+# der Sport
+# die Sprache
+# die Stadt
+# die Stelle
+# der Stock
+# der Strand
+# die Straße
+# der Student
+# das Studium
+# die Stunde
+# das Stück
+# der Süden
+# die Tafel
+# der Tag
+# die Tasche
+# die Tasse
+# das Taxi
+# das Team
+# der Tee
+# das Telefon
+# das Tennis
+# der Termin
+# der Test
+# der Text
+# das Thema
+# das Ticket
+# der Tisch
+# die Tochter
+# die Treppe
+# die Uhr
+# der Unterricht
+# die Unterschrift
+# der Urlaub
+# der Vater
+# der Verein
+# der Verkäufer
+# der Vermieter
+# der Vormittag
+# die Vorsicht
+# das Wasser
+# der Weg
+# der Wein
+# die Welt
+# der Westen
+# das Wetter
+# das Wiedersehen
+# der Wind
+# der Winter
+# der Witz
+# die Woche
+# das Wochenende
+# die Wohnung
+# die Wolke
+# das Wort
+# die Wäsche
+# die Zeit
+# die Zeitung
+# das Zelt
+# der Zentimeter
+# das Zentrum
+# die Zigarette
+# das Zimmer
+# der Zucker
+# der Zug
+# ab
+# aber
+# etw. (Akk) bei jdm. abgeben
+# jdn./etw. (Akk) abholen
+# abhängig
+# als
+# also
+# alt
+# am
+# an
+# jdm. (Dat) etw. (Akk) anbieten
+# mit etw. anfangen
+# auf etw. / an etw. ankommen
+# jdn./etw. (Akk) anmelden
+# jdn. (Akk) anrufen
+# jdm. (Dat) auf etw. antworten
+# etw. (Akk) / sich (Akk) anziehen anziehen
+# arbeiten
+# arbeitslos
+# arm
+# auch
+# auf
+# mit etw. aufhören
+# aufstehen
+# aus
+# etw. (Akk) ausfüllen
+# ausländisch
+# etw. (Akk) / jdm. (Dat) etw. ausmachen
+# nach etw. aussehen
+# aus etw. (Dat) aussteigen
+# etw. (Akk) / aus etw. (Dat) ausziehen
+# automatisch
+# außer
+# bald
+# jdm. (Dat) etw. (Akk) bedeuten
+# etw. (Akk) beenden
+# mit etw. / etw. (Akk) beginnen
+# bei
+# beide
+# bekannt
+# etw. (Akk) bekommen
+# etw. (Akk) benutzen
+# jdn. (Akk) beraten
+# jdm. (Dat) etw. (Akk) beschreiben
+# besser
+# aus etw. / etw. (Akk) bestehen bestehen
+# jdm. (Dat) etw. (Akk) bestellen
+# jdn./etw. (Akk) besuchen
+# etw. (Akk) / jdn. (Akk) bezahlen
+# billig
+# bis
+# bisschen
+# bitte
+# jdn. (Akk) um etw. bitten
+# bitter
+# blau
+# bleiben
+# jdm. (Dat) etw. (Akk) braten
+# etw./jdn. (Akk) brauchen
+# braun
+# breit
+# jdm. (Dat) etw. (Akk) bringen
+# böse
+# da
+# dabei
+# dafür
+# daneben
+# danke
+# jdm. (Dat) für etw. danken
+# dann
+# darauf
+# darüber
+# das Gehalt
+# das Institut
+# das Zuhause
+# dass
+# dauern
+# dein
+# demokratisch
+# denken
+# denn
+# der Rücken
+# der Übersetzer
+# deshalb
+# die Arbeitslosigkeit
+# die Mehrheit
+# die Minderheit
+# die Steuer
+# direkt
+# mit jdm. über etw. diskutieren
+# doch
+# dort
+# dorthin
+# draußen
+# drei
+# drüben
+# etw. (Akk) drücken
+# du
+# dumm
+# dunkel
+# durch
+# dünn
+# dürfen
+# echt
+# eigentlich
+# ein
+# einfach
+# einige
+# etw. (Akk) einkaufen
+# jdn. (Akk) zu etw. einladen
+# einmal
+# eins
+# in etw. (Akk) einsteigen
+# einzeln
+# in etw. (Akk) / etw. (Akk) einziehen
+# jdm. (Dat) etw. (Akk) empfehlen
+# mit etw. enden
+# endlich
+# jdn. (Akk) / sich bei jdm. entschuldigen
+# er
+# jdm. (Dat) etw. (Akk) erklären
+# jdm. (Dat) etw. (Akk) erlauben
+# erst
+# erste
+# jdm. (Dat) etw. (Akk) erzählen
+# es
+# etw. (Akk) essen
+# etwas
+# euer
+# etw. (Akk) fahren
+# fallen
+# falsch
+# fast
+# jdm. (Dat) fehlen
+# etw. (Akk) feiern
+# fertig
+# etw./jdn. (Akk) finden
+# fliegen
+# jdn./etw. (Akk) fotografieren
+# jdn. (Akk) fragen
+# frei
+# fremd
+# jdn. (Akk) freuen
+# frisch
+# früh
+# früher
+# furchtbar
+# für
+# ganz
+# jdm. (Dat) etw. (Akk) geben
+# geboren
+# jdm. (Dat) gefallen
+# gegen
+# gegenüber
+# gehen
+# jdm. (Dat) gehören
+# gelb
+# genau
+# gerade
+# gestern
+# etw. (Akk) gewinnen
+# jdm. (Dat) / etw. (Akk) glauben
+# gleich
+# glücklich
+# grau
+# groß
+# grün
+# gut
+# gültig
+# günstig
+# etw./jdn. (Akk) haben
+# hallo
+# etw./jdn. (Akk) halten
+# jdn. (Akk) heiraten
+# heiß
+# heißen
+# jdm. (Dat) helfen
+# hell
+# herzlich
+# heute
+# hier
+# hin
+# hinten
+# hinter
+# hoch
+# auf etw. (Akk) hoffen
+# jdm. (Dat) etw. (Akk) holen
+# etw./jdn. (Akk) hören
+# ich
+# im
+# immer
+# in
+# international
+# ja
+# jemand
+# jetzt
+# jung
+# jdm. (Dat) etw. (Akk) kaufen
+# kein
+# etw./jdn. (Akk) kennen
+# kennenlernen
+# klappen
+# klar
+# klein
+# klug
+# jdm. (Dat) etw. (Akk) kochen
+# komisch
+# kommen
+# jdn./etw. (Akk) kontrollieren
+# jdn. (Akk) etw. (Akk) kosten
+# krank
+# etw. (Akk) kriegen
+# kulturell
+# kurz
+# etw. (Akk) können
+# kühl
+# über jdn./etw. lachen
+# lang
+# langsam
+# langweilig
+# etw./jdn. (Akk) lassen
+# laufen
+# laut
+# leben
+# etw./jdn. (Akk) legen
+# leicht
+# leider
+# leise
+# etw. (Akk) lernen
+# etw. (Akk) lesen
+# letzt
+# jdn./etw. (Akk) lieben
+# lieber
+# liegen
+# links
+# lustig
+# jdn. (Akk) an / --- lügen
+# etw. (Akk) machen
+# mal
+# man
+# manchmal
+# mehr
+# mein
+# jdm. (Dat) etw. (Akk) / sich (Dat) etw. (Akk) merken
+# mit
+# jdm. (Dat) etw. (Akk) mitbringen
+# etw. (Akk) mitmachen
+# jdn./etw. (Akk) mitnehmen
+# morgen
+# männlich
+# etw./jdn. (Akk) mögen
+# möglich
+# müde
+# müssen
+# nach
+# nass
+# natürlich
+# neben
+# etw./jdn. (Akk) nehmen
+# nein
+# neu
+# nicht
+# nie
+# noch
+# normal
+# sich (Dat) etw. (Akk) notieren
+# notwendig
+# nur
+# nützlich
+# oben
+# oder
+# oft
+# ohne
+# jdm. (Dat) / zu etw. passen
+# etw. (Akk) probieren
+# etw. (Akk) rauchen
+# rechts
+# mit jdm. / über etw. reden
+# regnen
+# reisen
+# richtig
+# nach etw. riechen
+# rot
+# ruhig
+# jdm. (Dat) etw. (Akk) sagen
+# sauber
+# schade
+# etw. (Akk) schaffen
+# scharf
+# jdm. (Dat) scheinen
+# jdm. (Dat) etw. (Akk) schicken
+# schlafen
+# schlecht
+# etw. (Akk) schließen
+# jdm. (Dat) nach etw. schmecken
+# etw. (Akk) schneiden
+# schnell
+# schon
+# jdm. (Dat) etw. (Akk) schreiben
+# schwarz
+# schwer
+# schwimmen
+# schön
+# etw./jdn. (Akk) sehen
+# sehr
+# sein
+# seit
+# selbstständig
+# sich
+# sie
+# sitzen
+# so
+# sofort
+# sogar
+# sollen
+# sondern
+# etw. (Akk) speichern
+# etw. (Akk) spielen
+# mit jdm. / über etw./jdn. sprechen
+# spät
+# später
+# stark
+# stattfinden
+# jdm. (Dat) stehen
+# etw./jdn. (Akk) stellen
+# etw. (Akk) studieren
+# etw./jdn. (Akk) suchen
+# super
+# tanzen
+# mit jdm. telefonieren
+# teuer
+# tot
+# total
+# etw./jdn. (Akk) tragen
+# traurig
+# jdn. (Akk) / sich mit jdm. treffen
+# etw. (Akk) trinken
+# trocken
+# etw. (Akk) tun
+# um
+# unbedingt
+# und
+# unser
+# unten
+# unter
+# etw. (Akk) unterschreiben
+# etw. (Akk) verdienen
+# etw./jdn. (Akk) vergessen
+# jdm. (Dat) etw. (Akk) verkaufen
+# jdn./etw. (Akk) verletzen
+# jdm. (Dat) etw. (Akk) / etw. (Akk) verpassen
+# etw. (Akk) verschieben
+# verschieden
+# etw./jdn. (Akk) verstehen
+# etw. (Akk) versuchen
+# viel
+# vielleicht
+# von
+# vor
+# etw. (Akk) / sich auf etw. vorbereiten
+# jdm. (Dat) jdn./etw. (Akk) / sich (Dat) etw. (Akk) vorstellen
+# wach
+# wandern
+# wann
+# warm
+# auf jdn./etw. warten
+# warum
+# was
+# etw./jdn. (Akk) / sich (Dat/Akk) waschen
+# weg
+# weggehen
+# weiblich
+# weich
+# weil
+# weit
+# weiter
+# weiß
+# wenig
+# wenn
+# wer
+# werden
+# wichtig
+# wie
+# wieder
+# etw. (Akk) wiederholen
+# willkommen
+# wir
+# wirklich
+# etw. (Akk) wissen
+# wo
+# woher
+# wohin
+# wohnen
+# etw. (Akk) wollen
+# wunderbar
+# jdm. (Dat) etw. (Akk) wünschen
+# etw. (Akk) an jdn. zahlen
+# jdm. (Dat) etw. (Akk) zeigen
+# zu
+# zufrieden
+# zurzeit
+# zurück
+# jdm. (Dat) etw. (Akk) zurückgeben
+# zusammen
+# zwei
+# zwischen
+# das Öl
+# die Übersetzung
+# etw. (Akk) ändern
+# ärgern
+# jdm. (Dat) etw. (Akk) öffnen
+# etw. (Akk) üben
+# über
+# sich (Dat) etw. (Akk) überlegen
