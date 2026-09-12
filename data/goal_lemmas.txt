@@ -58,4 +58,5 @@ der Abgeordnete, die Abgeordnete	abgeordneter
 der Vorsitzende, die Vorsitzende	vorsitzend
 der Beamte, die Beamte	beamter
 der Angestellte, die Angestellte	angestellter
+der Geliebte, die Geliebte	geliebter
 die Aufwendungen	aufwendung

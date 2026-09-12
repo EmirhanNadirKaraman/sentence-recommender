@@ -27,3 +27,50 @@
 # as "needs 1 other new word here: teilche", blocked by a misspelling of
 # itself.
 teilche	teilchen
+
+# Found by asking which lemmas never appear as their own surface anywhere in
+# 400,000 sentences, then keeping only those the lexicon also does not know,
+# then keeping only those whose correction *is* attested — written somewhere
+# in the corpus, or known to the lexicon. All three filters were needed:
+#
+#   a German adjective lemmatises to a stem nobody ever writes, so `heutig`,
+#   `ehemalig` and `folgend` look invented and are correct — `vorsitzend` is
+#   even used as a correction target in data/goal_lemmas.txt;
+#
+#   and real singulars the corpus happens never to use in the singular —
+#   `bakterie`, `sanktion`, `abonnent`, `migrant` — look the same again.
+#
+# Compare with casefold in Python, not lower() in SQL: this database's
+# collation leaves Ü and Ä alone, so a first pass reported every
+# umlaut-initial word as invented.
+
+adverbie	adverb
+aminosäur	aminosäure
+ausdrück	ausdruck
+austauschteilche	austauschteilchen
+beispielsätz	beispielsatz
+bissch	bisschen
+bissche	bisschen
+daume	daumen
+deutschlern	deutschlernen
+gegende	gegend
+gend	gender
+großelter	großeltern
+größ	groß
+impfunge	impfung
+irgendetwa	irgendetwas
+jemander	jemand
+krankenwag	krankenwagen
+kuche	kuchen
+löch	loch
+mitmensche	mitmensch
+modalverbe	modalverb
+nom	nomen
+pfannkuche	pfannkuchen
+pronome	pronomen
+quartale	quartal
+schlagzeil	schlagzeile
+sklav	sklave
+sonnencrem	sonnencreme
+unt	unten
+welchenr	welcher
