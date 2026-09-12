@@ -44,6 +44,7 @@ from db import Database
 from roadmap import (
     CorpusIndex, ExampleIndex, KnownSet, RoadmapBuilder, UnitPriority,
 )
+from roadmap.reach import reachable
 from roadmap.examples import DECK_SIZE
 from roadmap.step import RoadmapStep
 from roadmap.videos import VideoRoadmapStore
@@ -57,9 +58,21 @@ PAGE_SIZE = 40
 # find a blocker you already know, few enough not to weigh the page down.
 EXAMPLES = 6
 
-# Ceiling on the exhaustive walk behind the blocked list, so a large corpus
-# cannot hang the page.
-WALK_LIMIT = 5000
+# How many words *not* on your list the blocked page may assume you would
+# learn, when asked what is reachable if the walk is allowed to step off the
+# list. Zero is the held reading and the page's default.
+#
+# This replaces a 5,000-step ceiling on the walk, which was a number about
+# page loads rather than about learning. Held it never bound; unblocked it
+# bound every time and quietly decided the answer, reporting 46 goals out of
+# reach where running to exhaustion gives 25 — the difference being 48,419
+# off-list words nobody would ever sit down and learn.
+#
+# Fifty because the exchange rate is poor and worth seeing rather than
+# hiding: measured over 275,930 sentences, 54 off-list words buy 4 goals,
+# 211 buy 11, and 524 buy 24. About twenty words of somebody else's
+# vocabulary per word of your own.
+UNBLOCK_BUDGET = 50
 PREFERRED = ("subtitle", "subtitle:llm", ALL)
 LABELS = {ALL: "everything", "subtitle": "video subtitles",
           "subtitle:llm": "video subtitles, model-corrected",
@@ -1525,39 +1538,28 @@ class Viewer:
         # sentences the roadmap will never show them.
         sentences = [s for s in self.corpus_for(source, list_only)
                      if well_formed(s.text)]
-        # Reuse the resolved vocabulary rather than asking for it again —
-        # known_set() re-runs the parser over every word in the files, which
-        # is seconds, and this page already has the answer.
-        spare = CorpusIndex(sentences, KnownSet(self.known))
-        # Replay the stored plan instead of deriving it again. Learning a unit
-        # is a dictionary update; *choosing* one scores every candidate on the
-        # frontier, and there are thousands of those. The walk below then only
-        # has to cover what the stored plan did not — which, since roadmaps are
-        # built to exhaustion, is usually nothing.
-        for step in self._store.load(
-                self._stored_label(source, list_only, unblock)):
-            spare.learn(step.unit)
         # Only goals, because only goals are ever taught — the question is
         # what the roadmap cannot reach, and the roadmap does not reach for
-        # anything else. Narrowed counting got this for free, having thrown
-        # every non-goal away before the index was built; counting every word
-        # keeps them, so a walk left to its own devices spends its time
-        # learning `Klausur` and then reports it as reachable. Saying so cost
-        # two minutes a page load as well as being wrong.
+        # anything else. A walk left to its own devices spends its time
+        # learning `Klausur` and then reports it as reachable.
         goals = frozenset(self.app.goal_units)
-        # `only_goals` is what the counting switch's third position asks
-        # about, so it has to reach the walk. It only ever reached the
-        # replay, which is a head start and provably inert — the walk runs to
-        # exhaustion either way — so the position sat on the page changing
-        # nothing, which is the failure `counting_switch` is written to
-        # avoid. Held, a goal with one ordinary word in front of it is
-        # stranded by policy; unblocked, the walk may step off the list to
-        # clear it.
-        RoadmapBuilder(spare, self.priority(),
-                       self.app.settings.priority_weight,
-                       goals=goals,
-                       only_goals=not unblock).build(max_steps=WALK_LIMIT)
-        reached = spare.known
+        # Reachability, which is not a teaching order. The walk exists to
+        # choose *which* word to teach next, and that choice cannot change
+        # whether a goal is ever reachable: learning a word never makes
+        # another one harder to reach, so what the walk would eventually
+        # arrive at is a fixpoint and every order arrives at the same one.
+        # `reachable` computes it directly, and the stored-plan replay that
+        # used to give the walk a head start goes with it — checked against
+        # the walk at `budget=0` on both lists, identical sets either way.
+        #
+        # The counting switch's third position is the budget. Held, a goal
+        # with one ordinary word in front of it is out of reach and that is
+        # the answer. Unblocked, the walk may step off the list, and with
+        # unlimited steps it clears almost anything — so the question is only
+        # worth asking with a price attached, which is what `UNBLOCK_BUDGET`
+        # states and `WALK_LIMIT` could not.
+        reached = reachable(sentences, self.known, goals,
+                            budget=UNBLOCK_BUDGET if unblock else 0)
 
         appearances: Counter = Counter()
         # Several sentences a word, not just the easiest one. Which blocker
