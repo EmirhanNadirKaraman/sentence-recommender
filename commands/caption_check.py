@@ -26,86 +26,15 @@ import time
 from alignment import SubtitleAligner
 from corpus import MergeCorrector
 from corpus.quality import well_formed
-from corpus.sentence import RawLine
 from db import Database
+# One implementation of "which track is the machine one, and does it
+# punctuate". It lives beside the ingest path that acts on the answer; this
+# command only measures.
+from ingest.auto_captions import (             # noqa: F401 — re-exported
+    ORIGINAL, PUNCTUATED, machine_track, punctuation_rate,
+)
 
 PAUSE = 1.5
-ORIGINAL = ("de-orig", "de-DE", "de")
-
-# A machine track is usable only if it punctuates. `MergeCorrector` finds
-# sentence boundaries by punctuation, so a track without any becomes one
-# enormous sentence: excellent vocabulary, and nothing a word can be the
-# only unknown in. Measured over ten videos, eight punctuate about a third
-# of their lines and two punctuate none at all — there is no middle, so the
-# threshold only has to separate "some" from "none".
-PUNCTUATED = 0.05
-
-
-def punctuation_rate(lines) -> float:
-    if not lines:
-        return 0.0
-    ended = sum(1 for line in lines
-                if line.content.rstrip().endswith((".", "!", "?")))
-    return ended / len(lines)
-
-
-def _options() -> dict:
-    """Cookieless, like language-app's fetcher tries first.
-
-    It uses a client that needs no n-challenge. Attaching cookies without
-    `js_runtimes` and `remote_components` answers every video with "The page
-    needs to be reloaded", which this project's own attempt log already
-    records as throttling wearing a verdict's clothes.
-    """
-    return {"quiet": True, "no_warnings": True, "skip_download": True}
-
-
-def machine_track(video_id: str) -> tuple[str, list[RawLine]] | tuple[None, None]:
-    """The ASR track for one video, as raw lines — or nothing."""
-    import requests                              # noqa: PLC0415
-    import yt_dlp                                # noqa: PLC0415
-
-    with yt_dlp.YoutubeDL(_options()) as ydl:
-        info = ydl.extract_info(
-            f"https://www.youtube.com/watch?v={video_id}", download=False)
-    autos = info.get("automatic_captions") or {}
-    audio = (info.get("language") or "").lower()
-
-    chosen = None
-    for key in ORIGINAL:
-        if key not in autos:
-            continue
-        # A bare `de` among many languages is the translation pipeline.
-        if key == "de" and "de-orig" not in autos and not audio.startswith("de"):
-            continue
-        chosen = key
-        break
-    if not chosen:
-        return None, None
-
-    entry = next((e for e in autos[chosen] if e.get("ext") == "json3"), None)
-    if not entry:
-        return None, None
-    payload = requests.get(entry["url"], timeout=60).json()
-
-    lines: list[RawLine] = []
-    for number, event in enumerate(payload.get("events") or []):
-        segments = event.get("segs") or []
-        text = "".join(s.get("utf8", "") for s in segments).strip()
-        if not text:
-            continue
-        start = (event.get("tStartMs") or 0) / 1000
-        lines.append(RawLine(
-            sentence_id=-(number + 1),          # negative: never a real row
-            video_id=video_id,
-            start_time=start,
-            duration=(event.get("dDurationMs") or 0) / 1000,
-            content=text,
-            # Empty: the column exists because `sentence` has one, and
-            # neither the corrector nor the aligner reads it.
-            tokens=(),
-        ))
-    return chosen, lines
 
 
 class CaptionCheckCommand:

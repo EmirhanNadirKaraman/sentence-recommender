@@ -27,6 +27,21 @@ from state import open_state
 # error nobody has classified — is treated as weather and tried again.
 SETTLED = frozenset({"no-subtitles", "unavailable", "not-wanted-language"})
 
+# The same question asked by the machine-caption path, where the answer is
+# different in one decisive place: `no-subtitles` means "no *hand-written*
+# subtitles", which is not a verdict there but the entry condition. Skipping
+# those would skip every video the path exists for — on a channel with no
+# manual tracks at all, all of them.
+#
+# What settles instead are the gate's own verdicts. Those are permanent in
+# the way `no-subtitles` is permanent: a track that carries no punctuation
+# today will not have acquired any tomorrow, and a video that explains German
+# in English is not going to stop.
+AUTO_SETTLED = frozenset({
+    "unavailable", "not-wanted-language",
+    "auto-no-track", "auto-unpunctuated", "auto-not-german", "auto-too-short",
+})
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS video_attempts (
     video_id TEXT PRIMARY KEY,
@@ -71,8 +86,11 @@ class AttemptLog:
                 (video_id, outcome, detail[:400],
                  datetime.now().isoformat(timespec="seconds")))
 
-    def settled(self) -> frozenset[str]:
+    def settled(self, accept_auto: bool = False) -> frozenset[str]:
         """Videos there is no point asking about again.
+
+        `accept_auto` asks the question on behalf of the machine-caption
+        path, which settles on a different set — see `AUTO_SETTLED`.
 
         Two ways to earn that. A definite verdict — no subtitles, unavailable,
         wrong language — settles a video at once. An indefinite one settles it
@@ -86,13 +104,14 @@ class AttemptLog:
 
         Three failures is not weather.
         """
+        verdicts = sorted(AUTO_SETTLED if accept_auto else SETTLED)
         with open_state(self._path) as conn:
             self._widen(conn)
             rows = conn.execute(
                 "SELECT video_id FROM video_attempts"
-                f" WHERE outcome IN ({','.join('?' * len(SETTLED))})"
+                f" WHERE outcome IN ({','.join('?' * len(verdicts))})"
                 "    OR (outcome <> 'added' AND tries >= ?)",
-                (*SETTLED, self.GIVE_UP))
+                (*verdicts, self.GIVE_UP))
             return frozenset(r[0] for r in rows)
 
     def attempted(self) -> frozenset[str]:

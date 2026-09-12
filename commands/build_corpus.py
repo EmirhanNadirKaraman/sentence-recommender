@@ -17,7 +17,7 @@ from pathlib import Path
 
 from alignment import SubtitleAligner
 from corpus import (
-    LLMCorrector, MergeCorrector, SubtitleSource,
+    LLMCorrector, MergeCorrector, SubtitleSource, sources_for,
 )
 from db import Database
 from generation import LLMClient
@@ -50,6 +50,9 @@ class BuildCorpusCommand:
 
       subtitle       the language-app subtitle corpus, rejoined and re-split
       subtitle:llm   the same lines repaired by the local model
+      subtitle:auto  the same treatment, over the videos whose captions a
+                     machine wrote — a separate build because it is separate
+                     material, not a better reading of the same material
     """
 
     def run(self, app, source: str, limit: int | None = None,
@@ -58,6 +61,7 @@ class BuildCorpusCommand:
         settings = app.settings
         started = time.time()
         build = f"{source}:llm" if source == "subtitle" and corrector == "llm" else source
+        timed = source.startswith("subtitle")
 
         sentences = self._collect(app, source, corrector, path, workers)
         print(f"{build}: {len(sentences)} sentences from source "
@@ -76,7 +80,7 @@ class BuildCorpusCommand:
         # Subtitle builds keep what the filter set aside, unanalysed. Those
         # sentences are not worth studying from, but they were still said, and
         # an overlay assembled only from the survivors has holes in it.
-        if source == "subtitle" and dropped:
+        if timed and dropped:
             analysed = analysed + [s.as_context() for s in dropped]
             print(f"  keeping {len(dropped)} more for the overlay only")
 
@@ -90,12 +94,18 @@ class BuildCorpusCommand:
         settings = app.settings
         if source == "transcript":
             return self._transcripts(path)
-        if source != "subtitle":
+        if source not in ("subtitle", "subtitle:auto"):
             raise SystemExit(
-                f"unknown source {source!r} (expected subtitle or transcript)")
+                f"unknown source {source!r} (expected subtitle, subtitle:auto "
+                "or transcript)")
 
+        # Who wrote the captions this build is made of. Without it both
+        # subtitle builds read every video and `subtitle` would hold the
+        # machine's words as well as the hand-written ones, with nothing in
+        # the corpus saying which was which.
         with Database(settings.own) as db:
-            videos = SubtitleSource(db, settings.language).videos()
+            videos = SubtitleSource(db, settings.language,
+                                    sources_for(source)).videos()
         engine = self._corrector(corrector, settings)
         aligner = SubtitleAligner()
         print(f"  {len(videos)} videos, correcting with {corrector}…", flush=True)

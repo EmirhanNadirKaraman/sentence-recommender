@@ -27,6 +27,16 @@ accusative, so both are scheduled.
   each stretch of lines to the local model, which also fixes punctuation and
   transcription errors. Any chunk the model fails on falls back to the
   rule-based corrector, so nothing is lost to a bad reply.
+- **Machine captions** — the same treatment, over videos that have no
+  hand-written track at all. Where one exists it is always preferred: measured
+  over thirty videos holding both, the machine track gave 31% fewer teachable
+  sentences. Where none exists the comparison is against nothing, so
+  `add-channel --auto` takes a machine track that passes three tests — it
+  punctuates, it is actually German, and it is long enough. These land in
+  their own build, `subtitle:auto`, and never beside the hand-written ones;
+  the **Studying** switch on every page is the filter, and the videos are
+  marked `auto` wherever they are named. `ingest/auto_captions.py` is the
+  gate, and TODO item 7 is why each test is there.
 - **Generated** — a local model fills gaps where no natural i+1 sentence
   exists for a unit. Every generated sentence is re-analysed and kept only if
   its unknowns are exactly the target.
@@ -41,11 +51,16 @@ below means `.venv/bin/python`.
 ```
 python main.py serve                      browse the results at localhost:8765
 python main.py add-video <ID_OR_URL>      scrape a YouTube video into the catalogue
+python main.py add-channel <ID|@HANDLE>   scrape a whole channel
+python main.py add-channel <CH> --auto    …taking machine captions where there
+                                          are no hand-written ones
+python main.py add-channel <CH> --auto --dry-run   judge them, write nothing
 python main.py status                     what is built, what is due
 python main.py function-words             regenerate the closed-class review file
 python main.py build-corpus tatoeba       analyse and cache a source (~7 min)
 python main.py build-corpus subtitle      the smaller subtitle corpus (~15 s)
 python main.py build-corpus subtitle --corrector llm    repair subtitles with the local model
+python main.py build-corpus subtitle:auto    the machine-captioned videos, kept apart
 python main.py build-corpus subtitle --min-words 7       raise the length floor
 python main.py build-roadmap --steps 200  run the greedy walk
 python main.py build-roadmap --source subtitle          study video subtitles only

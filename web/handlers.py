@@ -76,6 +76,10 @@ UNBLOCK_BUDGET = 50
 PREFERRED = ("subtitle", "subtitle:llm", ALL)
 LABELS = {ALL: "everything", "subtitle": "video subtitles",
           "subtitle:llm": "video subtitles, model-corrected",
+          # Named for what it is rather than for the build that holds it. The
+          # switch is the filter: pick `video subtitles` and no machine
+          # caption is counted, ranked or taught anywhere on the site.
+          "subtitle:auto": "machine captions",
 }
 
 
@@ -146,6 +150,7 @@ class Viewer:
         self._scores = ScoreStore(app.settings.state_path)
         self._durations: dict[str, float] | None = None
         self._video_titles: dict[str, str] | None = None
+        self._machine: frozenset[str] | None = None
         # The quiz pool: every live line in the vocabulary files, grouped into
         # the units they stand for. Rebuilt when an answer changes the files.
         # Which builds exist and how big they are. Every page asks, through
@@ -1742,15 +1747,20 @@ class Viewer:
             "panel": self._to_follow(source, row, back=f"/reels?i={here}"),
         }
 
-    @staticmethod
-    def _scoreboard(row: dict) -> str:
+    def _scoreboard(self, row: dict) -> str:
         length = f"{row['minutes']:.0f} min" if row["minutes"] else "unknown"
-        cells = (("you can follow", f"{row['comprehension']:.0%}"),
+        cells = [("you can follow", f"{row['comprehension']:.0%}"),
                  ("length", length),
                  ("sentences", f"{row['lines']:,}"),
                  ("one new thing", f"{row['i+1']:,}"),
                  ("teaches from your list", f"{row['teaches']:,}"),
-                 ("watchability", f"{row['watch']:.2f}"))
+                 ("watchability", f"{row['watch']:.2f}")]
+        # Here rather than beside the heading, which is where it was first
+        # put: swiping replaces the title with `textContent`, so a marker
+        # inside it survives the first load and disappears on the first
+        # swipe. The scoreboard is re-rendered with the row it describes.
+        if row["video"] in self._machine_written():
+            cells.append(("captions", "machine"))
         return ("<div class='switch'>" + "".join(
             f"<span><strong>{value}</strong> {label}</span>" for label, value in cells
         ) + "</div>")
@@ -2050,6 +2060,35 @@ class Viewer:
                     db.rows("SELECT video_id, title FROM video"))
         return self._video_titles
 
+    def _machine_written(self) -> frozenset[str]:
+        """Videos whose subtitles a machine wrote.
+
+        Asked of the catalogue rather than carried on the scored row, which
+        would look like the tidier place for it. `video_score` has a fixed
+        column list, so a key added to the row survives a cold computation
+        and vanishes on the next warm load — the marker would appear on a
+        restart and disappear the moment the scores were read back, which is
+        worse than not having it.
+        """
+        if self._machine is None:
+            with Database(self.app.settings.own) as db:
+                self._machine = frozenset(db.column(
+                    "SELECT video_id FROM video WHERE transcript_source = %s",
+                    ("auto",)))
+        return self._machine
+
+    def _wrote_it(self, video_id: str) -> str:
+        """The marker saying a machine wrote this one's subtitles.
+
+        On every page that names a video, because it changes what the text
+        is worth: these are the videos with no hand-written track at all, and
+        the words in them were heard by a transcriber rather than typed by
+        a person who knew what was said.
+        """
+        return ("<span class='tag auto' title='No hand-written subtitles — "
+                "these captions were machine-transcribed'>auto</span>"
+                if video_id in self._machine_written() else "")
+
     def watch(self, query: dict) -> str:
         source = self.source(query)
         target = Unit(query.get("kind", ""), query.get("key", ""))
@@ -2099,8 +2138,8 @@ class Viewer:
         panel that fires on its own the moment the reading page opens.
         """
         cues = [s for s in self.app.corpus_store.load(
-                    "subtitle", "subtitle:llm", teachable_only=False,
-                    video=video_id)
+                    "subtitle", "subtitle:llm", "subtitle:auto",
+                    teachable_only=False, video=video_id)
                 if s.timing]
         return sorted(cues, key=lambda s: s.timing.start)
 
@@ -2126,7 +2165,8 @@ class Viewer:
         rows = "".join(
             f"<tr><td><a href='/reels?src={quote(source)}"
             f"&i={by_video.get(r['video'], 0)}'>"
-            f"{escape((r['title'] or r['video'])[:58])}</a></td>"
+            f"{escape((r['title'] or r['video'])[:58])}</a>"
+            f"{self._wrote_it(r['video'])}</td>"
             f"<td class='n'>{r['comprehension']:.0%}</td>"
             f"<td class='n'>{r['watch']:.2f}</td>"
             f"<td class='n'>{self._density(r):.1f}</td>"

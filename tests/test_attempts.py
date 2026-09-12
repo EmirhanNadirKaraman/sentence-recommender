@@ -137,3 +137,49 @@ class AttemptedTest(unittest.TestCase):
     def test_a_video_never_seen_is_in_neither(self) -> None:
         self.assertNotIn("unknown", self.log.attempted())
         self.assertNotIn("unknown", self.log.settled())
+
+
+class AutoSettledTest(unittest.TestCase):
+    """What settles a video depends on which path is asking.
+
+    `no-subtitles` means "no hand-written track". For the ordinary path that
+    is a permanent verdict; for the machine-caption path it is the entry
+    condition, and skipping those would skip every video the path exists for
+    — on a channel with no manual subtitles anywhere, all of them.
+    """
+
+    def setUp(self) -> None:
+        self._dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._dir.cleanup)
+        self.log = AttemptLog(Path(self._dir.name) / "state.sqlite3")
+
+    def test_no_hand_written_track_stops_settling_it(self) -> None:
+        self.log.record("auto-only", "no-subtitles", "auto-generated only")
+        self.assertIn("auto-only", self.log.settled())
+        self.assertNotIn("auto-only", self.log.settled(accept_auto=True))
+
+    def test_a_gate_verdict_settles_it(self) -> None:
+        """An unpunctuated track will not have acquired punctuation tomorrow."""
+        for outcome in ("auto-unpunctuated", "auto-not-german",
+                        "auto-no-track", "auto-too-short"):
+            self.log.record(outcome, outcome, "refused by the gate")
+            self.assertIn(outcome, self.log.settled(accept_auto=True))
+
+    def test_a_gone_video_settles_on_both_paths(self) -> None:
+        self.log.record("gone", "unavailable", "withdrawn")
+        self.assertIn("gone", self.log.settled())
+        self.assertIn("gone", self.log.settled(accept_auto=True))
+
+    def test_a_throttled_request_settles_on_neither(self) -> None:
+        """The trap this whole class of bug came from: a refusal that
+        explains nothing is weather, and writing it off once cost nine
+        videos nobody had checked."""
+        self.log.record("throttled", "unfetchable", "page needs to be reloaded")
+        self.assertNotIn("throttled", self.log.settled())
+        self.assertNotIn("throttled", self.log.settled(accept_auto=True))
+
+    def test_three_failures_settle_it_on_either_path(self) -> None:
+        for _ in range(AttemptLog.GIVE_UP):
+            self.log.record("stubborn", "unfetchable", "still nothing")
+        self.assertIn("stubborn", self.log.settled())
+        self.assertIn("stubborn", self.log.settled(accept_auto=True))

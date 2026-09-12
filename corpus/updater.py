@@ -13,7 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from corpus.corrector import MergeCorrector
-from corpus.source import SubtitleSource
+from corpus.source import SubtitleSource, sources_for
 from db import Database
 
 
@@ -70,8 +70,13 @@ class CorpusUpdater:
 
         have = store.video_ids(build)
 
+        # Only the videos this build is made of. Without the second argument
+        # every build caught up on every video, so one auto-captioned import
+        # would append a machine's words to the hand-written corpus — the
+        # same query being asked by two builds that mean different things.
         with Database(settings.own) as db:
-            videos = SubtitleSource(db, settings.language).videos()
+            videos = SubtitleSource(db, settings.language,
+                                    sources_for(build)).videos()
         fresh = [v for v in videos if v and v[0].video_id not in have]
         if not fresh:
             return Caught(0, 0, 0)

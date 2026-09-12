@@ -228,14 +228,25 @@ tie-break in `VideoWalk.build`, never as a filter — the walk stops when
 nothing left teaches, and a walk over one channel is a different curriculum,
 not a preferred one. Say what the preference costs in sentences taught.
 
-### 7. Auto-generated captions — MEASURED, gate not opened
+### 7. Auto-generated captions — GATE OPEN, behind a quality test
 
-Ingest refuses auto-generated captions (`ingest/video.py:173`, and
-language-app's fetcher before it) because ASR mangles the endings a learner
-is studying. So all 1,382 videos are `transcript_source='manual'`, and manual
-German subtitles are the scarce thing: `hunt` discards most of what it finds
-for lacking them, and the 190-channel queue would grow the pool if auto
-tracks were acceptable.
+Ingest refused auto-generated captions (`ingest/video.py`, and language-app's
+fetcher before it) because ASR mangles the endings a learner is studying. So
+all 1,382 videos were `transcript_source='manual'`, and manual German
+subtitles are the scarce thing: `hunt` discards most of what it finds for
+lacking them, and the 190-channel queue would grow the pool if auto tracks
+were acceptable.
+
+**`add-videos --auto` and `add-channel --auto` now take one where there is no
+hand-written track at all** — never instead of one, because of the
+measurement below. It lands as `transcript_source='auto'` in its own build,
+`subtitle:auto`, and the Studying switch is the filter: pick *video
+subtitles* and no machine caption is counted, ranked or taught anywhere.
+Videos that came in that way carry an `auto` mark on the catalogue and a
+*captions: machine* cell on the reel.
+
+The rest of this entry is the measurement that decided the shape, and it is
+worth keeping in mind which question it answers.
 
 The repair already exists — `build-corpus subtitle --corrector llm`, cached
 as its own build `subtitle:llm`, with a retention check and a per-chunk
@@ -327,6 +338,62 @@ model hours. The command still exists if the aim ever becomes corpus size. The r
 of the entry stands: keep auto videos in their own build and
 `transcript_source='auto'`, so the reader can see which text a machine wrote
 twice.
+
+**What opened it (2026-09-12).** The 31% above is a machine track measured
+*against the hand-written one for the same video*. Where there is no manual
+track, the comparison is against zero, and this entry already said so:
+"usable where nothing else exists". lingoniGERMAN is that case — 882 videos,
+and not one hand-written German track in any sample taken of it.
+
+So the gate is the whole of the work, and it is three tests in
+`ingest/auto_captions.py`, each from something measured rather than
+imagined:
+
+- **punctuation ≥ 5%.** `MergeCorrector` finds sentence boundaries by
+  punctuation, so a track without any becomes one enormous sentence with
+  excellent vocabulary that teaches nothing. Bimodal, as recorded above.
+- **German ≥ 60%,** judged over ~200-character windows across the whole
+  track. This one is new, and it is the trap this channel sets: a
+  German-*teaching* channel explains German in English, and YouTube reports
+  `language: de` for those videos anyway. Two of the four cleanly-punctuated
+  videos in the first sample were English instruction at 54% and 24% German,
+  against 100% for the two that were really German — clear air, like the
+  punctuation threshold. Detection has to read the whole track, because
+  `get_transcript` reads the first twenty snippets and these videos open
+  "Hallo und willkommen" before running twelve minutes in English.
+- **≥ 20 lines,** the floor the manual path already had.
+
+Ahead of all three, the track has to be the original transcript: `de-orig`,
+or a bare `de` only when the audio is German. A bare `de` beside a hundred
+other languages is YouTube *translating* the speech, and six of an even
+spread of twenty-four lingoni videos are exactly that — English-audio lessons
+whose "German captions" are machine-translated English.
+
+**Sampling, again.** Six videos off the head of the listing said half the
+channel was usable. An even spread of twenty-four said one. `sample-channel`
+already carries this lesson in its docstring — a listing is newest-first and
+a channel's newest uploads are not its typical ones — and it had to be
+learned a second time here. `--dry-run` beside `--auto` judges without
+writing, and is the way to ask.
+
+**What this does not open.** Two thirds of that spread failed on punctuation
+alone while being 100% German with a hundred lines or more. That is
+`MergeCorrector` needing punctuation, not the captions being bad, and
+`--corrector llm` is the named path to it — still unrun, still deliberately
+so, and `LLM_BASE_URL` is unset on this machine.
+
+One thing to know rather than fix: picking *everything* on the Studying
+switch mixes machine captions with hand-written ones, because `_builds(ALL)`
+means every cached build. That is how `subtitle` and `transcript` have always
+mixed under it; the per-video `auto` mark and the switch are the filter.
+
+The caption endpoint throttles separately from the metadata one and harder.
+Downloading a track with `requests.get` — anonymous, no cookie jar — drew
+HTTP 429 on the forty-seventh video of a survey while yt-dlp's own requests
+were still being answered. The download now goes through the same
+`YoutubeDL` instance that fetched the metadata, which is what
+`transcript_fetcher.py:242` does and for the same reason. A refusal there is
+weather: `Throttled` becomes `unfetchable`, which never settles.
 
 ### 8. Backfill `channel_id` on the videos that lack it — DONE
 

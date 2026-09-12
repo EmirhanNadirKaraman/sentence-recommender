@@ -45,7 +45,11 @@ def _parser() -> argparse.ArgumentParser:
                            "that database, or '-' for standard input")
     many.add_argument("--language", help="subtitle language (default: de)")
     many.add_argument("--dry-run", action="store_true",
-                      help="list what would be fetched, and stop")
+                      help="list what would be fetched, and stop; with "
+                           "--auto, fetch and judge each track without "
+                           "writing")
+    many.add_argument("--auto", action="store_true",
+                      help="where a video has no hand-written track, take a machine-generated one if it passes the quality gate; it lands in the `subtitle:auto` build, never beside the hand-written subtitles")
 
     hunt = sub.add_parser(
         "hunt", help="find and add video for the words the corpus cannot teach")
@@ -76,10 +80,15 @@ def _parser() -> argparse.ArgumentParser:
                          help="stop after N videos (default: the whole channel)")
     channel.add_argument("--language", help="subtitle language (default: de)")
     channel.add_argument("--dry-run", action="store_true",
-                         help="list what would be fetched, and stop")
+                         help="list what would be fetched, and stop; with "
+                              "--auto, fetch and judge each track without "
+                              "writing")
+    channel.add_argument("--auto", action="store_true",
+                         help="where a video has no hand-written track, take a machine-generated one if it passes the quality gate; it lands in the `subtitle:auto` build, never beside the hand-written subtitles")
 
     corpus = sub.add_parser("build-corpus", help="analyse and cache a sentence source")
-    corpus.add_argument("source", choices=["subtitle", "transcript"])
+    corpus.add_argument("source",
+                        choices=["subtitle", "subtitle:auto", "transcript"])
     corpus.add_argument("--path", help="folder of .txt transcripts, for "
                                        "`build-corpus transcript`")
     corpus.add_argument(
@@ -430,13 +439,14 @@ def main() -> int:
     if args.command == "add-video":
         AddVideoCommand().run(app, args.video, args.language)
     elif args.command == "add-videos":
-        AddVideosCommand().run(app, args.source, args.language, args.dry_run)
+        AddVideosCommand().run(app, args.source, args.language, args.dry_run,
+                               accept_auto=args.auto)
     elif args.command == "hunt":
         HuntVideosCommand().run(app, args.batch, args.rounds, args.source,
                                 args.dry_run, args.quality, args.absent_only)
     elif args.command == "add-channel":
         AddVideosCommand().run(app, args.channel, args.language, args.dry_run,
-                               args.limit)
+                               args.limit, accept_auto=args.auto)
     elif args.command == "quiz":
         QuizCommand().run(app, args.limit, args.source, args.files)
     elif args.command == "difficulty":
