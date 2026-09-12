@@ -904,3 +904,71 @@ bot-checked, but the cookie path behind it works — cookies plus
 documented in `_scrape_opts`. The videos were skipped because they have no
 hand-written subtitles. Read the refusal before believing the error.
 
+
+## Goals, again
+
+### 20. Goals blocked by their own word — measured, and too small to build
+
+A reader hit this on the page twice. First `das Gen`, "needs 1 other new
+word here: gen", fixed by taking the case markers out of `PLACEHOLDERS`.
+Then `der Stock`:
+
+```
+der Stock — 26x pattern
+Der Stock ist eine Etage in einem Gebäude.
+needs 1 other new word here: etage
+```
+
+That one is honest — a lesson video defining *Stock* by its synonym, blocked
+by the synonym. But looking at all six of its sentences turned up three
+separate classes, and none of them is worth what fixing it costs.
+
+**The six sentences for `der Stock`.** Four of six are blocked by an ordinal
+(`zweiter` x3, `siebter` x1), not by rare vocabulary. One is not the noun at
+all: `Aber dann stock doch gleich die Personalmittel ... auf` is the
+separable verb `aufstocken`, lemmatised onto `Stock`. So some of its 26
+sightings are a different word.
+
+**Three classes, each measured against both lists.**
+
+```
+                        b1_parsed        study_list
+  stranded goals              45               127
+  self-blocked                 3                 4
+  freed outright               2                 2
+```
+
+- *Filler.* `äh` blocks 4 sentences and frees exactly one goal outright,
+  `die Beschäftigung`. Unconditional, and the only clean one — but the
+  sentence it frees opens with the filler, so the prize is one mediocre
+  example for a corpus rebuild.
+- *Ordinals.* Frees 2, and only because `zwei` is known; `sieben` is not, so
+  `siebter` stays blocking. A derivation rule that fires on the cardinal is
+  a global change and a rebuild for two goals.
+- *Self-blocking.* A goal blocked by its own surface form wearing a second
+  lemma: `das Gewissen` by `gewiß` (the noun read as the inflected
+  adjective), `inner` by `innerer`, `das Lokal` by `lokale`, `das Teilchen`
+  by `teilche` — and `teilche` is not a German word, it is a truncation.
+
+**Why the third one is not a bug.** `covered_forms` exists for exactly this
+— one word arriving twice — and its docstring already names these as the
+residue it accepts: it reads goals' *written* keys rather than lemmatised
+ones, and calls the leftovers "a word counted as a stranger that the list
+does in fact reach — the safe direction, since it only ever holds a sentence
+back". Catching them needs a parser over the goal list, which that docstring
+prices and declines.
+
+**And a stem rule would be worse.** The heuristic that found these also
+flagged `der Dolmetscher` "blocked by" `dolmetscherin`, which is a different
+word. Pardoning on a shared stem would mark sentences readable that hold a
+word you cannot read — the unsafe direction, traded away for seven goals.
+
+**The number that decides it.** All three classes together are about 7 goals
+of 172 stranded across both lists, and cost a corpus rebuild plus a matching
+rule. `scratchpad`'s own database plan carries a STOP banner over a better
+ratio than that. Measured, recorded, not built.
+
+The one thing worth doing cheaply if it ever comes up again: `teilche` and
+`gewiß` are analyser artifacts, not vocabulary, and a corrections file for
+*analyser output* — the mirror of `data/goal_lemmas.txt`, which corrects
+list input — would take them without touching the walk.
