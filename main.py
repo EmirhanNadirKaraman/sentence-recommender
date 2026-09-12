@@ -285,6 +285,18 @@ def _parser() -> argparse.ArgumentParser:
     captions.add_argument("--pause", type=float, default=1.5,
                           help="seconds between videos")
 
+    sampler = sub.add_parser(
+        "sample-channel",
+        help="probe a channel's hand-written subtitle rate before importing "
+             "it, sampling evenly rather than from the newest")
+    sampler.add_argument("channel", metavar="ID|@HANDLE|URL")
+    sampler.add_argument("--sample", type=int, default=12,
+                         help="how many videos to probe (default 12)")
+    sampler.add_argument("--language", default="de",
+                         help="subtitle language (default: de)")
+    sampler.add_argument("--pause", type=float, default=1.0,
+                         help="seconds between probes")
+
     look_up = sub.add_parser(
         "lookup", help="the stranded words, as caption-search links to click")
     look_up.add_argument("--limit", type=int, default=25,
@@ -476,6 +488,10 @@ def main() -> int:
     elif args.command == "caption-check":
         from commands.caption_check import CaptionCheckCommand  # noqa: PLC0415
         CaptionCheckCommand().run(app, args.limit, args.source, args.pause)
+    elif args.command == "sample-channel":
+        from commands.sample_channel import SampleChannelCommand  # noqa: PLC0415
+        SampleChannelCommand().run(app, args.channel, args.sample,
+                                   args.language, args.pause)
     elif args.command == "lookup":
         from commands.lookup_links import LookupCommand      # noqa: PLC0415
         LookupCommand().run(app, args.limit, tuple(args.source),

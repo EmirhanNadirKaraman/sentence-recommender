@@ -103,3 +103,37 @@ class ClassifyingTest(unittest.TestCase):
         self.assertEqual(
             AttemptLog.classify("Sign in to confirm you're not a bot"),
             "blocked")
+
+
+class AttemptedTest(unittest.TestCase):
+    """Tried-and-failed is its own category, and not an opportunity.
+
+    `sample-channel` counted 527 MrWissen2go videos as untried when 526 of
+    them had already been fetched and refused, and reported that the channel
+    held 66 usable videos. It held one.
+    """
+
+    def setUp(self) -> None:
+        self._dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._dir.cleanup)
+        self.log = AttemptLog(Path(self._dir.name) / "state.sqlite3")
+
+    def test_a_failure_counts_as_attempted(self) -> None:
+        self.log.record("bad", "unfetchable", "no subtitles came back")
+        self.assertIn("bad", self.log.attempted())
+
+    def test_a_success_does_not(self) -> None:
+        """It is in the catalogue; `already_have` is what covers it."""
+        self.log.record("good", "added")
+        self.assertNotIn("good", self.log.attempted())
+
+    def test_attempted_is_wider_than_settled(self) -> None:
+        """One failure is not enough to settle, but it is enough to stop the
+        video being called untried."""
+        self.log.record("once", "unfetchable", "throttled")
+        self.assertIn("once", self.log.attempted())
+        self.assertNotIn("once", self.log.settled())
+
+    def test_a_video_never_seen_is_in_neither(self) -> None:
+        self.assertNotIn("unknown", self.log.attempted())
+        self.assertNotIn("unknown", self.log.settled())

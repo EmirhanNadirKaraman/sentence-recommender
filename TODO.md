@@ -918,6 +918,19 @@ earlier warning about Kurzgesagt the other way round: a rate measured at the
 head of a listing does not describe the tail, and it can be wrong in either
 direction.
 
+**Exhausted is not permanent.** The back catalogue has nothing; the channel
+still writes subtitles on what it uploads now. Between two listings an hour
+apart it gained one video, and that video had a hand-written track. So this
+is a channel to re-sample every so often, not one to cross off — and the
+right cadence is however often it uploads, not a schedule.
+
+**Use `sample-channel` for the next one.** It lists a channel, splits the
+unheld videos into written-off / tried-and-failed / never-tried, and probes
+a spread of the never-tried for a manual track. Its first version counted
+all 527 unheld MrWissen2go videos as new and estimated 66 usable ones; there
+was one. Tried-and-failed is not an opportunity, and the command now says so
+separately.
+
 **`--limit` does not chunk what you think.** `_collect` passes it to
 `lister.videos(channel, limit)`, so it caps the *listing*, before the
 already-have filter. With 400 of the newest already held, `--limit 100`

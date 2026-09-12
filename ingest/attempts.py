@@ -95,6 +95,22 @@ class AttemptLog:
                 (*SETTLED, self.GIVE_UP))
             return frozenset(r[0] for r in rows)
 
+    def attempted(self) -> frozenset[str]:
+        """Videos asked about before that did not land.
+
+        Distinct from `settled`, which is the subset there is no point asking
+        about *again*. Everything here has been tried and refused at least
+        once and may still be retried — but it is not an opportunity either,
+        and `sample-channel` needs the difference: counting these as untried
+        told a reader that MrWissen2go held 66 usable videos when 526 of the
+        527 it counted had already been fetched and refused.
+        """
+        with open_state(self._path) as conn:
+            self._widen(conn)
+            rows = conn.execute(
+                "SELECT video_id FROM video_attempts WHERE outcome <> 'added'")
+            return frozenset(r[0] for r in rows)
+
     def counts(self) -> dict[str, int]:
         with open_state(self._path) as conn:
             return dict(conn.execute(
