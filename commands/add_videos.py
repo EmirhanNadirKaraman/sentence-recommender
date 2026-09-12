@@ -49,6 +49,14 @@ BUILD_OF = {"manual": "subtitle", "auto": "subtitle:auto"}
 # survey's own pacing says is too fast, tripled.
 PAUSE = 5.0
 
+# Consecutive rate-limit refusals before a run gives up entirely. Low, because
+# the signal is unambiguous and the cost of carrying on is everything after
+# it: 429 says the asking was too fast, so the next video cannot fare better,
+# and neither can the next channel. A harvest that carried on regardless spent
+# about 550 fetches across ten channels and imported nothing — four of which
+# sampled at 90-100% hand-written subtitles and were entirely good.
+THROTTLE_LIMIT = 5
+
 
 class AddVideosCommand:
     def run(self, app, source: str, language: str | None = None,
@@ -100,6 +108,7 @@ class AddVideosCommand:
             return self._survey(app, ingestor, fresh, language, pause)
 
         added, refused = [], []
+        throttled = 0        # consecutive rate-limit refusals
         for index, video_id in enumerate(fresh, start=1):
             if index > 1 and accept_auto:
                 # Only on this path: the manual one has fetched channels for
@@ -121,10 +130,33 @@ class AddVideosCommand:
                 print("skipped")
                 continue
             except Exception as error:          # noqa: BLE001 — one bad video
-                refused.append((video_id, f"{type(error).__name__}: {error}"))
-                log.record(video_id, "error", f"{type(error).__name__}: {error}")
+                detail = f"{type(error).__name__}: {error}"
+                # Read the outcome rather than calling everything an error:
+                # an HTTP 429 arrives here, and recording it as `error` hid
+                # the one refusal that says nothing about the video.
+                outcome = AttemptLog.classify(detail)
+                refused.append((video_id, detail))
+                log.record(video_id, outcome, detail)
                 print("failed")
+                if outcome != "throttled":
+                    throttled = 0
+                    continue
+                throttled += 1
+                if throttled >= THROTTLE_LIMIT:
+                    # Stop the run, not just this video. Being rate-limited
+                    # is about the asking, not the thing asked for, so the
+                    # next video and the next channel fare no better: a
+                    # harvest that carried on regardless spent about 550
+                    # fetches across ten channels and imported nothing, and
+                    # four of those channels sampled at 90-100%.
+                    print(f"\n!! {throttled} rate-limit refusals in a row — "
+                          "stopping.\n   This is throttling, not these "
+                          "videos. Nothing is written off: a 429 does not "
+                          "count\n   towards giving up. Wait an hour or two "
+                          "and run the same command again.")
+                    break
                 continue
+            throttled = 0
             log.record(video_id, "added")
             added.append(landed)
             print(f"{landed.lines} lines, {landed.language}, {landed.source}")
