@@ -29,6 +29,7 @@ from collections import Counter
 from pathlib import Path
 from threading import Lock
 
+from roadmap.store import ALL
 from vocab.entry import Unit
 from vocab.loader import ARTICLES
 
@@ -297,9 +298,19 @@ class QuizCommand:
 
         Counted by the database rather than by loading the corpus and
         tallying it, which was nineteen seconds before the first question.
+
+        `all` is the page's word for every build, not the name of one, and
+        `unit_counts` matches build names exactly. Passed straight through it
+        matched no build at all, so every unit came back said zero times —
+        and `pool` drops a unit the corpus never says, on the reasonable
+        grounds that being wrong about it costs nothing. All 889 of them went
+        that way, and the quiz reported that every assumed-known word had
+        been checked when it had asked about 24 of them.
         """
+        builds = (tuple(app.corpus_store.builds()) if source in (ALL, "")
+                  else tuple(source.split("+")))
         return Counter({Unit(kind, key): n for (kind, key), n
-                        in app.corpus_store.unit_counts(source).items()})
+                        in app.corpus_store.unit_counts(*builds).items()})
 
     @staticmethod
     def examples(app, unit: Unit, source: str, hidden: frozenset | set = (),
