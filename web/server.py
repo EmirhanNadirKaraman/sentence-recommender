@@ -155,6 +155,15 @@ def _make_handler(viewers: "Viewers"):
                 html, status = self._route(path, query)
                 if status:                     # 0 means the route already replied
                     self._send(html, status)
+            except (BrokenPipeError, ConnectionResetError):
+                # The reader hung up while this was being built or sent —
+                # navigating away, reloading, or simply tired of waiting for
+                # a page that takes seconds cold. `handle_one_request` knows
+                # to treat that as ordinary, but only if it is allowed to see
+                # it: caught here as a generic error it printed a traceback
+                # for something nobody did wrong, and then tried to send a
+                # 500 down the same closed socket, which raised again.
+                raise
             except Exception as error:            # noqa: BLE001 — show it, don't die
                 _report(error, self.path)
                 self._send(_oops(error), status=500)
