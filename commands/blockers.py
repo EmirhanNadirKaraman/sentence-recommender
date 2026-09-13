@@ -58,9 +58,12 @@ class BlockersCommand:
         index = CorpusIndex(sentences, known, app.compounds)
         RoadmapBuilder(index, app.priority(), app.settings.priority_weight,
                        goals=goals, only_goals=True).build()
-        reachable = index.known
-        stranded = sorted(goals - reachable, key=lambda u: u.key)
-        print(f"  {len(reachable) - len(known.units):,} reached by the walk · "
+        # Not named `reachable`: that is the imported closure, and shadowing
+        # it inside this method leaves `_price` working only because it is a
+        # separate function resolving the module-level name.
+        walked = index.known
+        stranded = sorted(goals - walked, key=lambda u: u.key)
+        print(f"  {len(walked) - len(known.units):,} reached by the walk · "
               f"{len(stranded):,} stranded\n")
 
         holding: dict[Unit, list] = defaultdict(list)
@@ -75,7 +78,7 @@ class BlockersCommand:
         for goal in stranded:
             best: frozenset[Unit] | None = None
             for s in holding.get(goal, ()):
-                missing = frozenset(s.units - reachable - {goal})
+                missing = frozenset(s.units - walked - {goal})
                 if best is None or len(missing) < len(best):
                     best = missing
             if best is None:
@@ -107,7 +110,7 @@ class BlockersCommand:
                   f"{'goal' if unit in goals else 'stranger'}")
         alone = sum(1 for _, f in ranked if len(f) == 1)
         print(f"\n  {alone:,} words each free exactly one goal — no leverage there")
-        self._price(sentences, known, goals, reachable_now=reachable,
+        self._price(sentences, known, goals, reachable_now=walked,
                     budget=budget, limit=limit, compounds=app.compounds)
 
     @staticmethod
