@@ -57,13 +57,30 @@ class ContractTest(unittest.TestCase):
         self.assertIn(FIXES.resolve(), [p.resolve() for p in SOURCES])
 
     def test_the_ambiguous_cases_are_not_in_it(self) -> None:
-        """`gewiss`, `lokale` and `innerer` are real German words, and which
-        reading is meant is context rather than spelling. Correcting them
-        would be wrong wherever the other reading was intended, so the file
-        documents them as deliberately absent -- this keeps it that way."""
+        """Words whose two readings are genuinely different words stay out.
+
+        `gewiss` and `das Gewissen` share a surface, and so do `lokale` and
+        `das Lokal`; which is meant is context rather than spelling, and a
+        rewrite would be wrong wherever the other was intended.
+        `dolmetscherin` is simply a different word from `dolmetscher`.
+
+        `innerer` and `sämtlicher` were once on this list and are now in the
+        file, deliberately. They are not ambiguous: the parser emits two
+        lemmas for one word depending on the parse, and merging them loses no
+        reading because both readings are the same word. That is the second
+        category the file's header describes, and the distinction is the
+        whole reason the header had to be written.
+        """
         fixes = UnitAnalyzer._read_fixes()
-        for word in ("gewiß", "gewiss", "lokale", "innerer", "dolmetscherin"):
+        for word in ("gewiß", "gewiss", "lokale", "dolmetscherin",
+                     "detailliert"):
             self.assertNotIn(word, fixes)
+
+    def test_the_normalisations_are_in_it(self) -> None:
+        """The other half of that distinction, pinned so it cannot drift."""
+        fixes = UnitAnalyzer._read_fixes()
+        self.assertEqual(fixes.get("innerer"), "inner")
+        self.assertEqual(fixes.get("sämtlicher"), "sämtlich")
 
 
 if __name__ == "__main__":
