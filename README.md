@@ -247,7 +247,8 @@ plans are not the shareable part.
 
 ## Or with Docker
 
-For someone handed a dump, this is the whole setup:
+For someone handed a dump, this is the whole setup — with Docker Desktop
+running, which it is not just because it is installed:
 
 ```
 mkdir -p dump && cp /wherever/corpus.dump dump/
