@@ -103,6 +103,36 @@ function offerUndo(kind, key, src, opts) {
   setTimeout(function () { if (bar.parentNode) bar.remove(); }, 8000);
 }
 
+// The two things both the reading page and the reels feed need from a
+// video's cues, and the only two they agree on. What they do with a cue
+// differs — one marks a line in a full transcript beside the picture, the
+// other has just the caption under it — so the fetching and the lookup are
+// shared and the drawing is not.
+//
+// Cached across both: the feed goes back and forth between videos, and the
+// deck can touch a dozen, so asking twice for the same cues is the common
+// case rather than the rare one.
+var CUES = {};
+
+function loadCues(id) {
+  if (!id) return Promise.resolve([]);
+  if (CUES[id]) return Promise.resolve(CUES[id]);
+  return fetch('/api/transcript?video=' + encodeURIComponent(id))
+    .then(function (r) { return r.json(); })
+    .then(function (d) { CUES[id] = d.cues || []; return CUES[id]; })
+    .catch(function () { return []; });
+}
+
+// Which cue is being spoken at `now`, or -1 if there are none. A linear
+// scan: cues are in order and this runs four times a second, so finding the
+// place costs less than keeping an index would.
+function cueAt(cues, now) {
+  if (!cues.length) return -1;
+  var i = 0;
+  while (i + 1 < cues.length && cues[i + 1].at <= now) i++;
+  return i;
+}
+
 (function () {
   // #reading-top and #reading are replaced when a word is decided; the
   // player and the transcript sit outside them and survive. Anything looked
@@ -116,7 +146,7 @@ function offerUndo(kind, key, src, opts) {
   var box = document.getElementById('transcript');
   var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var player = null, ready = false, busy = false;
-  var loaded = {}, cues = [], marking = -1, video = null;
+  var cues = [], marking = -1, video = null;
   var deck, slides, at, stage, line, showing = 0;
 
   function bind() {
@@ -162,18 +192,13 @@ function offerUndo(kind, key, src, opts) {
 
   function loadTranscript(id) {
     if (!box || !id) return;
-    if (loaded[id]) { drawTranscript(loaded[id]); return; }
-    fetch('/api/transcript?video=' + encodeURIComponent(id))
-      .then(function (r) { return r.json(); })
-      .then(function (d) { loaded[id] = d.cues || []; drawTranscript(loaded[id]); })
-      .catch(function () { drawTranscript([]); });
+    loadCues(id).then(drawTranscript);
   }
 
   function follow(now) {
-    if (!cues.length || !box) return;
-    var i = 0;
-    while (i + 1 < cues.length && cues[i + 1].at <= now) i++;
-    if (i === marking) return;
+    if (!box) return;
+    var i = cueAt(cues, now);
+    if (i < 0 || i === marking) return;
     var all = box.querySelectorAll('.cue');
     if (all[marking]) all[marking].classList.remove('now');
     marking = i;
@@ -346,14 +371,38 @@ function offerUndo(kind, key, src, opts) {
   var board = document.getElementById('reel-board');
   var panel = document.getElementById('reel-panel');
   var counter = document.getElementById('reel-at');
+  var caption = document.getElementById('caption');
+  var cues = [], marking = -1;
   var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var player = null, ready = false, busy = false;
+
+  // The line being spoken, under the picture. The feed plays muted by
+  // default and a reel is chosen by how well it plays with your hands full,
+  // so what is being said has to be readable without sound. The full
+  // transcript the reading page carries would not fit a swipe feed; the
+  // caption is the part that belongs here.
+  function showCues(id) {
+    marking = -1;
+    if (caption) caption.textContent = '';
+    loadCues(id).then(function (rows) {
+      if (id === s.video) cues = rows;
+    });
+  }
 
   window.onYouTubeIframeAPIReady = function () {
     player = new YT.Player('player', {events: {onReady: function () {
       ready = true;
+      setInterval(function () {
+        if (!player || !player.getCurrentTime) return;
+        var i = cueAt(cues, player.getCurrentTime());
+        if (i < 0 || i === marking) return;
+        marking = i;
+        if (caption) caption.textContent = cues[i].text;
+      }, 250);
     }}});
   };
+
+  showCues(s.video);
 
   function go(to) {
     if (busy || to < 0 || to >= s.total) return;
@@ -374,6 +423,7 @@ function offerUndo(kind, key, src, opts) {
         if (d.video !== s.video) {
           s.video = d.video;
           if (ready) player.loadVideoById({videoId: d.video, startSeconds: 0});
+          showCues(d.video);
         }
       })
       .catch(function () {})

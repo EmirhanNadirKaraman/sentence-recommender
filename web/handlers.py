@@ -1729,7 +1729,10 @@ class Viewer:
               "know a word, left to set it aside.</p>"
             + self._audio_toggle()
             + "<div class='card' id='reel'>"
-            + video.player(row["video"], 0)
+            # `stage`, not `player`: it carries the caption line under the
+            # picture, and a feed of muted autoplaying video with nothing
+            # written under it is the one place a caption matters most.
+            + video.stage(row["video"], 0)
             + f"<div id='reel-board'>{self._scoreboard(row)}</div>"
             + f"<div id='reel-panel'>"
             + self._to_follow(source, row, back=f"/reels?i={here}")
