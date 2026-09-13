@@ -26,3 +26,6 @@ backfill.log
 
 # Symlink to this session scratchpad, where the background job logs land.
 logs
+
+# Corpus dumps to restore from. Handed to you, not committed.
+dump/

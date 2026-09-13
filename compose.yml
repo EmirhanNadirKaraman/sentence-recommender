@@ -1,0 +1,61 @@
+# One command for someone starting from a dump.
+#
+#   1. put a .dump file in ./dump
+#   2. docker compose up
+#   3. open http://127.0.0.1:8765
+#
+# What this exists for is the setup, not the data. The corpus is 3,315 MB in
+# Postgres and has no business in an image; the dump stays a file you are
+# handed. What it does pin is everything that was ever wrong on a fresh
+# machine: the Postgres version, the database and role existing at all, and
+# `de_core_news_md` rather than `sm`.
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: sentence_recommender
+      POSTGRES_USER: local_db_user
+      POSTGRES_PASSWORD: local_db_password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Read-only: the restore reads the dump and nothing writes back to it.
+      - ./dump:/dump:ro
+      - ./docker/restore-dump.sh:/docker-entrypoint-initdb.d/10-restore-dump.sh:ro
+    healthcheck:
+      # Over TCP on purpose. The image listens on a unix socket only while it
+      # is running the init scripts, so a TCP check stays red until the
+      # restore has finished — which is what `service_healthy` below waits on.
+      test: ["CMD-SHELL",
+             "pg_isready -h 127.0.0.1 -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      # 162 MB takes a couple of minutes to restore, indexes included.
+      retries: 120
+    restart: unless-stopped
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Real environment variables, which `config.load_dotenv` leaves alone —
+      # it uses `setdefault`, so no .env file is needed in the container.
+      DB_NAME: sentence_recommender
+      DB_USER: local_db_user
+      DB_PASSWORD: local_db_password
+      DB_HOST: db
+      DB_PORT: 5432
+    ports:
+      # 127.0.0.1 only. There is no authentication anywhere in this app.
+      - "127.0.0.1:8765:8765"
+    volumes:
+      # The host's data directory, so `state.sqlite3` — what you know, your
+      # cards, your roadmaps — survives a rebuilt image and can be read with
+      # sqlite3 from outside.
+      - ./data:/app/data
+    restart: unless-stopped
+
+volumes:
+  pgdata:

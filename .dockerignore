@@ -1,0 +1,25 @@
+# The build context. Everything here is either rebuilt inside the image,
+# mounted at run time, or nobody else's business.
+.venv/
+.git/
+__pycache__/
+*.pyc
+.pytest_cache/
+.benchmarks/
+
+# One person's answers, and the corpus cache. Mounted at run time instead —
+# see compose.yml — so the container writes to the host's copy and a rebuilt
+# image does not lose what you know.
+data/*.sqlite3*
+data/resolved.json
+
+# Source material and results, none of which the app reads at run time.
+Easy German Transcripts/
+experiment_results/
+out/
+logs
+backfill.log
+
+# The dump is mounted into Postgres, never baked into an image.
+dump/
+.env

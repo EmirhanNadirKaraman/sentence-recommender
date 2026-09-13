@@ -245,6 +245,40 @@ can serve pages immediately. It still needs its own roadmap: those live in
 once after restoring — it walks against your known set, which is why the
 plans are not the shareable part.
 
+## Or with Docker
+
+For someone handed a dump, this is the whole setup:
+
+```
+mkdir -p dump && cp /wherever/corpus.dump dump/
+docker compose up
+```
+
+Then `http://127.0.0.1:8765`. Postgres comes up at a pinned version, the
+database and role are created, the dump is restored into it, and the app
+image carries `de_core_news_md`. Every mistake the Setup section above warns
+about is one that cannot be made here.
+
+The restore runs only on an empty data directory, so it happens once. To do
+it again — a newer dump, or a bad one — `docker compose down -v` and up
+again. A 162 MB dump takes about two minutes, indexes and all.
+
+`./data` is mounted from the host, so `state.sqlite3` — what you know, your
+cards, your roadmaps — survives a rebuilt image and can still be read with
+`sqlite3` from outside. The app publishes on `127.0.0.1` only, because
+nothing in this project authenticates anything.
+
+The dump is never baked into an image and no link to one belongs in this
+repo. `dump/` is ignored; the file is something you are handed.
+
+**What the container cannot do is scrape.** `add-video`, `add-channel` and
+`hunt` hand yt-dlp the cookies of a browser signed in on the host, which is
+what gets past "Sign in to confirm you're not a bot" — and there is no
+browser in a container. Everything that studies a corpus already built
+(`serve`, `build-roadmap`, `review`, `blockers`) needs neither cookies nor
+network. So: containers for reading someone else's corpus, a virtualenv for
+growing your own.
+
 ## The local viewer
 
 `python main.py serve` opens a page at `127.0.0.1:8765`: what to learn next,
