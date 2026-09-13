@@ -6,6 +6,8 @@ from collections import defaultdict
 from db import Database
 from fingerprint import analyser_fingerprint
 from roadmap.videos import VideoRoadmapStore, VideoWalk
+from vocab.channel_taste import ChannelTaste
+from watchability import taste_weight
 
 
 class BuildVideoRoadmapCommand:
@@ -31,11 +33,26 @@ class BuildVideoRoadmapCommand:
             minutes = {v: secs / 60 for v, secs in db.rows(
                 "SELECT video_id, duration FROM video WHERE duration IS NOT NULL")}
             titles = dict(db.rows("SELECT video_id, title FROM video"))
+            # Which channel each video came from, so what the reader has said
+            # about a channel can settle two videos that teach the same.
+            channel = dict(db.rows(
+                "SELECT v.video_id, c.youtube_channel_id FROM video v"
+                " JOIN channel c ON c.id = v.channel_id"
+                " WHERE c.youtube_channel_id IS NOT NULL"))
+
+        said = ChannelTaste(settings.state_path).all()
+        taste = {video: taste_weight(said.get(channel.get(video)))
+                 for video in grouped}
+        chosen = sum(1 for w in taste.values() if w != 1.0)
 
         known = frozenset(app.known_set().units)
         print(f"{len(grouped)} videos · {len(known):,} units known", flush=True)
 
-        walk = VideoWalk(grouped, known, minutes, titles, floor=floor)
+        if chosen:
+            print(f"  {chosen:,} of them are on a channel you have an opinion "
+                  f"about, out of {len(said):,} channels", flush=True)
+        walk = VideoWalk(grouped, known, minutes, titles, floor=floor,
+                         taste=taste)
         plan = walk.build(max_steps=steps, on_progress=self._report)
         if not plan:
             raise SystemExit("nothing here teaches anything — every video's "

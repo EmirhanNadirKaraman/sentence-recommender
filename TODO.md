@@ -194,39 +194,68 @@ decides whether it is worth keeping at all.
 
 ## Material
 
-### 6. Subscribe to channels, or pick genres, and prefer their videos
+### 6. Subscribe to channels — DONE. Genres still have no data
 
 The reels and the video roadmap rank every video in the catalogue by what it
-teaches and how well it plays. Nothing says whose videos the reader would
+teaches and how well it plays. Nothing said whose videos the reader would
 actually sit through, and a channel they like is a stronger reason to watch
 than a tenth of a sentence a minute.
 
-The blocker was data, and it is gone. All 1,483 videos now carry a
-`channel_id` — a foreign key to `channel`, not the YouTube string — across
-280 named channels (item 8). `video.category` is still no substitute for a
-genre: 1,155 of 1,382 are YouTube's "Education".
+**Channels are built.** Two buttons above the reel, More of this and Less of
+this. The preference lives in `state.sqlite3` beside `known_units`, not in
+`channel.active` which is the scraper's flag, and it is keyed by YouTube's
+channel id rather than the catalogue's integer — `sync-catalogue` refills
+that table wholesale, so a preference pinned to a row number moves to another
+channel the next time the numbering does.
 
-The catalogue is lopsided, which matters for what a preference is worth:
+Applied two ways, neither of them a filter:
+
+- **A weight when the feed is ordered**, x2 up and x0.25 down, and never in
+  the stored score. What you think of a channel is not a property of its
+  videos, so the cache stays true and saying something costs no rescore —
+  which is why `SCORE_VERSION` did not have to move. Measured end to end:
+  setting the top channel aside took it from 0.0733 to 0.0183, subscribing
+  to the next took it from 0.0107 to 0.0214, and they swapped. The demoted
+  channel stayed in the feed one place down.
+- **A tie-break in `VideoWalk.build`**, because a walk over one channel is a
+  different curriculum and not a preferred one. Taste may settle two videos
+  that teach comparably and may never lift a worse one over a better.
+
+"Comparably" had to be banded. Exact equality would never fire: across 1,971
+videos over the line floor there are five tied groups, and 421 of the 429
+videos in them teach nothing, which the walk breaks out before reaching. The
+rates are packed instead — 1,459 of the 1,550 videos that teach anything sit
+within 0.01 sentences a minute of the next. So the rate is rounded to two
+decimals before it is compared. Not one: at a tenth of a sentence a minute
+1,546 of those 1,550 share a band and taste would decide nearly the whole
+order, which is a weight wearing a tie-break's name. Two leaves 214 bands.
+
+**The catalogue is far less lopsided than this item assumed**, which matters
+because the old argument was that a preference had teeth only on the long
+tail. All 2,887 videos carry a `channel_id` across 368 named channels (item
+8), against 1,483 and 280 when this was written:
 
 ```
   Like Germans                 692
+  MrWissen2Go                  400
+  Deutsch mit Rieke            288
   UNED                         246
-  Deutsch lernen mit der DW     28
-  Dinge Erklärt – Kurzgesagt    25
-  ... 276 more channels
+  MrWissen2go Geschichte       186
+  Dinge Erklärt – Kurzgesagt   163
+  ... 362 more channels
 ```
 
-Two channels are 63% of it. Preferring one of those changes little; the
-weight only has teeth on the long tail, and a preference for a channel with
-twelve videos will run out fast — which is the argument for a weight and a
-tie-break rather than a filter, already made below.
+The top two are 38% of it, where they were 63%. Preferring one of them is now
+worth something.
 
-Once the column is filled: a subscription is a reader's judgement, so it
-lives in `state.sqlite3` beside `known_units`, not in `channel.active`,
-which is the scraper's flag. Apply it as a weight in `_score_video` and a
-tie-break in `VideoWalk.build`, never as a filter — the walk stops when
-nothing left teaches, and a walk over one channel is a different curriculum,
-not a preferred one. Say what the preference costs in sentences taught.
+**Genres are still blocked on the same thing.** `video.category` is no
+substitute: 1,997 of 2,887 are YouTube's "Education", 69% in one of eight
+buckets — better than the 84% this item recorded, and still not a genre. It
+would need a signal that does not exist yet, from the channel or the title or
+the corpus itself, and none of that is worth guessing at.
+
+**Still owed:** say what the preference costs in sentences taught. Setting a
+channel aside changes a curriculum and nothing reports by how much.
 
 ### 7. Auto-generated captions — GATE OPEN, behind a quality test
 

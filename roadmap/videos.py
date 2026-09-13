@@ -35,6 +35,26 @@ from vocab.entry import Unit
 # to offer thin videos; the same floor keeps them out of the plan.
 ENOUGH_LINES = 40
 
+# How close two teaching rates have to be before what you think of the channel
+# decides between them.
+#
+# A tie-break rather than a weight, because a walk over one channel is a
+# different curriculum and not a preferred one -- so taste may only choose
+# among videos that teach comparably, never lift a worse one over a better.
+#
+# Exact equality would be decoration: across 1,971 videos there are five tied
+# groups and 421 of the 429 videos in them teach nothing at all, so the walk
+# has already stopped before it could use them. What the rates really are is
+# packed -- 1,459 of the 1,550 videos that teach anything sit within 0.01
+# sentences a minute of the next one, which is a difference no reader could
+# notice and no ordering should turn on.
+#
+# Two decimals, not one. At a tenth of a sentence a minute 1,546 of those
+# 1,550 share a band, and taste would be deciding nearly the whole order --
+# a weight wearing a tie-break's name. Two leaves 214 bands, so the rate
+# still sets the shape and taste settles what is genuinely level.
+RATE_BAND = 2
+
 
 @dataclass(frozen=True)
 class VideoStep:
@@ -62,11 +82,16 @@ class VideoWalk:
                  known: frozenset[Unit],
                  minutes: dict[str, float],
                  titles: dict[str, str] | None = None,
-                 floor: int = ENOUGH_LINES) -> None:
+                 floor: int = ENOUGH_LINES,
+                 taste: dict[str, float] | None = None) -> None:
         self._by_video = {v: s for v, s in grouped.items() if len(s) >= floor}
         self._known = set(known)
         self._minutes = minutes
         self._titles = titles or {}
+        # Video -> what you have said about the channel behind it, already
+        # resolved to a multiplier. Absent means no opinion, which is 1.0 and
+        # settles nothing.
+        self._taste = taste or {}
         # Which videos say a given unit. The whole reason a re-score is cheap.
         self._says: dict[Unit, set[str]] = {}
         for video, sentences in self._by_video.items():
@@ -104,10 +129,16 @@ class VideoWalk:
         steps: list[VideoStep] = []
         left = set(self._by_video)
         while left and (max_steps is None or len(steps) < max_steps):
-            # Rate first, then raw count, then name — so the order is
-            # reproducible and a long video never wins on bulk alone.
+            # Rate first, then what you think of the channel, then raw
+            # count, then name — so the order is reproducible and a long
+            # video never wins on bulk alone. The rate is banded before it is
+            # compared, because below `RATE_BAND` it is noise and taste is a
+            # better reason to watch one video than another than a difference
+            # no one could feel.
             best = max(left, key=lambda v: (
-                self._score[v][0] / (self._minutes.get(v) or 1e9),
+                round(self._score[v][0] / (self._minutes.get(v) or 1e9),
+                      RATE_BAND),
+                self._taste.get(v, 1.0),
                 self._score[v][0], v))
             teaches, gained = self._score[best]
             if not teaches:
