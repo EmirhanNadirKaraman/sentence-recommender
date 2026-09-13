@@ -121,11 +121,18 @@ wüss	wissen
 # sentences that came out the other. In every case but `keiner` the inflected
 # form is the *commoner* of the two, which is why it never looked like noise.
 #
+# `ander` runs the other way, and it is the one that has to. The four above
+# merge onto the base form because that is what the study list resolves to --
+# `viel`, `wenig`, `solch` and `kein` are all goal units as written. `ander`
+# is not: the list writes `ander` and the word table resolves it to `anderer`,
+# so merging onto `ander` pointed every sentence at a unit no goal names, and
+# it went straight back to blocking four goals as a stranger.
+#
 #   vieler  6,542 : viel  5,880        solcher 1,166 : solch     16
-#   weniger 1,704 : wenig   881        anderer 8,152 : ander      6
+#   weniger 1,704 : wenig   881        ander       6 : anderer 8,152
 #   keiner    382 : kein  8,400
 vieler	viel
 weniger	wenig
 solcher	solch
-anderer	ander
+ander	anderer
 keiner	kein
