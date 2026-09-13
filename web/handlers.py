@@ -33,7 +33,7 @@ from watchability import ENOUGH_LINES, watchability
 
 # Bump when scoring changes: the stored rows are only valid for
 # the code that wrote them.
-SCORE_VERSION = 4
+SCORE_VERSION = 5
 
 # How many next-best words to keep per video. The panel shows eight;
 # storing more would be paying to remember what nobody reads.
@@ -133,6 +133,10 @@ class Viewer:
         # reader knows, so it survives marking a word known — the scores are
         # recomputed each load, the grouping is not.
         self._videos: dict[str, dict] = {}
+        # How many lines each video's subtitles hold before filtering, per
+        # source. The denominator `watchability` needs to tell a video you
+        # can follow from the readable tenth of one you cannot.
+        self._spoken: dict[str, dict] = {}
         # Scored rankings, in memory for this request and on disk between
         # runs. `mark_known` drops the memory copy; the stored one is stamped,
         # so it invalidates itself.
@@ -1880,13 +1884,22 @@ class Viewer:
         if rows is not None:
             return rows
         known, goals = self.known, frozenset(self.app.goal_units)
-        rows = sorted((self._score_video(v, s, known, goals)
+        spoken = self._spoken_lines(source)
+        rows = sorted((self._score_video(v, s, known, goals, spoken.get(v))
                        for v, s in self._grouped(source).items()),
                       key=lambda r: -r["watch"])
         self._scores.save(source, stamp, rows)
         return rows
 
-    def _score_video(self, video_id: str, sentences: list, known, goals) -> dict:
+    def _spoken_lines(self, source: str) -> dict[str, int]:
+        """Lines per video before filtering, cached per source."""
+        if source not in self._spoken:
+            self._spoken[source] = self.app.corpus_store.lines_per_video(
+                *self._builds(source))
+        return self._spoken[source]
+
+    def _score_video(self, video_id: str, sentences: list, known, goals,
+                     dialogue: int | None = None) -> dict:
         """One video against one known set.
 
         The next-best words fall out of the same pass: a sentence with one
@@ -1914,7 +1927,8 @@ class Viewer:
                 "lines": len(sentences), "minutes": minutes,
                 "comprehension": comprehension, "i+1": teachable,
                 "teaches": len(unblocks),
-                "watch": watchability(comprehension, minutes, len(sentences)),
+                "watch": watchability(comprehension, minutes,
+                                      len(sentences), dialogue),
                 # Enough to show, not the whole tail: the panel lists eight.
                 "next": [(u.kind, u.key, n) for u, n in gain.most_common(NEXT_WORDS)]}
 
@@ -2026,7 +2040,13 @@ class Viewer:
             # for videos the list had never heard of — and memory and disk
             # then disagreed about which videos exist.
             grouped = self._grouped(source)
-            fresh = {v: self._score_video(v, grouped[v], known, goals)
+            # The same denominator the full pass used. Without it a marked
+            # word rewrites one video's score under a different rule from
+            # every score beside it, and the ranking quietly stops agreeing
+            # with itself.
+            spoken = self._spoken_lines(source)
+            fresh = {v: self._score_video(v, grouped[v], known, goals,
+                                          spoken.get(v))
                      for v in touched if v in grouped}
             rows = sorted((fresh.get(r["video"], r) for r in rows),
                           key=lambda r: -r["watch"])

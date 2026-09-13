@@ -38,7 +38,11 @@ class DifficultyCommand:
         if not by_video:
             raise SystemExit(f"no timed sentences in {source!r}")
 
-        rows = [self._score(vid, group, known, goals, minutes.get(vid))
+        # Lines before filtering, so a video judged on the readable tenth of
+        # itself is not reported as the easiest thing in the corpus.
+        spoken = app.corpus_store.lines_per_video(source)
+        rows = [self._score(vid, group, known, goals, minutes.get(vid),
+                            spoken.get(vid))
                 for vid, group in by_video.items()]
         rows.sort(key=lambda r: -r[sort])
         print(f"\n  {len(rows)} videos, best-first by {sort}\n")
@@ -62,7 +66,7 @@ class DifficultyCommand:
 
     @staticmethod
     def _score(video: str, sentences: list, known, goals,
-               minutes: float | None) -> dict:
+               minutes: float | None, dialogue: int | None = None) -> dict:
         readable = teachable = 0
         unknown_units: set = set()
         unblocks: set = set()
@@ -80,7 +84,7 @@ class DifficultyCommand:
             "lines": len(sentences),
             "minutes": minutes,
             "watch": watchability(comprehension, minutes,
-                                                     len(sentences)),
+                                  len(sentences), dialogue),
             "comprehension": comprehension,
             "i+1": teachable,
             "yield": len(unblocks),

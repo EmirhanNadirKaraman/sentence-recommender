@@ -123,6 +123,21 @@ class CorpusStore:
             return {key for build, key in cur.fetchall()
                     if build not in self._ignored}
 
+    def lines_per_video(self, *builds: str) -> dict[str, int]:
+        """Every line a video's subtitles hold, kept or dropped.
+
+        A count rather than the rows: the filtered-out lines are wanted only
+        as a denominator, and loading a hundred and thirty-five thousand of
+        them to take their length would cost more than everything that uses
+        the answer.
+        """
+        with self._read() as cur:
+            cur.execute("SELECT video_id, count(*) FROM corpus_sentence"
+                        " WHERE build = ANY(%s) AND video_id IS NOT NULL"
+                        " GROUP BY video_id",
+                        (list(builds) or list(self.builds()),))
+            return {video: n for video, n in cur.fetchall()}
+
     def video_ids(self, build: str) -> set[str]:
         """Which videos a build already holds, so the rest can be skipped."""
         with self._read() as cur:

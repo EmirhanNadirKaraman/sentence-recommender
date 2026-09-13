@@ -23,6 +23,22 @@ COMFORTABLE = 0.95
 # same reason an empty page does. Below this it is not easy, it is empty.
 ENOUGH_LINES = 40
 
+# And how much of what was said has to survive filtering before the score
+# describes the video rather than a fragment of it.
+#
+# `ENOUGH_LINES` was meant to cover this and only half does, because it counts
+# the lines that survived rather than the share that did. A Peppa Pig episode
+# whose track is largely English kept 46 of its 390 lines: past the forty-line
+# bar, so nothing damped it, and it was scored as though those 46 were the
+# whole episode -- which made it the *easiest* video in the corpus and the
+# first thing the feed offered. 101 videos clear that bar while losing over
+# half their dialogue.
+#
+# Half, because the typical video keeps far more: coverage runs 56% at the
+# lower quartile, 69% median, 85% at the ninth decile. So this leaves an
+# ordinary video alone and bites only where most of the talking is missing.
+TYPICAL_COVERAGE = 0.5
+
 
 def length_band(minutes: float | None) -> float:
     """How well a video's length sits, on its own, in [0, 1].
@@ -46,7 +62,8 @@ def length_band(minutes: float | None) -> float:
 
 
 def watchability(comprehension: float, minutes: float | None,
-                 lines: int = ENOUGH_LINES) -> float:
+                 lines: int = ENOUGH_LINES,
+                 dialogue: int | None = None) -> float:
     """How well this plays with your hands full.
 
     Three bands multiplied. Comprehension decides whether you can follow it
@@ -55,9 +72,18 @@ def watchability(comprehension: float, minutes: float | None,
     Length is a gentler preference either side of ten minutes. And a video of
     five captioned lines scores wonderfully for the same reason an empty page
     does, so it is damped by how much is actually in it.
+
+    `dialogue` is every line the subtitles hold, against `lines`, which is
+    what survived filtering and is all `comprehension` was measured over. A
+    video most of whose talking was dropped is not an easy video, it is a
+    video being judged on the part that happened to parse -- see
+    `TYPICAL_COVERAGE`. Omit it and nothing is damped, which is what every
+    caller did before the fraction was available to them.
     """
     follow = min(comprehension / COMFORTABLE, 1.0)
     follow *= follow                      # squared: half-understood is far
                                           # worse than half as good
+    covered = (min((lines / dialogue) / TYPICAL_COVERAGE, 1.0)
+               if dialogue else 1.0)
     return round(follow * length_band(minutes)
-                 * min(lines / ENOUGH_LINES, 1.0), 4)
+                 * min(lines / ENOUGH_LINES, 1.0) * covered, 4)
