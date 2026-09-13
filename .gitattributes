@@ -1,0 +1,15 @@
+# Git for Windows checks out with CRLF by default, which breaks the container
+# setup in a way that gives no useful error.
+#
+# `docker/restore-dump.sh` is bind-mounted into the Postgres container and run
+# there by bash. With a CR at the end of every line, `set -euo pipefail` fails
+# as `pipefail\r: invalid option name`; the init script aborts under `set -e`;
+# the TCP healthcheck never goes green; and `app`, which waits on
+# `service_healthy`, hangs forever with the cause buried in the db logs.
+#
+# So: LF on every platform, whatever the local `core.autocrlf` says.
+*.sh text eol=lf
+
+# Same reason, one step removed. The Dockerfile parser tolerates CRLF today,
+# but a `RUN` carrying a heredoc would hand those CRs straight to a shell.
+Dockerfile text eol=lf
