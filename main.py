@@ -94,7 +94,8 @@ def _parser() -> argparse.ArgumentParser:
 
     corpus = sub.add_parser("build-corpus", help="analyse and cache a sentence source")
     corpus.add_argument("source",
-                        choices=["subtitle", "subtitle:auto", "transcript"])
+                        choices=["subtitle", "subtitle:auto", "transcript",
+                                 "generated"])
     corpus.add_argument("--path", help="folder of .txt transcripts, for "
                                        "`build-corpus transcript`")
     corpus.add_argument(
@@ -190,6 +191,12 @@ def _parser() -> argparse.ArgumentParser:
                           help="word list to report against")
     blockers.add_argument("--all-sentences", action="store_true",
                           help="count from every sentence, not only well-formed ones")
+    blockers.add_argument("--budget", type=int, default=150,
+                          help="how many words from outside the list to price, "
+                               "most useful first. The curve has no natural "
+                               "end — given enough words the walk clears "
+                               "almost anything — so this bounds the head of "
+                               "it, where one word still frees many")
 
     sub.add_parser("build-study-list",
                    help="merge the ranking and the form dictionary into "

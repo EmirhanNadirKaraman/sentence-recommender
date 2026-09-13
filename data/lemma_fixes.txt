@@ -74,3 +74,24 @@ sklav	sklave
 sonnencrem	sonnencreme
 unt	unten
 welchenr	welcher
+
+# A second category, and it is not the one above. These are not inventions --
+# `sämtlicher` and `innerer` are perfectly good inflected forms. They are here
+# because the parser emits *two* lemmas for one word depending on the parse,
+# and a goal written one way is then blocked by sentences that came out the
+# other. `sämtliche` yields `sämtlich` eleven times and `sämtlicher` forty-six;
+# `innere` yields `innerer` where `innerem` yields `inner`. Merging them loses
+# no reading, because both readings are the same word.
+#
+# That is normalisation rather than correction, and the distinction matters:
+# it would be wrong to do this where the two lemmas are genuinely different
+# words. `gewiss` and `das Gewissen` share a surface and stay separate for
+# exactly that reason, and so does `detailliert`, which is both a real
+# adjective and a form of `detaillieren`.
+
+grafe	graf
+atomwaff	atomwaffe
+zueinand	zueinander
+verschied	verschieden
+sämtlicher	sämtlich
+innerer	inner

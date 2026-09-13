@@ -17,7 +17,7 @@ from pathlib import Path
 
 from alignment import SubtitleAligner
 from corpus import (
-    LLMCorrector, MergeCorrector, SubtitleSource, sources_for,
+    GENERATED, LLMCorrector, MergeCorrector, SubtitleSource, sources_for,
 )
 from db import Database
 from generation import LLMClient
@@ -60,6 +60,8 @@ class BuildCorpusCommand:
             path: str | None = None, workers: int | None = None) -> None:
         settings = app.settings
         started = time.time()
+        if source == GENERATED:
+            return self._reanalyse(app, started)
         build = f"{source}:llm" if source == "subtitle" and corrector == "llm" else source
         timed = source.startswith("subtitle")
 
@@ -85,6 +87,34 @@ class BuildCorpusCommand:
             print(f"  keeping {len(dropped)} more for the overlay only")
 
         app.corpus_store.save(analysed, build=build)
+        units = len({u for s in analysed for u in s.units})
+        print(f"  cached {len(analysed)} sentences, {units} distinct units "
+              f"({time.time() - started:.0f}s total)")
+
+    @staticmethod
+    def _reanalyse(app, started: float) -> None:
+        """Re-parse the generated build in place.
+
+        Generated sentences have no source to rebuild from -- they are the
+        model's output, already vetted when it produced them, and the build
+        *is* the record of them. So this re-parses the stored text rather
+        than collecting and filtering it again, which would quietly drop
+        sentences that were accepted on their own terms.
+
+        Without it there was no way to clear this build's staleness at all:
+        `status` reported it stale after every analyser change and nothing
+        could act on that.
+        """
+        stored = app.corpus_store.load(GENERATED)
+        if not stored:
+            print("generated: nothing stored — run `fill-gaps` first")
+            return
+        print(f"generated: re-analysing {len(stored)} stored sentences…",
+              flush=True)
+        # `with_units` replaces rather than adds, so the stored units are
+        # overwritten by this parse and need no clearing first.
+        analysed = app.analyzer.analyze_all(stored)
+        app.corpus_store.save(analysed, build=GENERATED)
         units = len({u for s in analysed for u in s.units})
         print(f"  cached {len(analysed)} sentences, {units} distinct units "
               f"({time.time() - started:.0f}s total)")

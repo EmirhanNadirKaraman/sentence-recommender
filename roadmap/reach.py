@@ -32,14 +32,23 @@ from __future__ import annotations
 
 from collections import defaultdict
 
+from vocab.compounds import Compounds
 
-def reachable(sentences, known, goals, budget: int = 0) -> set:
+
+def reachable(sentences, known, goals, budget: int = 0,
+              on_buy=None, compounds: Compounds | None = None) -> set:
     """Every unit reachable from `known`, teaching at most `budget` non-goals.
 
     Goals are free and unlimited: they are what the roadmap exists to teach.
     Anything else is bought out of `budget`, most useful first -- and unlike
     the free part, that order matters, which is why it is chosen rather than
     taken as it comes.
+
+    `on_buy(unit, spent, freed)` is called for each off-list word bought, in
+    the order they are bought, with the goals that word set loose. That is
+    the answer to "what must I learn from outside my list, and for what" --
+    one run at a large budget gives the whole curve, where asking the
+    question once per budget value would rerun the closure every time.
     """
     reached = set(known)
     holds = defaultdict(list)        # unit -> indices of sentences saying it
@@ -53,6 +62,21 @@ def reachable(sentences, known, goals, budget: int = 0) -> set:
                 unknown += 1
         left.append(unknown)
 
+    # A compound whose parts are all known needs no teaching of its own. It
+    # is applied here as well as in the walk, because this function has its
+    # own propagation loop and shares none of the walk's bookkeeping -- left
+    # out, the page would report goals stranded that the walk reaches.
+    # `is None`, not `or`: an empty `Compounds` is falsy, and `or` would
+    # quietly read the file over a caller that meant to disable this.
+    if compounds is None:
+        compounds = Compounds.over(set(holds) | reached)
+    granted = compounds.derivable(reached)
+
+    if granted:
+        reached |= granted
+        for index, sentence_units in enumerate(units):
+            left[index] = sum(1 for u in sentence_units if u not in reached)
+
     def single(index):
         """The one unknown in a sentence, or None if it no longer has one."""
         if left[index] != 1:
@@ -60,11 +84,23 @@ def reachable(sentences, known, goals, budget: int = 0) -> set:
         return next((u for u in units[index] if u not in reached), None)
 
     def learn(unit) -> None:
-        reached.add(unit)
-        for index in holds[unit]:
-            left[index] -= 1
-            if left[index] == 1:
-                ready.append(index)
+        """Learn one unit, and anything its parts now cover.
+
+        Carried one unit at a time to exhaustion rather than recursively:
+        `holds[unit]` is being iterated while `left` is written, so a nested
+        call would mutate the counts under the loop it is nested in.
+        """
+        queue = [unit]
+        while queue:
+            current = queue.pop()
+            if current in reached:
+                continue
+            reached.add(current)
+            queue.extend(compounds.unlocked_by(current, reached))
+            for index in holds[current]:
+                left[index] -= 1
+                if left[index] == 1:
+                    ready.append(index)
 
     ready = [i for i, n in enumerate(left) if n == 1]
     # Sentences whose one remaining unknown is *not* a goal. They are the
@@ -102,8 +138,23 @@ def reachable(sentences, known, goals, budget: int = 0) -> set:
             return reached
         # Ties broken on the key so the answer does not depend on dict order.
         best = max(gain, key=lambda u: (gain[u], u.key))
+        before = reached & goals
         learn(best)                       # may append to `ready`
         budget -= 1
+        if on_buy is not None:
+            # Everything the free closure reached on the back of that one
+            # purchase, which is what makes it worth its price.
+            while ready:
+                index = ready.pop()
+                unit = single(index)
+                if unit is None:
+                    continue
+                if unit in goals:
+                    learn(unit)
+                else:
+                    stalled.append(index)
+            on_buy(best, len(reached & goals) - len(before),
+                   (reached & goals) - before)
         # Re-examine the stalled ones: buying that word may have resolved
         # them. `learn` has already queued anything newly down to one unknown,
         # so both lists have to survive here -- overwriting `ready` with

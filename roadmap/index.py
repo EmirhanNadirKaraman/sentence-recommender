@@ -22,13 +22,15 @@ from collections import defaultdict
 
 from corpus.sentence import Sentence
 from roadmap.known_set import KnownSet
+from vocab.compounds import Compounds
 from vocab.entry import Unit
 
 
 class CorpusIndex:
     """Sentences, their unknown counts, and which sentences each unit appears in."""
 
-    def __init__(self, sentences: list[Sentence], known: KnownSet) -> None:
+    def __init__(self, sentences: list[Sentence], known: KnownSet,
+                 compounds: Compounds | None = None) -> None:
         self._sentences = sentences
         # A snapshot, not the caller's object. The index learns as it walks,
         # and writing that back would silently redefine what the caller thinks
@@ -39,6 +41,27 @@ class CorpusIndex:
         for position, sentence in enumerate(sentences):
             for unit in sentence.units:
                 self._by_unit[unit].add(position)
+
+        # A compound whose parts are all known is already readable, so it is
+        # known too -- `Krankenhaus` is not a word to teach someone who has
+        # `krank` and `Haus`. Resolved against this corpus's own lemmas
+        # because the file is written in plain lowercase and the analyser
+        # keeps the capital that separates `Essen` from `essen`.
+        #
+        # Applied to the known set and never to the sentences: the compound
+        # stays one unit, stays teachable, and no sentence loses a word it
+        # actually says. So this can only make sentences readable earlier --
+        # it cannot put a goal out of reach.
+        # Resolved over what is known as well as what the corpus says: a
+        # part can be a word the reader has and this corpus never uses, and
+        # resolving against the corpus alone dropped exactly those entries --
+        # which are the ones most likely to grant something.
+        # `is None`, not `or`: an empty `Compounds` is falsy, so `or` threw
+        # away a caller that deliberately passed one and read the file again.
+        self._compounds = compounds if compounds is not None else Compounds.over(
+            set(self._by_unit) | self._units)
+        self._granted = self._compounds.derivable(self._units)
+        self._units |= self._granted
 
         self._unknown = [len(s.units - self._units) for s in sentences]
         self._candidates: dict[Unit, set[int]] = defaultdict(set)
@@ -58,6 +81,16 @@ class CorpusIndex:
 
     def unknown_count(self, position: int) -> int:
         return self._unknown[position]
+
+    @property
+    def granted(self) -> frozenset[Unit]:
+        """Units nobody has to learn, because their parts cover them.
+
+        Counted separately from the taught ones so a plan can say so. Without
+        it a compound granted free reads as a goal that was never reached,
+        which is the reverse of what happened.
+        """
+        return frozenset(self._granted)
 
     @property
     def known(self) -> frozenset[Unit]:
@@ -132,20 +165,31 @@ class CorpusIndex:
         unknown counts below zero — silently, since nothing downstream
         inspects the sign — and the frontier stops meaning anything.
         """
-        if unit in self._units:
-            return
-        self._units.add(unit)
-        for position in self._by_unit[unit]:
-            count = self._unknown[position] - 1
-            self._unknown[position] = count
-            if count == 0:
-                self._drop(self._candidates, unit, position)
-                self._readable += 1
-            elif count == 1:
-                self._drop(self._pending, unit, position)
-                self._register(position, 1, drop_from_pending=True)
-            elif count == 2:
-                self._register(position, 2)
+        # A queue rather than recursion, and one unit carried all the way
+        # through before the next is touched. Learning a part can complete a
+        # compound, whose own sentences need the same pass -- but `_register`
+        # reads `self._units` as it stands, so an interleaved second unit
+        # would file sentences against a frontier that is halfway updated.
+        queue = [unit]
+        while queue:
+            current = queue.pop()
+            if current in self._units:
+                continue
+            self._units.add(current)
+            granted = self._compounds.unlocked_by(current, self._units)
+            self._granted.update(granted)
+            queue.extend(granted)
+            for position in self._by_unit[current]:
+                count = self._unknown[position] - 1
+                self._unknown[position] = count
+                if count == 0:
+                    self._drop(self._candidates, current, position)
+                    self._readable += 1
+                elif count == 1:
+                    self._drop(self._pending, current, position)
+                    self._register(position, 1, drop_from_pending=True)
+                elif count == 2:
+                    self._register(position, 2)
 
     def _register(self, position: int, count: int, drop_from_pending: bool = False) -> None:
         """File a sentence under whichever of its unknowns the walk needs.

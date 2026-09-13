@@ -128,8 +128,15 @@ class BuildRoadmapCommand:
             reached = sum(1 for s in plan if s.unit in targets)
             print(f"  {reached} of them are goals; {len(plan) - reached} are "
                   "steps taken to unblock one")
+            # Measured against what the index knows at the *end*, not the
+            # starting set. A goal covered by its own parts is neither a plan
+            # step nor in the seed, so subtracting the two counted it as out
+            # of reach -- reporting the compound work as a loss precisely
+            # where it worked.
+            free = targets & index.granted
             print(f"  {len(targets & known.units):,} goals were already known; "
-                  f"{len(targets) - len(targets & known.units) - reached:,} "
+                  f"{len(free):,} came free from their parts; "
+                  f"{len(targets - index.known):,} "
                   "remain out of reach in this corpus")
         for step in plan[:10]:
             mark = " *" if goals and step.unit in targets else "  "
