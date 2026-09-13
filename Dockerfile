@@ -17,7 +17,16 @@ RUN pip install --no-cache-dir -r requirements.txt \
 
 COPY . .
 
+# chmod rather than trusting the build context: a Windows host has no
+# executable bit to copy, and the entrypoint would arrive unrunnable.
+RUN chmod +x /app/docker/entrypoint.sh
+
 EXPOSE 8765
+
+# The schema before the server — see docker/entrypoint.sh. It execs the CMD
+# below, so `docker compose run app python main.py <anything>` still works and
+# gets a migrated database too.
+ENTRYPOINT ["/app/docker/entrypoint.sh"]
 
 # 0.0.0.0 so the port mapping reaches it. There is no authentication, which
 # is why compose publishes it on 127.0.0.1 only.
