@@ -21,7 +21,7 @@ from heapq import nsmallest
 
 from corpus.quality import score as quality, variety
 from corpus.sentence import Sentence
-from roadmap.examples import DECK_SIZE, rank
+from roadmap.examples import DECK_SIZE, gaps_by_video, rank
 from roadmap.index import CorpusIndex
 from roadmap.priority import UnitPriority
 from roadmap.step import RoadmapStep
@@ -58,6 +58,14 @@ class RoadmapBuilder:
         # rather than eighty minutes into a film. A tie-break inside the deck
         # ranking; see `roadmap.examples.rank`.
         self._minutes = video_minutes
+        # And how hard each video is around the sentence, which is the other
+        # half of the same question: a sentence can be perfectly i+1 and sit
+        # in a video where every other line is hopeless. Measured against the
+        # vocabulary the walk starts from rather than re-measured per step —
+        # it is banded to whole words, and no single step moves a video's
+        # average by one.
+        self._gaps = gaps_by_video(
+            (index.sentence(p) for p in range(len(index))), index.known)
 
     @property
     def goals(self) -> frozenset[Unit]:
@@ -173,7 +181,7 @@ class RoadmapBuilder:
         return tuple(nsmallest(
             DECK_SIZE,
             (self._index.sentence(p) for p in found),
-            key=rank(unit, known, self._minutes),
+            key=rank(unit, known, self._minutes, self._gaps),
         ))
 
     def _relaxed_step(self, position: int) -> RoadmapStep | None:

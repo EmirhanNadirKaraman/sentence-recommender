@@ -20,9 +20,38 @@ from watchability import length_band
 # for sentences that were never written down.
 DECK_SIZE = 24
 
+# How close two videos have to be in difficulty before the ranking stops
+# caring, in unknown words per sentence. Whole words, because that is the unit
+# the number is in and a tenth of a word is not a difference anyone could act
+# on -- and because a finer band would leave nothing for the length key below
+# to decide, which is still doing useful work.
+GAP_BAND = 0
+
+
+def gaps_by_video(sentences, known: frozenset[Unit]) -> dict[str, float]:
+    """Mean unknown units per sentence, per video.
+
+    How hard the material *around* a sentence is. Comprehension -- the share
+    of a video that reads cleanly -- cannot answer this yet and will not for a
+    long time: measured against the current vocabulary, more than half of all
+    videos have not one fully readable sentence, so it is zero for the median
+    video and a key built on it would sort nothing. This still separates them.
+    Of the 1,378 videos with no readable sentence at all, the mean gap runs
+    from 2.38 to 9.04.
+    """
+    totals: dict[str, list] = {}
+    for s in sentences:
+        if s.timing:
+            slot = totals.setdefault(s.timing.video_id, [0, 0])
+            slot[0] += len(s.units - known)
+            slot[1] += 1
+    return {video: unknown / lines for video, (unknown, lines) in totals.items()
+            if lines}
+
 
 def rank(unit: Unit, known: frozenset[Unit],
-         minutes: dict[str, float] | None = None):
+           minutes: dict[str, float] | None = None,
+           gaps: dict[str, float] | None = None):
     """How example sentences for `unit` are ordered.
 
     Readability first, because an example is only useful if the learner can
@@ -36,6 +65,17 @@ def rank(unit: Unit, known: frozenset[Unit],
     alle?`, a five-word fragment with a name cut off the front of it, chosen
     over nine-word sentences that say something.  The walk's own example
     picker hit exactly this and was moved to quality; the deck kept it.
+
+    `gaps` maps a video to how many unknown words its sentences average, and
+    when given, a sentence surrounded by material closer to the reader's level
+    wins a tie. A sentence can be perfectly i+1 and sit in a video where every
+    other line is hopeless, and nothing here used to notice. It is banded to
+    whole words and placed after quality for the same reason length is: a
+    strong key here buys a shorter, easier video by giving up the sentence
+    itself, and the weak key gets most of the benefit for none of the cost.
+
+    Not comprehension, which is the obvious measure and a dead one. See
+    `gaps_by_video`.
 
     `minutes` maps a video to its length, and when given, a sentence from a
     better-sized video wins a tie. It breaks ties rather than outranking
@@ -58,9 +98,19 @@ def rank(unit: Unit, known: frozenset[Unit],
             return 0.0
         return length_band(minutes.get(s.timing.video_id))
 
+    def video_gap(s) -> float:
+        # Unknown means no preference, and it has to sort *last* among the
+        # bands rather than first: a video nothing is known about is not an
+        # easy one. Ascending, because fewer unknown words is better.
+        if gaps is None or s.timing is None:
+            return 0.0
+        found = gaps.get(s.timing.video_id)
+        return float("inf") if found is None else round(found, GAP_BAND)
+
     return lambda s: (len(s.units - known - {unit}),
                       s.translation is None,
                       -quality(s.text),
+                      video_gap(s),
                       -video_fit(s),
                       -variety(s.text),
                       s.text)
@@ -83,7 +133,25 @@ class ExampleIndex:
         unit: Unit,
         known: frozenset[Unit],
         limit: int = 3,
+        minutes: dict[str, float] | None = None,
+        gaps: dict[str, float] | None = None,
     ) -> list[Sentence]:
-        """The `limit` most readable sentences using `unit`, by `rank`."""
+        """The `limit` most readable sentences using `unit`, by `rank`.
+
+        `minutes` and `gaps` are the maps the walk ranks with, and are passed
+        rather than assumed: `rank` says the stored order has to be the order
+        this would have produced, and for a long time it was not. This ranked
+        without either, so 61 of 400 units opened on a different sentence
+        depending on whether the page was served from the store or rebuilt
+        from the corpus, on videos a median 16.6 minutes long against the
+        walk's 14.3.
+
+        `gaps` has to be measured over a whole corpus, so the listings built
+        from `holding=` — every sentence saying one word, and nothing else —
+        pass only `minutes`. A mean taken over that slice would not be the
+        video's difficulty, it would be the difficulty of the lines that
+        happen to contain this word.
+        """
         candidates = self._by_unit.get(unit, ())
-        return sorted(candidates, key=rank(unit, known))[:limit]
+        return sorted(candidates,
+                      key=rank(unit, known, minutes, gaps))[:limit]

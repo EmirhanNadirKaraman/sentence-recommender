@@ -1659,7 +1659,8 @@ class Viewer:
         list_only = self.counting(query)
         holding = self.app.corpus(*self._builds(source), list_only=list_only,
                                   strict=not list_only, holding=(kind, key))
-        found = ExampleIndex(holding).examples(target, known, limit=25)
+        found = ExampleIndex(holding).examples(
+            target, known, limit=25, minutes=self.app.video_minutes)
 
         entries = "".join(
             "<div class='entry'>"
@@ -2220,7 +2221,8 @@ class Viewer:
                                   strict=not list_only,
                                   holding=(target.kind, target.key))
         clips = [s for s in ExampleIndex(holding).examples(
-                     target, self.known, limit=60) if s.timing]
+                     target, self.known, limit=60,
+                     minutes=self.app.video_minutes) if s.timing]
         if not clips:
             return self._page("Watch", self.switch(source, "/") +
                           "<h1>Nothing to watch</h1><p class='empty'>No video "
