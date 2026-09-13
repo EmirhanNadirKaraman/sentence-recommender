@@ -112,13 +112,6 @@ class BuildRoadmapCommand:
             # running the documented flag destroyed the plan it was meant to
             # improve on.
             label = f"{label}:relax"
-        # Last of all, and read off first. A plan begun from a different set
-        # of assumed-known words is a different curriculum -- it teaches what
-        # the other took for granted -- so it cannot share a name with one
-        # begun from the default. Without this, `--function-words` quietly
-        # overwrote the plan it was meant to be compared against.
-        if settings.function_words != Settings().function_words:
-            label = f"{label}:seed:{settings.function_words.stem}"
         # Stamped with what built it, so the reading page can tell whether
         # the decks stored with these steps still describe a corpus that
         # exists — they name their sentences by text alone.

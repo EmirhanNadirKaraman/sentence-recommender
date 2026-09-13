@@ -38,7 +38,6 @@ GOOD = ":good"
 STRICT = ":strict"
 RELAX = ":relax"
 UNBLOCK = ":unblock"
-SEED = ":seed"
 
 
 class Plan(NamedTuple):
@@ -61,11 +60,6 @@ class Plan(NamedTuple):
     # the wall. Part of the name since it changes what the plan *is*, and a
     # plan that differs has to be stored apart from one that does not.
     relax: bool = False
-    # Which vocabulary the walk was allowed to assume, when it is not the
-    # default. A plan begun from 127 function words is a different curriculum
-    # from one begun from 254 -- it teaches what the other assumed -- so it
-    # has to be stored apart and refreshed only under the seed that made it.
-    seed: str = ""
     # Whether a walk aimed strictly at the list was allowed to step off it
     # to unblock a goal. Strict counting normally forbids that, which is a
     # different curriculum and so a different name.
@@ -93,13 +87,6 @@ def read_label(label: str) -> Plan:
     # entire label, and a refresh appended 23,957 steps to a 2,016-goal plan.
     # First, because it is appended last — and before the `:goals:` partition
     # below, which would otherwise take `b1_parsed:relax` for a list name.
-    # First of all, because it is appended last -- and before the `:goals:`
-    # partition below, which would otherwise swallow it as part of the list
-    # name the way `b1_parsed:relax` once was.
-    seed = ""
-    if SEED + ":" in label:
-        label, _, seed = label.rpartition(SEED + ":")
-
     relax = label.endswith(RELAX)
     if relax:
         label = label[: -len(RELAX)]
@@ -131,7 +118,7 @@ def read_label(label: str) -> Plan:
     # was added, and the label still parsed, just wrongly.
     return Plan(builds=builds, list_only=list_only, goals=goals,
                 quality_only=quality_only, strict=strict, goal_list=goal_list,
-                seed=seed, relax=relax, unblock=unblock)
+                relax=relax, unblock=unblock)
 
 
 class RoadmapRefresher:
@@ -173,11 +160,6 @@ class RoadmapRefresher:
             plan = read_label(label)
             wants = plan.goal_list or default
             if plan.goals and wants != active:
-                continue
-            # Same reasoning for the starting vocabulary: extending a plan
-            # begun from a different seed would mix two curricula, and the
-            # steps already stored assume words this run does not.
-            if (plan.seed or default_seed) != active_seed:
                 continue
             builds, list_only = plan.builds, plan.list_only
             if touching and touching not in (builds or (ALL,)):
