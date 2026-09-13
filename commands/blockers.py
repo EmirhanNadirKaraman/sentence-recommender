@@ -38,14 +38,19 @@ from vocab.entry import Unit
 
 
 class BlockersCommand:
-    def run(self, app, source: str = "subtitle", limit: int = 15,
+    def run(self, app, builds: tuple[str, ...] = (), limit: int = 15,
             quality_only: bool = True, budget: int = 150) -> None:
         # Strict, not narrowed. `list_only` throws every non-goal away before
         # the index is built, which erases exactly what this report exists to
         # find: the first version used it and reported 250 goals as never said
         # when the corpus says 98 of them, because the strangers blocking the
         # rest had been narrowed out of existence.
-        sentences = app.corpus(source, strict=True)
+        # Every cached build by default, like the plan commands. One build
+        # was the old default and it answered a different question from the
+        # one the roadmap asks: a goal is not blocked if another build
+        # teaches it, and reporting against `subtitle` alone named blockers
+        # the roadmap had already walked past.
+        sentences = app.corpus(*builds, strict=True)
         if quality_only:
             sentences = [s for s in sentences if well_formed(s.text)]
         known = app.known_set()

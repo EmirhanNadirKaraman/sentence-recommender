@@ -183,7 +183,8 @@ def _parser() -> argparse.ArgumentParser:
     blockers = sub.add_parser(
         "blockers", help="what stands between the roadmap and the rest of the "
                          "study list, and what it would cost to free them")
-    blockers.add_argument("--source", default="subtitle")
+    blockers.add_argument("--source", nargs="+", default=[],
+                          metavar="BUILD", help=SOURCE_HELP)
     blockers.add_argument("--limit", type=int, default=15)
     blockers.add_argument("--goals-list", metavar="NAME",
                        help="saved word list to use, by name, instead of a file. `python main.py word-list` shows what there is")
@@ -471,8 +472,8 @@ def main() -> int:
     elif args.command == "check":
         CheckWordCommand().run(app, args.word)
     elif args.command == "blockers":
-        BlockersCommand().run(app, args.source, args.limit,
-                              not args.all_sentences)
+        BlockersCommand().run(app, tuple(args.source), args.limit,
+                              not args.all_sentences, args.budget)
     elif args.command == "build-corpus":
         BuildCorpusCommand().run(app, args.source, args.limit,
                                  args.corrector, args.min_words, args.path,
