@@ -71,7 +71,7 @@ class BuildRoadmapCommand:
         print(f"corpus {len(sentences)} sentences · known set {len(known)} units"
               + (f" · aiming at {len(targets):,} goals" if goals else ""))
 
-        index = CorpusIndex(sentences, known)
+        index = CorpusIndex(sentences, known, app.compounds)
         # Strict counting holds the walk to the list: it may only teach
         # goals, never an ordinary word that happens to stand in the way.
         # That is a real question — what can this list teach using nothing
@@ -124,6 +124,15 @@ class BuildRoadmapCommand:
 
         print(f"roadmap [{label}]: {len(plan)} steps · {index.readable} sentences "
               f"fully readable at the end · {len(plan)} cards ready")
+        if index.granted:
+            # Almost all of these are earned during the walk rather than at
+            # the seed: a reader starting from function words alone knows
+            # neither `krank` nor `Haus`, so `Krankenhaus` is free only once
+            # the walk has taught both. Counted here because it is the whole
+            # measure of the compound list -- steps that did not have to be
+            # taken.
+            print(f"  {len(index.granted):,} more words came free from their "
+                  "parts, and cost no step")
         if goals:
             reached = sum(1 for s in plan if s.unit in targets)
             print(f"  {reached} of them are goals; {len(plan) - reached} are "

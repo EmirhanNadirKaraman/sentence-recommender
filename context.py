@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import re
 import sys
+from collections import defaultdict
 from functools import cached_property
 
 from config import Settings
@@ -19,6 +20,7 @@ from srs import CardStore, PromptBuilder, SM2Scheduler
 from vocab import (CheckedStore, GoalList, KnownStore, SnoozeStore, Unit,
                    WordListLoader)
 from vocab.cache import ResolvedCache
+from vocab.compounds import Compounds
 
 
 class Application:
@@ -156,6 +158,23 @@ class Application:
     def covered_forms(self) -> frozenset[str]:
         """Every word the study list teaches, under whatever name it uses.
 
+        The set of `covered_by`'s keys. Kept as its own name because most
+        callers only ask whether a form is covered, not by what.
+        """
+        return frozenset(self.covered_by)
+
+    @cached_property
+    def covered_by(self) -> dict[str, frozenset[Unit]]:
+        """Which goal unit teaches each form, for the callers that need it.
+
+        `covered_forms` answers "is this word already on the list", which is
+        all the strict keep-rule needs. Compounds need the other half: a
+        compound part written `haus` is taught by the goal `das Haus`, and
+        under strict counting the bare form is dropped from every sentence as
+        a duplicate of it. Resolving the part to the form alone found nothing
+        -- 187 of 231 parts vanish that way, and the whole list granted two
+        compounds instead of a hundred and eighty.
+
         The list writes a noun with its article and a verb inside a pattern —
         `die Schule`, `jdm. (Dat) etw. (Akk) erzählen` — while the analyser
         also yields the bare lemma, `schule` and `erzählen`. Those are one
@@ -174,7 +193,7 @@ class Application:
         the list does in fact reach — the safe direction, since it only ever
         holds a sentence back.
         """
-        words: set[str] = set()
+        out: dict[str, set[Unit]] = defaultdict(set)
         for unit in self.goal_units:
             # Both cases, and the pair is the point. Lemma keys are lowercase
             # except the nouns that share one with a verb, which keep a
@@ -204,9 +223,9 @@ class Application:
                 # and the particles it was also catching are named explicitly
                 # in PLACEHOLDERS anyway.
                 if len(word) >= 2 and word.lower() not in self.PLACEHOLDERS:
-                    words.add(word)
-                    words.add(word.lower())
-        return frozenset(words)
+                    out[word].add(unit)
+                    out[word.lower()].add(unit)
+        return {form: frozenset(units) for form, units in out.items()}
 
     def _keep_rule(self, strict: bool, list_only: bool):
         """Which units count, as a test applied while they are read.
@@ -318,12 +337,30 @@ class Application:
         match its own occurrences; `word_table` is consulted as well because it
         covers surface forms spaCy lemmatises differently in isolation.
         """
-        return KnownSet(
-            # `exact`, so `das Leben` reaches the noun `Leben` and not
-            # only the verb `leben` the database resolves it to.
-            {Unit.exact(lemma) for lemma in self._known_lemmas()}
-            | self.marked_known.units()
-        )
+        units = ({Unit.exact(lemma) for lemma in self._known_lemmas()}
+                 # `exact`, so `das Leben` reaches the noun `Leben` and not
+                 # only the verb `leben` the database resolves it to.
+                 | self.marked_known.units())
+        # And the compounds those words already cover. Closed here rather
+        # than only inside the walk so that every reader of this agrees with
+        # it: the rail beside a sentence, the "needs N more words" counts,
+        # the video ranking. Closed in the walk as well, because that learns
+        # as it goes and completes compounds the seed could not.
+        return KnownSet(units | self.compounds.derivable(units))
+
+    @cached_property
+    def compounds(self) -> Compounds:
+        """Compound words resolved against this corpus's own lemmas.
+
+        Cached because the resolution needs the corpus's lemma inventory, and
+        the vocabulary is re-resolved on every request.
+        """
+        inventory = {Unit.exact(key) for key in self.corpus_store.lemma_keys()}
+        inventory |= {Unit.exact(lemma) for lemma in self._known_lemmas()}
+        # `covered_by` as well as the corpus, because strict counting drops
+        # the bare `haus` from every sentence in favour of the goal `das
+        # Haus` that teaches it. See `Compounds`.
+        return Compounds.over(inventory, covered_by=self.covered_by)
 
     def _known_lemmas(self) -> list[str]:
         """The vocabulary files as lemmas, from cache when it still applies.

@@ -109,10 +109,17 @@ def reachable(sentences, known, goals, budget: int = 0,
     # budget step to find them again, twice, which cost more than the walk it
     # replaced.
     stalled: list[int] = []
-    while True:
-        # Free: every goal that is currently the only unknown somewhere.
-        # Taken in whatever order they surface, which is safe precisely
-        # because nothing here is scarce.
+
+    def take_the_free_ones() -> None:
+        """Every goal that is currently the only unknown somewhere.
+
+        Taken in whatever order they surface, which is safe precisely because
+        nothing here is scarce. Sentences whose one unknown is *not* a goal
+        are set aside in `stalled` -- they are what the budget can buy.
+
+        One function rather than two copies: this runs once per pass and
+        again after each purchase, to see what that purchase set loose.
+        """
         while ready:
             index = ready.pop()
             unit = single(index)
@@ -122,6 +129,9 @@ def reachable(sentences, known, goals, budget: int = 0,
                 learn(unit)               # may append to `ready`
             else:
                 stalled.append(index)
+
+    while True:
+        take_the_free_ones()
         if budget <= 0:
             return reached
 
@@ -142,19 +152,12 @@ def reachable(sentences, known, goals, budget: int = 0,
         learn(best)                       # may append to `ready`
         budget -= 1
         if on_buy is not None:
-            # Everything the free closure reached on the back of that one
-            # purchase, which is what makes it worth its price.
-            while ready:
-                index = ready.pop()
-                unit = single(index)
-                if unit is None:
-                    continue
-                if unit in goals:
-                    learn(unit)
-                else:
-                    stalled.append(index)
-            on_buy(best, len(reached & goals) - len(before),
-                   (reached & goals) - before)
+            # Settle the cascade before reporting: a purchase is worth what
+            # it sets loose, and most of that arrives through goals freeing
+            # further goals rather than from the word itself.
+            take_the_free_ones()
+            freed = (reached & goals) - before
+            on_buy(best, len(freed), freed)
         # Re-examine the stalled ones: buying that word may have resolved
         # them. `learn` has already queued anything newly down to one unknown,
         # so both lists have to survive here -- overwriting `ready` with

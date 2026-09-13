@@ -108,6 +108,21 @@ class CorpusStore:
                         " GROUP BY build")
             return {b: n for b, n in cur.fetchall() if b not in self._ignored}
 
+    def lemma_keys(self) -> set[str]:
+        """Every lemma the cached corpus uses, once each.
+
+        Read from `corpus_unit_count` rather than `corpus_unit`: the
+        aggregate holds one row per unit per build, tens of thousands, where
+        the raw table holds one per occurrence and runs to millions. The
+        question here is only which lemmas exist, and the aggregate answers
+        it without a scan.
+        """
+        with self._read() as cur:
+            cur.execute("SELECT DISTINCT build, key FROM corpus_unit_count"
+                        " WHERE kind = 'lemma'")
+            return {key for build, key in cur.fetchall()
+                    if build not in self._ignored}
+
     def video_ids(self, build: str) -> set[str]:
         """Which videos a build already holds, so the rest can be skipped."""
         with self._read() as cur:

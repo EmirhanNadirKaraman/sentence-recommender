@@ -212,7 +212,8 @@ class HuntVideosCommand:
             raise SystemExit(f"no cached corpus for {source!r}")
         if quality_only:
             sentences = [s for s in sentences if well_formed(s.text)]
-        spare = CorpusIndex(sentences, known or app.known_set())
+        spare = CorpusIndex(sentences, known or app.known_set(),
+                            app.compounds)
         goals = frozenset(app.goal_units)
         store = RoadmapStore(app.settings.state_path)
         stored = store.sources()

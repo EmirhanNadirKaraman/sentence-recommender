@@ -95,3 +95,21 @@ zueinand	zueinander
 verschied	verschieden
 sämtlicher	sämtlich
 innerer	inner
+
+# `wissen` loses its past and its Konjunktiv II. spaCy reduces the present
+# tense fine and then emits `wüsste`, `wusstet`, `wüssten` as lemmas in their
+# own right, so "Wusstet ihr, dass..." -- an extremely ordinary way to open a
+# sentence -- read as "needs 1 other new word here: wusstet" to someone who
+# had already learned `wissen`. 131 occurrences across eight spellings.
+#
+# `weiß` is deliberately absent. It is also the colour, and merging it would
+# do to `weiß` exactly what this file's header warns about for `gewiss` and
+# `das Gewissen`: two genuinely different words behind one surface.
+wusstet	wissen
+wusst	wissen
+wüsste	wissen
+wüssten	wissen
+wüsstest	wissen
+wüsstet	wissen
+wüsst	wissen
+wüss	wissen

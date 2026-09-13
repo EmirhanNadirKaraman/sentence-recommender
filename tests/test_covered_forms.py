@@ -20,10 +20,16 @@ from vocab.entry import Unit
 
 
 def covered(*goals: Unit) -> frozenset[str]:
-    """`covered_forms` over a made-up goal list, without an Application."""
+    """`covered_forms` over a made-up goal list, without an Application.
+
+    Read off `covered_by`, which is where the forms are now worked out --
+    `covered_forms` is its key set. Compounds need the other half of that
+    map, so it is the mapping that is built and the set that is derived. What
+    each test below asserts is unchanged.
+    """
     stub = type("Stub", (), {"goal_units": goals,
                              "PLACEHOLDERS": Application.PLACEHOLDERS})()
-    return Application.covered_forms.func(stub)
+    return frozenset(Application.covered_by.func(stub))
 
 
 class CoveredFormsTest(unittest.TestCase):

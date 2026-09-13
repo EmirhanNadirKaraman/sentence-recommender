@@ -81,7 +81,8 @@ class UnblockCommand:
     @staticmethod
     def _closure(sentences, known, app) -> frozenset[Unit]:
         """Everything the walk reaches from `known`, order being irrelevant."""
-        index = CorpusIndex(sentences, KnownSet(frozenset(known)))
+        index = CorpusIndex(sentences, KnownSet(frozenset(known)),
+                            app.compounds)
         RoadmapBuilder(index, app.priority(),
                        app.settings.priority_weight).build()
         return index.known

@@ -55,7 +55,7 @@ class BlockersCommand:
         # What the ordinary walk reaches, on a throwaway index: run to
         # exhaustion and everything reachable is learned, which must not be
         # mistaken for what the reader knows.
-        index = CorpusIndex(sentences, known)
+        index = CorpusIndex(sentences, known, app.compounds)
         RoadmapBuilder(index, app.priority(), app.settings.priority_weight,
                        goals=goals, only_goals=True).build()
         reachable = index.known
@@ -108,11 +108,11 @@ class BlockersCommand:
         alone = sum(1 for _, f in ranked if len(f) == 1)
         print(f"\n  {alone:,} words each free exactly one goal — no leverage there")
         self._price(sentences, known, goals, reachable_now=reachable,
-                    budget=budget, limit=limit)
+                    budget=budget, limit=limit, compounds=app.compounds)
 
     @staticmethod
     def _price(sentences, known, goals, reachable_now, budget: int,
-               limit: int) -> None:
+               limit: int, compounds=None) -> None:
         """What the unblocked roadmap costs, word by word, in order.
 
         Run once at the full budget rather than once per budget value: the
@@ -129,6 +129,7 @@ class BlockersCommand:
         bought: list[tuple[Unit, frozenset[Unit]]] = []
         reached = reachable(
             sentences, known.units, goals, budget=budget,
+            compounds=compounds,
             on_buy=lambda unit, _n, freed: bought.append((unit, freed)))
         if not bought:
             print("\n  nothing off the list is needed — the walk reaches "

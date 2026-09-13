@@ -75,12 +75,13 @@ class ResolutionTest(unittest.TestCase):
         c = over({"mittagessen": ("mittag", "essen")},
                  ["mittagessen", "mittag", "essen", "Essen"])
         self.assertEqual(c.parts_of(u("mittagessen")),
-                         (u("mittag"), u("Essen")))
+                         (frozenset({u("mittag")}), frozenset({u("Essen")})))
 
     def test_a_part_with_one_case_keeps_it(self) -> None:
         c = over({"krankenhaus": ("krank", "haus")},
                  ["krankenhaus", "krank", "haus"])
-        self.assertEqual(c.parts_of(u("krankenhaus")), (u("krank"), u("haus")))
+        self.assertEqual(c.parts_of(u("krankenhaus")),
+                         (frozenset({u("krank")}), frozenset({u("haus")})))
 
     def test_a_compound_the_corpus_never_says_is_dropped(self) -> None:
         c = over({"atombombe": ("atom", "bombe")}, ["atom", "bombe"])
@@ -90,6 +91,47 @@ class ResolutionTest(unittest.TestCase):
         """It could never fire, and keeping it inflates the reported effect."""
         c = over({"wohnzimmer": ("wohn", "zimmer")}, ["wohnzimmer", "zimmer"])
         self.assertEqual(len(c), 0)
+
+
+class GoalFormTest(unittest.TestCase):
+    """One word, two units — the reason a part is a set.
+
+    The study list writes `das Haus`, the analyser writes `haus`, and strict
+    counting drops the bare form from every sentence as a duplicate of the
+    goal that teaches it. Resolving to the bare lemma alone left 187 of 231
+    parts unresolvable and granted two compounds where the file holds 183.
+    """
+
+    def test_the_goal_that_teaches_a_part_satisfies_it(self) -> None:
+        c = Compounds.over(
+            [u("krankenhaus"), u("krank")],
+            pairs={"krankenhaus": ("krank", "haus")},
+            covered_by={"haus": frozenset({Unit("pattern", "das Haus")})})
+        self.assertEqual(len(c), 1)
+        self.assertEqual(
+            c.derivable({u("krank"), Unit("pattern", "das Haus")}),
+            {u("krankenhaus")})
+
+    def test_a_verb_frame_does_not_satisfy_a_noun_part(self) -> None:
+        """`etw. (Akk) essen` is how to use the verb, not the meal.
+
+        Both it and `das Essen` are pattern units, so the kind cannot
+        separate them — only whether the key names the word and nothing else.
+        """
+        covered = {"essen": frozenset({Unit("pattern", "etw. (Akk) essen")})}
+        c = Compounds.over([u("mittagessen"), u("mittag")],
+                           pairs={"mittagessen": ("mittag", "essen")},
+                           covered_by=covered)
+        self.assertEqual(len(c), 0)
+
+    def test_either_name_is_enough(self) -> None:
+        c = Compounds.over(
+            [u("krankenhaus"), u("krank"), u("haus")],
+            pairs={"krankenhaus": ("krank", "haus")},
+            covered_by={"haus": frozenset({Unit("pattern", "das Haus")})})
+        for name in (u("haus"), Unit("pattern", "das Haus")):
+            self.assertEqual(c.derivable({u("krank"), name}),
+                             {u("krankenhaus")}, name)
 
 
 class DerivationTest(unittest.TestCase):

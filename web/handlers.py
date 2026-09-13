@@ -413,7 +413,8 @@ class Viewer:
             # The resolved vocabulary, not a fresh resolution: known_set()
             # re-runs the parser over every word in the files, which is
             # sixteen seconds, and this viewer already holds the answer.
-            index = CorpusIndex(sentences, KnownSet(self.known))
+            index = CorpusIndex(sentences, KnownSet(self.known),
+                                self.app.compounds)
             priority = self.priority()
             self._scopes[key] = Scope(
                 sentences=sentences,
@@ -1578,7 +1579,8 @@ class Viewer:
         # worth asking with a price attached, which is what `UNBLOCK_BUDGET`
         # states and `WALK_LIMIT` could not.
         reached = reachable(sentences, self.known, goals,
-                            budget=UNBLOCK_BUDGET if unblock else 0)
+                            budget=UNBLOCK_BUDGET if unblock else 0,
+                            compounds=self.app.compounds)
 
         appearances: Counter = Counter()
         # Several sentences a word, not just the easiest one. Which blocker
