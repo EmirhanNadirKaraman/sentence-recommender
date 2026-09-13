@@ -132,6 +132,10 @@ def _parser() -> argparse.ArgumentParser:
     plan.add_argument("--goals-file", metavar="PATH",
                       help="word list to aim at, instead of data/study_list.txt. "
                            "One entry per line, or two tab-separated columns")
+    plan.add_argument("--function-words", metavar="PATH",
+                      help="the words to assume known before the walk starts, "
+                           "instead of data/function_words.txt. Everything not "
+                           "listed there is something the roadmap must teach")
     plan.add_argument("--relax", action="store_true",
                       help="when nothing anywhere is one word away, teach two "
                            "from one sentence rather than stopping. Only at "
@@ -441,6 +445,16 @@ def main() -> int:
         if not chosen.exists():
             raise SystemExit(f"no word list at {chosen}")
         settings = replace(settings, goal_words=chosen)
+    if getattr(args, "function_words", None):
+        # The seed the walk starts from. Shrinking it does not make any step
+        # harder -- every step is i+1 by construction -- but it does mean the
+        # corpus has to carry more of the teaching, so fewer sentences are
+        # available early and the order is driven more by what happens to be
+        # reachable than by what is worth learning next.
+        seed = Path(args.function_words)
+        if not seed.exists():
+            raise SystemExit(f"no word list at {seed}")
+        settings = replace(settings, function_words=seed)
     app = Application(settings)
     if args.command == "add-video":
         AddVideoCommand().run(app, args.video, args.language)

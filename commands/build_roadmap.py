@@ -19,15 +19,26 @@ class BuildRoadmapCommand:
     """Produces the ordered sequence and an SRS card for every step."""
 
     @staticmethod
-    def _report(steps: int, readable: int) -> None:
-        """Say where the walk has got to.
+    def _report(steps: int, readable: int, last=None) -> None:
+        """Say where the walk has got to, and what it just taught.
 
         A walk over the larger corpora runs for minutes with nothing on the
         screen, which makes a slow one look like a hung one. Flushed, because
         this is usually being read through a pipe or a log.
+
+        The word and its sentence come too. A count says the walk is moving;
+        it does not say whether it is moving somewhere sensible, and that is
+        the thing a reader actually wants to know while waiting -- an opening
+        full of oddities is visible immediately rather than after an hour.
         """
-        print(f"  … {steps:,} steps · {readable:,} sentences readable",
-              flush=True)
+        head = f"  … {steps:>6,} steps · {readable:>7,} readable"
+        if last is None:
+            print(head, flush=True)
+            return
+        text = last.sentence.text if last.sentence else ""
+        if len(text) > 62:
+            text = text[:59] + "…"
+        print(f"{head}   {last.unit.key:<26} {text}", flush=True)
 
     def run(self, app, steps: int | None = None, builds: tuple[str, ...] = (),
             goals: bool = False, list_only: bool = False,
@@ -72,7 +83,8 @@ class BuildRoadmapCommand:
                                  relax=relax,
                                  video_minutes=app.video_minutes)
 
-        plan = builder.build(max_steps=steps, on_progress=self._report)
+        plan = builder.build(max_steps=steps, on_progress=self._report,
+                             every=50)
         label = "+".join(sorted(builds)) if builds else ALL
         if quality_only:
             label = f"{label}:good"
@@ -100,6 +112,13 @@ class BuildRoadmapCommand:
             # running the documented flag destroyed the plan it was meant to
             # improve on.
             label = f"{label}:relax"
+        # Last of all, and read off first. A plan begun from a different set
+        # of assumed-known words is a different curriculum -- it teaches what
+        # the other took for granted -- so it cannot share a name with one
+        # begun from the default. Without this, `--function-words` quietly
+        # overwrote the plan it was meant to be compared against.
+        if settings.function_words != Settings().function_words:
+            label = f"{label}:seed:{settings.function_words.stem}"
         # Stamped with what built it, so the reading page can tell whether
         # the decks stored with these steps still describe a corpus that
         # exists — they name their sentences by text alone.

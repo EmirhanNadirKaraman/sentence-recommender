@@ -72,7 +72,10 @@ class RoadmapBuilder:
         be appended to it without renumbering what the reader has already
         worked through.
 
-        `on_progress(steps, readable)` is called every `every` steps. A walk
+        `on_progress(steps, readable, last)` is called every `every` steps,
+        `last` being the step just taken -- a count alone says the walk is
+        moving but not what it is doing, and what it is doing is the
+        interesting part. A walk
         over a large corpus runs for minutes with nothing to show for itself,
         which makes a slow one indistinguishable from a stuck one; this is
         the only way to tell from outside that it is still moving.
@@ -91,7 +94,8 @@ class RoadmapBuilder:
             if step.beside is not None:
                 self._index.learn(step.beside)
             if on_progress and len(steps) % every == 0:
-                on_progress(len(steps), self._index.readable)
+                on_progress(len(steps), self._index.readable,
+                            steps[-1])
         return steps
 
     def peek(self, position: int = 1, exclude: frozenset = frozenset(),
