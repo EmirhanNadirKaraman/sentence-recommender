@@ -180,6 +180,11 @@ def _parser() -> argparse.ArgumentParser:
                        help="address to bind. 0.0.0.0 reaches it from a phone "
                             "on the same wifi — there is no authentication, so "
                             "only on a network you trust")
+    serve.add_argument("--function-words", metavar="PATH",
+                       help="the words to assume known, instead of "
+                            "data/function_words.txt. Must match the seed the "
+                            "plans were built from, or the pages and the "
+                            "roadmap disagree about what you already know")
     serve.add_argument("--no-browser", action="store_true",
                        help="do not open a browser window")
 
