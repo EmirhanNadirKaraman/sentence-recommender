@@ -48,7 +48,17 @@ def load_verb_dictionary(file_path):
 
     with open(file_path, 'r', encoding='utf-8') as f:
         for line in f.readlines():
-            key, value = line.split('\t')
+            # Blank lines and comments, as every other reader of this file
+            # already allows — `vocab.goal_list` skips them, and the sibling
+            # `study_list.txt` is full of them explaining why an entry was
+            # retired. This one split every line on a tab, so the first
+            # comment written here took down the parser, and with it every
+            # `build-corpus` and `build-roadmap` run.
+            if not line.strip() or line.lstrip().startswith('#'):
+                continue
+            key, _, value = line.partition('\t')
+            if not value:
+                continue        # no second column: nothing to learn from it
             value = value.strip()  # Remove trailing newlines
 
             # If key already exists, keep the longer value (more detailed pattern)

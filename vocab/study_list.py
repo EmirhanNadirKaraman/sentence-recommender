@@ -98,7 +98,11 @@ class StudyListBuilder:
         """
         forms: dict[str, str] = {}
         for raw in self._form_file.read_text(encoding="utf-8").splitlines():
-            columns = raw.split("\t")
+            # Comments stripped first, as `_order` above already does. A
+            # retired entry is commented out rather than deleted, and it
+            # keeps its tab — so splitting on the tab alone read the `#` as
+            # part of the word and put `# der, die, das` in here as one.
+            columns = raw.split("#", 1)[0].split("\t")
             if len(columns) < 2:
                 continue
             word, form = columns[0].strip(), columns[1].strip()
