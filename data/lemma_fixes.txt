@@ -113,3 +113,19 @@ wüsstest	wissen
 wüsstet	wissen
 wüsst	wissen
 wüss	wissen
+
+# The same split as `sämtlicher`, found by asking what the roadmap has to
+# learn from outside the study list to reach the rest of it. The answer was
+# four words, and all four were this: one word the parser emits under two
+# lemmas depending on the parse, so a goal written one way is blocked by
+# sentences that came out the other. In every case but `keiner` the inflected
+# form is the *commoner* of the two, which is why it never looked like noise.
+#
+#   vieler  6,542 : viel  5,880        solcher 1,166 : solch     16
+#   weniger 1,704 : wenig   881        anderer 8,152 : ander      6
+#   keiner    382 : kein  8,400
+vieler	viel
+weniger	wenig
+solcher	solch
+anderer	ander
+keiner	kein

@@ -25,7 +25,19 @@ CLOSED_CLASS: dict[str, tuple[str, ...]] = {
 
 # Tags whose tokens are never vocabulary to be learned.
 PUNCTUATION_TAGS = frozenset({"$.", "$,", "$("})
-FREE_TAGS = frozenset({"NE", "CARD", "FM", "XY"})
+# Tags that cost a reader nothing. A name, a number or a stray bit of
+# English does not make a sentence harder — you need not have learned
+# "Dresden" to read a sentence containing it — and neither does an article.
+#
+# ART is the whole closed class of German articles and every case they
+# inflect for, and it collapses to exactly two lemmas: `der` and `ein`. It is
+# 6.8% of all tokens. Counting it made the definite article a word to be
+# taught, and until it was taught it stood in front of 80 b1 goals as their
+# only blocker — the commonest unit in the corpus at 150,624 occurrences,
+# unknown to a reader who has known articles since their first lesson. The
+# case and gender it marks are worth learning, but they are grammar rather
+# than vocabulary, and this is the vocabulary tally.
+FREE_TAGS = frozenset({"NE", "CARD", "FM", "XY", "ART"})
 
 
 @dataclass(frozen=True)

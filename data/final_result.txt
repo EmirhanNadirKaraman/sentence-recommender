@@ -1073,7 +1073,14 @@ für	für
 sondern	sondern
 in	in
 von	von
-der, die, das	der, die, das
+# The definite article. Not teachable any more, and not vocabulary: ART is
+# now a free tag, so `der` yields no unit and the collocation matching a bare
+# article yields none either. It was the commonest unit in the corpus at
+# 150,624 occurrences, and until the walk reached it, it stood in front of 80
+# b1 goals as their only blocker. Commented rather than exempted, exactly as
+# the proper nouns above are — a goal the corpus can never say is a goal
+# reported unreachable for ever.
+# der, die, das	der, die, das
 und	und
 er	er
 es	es

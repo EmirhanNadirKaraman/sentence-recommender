@@ -291,16 +291,19 @@ class UnitAnalyzer:
 
         Two ways it is not. A weak trigram score means the matcher found
         nothing and settled for something shaped alike — that is where
-        "Epsteins" became "der Stein". And a match sitting entirely on proper
-        nouns is matching a name: "Merkel" is not the verb "merken", and
-        "Bayern" is not "der Bayer". Names are excluded from the word side
-        already; this is the same rule for the pattern side.
+        "Epsteins" became "der Stein". And a match sitting entirely on tokens
+        that cost nothing is matching one of those: "Merkel" is not the verb
+        "merken", "Bayern" is not "der Bayer", and the article in "das Auto"
+        is not the collocation `der, die, das`. They are excluded on the word
+        side already; this is the same rule for the pattern side, and it now
+        reads the same set rather than naming `NE` alone — which let the
+        article through as a pattern after the word side stopped counting it.
         """
         score = FUZZY_SCORE.search(phrase["match_type"])
         if score and float(score.group(1)) < MIN_FUZZY:
             return False
         tags = {doc[i].tag_ for i in phrase["indices"] if i < len(doc)}
-        return not (tags and tags <= {"NE"})
+        return not (tags and tags <= FREE_TAGS)
 
     def _verb_lemma(self, token) -> str:
         """`token`'s lemma, with an inflected verb folded into its infinitive.
