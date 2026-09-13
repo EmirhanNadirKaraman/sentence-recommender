@@ -235,12 +235,20 @@ function offerUndo(kind, key, src, opts) {
         if (top && d.top) top.innerHTML = d.top;
         region.innerHTML = d.html;
         bind();
-        if (d.video && ready) {
-          video = d.video;
-          player.loadVideoById({videoId: d.video,
-                                startSeconds: Math.max(d.at - 0.4, 0)});
-          loadTranscript(d.video);
-        }
+        // The player sits outside the replaced region on purpose, so a
+        // decision does not tear down the iframe — which means it also keeps
+        // whatever the last deck left on it. A slide with no video hides the
+        // stage, and nothing here put it back, so deciding from such a slide
+        // lost the video for every word after it: still playing, just
+        // hidden, until a prev/next click happened to call `play` again.
+        //
+        // `play` is that one authority and knows both directions, so it is
+        // called rather than reimplemented. It also reads the slide actually
+        // on screen: the payload named the first sentence in the deck with a
+        // video, which is not always the first one shown, so the player
+        // could open on a clip belonging to a sentence further down.
+        if (d.video && !stage) { location.reload(); return; }
+        play(showing);
         if (value === 'known') offerUndo(was.kind, was.key, was.src);
         busy = false;
       })

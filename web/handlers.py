@@ -775,14 +775,19 @@ class Viewer:
         else:
             lede = "Everything in this sentence is yours except one word."
             kind = "a word"
-        first = next((x for x in deck if x.timing), None)
         return {
             "top": (self._progress(readable, total)
                     + f"<p class='note'>{lede}</p>"),
             "html": self._reading(step, deck, source, occurrences, kind,
                                   watchable),
-            "video": first.timing.video_id if first else "",
-            "at": first.timing.start if first else 0,
+            # Whether this deck has a clip at all, and nothing more. Which
+            # clip to open is decided on the page, from the slide actually on
+            # screen -- this used to name the first sentence in the deck with
+            # a video, which is not always the first one shown. All it is
+            # needed for now is the one case the page cannot recover from: a
+            # deck with video arriving where the last one had none, so there
+            # is no iframe on the page to load it into.
+            "video": any(x.timing for x in deck),
         }
 
     def _planned(self, source: str, only: str, list_only: bool,
