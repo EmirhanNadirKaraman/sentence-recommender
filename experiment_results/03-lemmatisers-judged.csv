@@ -1,0 +1,201 @@
+n,surface,tag,md_repaired,st,acc,text,verdict,note,judge,kind
+1,Praktischeres,NN,praktischeres,Praktischere,Praktischeres,"Wie wär’s, wenn du was Praktischeres mitbringst?",neither,nominalised comparative; neither reaches praktisch,claude-opus-5,neither
+2,letzten,ADJA,letzter,letzt,letzt,"""Große Koalition"" passt da vielleicht nicht so ganz, die SPD hat bei der letzten Wahl gerade mal um die 12% bekommen.",both,convention: TIGER letzter vs UD letzt,claude-opus-5,convention
+3,kollidierten,VVFIN,kollidierten,kollidieren,kollidieren,Vor 350 Millionen Jahren kollidierten hier nämlich zwei Kontinente.,st,spaCy left the preterite unreduced,claude-opus-5,left unreduced
+4,wehzutun,VVPP,wehzutun,wehtun,wehtun,"Einem Hasen wehzutun wäre dann moralisch etwa so verwerflich, wie einen Teddy zu schlagen.",st,zu-infinitive unreduced by spaCy,claude-opus-5,left unreduced
+5,glaub,ADJD,glaub,glauben,glauben,"Ich glaub, der ist alles egal.",st,"clipped spoken form, spaCy tagged it ADJD",claude-opus-5,left unreduced
+6,ersten,ADJA,erster,erst,erst,Die ersten Seiten des Wahlprogramms der FDP nach der Präambel drehen sich komplett um das Thema Bildung.,both,convention: erster vs erst,claude-opus-5,convention
+7,Krallenfüße,NN,krallenfüße,Krallenfuß,Krallenfuß,Ich habe Krallenfüße und Krallenfüße sind ungeduldig.,st,spaCy left the plural,claude-opus-5,left unreduced
+8,ne,NN,ne,ein,ein,"Ach seh'n Sie, ne? Naja. Man tut, was man kann, ne? In diesen Zeiten.",md,"tag-question particle ne, not the article",claude-opus-5,particle as verb/noun
+9,Zweiten,ADJA,zweiter,zweit,zweit,"Als nach dem Zweiten Weltkrieg die DDR dort den Abbau vergrößert und weitere Industrie ansiedelt, wächst das Städtchen zu einer Stadt mit etwa 70.000 Einwohnern.",both,convention: zweiter vs zweit,claude-opus-5,convention
+10,Danke,NN,danke,Dank,Dank,"Danke, dass du heute dabei warst.",md,"interjection danke, not the noun Dank",claude-opus-5,particle as verb/noun
+11,Viren,NN,viren,Virus,Virus,"Der sagt, Bakterien oder Viren führen nicht dazu, dass man erkrankt, sondern alle Erkrankungen kommen nur durch irgendwelche psychische Traumen.",st,spaCy left the plural Viren,claude-opus-5,left unreduced
+12,Bitten,NN,bitten,Bitte,Bitte,Sophie und Alexander Schmorell hätten nur einmal auf sein Bitten hin Flugblätter in andere Städte gefahren.,md,"sein Bitten is the nominalised verb, not die Bitte",claude-opus-5,wrong reading
+13,Verben,NN,verbe,Verb,Verb,"“Deutsch mit Rieke”-Mitglied Jana hat neulich im Mitgliederbereich gefragt, ob ich ein Video über diese Verben mit “setzen” drehen könnte.",st,spaCy invented verbe,claude-opus-5,invented lemma
+14,schlag,VVFIN,schlag,schlagen,schlagen,Statt “schlag mich tot” sagt man auch manchmal “schieß mich tot”.,st,imperative schlag unreduced by spaCy,claude-opus-5,left unreduced
+15,sogenannten,ADJA,sogenannter,sogenannt,sogenannt,"Im sogenannten Zwei-plus-Vier-Vertrag wurde geregelt, wie das mit dem geeinten Deutschland genau ablaufen soll.",both,convention: sogenannter vs sogenannt,claude-opus-5,convention
+16,Neues,NN,neue,Neu,Neu,"Ich bin immer dafür was Neues auszuprobieren, also ich glaub' es gibt am Ende keine Zufälle.",st,nominalised adjective; neu is the adjective the learner knows,claude-opus-5,wrong reading
+17,spitzen,VVFIN,spitzen,spitz,spitz,"In kaum einem anderen Jahr spitzen sich die Entwicklungen so zu, sowohl negativ als auch positiv.",md,"sich zuspitzen is a verb, Stanza made it the adjective spitz",claude-opus-5,wrong reading
+18,abzuhängen,VVIZU,abzuhängen,abhängen,abhängen,"Wir müssen versuchen, den Jet abzuhängen.",st,zu-infinitive unreduced by spaCy,claude-opus-5,left unreduced
+19,geht's,VVFIN,gehen,gehe'en,gehten,"Hey, Sara. Wie geht's dir?",md,Stanza mangles the 's contraction; spaCy override gets gehen,claude-opus-5,'s contraction
+20,take,VVFIN,take,taken,take,"Let's take Heiko Maas, OK... (that) was random.",md,English; leaving it alone is right,claude-opus-5,foreign word
+21,Mutanten,NN,mutant,Mutante,Mutant,"Momentan haben wir ja den Salat, dass wir Mutanten haben, die nicht weniger schädlich sind, aber ansteckender.",both,Mutante and Mutant both exist; virology says Mutante,claude-opus-5,both exist
+22,Weiß,NN,weiße,Weiß,Weiß,Weiß nicht.  - Morgen free man!,neither,"Weiß nicht = wissen; spaCy weiße, Stanza Weiß",claude-opus-5,neither
+23,Wurmlöcher,NN,wurmlöcher,Wurmloch,Wurmloch,"Wir könnten näher dran sein als wir vermuten Von außen betrachtet, können Schwarze Löcher und Wurmlöcher sehr ähnlich aussehen.",st,spaCy left the plural,claude-opus-5,left unreduced
+24,Verrückte,ADJA,verrückt,Verrückte,Verrückte,"Ihr könnt gerne in mein Buch schauen, das heißt ""Verrückte Geschichte"".",md,adjective in a title; Stanza made it a noun,claude-opus-5,wrong reading
+25,warst,VVFIN,warst,sein,sein,Du warst gestern bei einer Therapeutin.,st,warst unreduced by spaCy,claude-opus-5,left unreduced
+26,danke,VVFIN,danke,danken,danken,"Oh, danke! Ich finde deinen Pulli schön.",md,interjection danke,claude-opus-5,particle as verb/noun
+27,willst,VVFIN,willen,wollen,wollen,"Dad, wohin willst du? Wir wollen zu Hause etwas essen.",st,"spaCy invented willen, and it is a real word so the guard let it through",claude-opus-5,invented lemma
+28,böse,ADJD,böse,bös,bös,"Ich dachte, du warst gestern böse auf mich.",md,"böse is the dictionary lemma, not bös",claude-opus-5,stem variant
+29,Prozess,NN,prozess,Prozeß,Prozeß,Im Prozess sagt er zunächst nichts.,md,old spelling Prozeß,claude-opus-5,old spelling
+30,zahl,NN,zahln,zahlen,zahlen,Ich zahl schon mal was von meinen Schulden zurück.,st,spaCy invented zahln,claude-opus-5,invented lemma
+31,erste,ADJA,erster,erst,erst,"Erstens muss ich zugeben, dass Deutsch die erste Sprache war, die ich mir selber beigebracht habe.",both,convention: erster vs erst,claude-opus-5,convention
+32,Krallenfüße,NN,krallenfüße,Krallenfuß,Krallenfuß,Ich habe Krallenfüße und Krallenfüße sind ungeduldig.,st,spaCy left the plural,claude-opus-5,left unreduced
+33,erste,ADJA,erster,erst,erst,"Ja, ich hab gleich meine erste Aufgabe.",both,convention: erster vs erst,claude-opus-5,convention
+34,kämpf,VVFIN,kämpf,kämpfen,kämpfen,"Ich kämpf' für dein Zuhause, dann kannst du wieder lachen!",st,clipped kämpf' unreduced by spaCy,claude-opus-5,left unreduced
+35,erste,ADJA,erster,erst,erst,In der zweiten Phase werden Astronauten die erste Mondbasis errichten.,both,convention: erster vs erst,claude-opus-5,convention
+36,Weihnachten,NN,weihnachten,Weihnacht,Weihnachten,Kurz vor Weihnachten hatten wir eine Folge zu der Chemie von Butterplätzchen.,md,Weihnachten is the lemma; Weihnacht is archaic,claude-opus-5,stem variant
+37,ersten,ADJA,erster,erst,erst,"Das gelingt einmal durch Handel, zum anderen eben durch Raubzüge der ersten.",both,convention: erster vs erst,claude-opus-5,convention
+38,geheimnisvollen,ADJA,geheimnisvoll,geheimnisvollen,geheimnisvoll,Viele von ihnen haben einen geheimnisvollen Stein dabei.,md,Stanza left the adjective inflected,claude-opus-5,left unreduced
+39,motivierten,ADJA,motiviert,motivieren,motivieren,"Eisner will seinen Rücktritt erklären, wird aber von einem völkisch-antisemitisch motivierten Attentäter ermordet.",md,motiviert as adjective; Stanza gave the verb,claude-opus-5,wrong reading
+40,bitte,ADV,bitte,bitten,bitten,Ich hätte gern Baguette bitte.,md,"bitte the particle, not bitten",claude-opus-5,particle as verb/noun
+41,expensive,VVFIN,expensiv,expensive,expensive,"Err here in Berlin, especially Mitte, it's obviously very, very expensive.",st,English; spaCy invented expensiv,claude-opus-5,foreign word
+42,freu,VVFIN,freu,freuen,freuen,"Ich freu mich sehr darauf, von euch zu lesen, und ich freu mich auch, wenn ihr diesem Video einen Daumen nach gebt.",st,clipped freu unreduced by spaCy,claude-opus-5,left unreduced
+43,sogenannter,ADJA,sogenannter,sogenannt,sogenannt,Die Auswirkung eines Nahrungsmittels auf das Klima wird oft mithilfe sogenannter Lebenszyklusanalysen betrachtet.,both,convention: sogenannter vs sogenannt,claude-opus-5,convention
+44,abstruse,ADJA,abstrus,abstruse,abstrus,"Aber anders als andere abstruse Behauptungen über Impfrisiken wie Autismus oder magnetische Arme, wäre das theoretisch denkbar.",md,Stanza left the adjective inflected,claude-opus-5,left unreduced
+45,genervt,ADJD,genervt,nerven,nerven,"Hat total genervt, weil die haben immer dieselbe Melodie gespielt: Was so annoying because they always played the same melody: Düdüdüdüdüdüdüdüdü. Düdüdüdü...",st,hat genervt is the perfect of nerven; spaCy tagged it ADJD,claude-opus-5,wrong reading
+46,letzten,ADJA,letzter,letzt,letzt,"Den letzten übernehme ich, meiner!",both,convention: letzter vs letzt,claude-opus-5,convention
+47,Anderten,NN,anderten,Andert,Andert,Darüber sprechen wir mit Moritz Anderten.,md,a surname; Stanza mangled it to Andert,claude-opus-5,name
+48,Fremdgehen,NN,fremdgehe,Fremdgehen,Fremdgehen,Das ist schon Fremdgehen oder?,st,spaCy invented fremdgehe,claude-opus-5,invented lemma
+49,Witze,NN,witze,Witz,Witz,"Ich kann mir keine Witze merken.” Also: Keine Ahnung, ich kann dir keinen guten Witz erzählen.",st,spaCy left the plural,claude-opus-5,left unreduced
+50,Klimaschutzanliegen,NN,klimaschutzanlieg,Klimaschutzanliegen,Klimaschutzanlieg,Die europäische Ebene adressiert mit verschiedenen Regularien die Umwelt und Klimaschutzanliegen.,st,spaCy truncated the compound,claude-opus-5,invented lemma
+51,weißt,VVFIN,wissen,weißen,weißen,"Denkst du etwa, du weißt, was besser für meine Schüler ist als ich?",md,"weißt is wissen, Stanza gave weißen (to whiten)",claude-opus-5,wrong reading
+52,Abschluss,NN,abschluss,Abschluß,Abschluß,Niemand macht etwas Sinnvolles MIT einem Abschluss.,md,old spelling Abschluß,claude-opus-5,old spelling
+53,überzuwechseln,VVIZU,überzuwechseln,überwechseln,überwechseln,"All das macht es schwer, vom ""Ich-Ohr"", der eigenen Selbstüberzeugtheit, zum ""Du-Ohr"", der nicht- egozentrischen Aufmerksamkeit, überzuwechseln.",st,zu-infinitive unreduced by spaCy,claude-opus-5,left unreduced
+54,’s,ADV,’s,'s,'s,"Heute geht’s um Verben, die mit verschiedenen Präpositionen stehen können und dadurch ihre Bedeutung verändern.",both,"clitic 's, apostrophe normalisation only",claude-opus-5,both exist
+55,liebst,ADV,liebst,lieben,lieben,"Du siehst daus, du liebst mich doch.",st,du liebst is lieben; spaCy tagged it ADV,claude-opus-5,wrong reading
+56,flirte,VVFIN,flirte,flirten,flirten,Ich flirte dich an? - Ja.,st,flirte unreduced by spaCy,claude-opus-5,left unreduced
+57,zusammengelümmelt,VVPP,zusammengelümmelt,zusammenlümmeln,zusammenlümmeln,"Dort haben die Schlaumeier vom Dienst, alle ihre Gedanken in komplizierten Schachtelsätzen zusammengelümmelt.",st,participle unreduced by spaCy,claude-opus-5,left unreduced
+58,schlafe,VVFIN,schlafe,schlafen,schlafen,Ja. Und dann schlafe ich erst mal.,st,schlafe unreduced by spaCy,claude-opus-5,left unreduced
+59,plötzliche,ADJA,plötzliche,plötzlich,plötzlich,"Darf ich fragen, woher dieser plötzliche 180 Umschwung kommt?",st,spaCy left the adjective inflected,claude-opus-5,left unreduced
+60,zugehört,VVPP,zugehören,zuhören,zugehören,"Und ich habe mich selber dabei erwischt, dass ich zugehört habe, ob Sie jetzt Ihre Antworten diplomatisch ausdrücken.",st,"zugehört is zuhören here, not zugehören",claude-opus-5,wrong reading
+61,würdet,VMFIN,würdet,werden,werden,"Mal eine kurze Frage: Was würdet ihr sagen, welches Land prägt euren Alltag grade am meisten?",st,würdet unreduced by spaCy,claude-opus-5,left unreduced
+62,finsteren,ADJA,finster,finst,finsteren,Sie sind in den finsteren Weiten zwischen den Sternen zu Hause.,md,Stanza invented finst,claude-opus-5,invented lemma
+63,Sagt,VVFIN,sagen,sagt,sagen,"Sagt ihr, da kann man auch heute noch Rückschlüsse daraus ziehen?",md,sentence-initial Sagt left unreduced by Stanza,claude-opus-5,sentence-initial
+64,dritten,ADJA,dritter,dritt,dritt,Vermutlich allerdings nur mit einem dritten Koalitionspartner.,both,convention: dritter vs dritt,claude-opus-5,convention
+65,Zuschauen,NN,Zuschauen,Zuschaue,Zuschauen,Danke für's Zuschauen und bis nächste Woche. Tschüüß!,md,nominalised verb kept by noun_verb_splits; Stanza invented Zuschaue,claude-opus-5,invented lemma
+66,kaufst,VVFIN,kaufst,kaufen,kaufen,Du kaufst immer so etwas.,st,kaufst unreduced by spaCy,claude-opus-5,left unreduced
+67,Anlass,NN,anlass,Anlaß,Anlaß,"Das können wir auch daran sehen, dass ""anlässlich"" von dem Nomen ""der Anlass"" kommt.",md,old spelling Anlaß,claude-opus-5,old spelling
+68,Fakten,NN,fakt,Faktum,Faktum,"Mit dem Futur I drückt man aber aus, dass es sich um eine Prognose handelt, also nicht wirklich um Fakten.",both,Fakt and Faktum both exist,claude-opus-5,both exist
+69,Denne,ADV,denne,denner,Denn,"Denne sind am Arsch wahrscheinlich, aber du hast mich auch nicht erkannt.",neither,garbled input Denne,claude-opus-5,neither
+70,früher,ADJD,früh,früher,früher,Und der Bundeskanzler deutlich weniger Macht als der Reichspräsident früher.,both,früher as adverb (formerly) vs comparative of früh,claude-opus-5,lexicalised comparative
+71,genieß,VVFIN,genieß,genießen,genießen,Also da bin ich dann oft lieber im Ausland und... und genieß' die Sonne ein bisschen mehr.,st,clipped genieß' unreduced by spaCy,claude-opus-5,left unreduced
+72,meine,VVFIN,meinen,mein,mein,"Du hast Ich meine, sie hat dir gezeigt, was in dir steckt.",md,ich meine is meinen; Stanza gave the possessive,claude-opus-5,wrong reading
+73,erstes,ADJA,erster,erst,erst,Wen wollt ihr als erstes sehen?,both,convention: erster vs erst,claude-opus-5,convention
+74,E-Scootern,NN,e-scootern,E-Scooter,E-Scooter,"Autoped der Ur-Ur-Ur-Ur-Vorfahre von unserem heutigen E-Scootern, produziert ab 1915.",st,spaCy left the dative plural,claude-opus-5,left unreduced
+75,Indische,NN,indische,indisch,indisch,"Eine Sprachfamilie, zu der neben Deutsch auch das Indische, das Iranische oder Polnisch gehören.",st,nominalised adjective; indisch is the adjective,claude-opus-5,wrong reading
+76,Traumen,NN,traumus,Trauma,Trauma,"Der sagt, Bakterien oder Viren führen nicht dazu, dass man erkrankt, sondern alle Erkrankungen kommen nur durch irgendwelche psychische Traumen.",st,spaCy invented traumus,claude-opus-5,invented lemma
+77,habitablen,ADJA,habitabl,habitabel,habitabel,"Viele von ihnen befinden sich sogar in der habitablen Zone, in der Wasser flüssig ist.",st,spaCy invented habitabl,claude-opus-5,invented lemma
+78,gleiche,ADJA,gleich,gleichen,gleichen,"Wer jetzt noch wissen will, warum man ""dasselbe"" zusammen-, aber ""das gleiche"" getrennt schreibt: Aufgepasst!",md,das gleiche is the adjective; Stanza gave the verb gleichen,claude-opus-5,wrong reading
+79,Fortgeschrittene,NN,fortgeschrittene,Fortgeschrittener,Fortgeschrittener,Mehr Videos über deutsche Verben für Fortgeschrittene findet ihr in meiner Playlist.,st,nominalised adjective; Stanza matches the project's own -er convention,claude-opus-5,left unreduced
+80,lass,VVFIN,lassen,laß,laß,"Einsteins Idee war: Dann lass doch einfach checken, ob wir bestimmte Sterne in ihrer Position verschoben sehen, wenn die Sonne zwischen ihnen und uns steht.",md,"Stanza gave old-spelling laß, unreduced",claude-opus-5,old spelling
+81,Toten,NN,tote,tot,tot,"Es wird schon mit Sprechgesang experimentiert weit im Voraus, etwa von Falco oder von den Toten Hosen.",st,nominalised adjective; tot is the adjective,claude-opus-5,wrong reading
+82,überwanden,VVINF,überwanden,überwinden,überwinden,"Der Moment, in dem Einsamkeit und Begehren die Vorsicht überwanden.",st,preterite unreduced by spaCy,claude-opus-5,left unreduced
+83,reingeht,VVFIN,reingeht,reingehen,reingehen,"Aber auch wenn man hier reingeht, dahinten, da ist da das Café Blau.",st,reingeht unreduced by spaCy,claude-opus-5,left unreduced
+84,Dativpronomen,NN,dativpronom,Dativpronomen,Dativpronomen,"Wenn ihr zu diesem Thema noch etwas mehr üben möchtet, vor allem diese Dativpronomen üben möchtet, dann schaut euch doch mal unsere interaktiven Übungen an.",st,spaCy truncated the compound,claude-opus-5,invented lemma
+85,wegzogen,NN,wegzog,wegziehen,wegziehen,"Wir wissen nur, dass ihre Kultur unterging und sie entweder wegzogen oder ausstarben.",st,spaCy invented wegzog,claude-opus-5,invented lemma
+86,gab's,VVFIN,gab's,gabe'n,gab'en,"Na ja, in der Familie gab's mal einen Fall, Well, there was a case in the family wo jemand sein Konto, ähm...",neither,both mangle gab's,claude-opus-5,neither
+87,schlaf,VVFIN,schlaf,schlafen,schlafen,Am Sonntag schlaf ich aus.,st,clipped schlaf unreduced by spaCy,claude-opus-5,left unreduced
+88,willst,VMFIN,willen,wollen,wollen,"Ich verrate dir das, was du unbedingt wissen willst.",st,spaCy invented willen,claude-opus-5,invented lemma
+89,Coronavirus,NN,coronaviru,Coronavirus,Coronavirus,"Das ist, wenn man das mit der Verbreitungsgeschwindigkeit des Coronavirus' vergleicht, eine lange Zeit.",st,spaCy truncated Coronavirus,claude-opus-5,invented lemma
+90,Gesegnete,ADJA,gesegnete,gesegnet,gesegnen,"Das hat also ursprünglich einen religiösen Kontext und man hat dann zum Mittagessen gesagt ""Gesegnete Mahlzeit"".",st,spaCy left the adjective inflected,claude-opus-5,left unreduced
+91,letzten,ADJA,letzter,letzt,letzt,"Äh, sie haben übrigens beim letzten Mal gesagt, dass solche Briefe für Sie sehr stressig sind.",both,convention: letzter vs letzt,claude-opus-5,convention
+92,rechten,ADJA,rechter,recht,recht,"Weil ich ja hier die Stabilität im rechten Bein hab, wenn ich dann das Bein wegnehme.",both,convention: rechter vs recht,claude-opus-5,convention
+93,harmloser,ADJD,harmloser,harmlos,harmlos,"Dann werden vor allem dramatische und alarmierende Schlagzeilen formuliert, deren Inhalt weitaus harmloser ist.",st,comparative unreduced by spaCy,claude-opus-5,left unreduced
+94,allererste,ADJA,allererster,allererste,allererste,Und so sieht das allererste Exemplar des Grundgesetzes von 1949 aus.,md,Stanza left allererste inflected,claude-opus-5,left unreduced
+95,weiter,ADV,weiter,weit,weit,In der Latènezeit breitet sich die keltische Kultur immer weiter aus.,both,weiter as adverb vs comparative of weit,claude-opus-5,lexicalised comparative
+96,letzten,ADJA,letzter,letzt,letzt,Erinnert ihr euch noch unsere Eröffnungsbilanz vom letzten Video?,both,convention: letzter vs letzt,claude-opus-5,convention
+97,Neues,NN,neue,Neu,Neu,"wenn man nichts Neues erleben möchte, when you don't want to experience anything new weil dann wird's irgendwann langweilig.",st,nominalised adjective; neu is the adjective,claude-opus-5,wrong reading
+98,erste,ADJA,erster,erst,erst,"Das erste ""ne"" ist wieder 'ne Abkürzung für einen Artikel.",both,convention: erster vs erst,claude-opus-5,convention
+99,Unterhause,NN,unterhause,Unterhaus,Unterhaus,Ich brauche gleich ein neues Unterhause.,st,archaic dative -e; Unterhaus is right,claude-opus-5,left unreduced
+100,Findet,VVFIN,finden,Findet,findet,Findet ihr oben auf dem I verlinkt.,md,sentence-initial Findet left unreduced by Stanza,claude-opus-5,sentence-initial
+101,darfst,VMFIN,darfst,dürfen,dürfen,Du darfst die Leitung nicht loslassen.,st,darfst unreduced by spaCy,claude-opus-5,left unreduced
+102,’s,NN,’s,'s,'s,Da findet ihr eine Playlist und direkt darunter gibt’s ein weiteres Video zu einem anderen spannenden Thema.,both,clitic 's,claude-opus-5,both exist
+103,Danke,NN,danke,Dank,Dank,Danke für eure Meinungen und fürs Zuschauen.,md,interjection danke,claude-opus-5,particle as verb/noun
+104,Frittaten,NN,frittat,Frittate,Frittate,"Und das ist eine ganz beliebte österreichische Suppeneinlage und das nennt sich ""Frittaten"".",st,spaCy invented frittat,claude-opus-5,invented lemma
+105,ersten,ADJA,erster,erst,erst,"Das bedeutet, dass immer am ersten Tag des Monats die Miete an meinen Vermieter überwiesen wird.",both,convention: erster vs erst,claude-opus-5,convention
+106,betrügst,VVFIN,betrügst,betragen,betrügen,"Ich sage Ed nicht, dass du ihn betrügst.",neither,"spaCy unreduced; Stanza gave betragen, a different verb",claude-opus-5,neither
+107,ersten,ADJA,erster,erst,erst,Ich liebe dich genauso wie am ersten Tag.,both,convention: erster vs erst,claude-opus-5,convention
+108,Aufgepasst,NN,aufgepasst,aufpassen,aufpassen,"Aufgepasst! Bei manchen Ländern benutzt man ""in"".",st,Aufgepasst! is aufpassen,claude-opus-5,wrong reading
+109,find,VVFIN,find,finden,finden,"Ja? - Ja, find' ich schon.",st,clipped find' unreduced by spaCy,claude-opus-5,left unreduced
+110,Verben,NN,verbe,Verb,Verb,In diesen Beispielen waren die Verben mit “zer-” transitiv.,st,spaCy invented verbe,claude-opus-5,invented lemma
+111,issä,ADV,issä,essen,issen,"Äh so halb Stund, ich issä mega langsam.",st,dialect issä resolved to essen,claude-opus-5,dialect form
+112,Scheitert,VVFIN,scheitert,scheitern,Scheitern,"Und deshalb sage ich: Scheitert der Euro, dann scheitert Europa.",st,sentence-initial Scheitert unreduced by spaCy,claude-opus-5,sentence-initial
+113,herauszufinden,VVIZU,herauszufinden,herausfinden,herausfinden,"Virenjäger bringen Proben zurück ins Labor, um herauszufinden, ob ein neu entdecktes Virus Menschen anstecken könnte, und um die Gefahr zu katalogisieren.",st,zu-infinitive unreduced by spaCy,claude-opus-5,left unreduced
+114,written,ADJD,written,wreiten,written,You slip back into... written German.,md,English; Stanza invented wreiten,claude-opus-5,foreign word
+115,dritter,ADJA,dritter,dritt,dritt,"Und ein dritter Punkt war, dass er wirtschaftliche Verbesserung zugesagt hat.",both,convention: dritter vs dritt,claude-opus-5,convention
+116,nächsten,ADJA,nächster,nah,nah,"Und da sind wir auch schon direkt beim nächsten Punkt, genauer gesagt, bei der nächsten Frage.",both,UD lemmatises nächste to nah; a poor unit for a learner but the convention,claude-opus-5,convention
+117,Weißt,VVFIN,wissen,weißen,wissen,"Weißt du Shreyan, wir haben ja eine lange Tradition in Deutschland mit fremden Küchen, ne? - Ja.",md,Weißt is wissen; Stanza gave weißen,claude-opus-5,wrong reading
+118,Schusswaffen,NN,schusswaffen,Schußwaffe,Schußwaffe,Ein einmaliger Fall in der Geschichte der Schusswaffen.,neither,spaCy left the plural; Stanza singularised with old spelling,claude-opus-5,neither
+119,glaub,ADJD,glaub,glauben,glauben,"Also ich glaub', dass die Vielfalt schon wichtig ist.",st,clipped glaub' unreduced by spaCy,claude-opus-5,left unreduced
+120,Wichtiges,NN,wichtig,Wichtige,Wichtige,"Mama, ich hab noch was Wichtiges zu erledigen, ich geh jetzt!",md,was Wichtiges: wichtig is the adjective,claude-opus-5,wrong reading
+121,Wahnsinniges,NN,wahnsinnig,Wahnsinniges,Wahnsinnig,Er wird etwas Wahnsinniges anstellen.,md,etwas Wahnsinniges: wahnsinnig is the adjective,claude-opus-5,wrong reading
+122,Verben,NN,verbe,Verb,Verb,"Ich lasse also dieses letzte ""e"" weg So I drop this last ""e"" und das passiert tatsächlich ganz oft bei Verben.",st,spaCy invented verbe,claude-opus-5,invented lemma
+123,angepasst,VVPP,angepasst,anpassen,anpassen,Selbst der Kalender der alten Ägypter ist am Rhythmus des Nils angepasst.,st,participle unreduced by spaCy,claude-opus-5,left unreduced
+124,Pfannkuchen,NN,pfannkuch,Pfannkuchen,Pfannkuchen,Und was essen Sie mit den Pfannkuchen zusammen?,st,"spaCy invented pfannkuch, a second invention beside the pfannkuche in lemma_fixes",claude-opus-5,invented lemma
+125,meine,VVFIN,meinen,mein,meinen,Und welche Serien und Filme meine ich?,md,meine ich is meinen; Stanza gave the possessive,claude-opus-5,wrong reading
+126,Rekordblöcke,NN,rekordblöcken,Rekordblock,Rekordblock,"Ungewöhnlich ist, dass die ältere Phase kleine Blöcke produzierte und die spätere Phase Rekordblöcke.",st,spaCy invented rekordblöcken,claude-opus-5,invented lemma
+127,kollabiert,VVPP,kollabiert,kollabieren,kollabieren,"Nur dass sie kaum Jobs finden werden, weil 2060 die südkoreanische Wirtschaft vielleicht kollabiert sein wird.",st,participle unreduced by spaCy,claude-opus-5,left unreduced
+128,öfter,ADV,öfter,oft,oft,"Aber ich habe vor, öfter herzukommen.",both,öfter as adverb vs comparative of oft,claude-opus-5,lexicalised comparative
+129,ne,NN,ne,ein,ein,"Nach den, äh, ersten Abenden, die wir zu zweit zusammen verbracht haben, ne? - Ja. - Ja.",md,tag-question particle ne,claude-opus-5,particle as verb/noun
+130,wird's,VAFIN,wird's,werd'en,wird'ss,"wenn man nichts Neues erleben möchte, weil dann wird's irgendwann langweilig.",neither,both mangle wird's,claude-opus-5,neither
+131,VHS-Kassetten,NN,vhs-kassetten,VHS-Kassette,VHS-Kassette,"Kein Mensch nutzt mehr VHS-Kassetten, außer vielleicht Nostalgiker.",st,spaCy left the plural,claude-opus-5,left unreduced
+132,gegessen,VVPP,gegessen,essen,essen,Wenn man etwas Falsches gegessen hat zum Beispiel.,st,gegessen unreduced by spaCy,claude-opus-5,left unreduced
+133,Hab,NN,hab,haben,haben,"Hab' ich nicht, aber den hole...",st,Hab' tagged NN by spaCy so the override never fired,claude-opus-5,left unreduced
+134,selbstständig,ADJD,selbstständig,selbständig,selbständig,"Was musst du noch beachten, wenn du dich selbstständig machen willst?",md,selbstständig is a valid spelling; no reason to change it,claude-opus-5,old spelling
+135,Betroffenen,NN,betroffener,Betroffene,Betroffene,"Nicht nur die Betroffenen leiden und brauchen Hilfe, auch die Familien und Freunde verzweifeln oft am Miteinander.",both,nominalised adjective; betroffener is the project's convention,claude-opus-5,convention
+136,erkältet,ADJD,erkältet,erkälten,erkälten,"Wie man es vielleicht an meiner Stimme hören kann, bin ich leicht erkältet.",both,erkältet: participial adjective vs verb,claude-opus-5,participial adjective
+137,gefällt,VVPP,fällen,gefallen,gefallen,"Wie gefällt dir der Verweis, Lisa?",st,"gefällt is gefallen, spaCy gave fällen",claude-opus-5,wrong reading
+138,schämst,VVFIN,schämst,schämen,schämen,Warum schämst du dich für dich selbst?,st,schämst unreduced by spaCy,claude-opus-5,left unreduced
+139,Lehrbuchwissen,NN,lehrbuchwisse,Lehrbuchwissen,Lehrbuchwissen,Sie gehört zum Physik- Lehrbuchwissen und ist ein esoterischer Business-Zweig.,st,spaCy invented lehrbuchwisse,claude-opus-5,invented lemma
+140,böse,ADJD,böse,bös,bös,Wie können wir mit Nachbarn zusammenleben die wir für böse halten?,md,böse is the lemma,claude-opus-5,stem variant
+141,ersten,ADJA,erster,erst,erst,"In einer ersten Erklärung heißt es, Iran solle an den Verhandlungstisch kommen.",both,convention: erster vs erst,claude-opus-5,convention
+142,realisier,ADJD,realisier,realisieren,realisieren,"Ich selber realisier noch gar nicht, dass ich hier bin.",st,clipped realisier unreduced by spaCy,claude-opus-5,left unreduced
+143,Hühnerknochenbrühe,NN,hühnerknochenbrüh,Hühnerknochenbrühe,Hühnerknochenbrühe,Hühnerknochenbrühe Beim japanischen Essen wird auch oft Hühnerknochenbrühe benutzt.,st,spaCy truncated the compound,claude-opus-5,invented lemma
+144,Apfelkitschen,NN,apfelkitschen,Apfelkitsche,Apfelkitsche,"In die Biotonne kommt eigentlich kompostiertbarer Müll, also alles, was von der Erde aufgenommen und verarbeitet werden kann, zum Beispiel Fischgräten und Apfelkitschen.",st,spaCy left the plural,claude-opus-5,left unreduced
+145,Erste,NN,erster,erst,erst,"Ich warte schon, bis der Erste kommt und das uns nachmacht und sagt, das ist seine Erfindung.",both,der Erste: erster vs erst,claude-opus-5,convention
+146,Achte,NN,achte,Acht,Achten,"Achte darauf, dass dich niemand nach den Grundsätzen der Welt betrügt.",neither,"Achte darauf is achten; spaCy achte, Stanza the noun Acht",claude-opus-5,neither
+147,Biergarten,NN,biergart,Biergarten,Biergarten,Der Biergarten. Ich bin im Biergarten.,st,spaCy invented biergart,claude-opus-5,invented lemma
+148,well,ADJD,well,wellen,wellen,"yeah, I was welcomed really well wurde ich sehr gut aufgenommen, deswegen by the family, therefore vermiss' ich tatsächlich überhaupt nichts.",md,English; Stanza invented wellen,claude-opus-5,foreign word
+149,bräuchte,VVFIN,bräuchte,brauchen,brauchen,"Denn dafür bräuchte man erst mal Geld, um Spieler zu kaufen.",st,bräuchte unreduced by spaCy,claude-opus-5,left unreduced
+150,Globuli,NN,globuli,Globulus,Globulus,Das fertige Heilmittel wird dann meistens auf Zucker kügelchen geträufelt und als Globuli verkauft.,st,Globulus is the singular,claude-opus-5,left unreduced
+151,Erste,NN,erste,erst,erst,"Guten Morgen! Es ist acht Uhr, ich bin grade aufgestanden und das Erste, was ich morgens mache, ist zu meditieren.",both,das Erste: erste vs erst,claude-opus-5,convention
+152,weißt,VVFIN,wissen,weißen,weißen,"Das heißt, das Geld... äh... rinnt dir so durch die Finger und du weißt gar nicht, wo's bleibt?",md,weißt is wissen,claude-opus-5,wrong reading
+153,Schnäbel,NN,schnäbel,Schnabel,Schnabel,"Damit dabei nichts passiert, kürzen wir ihre Schnäbel und Krallen.",st,spaCy left the plural,claude-opus-5,left unreduced
+154,ersten,ADJA,erster,erst,erst,"Nach den, äh, ersten Abenden, die wir zu zweit zusammen verbracht haben, ne? - Ja. - Ja.",both,convention: erster vs erst,claude-opus-5,convention
+155,willst,VMFIN,willen,wollen,wollen,"Und willst du Yara, Riton, zu deinem Mann nehmen?",st,spaCy invented willen,claude-opus-5,invented lemma
+156,Draufgucken,NN,draufgucke,Draufgucken,Draufgucke,"Draufgucken hat gesagt 373737, also 111, das sind drei mal 37 Striche.",st,spaCy invented draufgucke,claude-opus-5,invented lemma
+157,geht's,VVFIN,gehen,gehe'en,gehten,Da geht's dann explizit um Corona.,md,Stanza mangles geht's,claude-opus-5,'s contraction
+158,begeistert,ADJD,begeistert,begeistern,begeistern,"Schillers Arbeitgeber, der Herzog von Württemberg, ist von den „Räubern“ wenig begeistert.",both,begeistert: participial adjective vs verb,claude-opus-5,participial adjective
+159,nächste,ADJA,nächster,nah,nah,Man bezieht sich dabei immer auf die nächste volle Stunde.,both,UD lemmatises nächste to nah,claude-opus-5,convention
+160,allerliebsten,NN,allerliebsten,allerlieb,allerlieb,"Ähm, am allerliebsten trinke ich Kaffee mit meiner Freundin.",neither,am allerliebsten: neither reaches a lemma,claude-opus-5,neither
+161,beeindruckt,VVPP,beeindrucken,beeindruckt,beeindruckt,Alex zeigt einen Zaubertrick. Carlos ist beeindruckt.,both,beeindruckt: participial adjective vs verb,claude-opus-5,participial adjective
+162,besuchst,VVFIN,besuchst,besuchen,besuchen,Du besuchst meine Eltern? (Vater:) Ist das so schwer vorstellbar?,st,besuchst unreduced by spaCy,claude-opus-5,left unreduced
+163,Willst,VVFIN,wollen,willen,wollen,"„Willst du auch ein Bier, Christian?“ Oh, sehr gerne, Georg.",md,"sentence-initial Willst: Stanza gave willen, spaCy wollen",claude-opus-5,sentence-initial
+164,lieber,ADV,lieber,lieb,lieb,"Halte dich lieber da raus, Lisa!",both,lieber as adverb vs comparative of lieb,claude-opus-5,lexicalised comparative
+165,weiter,ADV,weiter,weit,weit,"Das hat sich immer noch weiter verschärft vermutlich, oder?",both,weiter as adverb vs comparative of weit,claude-opus-5,lexicalised comparative
+166,früher,ADJD,früh,früher,früher,Hier ist alles genau wie früher.,both,früher as adverb vs comparative of früh,claude-opus-5,lexicalised comparative
+167,angefreundet,VVPP,angefreundet,anfreunden,anfreunden,"Wir haben uns angefreundet, als wir zusammen für die Klausuren gelernt haben.",st,participle unreduced by spaCy,claude-opus-5,left unreduced
+168,bestimmt,VVFIN,bestimmen,bestimmt,bestimmt,"Ähm... und ich weiß nicht, ob ich sagen würde, dass es generell was gibt, was mich nervt... weil das gibt es bestimmt überall.",st,bestimmt here is the adverb; spaCy gave the verb,claude-opus-5,wrong reading
+169,verlinkt,VVPP,verlinkt,verlinken,verlinken,"Also sehr spannend zum geschichtlichen Teil, habe ich auch noch mal was verlinkt.",st,participle unreduced by spaCy,claude-opus-5,left unreduced
+170,drücktest,VVFIN,drücktest,drücken,drücken,"Gebrauchtest du den Konjunktiv häufiger, drücktest du dich nicht nur viel eloquenter aus.",st,preterite unreduced by spaCy,claude-opus-5,left unreduced
+171,ersten,ADJA,erster,erst,erst,Wann die ersten Siedler hier eintreffen ist bis heute nicht ganz geklärt.,both,convention: erster vs erst,claude-opus-5,convention
+172,Roma,NN,rom,Roma,Rom,"Aber auch, warum es auch so ein emotionales Thema ist. (Rattern, Klingeln) Sinti und Roma erfahren in Deutschland immer noch Diskriminierung.",both,Rom is technically the singular of Roma,claude-opus-5,both exist
+173,Moleküle,NN,moleküle,Molekül,Molekül,"Und genauso gibt es auch Moleküle, die alle möglichen Effekte haben.",st,spaCy left the plural,claude-opus-5,left unreduced
+174,gehört,VVPP,hören,gehören,gehören,"Das sind Dinge, die bisher eher nicht unbedingt zu den Stärken der deutschen Autobauer gehört haben.",st,gehört haben is gehören; spaCy gave hören,claude-opus-5,wrong reading
+175,Sternkreiszeichen,NN,sternkreiszeiche,Sternkreiszeichen,Sternkreiszeichen,"Geschlecht wechseln und haben erstaunliche Fähigkeiten wie Werkzeuggebrauch, Orientierung oder das Erkennen von Sternkreiszeichen.",st,spaCy invented sternkreiszeiche,claude-opus-5,invented lemma
+176,ersten,ADJA,erster,erst,erst,"Wir hatten das Glück, habt ihr ja mitbekommen, dass wir den letzten Monat meines ersten Trimesters weg waren.",both,convention: erster vs erst,claude-opus-5,convention
+177,Let's,NN,let's,Let',Let's,"Interesting topic, let's go. - Let's go.",md,English let's; Stanza mangled it,claude-opus-5,'s contraction
+178,Größeres,NN,größeres,Größere,Größeres,"Auch viele kleinere Gewinne, statt ab und zu mal was Größeres.",neither,was Größeres: neither reaches groß,claude-opus-5,neither
+179,Miss,NN,miss,Miß,Miß,"Ich mache für Miss Miss etwas Kaffee, Dad.",md,old spelling Miß,claude-opus-5,old spelling
+180,Tschüss,NN,tschüss,Tschuß,Tschüss,"Super gerne. - Tschüss, liebe Leute! - Ciao!",md,Stanza gave Tschuß,claude-opus-5,old spelling
+181,Knallflaschen,NN,knallflasch,Knallflasche,Knallflasche,"Hast du noch Knallflaschen, Markus?",st,spaCy invented knallflasch,claude-opus-5,invented lemma
+182,Bitte,ADV,bitte,bitten,bitten,"""Hallo!"" ""Sagen Sie doch was!"" Bitte reden Sie doch mit mir!",md,Bitte the particle,claude-opus-5,particle as verb/noun
+183,Öffentlich-Rechtlichen,NN,öffentlich-rechtliche,Öffentlich-Rechtlich,Öffentlich-Rechtlich,Wo ist denn der Unterschied zwischen den Privaten und den Öffentlich-Rechtlichen in Deutschland?,both,"nominalised adjective, both defensible",claude-opus-5,convention
+184,Schau,VVIMP,schauen,Schau,Schau,"Ja. Schau dir mal diese Schwellung an. Alter, das Gehirn ist ja riesig.",md,sentence-initial imperative Schau unreduced by Stanza,claude-opus-5,sentence-initial
+185,geht's,VVFIN,gehen,gehe'en,gehten,"Zum Beispiel sage ich: ""Manuel hat einen Hund"", und ihr sagt dann: ""Das ist sein Hund."" Los geht's.",md,Stanza mangles geht's,claude-opus-5,'s contraction
+186,gekriegt,VVPP,gekriegt,kriegen,kriegen,"Wenn er Wasser gekriegt hat, dann blühen da schöne Blumen.",st,gekriegt unreduced by spaCy,claude-opus-5,left unreduced
+187,entführe,VVFIN,entführen,entfahren,entführen,Ich entführe keine kleinen fzenden Kinder.,md,Stanza gave entfahren for entführe,claude-opus-5,wrong reading
+188,Zusammenhängen,NN,zusammenhäng,Zusammenhang,Zusammenhang,"Es geht dabei sehr oft um Texte, aber man kann dieses Verb auch in anderen Zusammenhängen benutzen.",st,spaCy invented zusammenhäng,claude-opus-5,invented lemma
+189,Migräne,NN,migran,Migräne,Migräne,"Wir haben bei Ihnen auf der Website versucht, Medikamente gegen Migräne zu bestellen.",st,spaCy invented migran,claude-opus-5,invented lemma
+190,Deutschen,NN,deutsche,deutsch,Deutsche,Und hier zählt man im Deutschen etwas anders als in anderen Ländern.,both,im Deutschen: deutsch vs deutsche,claude-opus-5,both exist
+191,solltet,VMFIN,solltet,sollen,sollen,Ich wusste es. Ihr Deutschen solltet mir einen Orden verleihen.,st,solltet unreduced by spaCy,claude-opus-5,left unreduced
+192,weitergeholfen,VVINF,weitergeholfen,weiterhelfen,weiterhelfen,"Wir hoffen, dass euch dieses Video etwas weitergeholfen hat und ihr den Dativ jetzt mit Sicherheit nutzen könnt, wenn ihr Deutsch sprecht.",st,weitergeholfen unreduced by spaCy,claude-opus-5,left unreduced
+193,Glitzerjacke,NN,glitzerjack,Glitzerjacke,Glitzerjacke,"Nein, das war... so wie er hat! Mit dem äh der Glitzerjacke und auch mit dem Klavierschal.",st,spaCy invented glitzerjack,claude-opus-5,invented lemma
+194,Verben,NN,verbe,Verb,Verb,Wir zeigen euch heute einige dieser Verben. Los geht's.,st,spaCy invented verbe,claude-opus-5,invented lemma
+195,gespannt,ADJD,gespannt,spannen,spannen,"Ich bin gespannt, was ihr denkt, schreibt in die Kommentare.",md,"gespannt sein is the lexicalised adjective, not spannen",claude-opus-5,wrong reading
+196,Bakterien,NN,bakterie,Bakterium,Bakterie,"Deshalb lohnt es sich auch, anhand eines Speichelabstrichs die Anzahl bestimmter Bakterien zu bestimmen.",both,Bakterie and Bakterium both exist,claude-opus-5,both exist
+197,Internets,NN,internet,Internets,Internets,"Wenn dann wieder alles anläuft, ist man quasi beim Stand vor dem Ausfall des Internets.",md,genitive Internets unreduced by Stanza,claude-opus-5,left unreduced
+198,enttäuscht,VVPP,enttäuschen,enttäuscht,enttäuscht,"Pierre sagt, viele seiner Freunde seien jetzt vor der Bundestagswahl enttäuscht von der Politik und den Parteien.",both,enttäuscht: participial adjective vs verb,claude-opus-5,participial adjective
+199,1950er-Jahren,NN,1950er-jahr,1950er-Jahre,1950er-Jahre,"In den 1950er-Jahren wird eine Reihe von Doping-Skandalen aufgedeckt, bei denen Betrüger die Rennen beeinflussen.",both,die 1950er-Jahre is plural-only; either,claude-opus-5,both exist
+200,Russland,NN,russland,Rußland,Rußland,"In Russland und anderen Ländern, die auf Seiten Russlands stehen, gab es eher Zustimmung.",md,old spelling Rußland,claude-opus-5,old spelling

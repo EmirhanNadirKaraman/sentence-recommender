@@ -1,0 +1,262 @@
+set,sentence,position,surface,gold,observed,target
+overrides,"Muss man ja. Aber Sie auch, wenn Sie so'n Job machen hier, das finde ich toll! - Danke schön!",initial,muss,müssen,,0
+overrides,Irgendjemand muss ja auf dich aufpassen.,mid,muss,müssen,,1
+overrides,"Aber wer krank ist, muss doch nicht fasten.",mid,muss,müssen,,5
+overrides,"Ich will morgen zurück zur Firma, ich muss etwas überprüfen.",mid,muss,müssen,,8
+overrides,"Musst du nicht arbeiten oder so? Nö, ich habe doch Urlaub.",initial,musst,müssen,,0
+overrides,"Die zeigt dir, wann du wieder zur Hauptuntersuchung musst.",mid,musst,müssen,,9
+overrides,"Um eine Steuererklärung mit WISO Steuer erstellen zu können, musst du als Erstes einen kostenlosen Account erstellen.",mid,musst,müssen,,10
+overrides,"Du musst mir das nicht noch unter die Nase reiben!“ Das bedeutet also: Du musst mich nicht noch daran erinnern, dass meine Frisur schlecht aussieht.",mid,musst,müssen,,1
+overrides,Soll ich für dich gucken?,initial,soll,sollen,,0
+overrides,Wo soll's denn mit eurer Forschung oder auch mit dem Sojaanbau in Deutschland allgemein hingehen?,mid,soll,sollen,,-1
+overrides,Oh. Soll ich es für dich halten?,mid,soll,sollen,,2
+overrides,"Als wäre das nicht kompliziert genug, gibt es noch eine Art Aufseher von außerhalb, der schaut, ob im Land alles so läuft, wie es soll.",mid,soll,sollen,,28
+overrides,Hab schon viel von Ihnen gehört.,initial,hab,haben,,0
+overrides,Ich hab mich gefragt: Warum ist uns das vergleichsweise so egal?,mid,hab,haben,,1
+overrides,"Nein, ich hab heute Spätschicht.",mid,hab,haben,,3
+overrides,"Ich hab' keine Ah... ich hab' keine Ahnung, I have no... I have no idea, 300 Euro vielleicht, 400, 500 Euro.",mid,hab,haben,,1
+overrides,Lass gerne ein Abo da und gib mir einen Daumen nach oben.,initial,lass,lassen,,0
+overrides,Ist heute anscheinend der lass es dir eine Lehre sein Tag. verflucht.,mid,lass,lassen,,4
+overrides,Bitte lass meine Eltern endlich gehen.,mid,lass,lassen,,1
+overrides,"Okay, lass uns schnell zu Österreich.",mid,lass,lassen,,2
+overrides,"Sag ihm, wer du wirklich bist!",initial,sag,sagen,,0
+overrides,Ich sag dir was das ist und du musst das mit Akkusativ beantworten.,mid,sag,sagen,,1
+overrides,"Wenn ich dir irgendwie helfen kann, dann sag es mir gerne.",mid,sag,sagen,,8
+overrides,Haha. Es ist ein Adjektiv. - Sag doch mal 'n Satz.,mid,sag,sagen,,8
+overrides,Hör auf die Vielleicht würdest du es ja auch gerne mal mit Lany treiben.,initial,hör,hören,,0
+overrides,"Okay, keine Angst, ich hör auf.",mid,hör,hören,,6
+overrides,Gewöhn dir das ab! Hör auf damit!,mid,hör,hören,,5
+overrides,"Gu Yan, hör mir zu, ich.",mid,hör,hören,,3
+overrides,Mach ihr schaff Fleisch aus dir.,initial,mach,machen,,0
+overrides,Langsam mach ich mir Sorgen.,mid,mach,machen,,1
+overrides,Ich mach Ihnen den Kaffee gleich fertig.,mid,mach,machen,,1
+overrides,"Stopp! Ich mach das selbst, ich mach das selbst.",mid,mach,machen,,3
+overrides,Geh nur versteck dich irgendwo.,initial,geh,gehen,,0
+overrides,"Wir sagen auch: “Dann geh zum Arzt, denn es gibt keine andere Möglichkeit.",mid,geh,gehen,,6
+overrides,"Lässt sich erst feiern in der Bild-Zeitung, in dem größten Boulevardmagazin Deutschlands.",initial,lässt,lassen,,0
+overrides,Das das lässt keinen Raum für Mangel.,mid,lässt,lassen,,2
+overrides,"Ich kann nicht glauben, dass sie mich wieder warten lässt.",mid,lässt,lassen,,10
+overrides,"Ich mag nicht, wenn Cari Sachen in der Spüle abstellt und sie antrocknen lässt.",mid,lässt,lassen,,14
+overrides,"Versuch' das eigentlich zu vermeiden, weil ich's selbst unangenehm finde.",initial,versuch,versuchen,,0
+overrides,"Ich versuch durchaus halt zumindest einmal die Woche so einen Schreibtag zu haben, wo ich dann auch wirklich Zeit hab, mich ins Atelier zu setzen.",mid,versuch,versuchen,,1
+overrides,"Gut, steig rauf und versuch es mal.",mid,versuch,versuchen,,5
+overrides,"Mit Anwalt und so. Versuch nicht, mich aufzuhalten.",mid,versuch,versuchen,,5
+overrides,"Stell dir diese Zukunft vor, aber multipliziert mal 100, dann hast du vermutlich immer noch nicht das, was Deutschland hier blüht.",initial,stell,stellen,,0
+overrides,"Hier ist es. Willst du hier warten oder dachtest du, ich stell mich neben dich und reicht dir Papiertücher?",mid,stell,stellen,,13
+overrides,"Ja, stell's dir mal so vor.",mid,stell,stellen,,-1
+overrides,"Dann würd' ich sagen stell dich mal auf ein paar sehr kalte und harte Monate ein jetzt, denn... - Ich weiß (das) schon.",mid,stell,stellen,,5
+overrides,Bring Sojamilch mit!” Das ist so eine recht unfreundliche Aufforderung.,initial,bring,bringen,,0
+overrides,Ich bring dich um. Das hab ich gesagt.,mid,bring,bringen,,1
+overrides,"Wenn das wirklich wahr ist. .dann bring ich ihn eigenhändig um. Bring ihn um. Hier reicht’s, Su Ming, du musst mich nicht weiterbringen.",mid,bring,bringen,,7
+overrides,"Bitte, bring mich zu ihm, ja? Jiao Jiao, hör mir zu. Es tut mir leid.",mid,bring,bringen,,2
+overrides,Lasst euch von den Punkten nicht verrwirren.,initial,lasst,lassen,,0
+overrides,"Wenn euch das Video gefallen hat, dann lasst auf jeden Fall ein Like da. Danke fürs Zuschauen und bis zum nächsten Mal.",mid,lasst,lassen,,8
+overrides,Unser Geld gewinnt also an Wert und die Kaufkraft steigt Aber lasst uns ein Beispiel anschaun.,mid,lasst,lassen,,11
+overrides,"Aber wer mitkommt und sich benimmt, kriegt eine 1. Aber wer mitkommt und sich benimmt, kriegt eine 1. Lasst uns das Beste draus machen, Leute.",mid,lasst,lassen,,20
+overrides,Müsst ihr deshalb auf der Straße sitzen?,initial,müsst,müssen,,0
+overrides,"Das kann wichtig sein, wenn ihr mal krank seid und zum Arzt gehen müsst.",mid,müsst,müssen,,14
+overrides,"Das ist zum Beispiel relevant, wenn ihr irgendwo etwas bestellt, wo ihr die Versandkosten selbst übernehmen müsst.",mid,müsst,müssen,,18
+overrides,"Was macht das mit den Menschen, wenn man ihnen sagt: ""Ihr müsst weniger Fleisch essen, das ist schlecht fürs Klima!""?",mid,müsst,müssen,,14
+overrides,geht's in erster Linie gar nicht mehr wirklich dadrum... ähm...,initial,geht's,gehen,,0
+overrides,"Darum geht's jetzt. (Lockere Musik) (Abfallende Klänge) Es ist ein Satz, den man an so einer Stelle eigentlich nie gerne hört.",mid,geht's,gehen,,1
+overrides,"Zum einen geht's dabei um wirtschaftliche Interessen, zum anderen aber auch um militärische.",mid,geht's,gehen,,2
+overrides,"Nach dem Aufstehen geh' ich normalerweise duschen, mach' mich fertig, denn gibt's 'n bisschen Sportfrühstück und dann geht's zur Arbeit.",mid,geht's,gehen,,21
+overrides,Gibt's so was bei euch auch in Großbritannien?,initial,gibt's,geben,,0
+overrides,"Tempo. - Also die Marke, da gibt's einfach nur...",mid,gibt's,geben,,8
+overrides,"Da Bruder Dao, was gibt's?",mid,gibt's,geben,,5
+overrides,"Ursachen gibt's natürlich einige, aber hauptsächlich verantwortlich sein dürfte die Plattform TikTok.",mid,gibt's,geben,,1
+overrides,"Weißt du überhaupt, wer ich bin?",initial,weißt,wissen,,0
+overrides,"Ja. Oh, weißt du, ich habe heute ein bisschen über die Stränge geschlagen.",mid,weißt,wissen,,4
+overrides,"Ok, also das ist, weißt du was 'genießen' ist? - Ja.",mid,weißt,wissen,,6
+overrides,"Aber weißt du, was ich wirklich will, ist eine alte Leica.",mid,weißt,wissen,,1
+overrides,Kannst du eine andere Einheit einsetzen?,initial,kannst,können,,0
+overrides,Ja. Vanille kannst du selber fressen.,mid,kannst,können,,3
+overrides,"Schauen wir uns nun an, wofür du das Gradnetz nutzen kannst.",mid,kannst,können,,11
+overrides,"Neben Listen kannst du über das Einfügen-Menü auch Tabellen, Dateianlagen oder Excel-Arbeitsblätter einfügen.",mid,kannst,können,,2
+overrides,Wusste ich nicht. - Ja. - Okay.,initial,wusste,wissen,,0
+overrides,"Ich wusste gar nicht, dass er Gefühle hat.",mid,wusste,wissen,,1
+overrides,"Früher wusste man, wer anruft, (I) used to know who's calling wenn das Telefon klingelte, als man noch die...",mid,wusste,wissen,,1
+overrides,"Ach so, das wusste ich nicht.",mid,wusste,wissen,,4
+overrides,"Ah, das hab' ich nicht gewusst, Ah, I didn't know that, sehr cool, sehr cool.",mid,gewusst,wissen,,7
+overrides,"Und ganz ehrlich: Hättet ihr gewusst, das Wort ""Fiaker""? Habt ihr das schon mal gehört?",mid,gewusst,wissen,,6
+overrides,"Oder Bill Gates soll noch vor der Virus-Ausbreitung davon gewusst haben, um ordentlich Geld mit einem Patent auf einen Impfstoff zu machen.",mid,gewusst,wissen,,9
+overrides,"Meine Hände, die haben nicht gewusst, ob das dein Speck ist oder ob das nicht dein Speck ist.",mid,gewusst,wissen,,6
+overrides,Kommst du morgen mit? - Komm' ich.,initial,kommst,kommen,,0
+overrides,Ja. Kommst du aus einer guten Familie?,mid,kommst,kommen,,2
+overrides,"Woher kommst du? - Landkreis Traunstein, beim Chiemsee.",mid,kommst,kommen,,1
+overrides,"So, ah. - Wo kommst du denn her?",mid,kommst,kommen,,6
+overrides,Brauchst du nicht mit dem Gesicht zur Tür zu sitzen.,initial,brauchst,brauchen,,0
+overrides,"Falls du was brauchst, ich gehe nachher einkaufen.",mid,brauchst,brauchen,,3
+overrides,"Gu Yan, ich gehe heute Abend mit Freunden essen, du brauchst nicht auf mich zu warten.",mid,brauchst,brauchen,,12
+overrides,"Und was brauchst du an Elektronik, um zu überleben?",mid,brauchst,brauchen,,2
+overrides,"Siehst du dir also alles an? Ja. Ich habe es einmal versucht und festgestellt, dass mir so ein Aufwand nicht liegt.",initial,siehst,sehen,,0
+overrides,Vielleicht siehst du oben mein Mikrofon.,mid,siehst,sehen,,1
+overrides,Du siehst wirklich ganz bezaubert aus.,mid,siehst,sehen,,1
+overrides,Wie siehst du denn aus?,mid,siehst,sehen,,1
+overrides,"Sieh mal, der ist wirklich nicht schlecht.",initial,sieh,sehen,,0
+overrides,"Ja, dann sieh mal zu, dass du dein Hinter rauskriegst.",mid,sieh,sehen,,3
+overrides,"Ja, sieh doch ganz mitgenommen aus.",mid,sieh,sehen,,2
+overrides,"Charlie, sieh dir das an. Oh mein Gott.",mid,sieh,sehen,,2
+overrides,Gehst du später zu ihm?,initial,gehst,gehen,,0
+overrides,Du gehst jetzt sofort zu Yaras Familie und sprichst mit Ahmed. und entschuldigst dich bei ihm.,mid,gehst,gehen,,1
+overrides,Du gehst in keinen Kurs.,mid,gehst,gehen,,1
+overrides,"Ja, aber diesmal gehst du vorbereitet hin.",mid,gehst,gehen,,4
+overrides,Musste mal seine Auspuffe ins Suizieren.,initial,musste,müssen,,0
+overrides,Teilweise musste die Nationalgarde anrücken.,mid,musste,müssen,,1
+overrides,"In diesem Moment wusste ich, dass die SBON warten musste.",mid,musste,müssen,,10
+overrides,"Ich musste nach draußen gehen, um telefonieren zu können.",mid,musste,müssen,,1
+overrides,"Diejenigen, die unter Epstein und seinen Komplizen leiden mussten.",mid,mussten,müssen,,9
+overrides,"Ja, wir mussten ein paar rausschneiden, weil Janusz hat auch 'n paar zu peinliche Geschichten erzählt.",mid,mussten,müssen,,3
+overrides,"Während sich die Hominini machtlos in einer Welt wiederfanden, an die sie sich anpassen mussten, könnte unser Start nicht unterschiedlicher sein.",mid,mussten,müssen,,15
+overrides,"...während ihrer Periode, sagt man so, immer während ihrer Periode, äh, sich waschen mussten oder einfach hingingen, traditionell. Oder die jüdischen...",mid,mussten,müssen,,18
+overrides,Wussten Sie das denn nicht?,initial,wussten,wissen,,0
+overrides,"Sorry, das wussten wir nicht.",mid,wussten,wissen,,3
+overrides,"Also wo Leute wussten, dass sie Glutamat zu sich nahmen.",mid,wussten,wissen,,3
+overrides,"Wir wussten es bei beiden Kindern nicht, dass sie behindert sind.",mid,wussten,wissen,,1
+overrides,"No, bitte, wir mussen Was?",mid,mussen,müssen,,5
+overrides,"Hältst du es aus, wenn die Ministerin korrupt ist?",initial,hältst,halten,,0
+overrides,"Ich würde dich und die Kinder nie Ich weiß, du hältst mich für eine kleine lächerliche Debutantin.",mid,hältst,halten,,11
+overrides,"Für wie blöd hältst du mich, Junge?",mid,hältst,halten,,3
+overrides,"Hauptsache, du hältst sie auf.",mid,hältst,halten,,3
+overrides,Sprichst du mit mir? (Ginger) Ich verstehe dich nicht.,initial,sprichst,sprechen,,0
+overrides,Aber du sprichst perfekt und ohne Akzent.,mid,sprichst,sprechen,,2
+overrides,"Ich schätz mal, du sprichst Arabisch auch?",mid,sprichst,sprechen,,5
+overrides,"Wenn du von solchen Zahlen sprichst, hast du ihn, Mann, melde mich jetzt an. Also gut, lass es uns angehen, Mann.",mid,sprichst,sprechen,,5
+overrides,Nehm doch den hier so lange.,initial,nehm,nehmen,,0
+overrides,Wie du willst. Ich räum jetzt auf und deine Kiste nehm ich mit.,mid,nehm,nehmen,,11
+overrides,"Ja, genau das da. Ja, ist es. Okay, danke, das nehm ich.",mid,nehm,nehmen,,16
+overrides,"Ich nehm es dir nicht übel, wenn du dir Fragen stellst.",mid,nehm,nehmen,,1
+overrides,"Schau mal, was mit Markus passiert ist.",initial,schau,schauen,,0
+overrides,"Also, ich mein, selber schau ich ja auch, wenn irgendwas Ungewöhnliches auf der Straße ist.",mid,schau,schauen,,6
+overrides,"Doch, macht er. Schau ihn an. Ich bin schon alt genug!",mid,schau,schauen,,5
+overrides,Schlecht ist sie nicht aber schau mal.,mid,schau,schauen,,5
+overrides,Findest du? Ja. Und diese Speisekarte einfach und trotzdem elegant.,initial,findest,finden,,0
+overrides,Wie findest du immer solche Orte?,mid,findest,finden,,1
+overrides,"Du findest dort auch Aufgaben zu allen meinen anderen Videos, kannst dir die Skripte herunterladen, meine Videos als Podcast abonnieren und mehr.",mid,findest,finden,,1
+overrides,Und wie findest du diese Sache mit dem Feierabend?,mid,findest,finden,,2
+overrides,"Verstehst du nicht, dass ich Angst um dich habe?",initial,verstehst,verstehen,,0
+overrides,"Man, ich habe einfach keinen Bock deine fünf wilden Minuten zu sein, verstehst du? Nein, tue ich nicht.",mid,verstehst,verstehen,,14
+overrides,"Ja, lass mich das elaborieren, wenn du das nicht verstehst.",mid,verstehst,verstehen,,11
+overrides,"Da bin ich aber froh, dass du mich verstehst.",mid,verstehst,verstehen,,9
+overrides,"Bekommst du raus, was du reinsteckst?",initial,bekommst,bekommen,,0
+overrides,"Inshallah, bald bekommst du mehr Geld, Martin.",mid,bekommst,bekommen,,3
+overrides,"Okay. Und was, äh, wie viel Taschengeld bekommst du von deinen Eltern? - Äh, im Monat 30 Euro.",mid,bekommst,bekommen,,10
+overrides,"Hey, du bekommst ja langsam einen Babybauch.",mid,bekommst,bekommen,,3
+overrides,Bringst du es bitte hin?” Das bedeutet: Bringst du das Paket bitte zur Post?,initial,bringst,bringen,,0
+overrides,"Martin, du kommst jetzt aus dem Koffer da. Und dann bringst du Lisa zum Flughafen.",mid,bringst,bringen,,12
+overrides,Und mir ihr Tagebuch bringst.,mid,bringst,bringen,,4
+overrides,"Anschließend bringst du -35 auf die rechte Seite, indem du auf beiden Seiten 35 addierst.",mid,bringst,bringen,,1
+overrides,"Merkt euch also: ""mit"", immer mit Dativ.",initial,merkt,merken,,0
+overrides,"Als Franz alleine mit der Leiche ist, merkt er, dass sein Vater nur in Ohnmacht gefallen ist.",mid,merkt,merken,,8
+overrides,"Da merkt man mal wieder, dass wir vom Affen abstammen.",mid,merkt,merken,,1
+overrides,Ihr merkt vielleicht: Das sind beides Begriffe aus dem Französischen.,mid,merkt,merken,,1
+overrides,"Wusstest du das, dass es verschiedene Varianten gibt, den Konjunktiv zu bilden? - Nein. - Nein.",initial,wusstest,wissen,,0
+overrides,"Du wusstest, dass all die Singledamen heute Abend vom Älteren Schlag sein würden?",mid,wusstest,wissen,,1
+overrides,"Woher wusstest du, dass ich hier bin?",mid,wusstest,wissen,,1
+overrides,"Cari, wusstest du, dass die Erde rund ist?",mid,wusstest,wissen,,2
+overrides,"Hättest du die Größe einer Ameise und würdest einen Wassertropfen berühren, dann wäre das für dich, als würdest du in Kleber fassen.",initial,hättest,haben,,0
+overrides,Aber hättest du gerne einen?,mid,hättest,haben,,1
+overrides,"Du hättest mir sagen sollen, dass du kommst.",mid,hättest,haben,,1
+overrides,"Und wenn du mit dieser Intelligenzbestie nicht gefüßelt hättest, hätte sie uns nicht belästigt.",mid,hättest,haben,,8
+overrides,"Möchte man Kandidat werden, dann braucht man eine Organisation im Rücken.",initial,möchte,mögen,,0
+overrides,"Wenn Sie die Hochzeit auch möchte, dann habe ich nichts einzuwenden.",mid,möchte,mögen,,5
+overrides,"Der Ausdruck “sich auf die Zunge beißen” bedeutet, dass man etwas nicht sagt, obwohl man es sagen möchte.",mid,möchte,mögen,,21
+overrides,"Ich möchte nicht nur Deutsch verstehen, ich möchte Deutsch automatisch benutzen.",mid,möchte,mögen,,1
+overrides,Möchten Sie von mir geduzt werden oder gesiezt werden?,initial,möchten,mögen,,0
+overrides,"Und sie betonen, dass sie aktiv an der ebenfalls ""Entfernung der Juden aus den Sportvereinen"" mitwirken möchten.",mid,möchten,mögen,,19
+overrides,Fangen wir an! Warum möchten Sie bei uns arbeiten?,mid,möchten,mögen,,5
+overrides,"Die USA möchten Russland von seinem engen Partner China abspalten, um China überlegen zu sein.",mid,möchten,mögen,,2
+overrides,"Möchtet ihr eure Aussprache verbessern, um euch für solche Gespräche vorzubereiten?",initial,möchtet,mögen,,0
+overrides,"Und wenn ihr Easy German abonnieren möchtet, freuen wir uns sehr. Das könnt ihr hier machen.",mid,möchtet,mögen,,6
+overrides,"Und falls ihr danach weitermachen möchtet, kriegt ihr mit unserem Link sogar einen 65-prozentigen Rabatt.",mid,möchtet,mögen,,5
+overrides,"Wenn ihr mehr über spannende Wörter im Deutschen erfahren möchtet, schaut euch mal meine Playlist an. Die verlinke ich euch hier.",mid,möchtet,mögen,,9
+overrides,Hier haben wir einmal ne grobe… Kringelbratwurst und 'ne feine nach Thüringer Art. - Wonach ist denn wohl unserem Kameramann? - Was möcht's du denn?,mid,möcht,mögen,,-1
+overrides,"Auch so, mein Kind, möcht' ich nicht, dass irgendwelche Fotos von dem im Internet sind oder...",mid,möcht,mögen,,6
+overrides,"Boah, das möcht' ich jetzt im Fernsehen nicht sagen. - Dann sagen Sie brutto.",mid,möcht,mögen,,3
+overrides,Also mein Spanisch möcht' ich gerne perfektionieren.,mid,möcht,mögen,,3
+fixes,"Das Higgs-Feld ist dafür verantwortlich, dass Teilchen Masse haben und beeinflusst damit, wie sich fast alles im Universum verhält.",mid,,teilchen,teilche,7
+fixes,"Wie eine Geigensaite, die je nach Schwingung verschiedene Töne erzeugt, kann ein String verschiedene Teilchen ergeben.",mid,,teilchen,teilche,16
+fixes,Gemäß dem Standardmodell sind Protonen und Neutronen keine Elementarteilchen sondern bestehen aus noch kleineren Teilchen den Quarks.,mid,,teilchen,teilche,14
+fixes,"Man hört diese Adverbien übrigens oft in Kombination mit ""immer"" oder ""normalerweise"", um diese Regelmäßigkeit zu betonen.",mid,,adverb,adverbie,3
+fixes,"Wenn ihr diese Adverbien If you'd like to practise noch intensiver üben möchtet, these adverbs more intensively dann werdet ein Mitglied von Easy German.",mid,,adverb,adverbie,3
+fixes,Wir fassen die Adverbien We'll summarise the adverbs aus dieser Episode für euch zusammen.,mid,,adverb,adverbie,3
+fixes,Aminosäuren sind also die Bausteine von Proteinen.,mid,,aminosäure,aminosäur,0
+fixes,"Wenn wir Aspartam essen und verstoffwechseln, zerfällt es in die beiden Aminosäuren Asparaginsäure und Phenylalanin.",mid,,aminosäure,aminosäur,12
+fixes,Und in diesem täglichen Betrieb gehen jeden Tag auch ein paar Aminosäuren verloren.,mid,,aminosäure,aminosäur,11
+fixes,"Deshalb fangen wir damit mal an, bevor wir zu den anderen Ausdrücken kommen.",mid,,ausdruck,ausdrück,12
+fixes,Meiner Erfahrung nach ist “sich in die Wolle kriegen” mit Abstand der häufigste Ausdrücke.,mid,,ausdruck,ausdrück,15
+fixes,"Und schreibt mir gerne in die Kommentare, welcher von den heutigen Ausdrücken für euch neu war.",mid,,ausdruck,ausdrück,12
+fixes,"Beispielsätze: Er ist gewissermaßen der Chef des Projekts, auch wenn er nicht der offizielle Leiter ist.",mid,,beispielsatz,beispielsätz,0
+fixes,Beispielsätze: Hinter seiner schroffen Art verbirgt sich ein sehr freundlicher Mensch.,mid,,beispielsatz,beispielsätz,0
+fixes,Ich brauche noch ein bisschen Zeit für meine Hobbys.,mid,,bisschen,bissch,4
+fixes,"Wenn ja, gebt mir gerne einen Daumen nach oben, abonniert meinen Kanal und schreibt mir auch gern einen Kommentar.",mid,,daumen,daume,7
+fixes,Und außerdem freu ich mich natürlich immer sehr über einen Daumen nach oben.,mid,,daumen,daume,10
+fixes,"Wenn ihr mehr von mir sehen möchtet, abonniert gerne meinen Kanal, gebt mir einen Daumen nach oben und schaut auch mal in meine Playlisten.",mid,,daumen,daume,16
+fixes,Als Mitglied unterstützt ihr unsere Arbeit und ihr unterstützt euer Deutschlernen.,mid,,deutschlernen,deutschlern,10
+fixes,"In meinen Augen ist eine mögliche Erklärung, dass die Testgruppe möglicherweise überdurchschnittlich Gender affin war.",mid,,gender,gend,13
+fixes,In der EU liegt der Gender Pay Gap bei rund zwölf Prozent.,mid,,gender,gend,5
+fixes,"Hier geht's zum Video von ""Die Frage"" oder zu einem ausführlichen Video zum Gender Pay Gap.",mid,,gender,gend,15
+fixes,Wie zuverlässig sind die Impfungen mit Omikron?,mid,,impfung,impfunge,4
+fixes,"Die Verbindung zwischen Autismus und Impfungen stammt von einer einzigen Quelle, die seitdem viele Male widerlegt wurde.",mid,,impfung,impfunge,5
+fixes,"Gerade am Anfang werden die Impfungen nicht gleichmäßig in der Bevölkerung verteilt sein, sondern es wird Safe Spots wie Altenheime geben.",mid,,impfung,impfunge,5
+fixes,"Dieses Adjektiv beschreibt jemanden, der ein ""warmes Herz"" hat.",mid,,jemand,jemander,3
+fixes,"Die haben mich abgelehnt und da ich auch kein Polizist werden konnte, wollte ich auf einen Krankenwagen.",mid,,krankenwagen,krankenwag,17
+fixes,"Wir sind hier, um den Kuchen zu probieren.",mid,,kuchen,kuche,6
+fixes,Ich stand für den Kuchen drei Stunden in der Küche!,mid,,kuchen,kuche,4
+fixes,Was essen Markus und Lisa? a) Süßigkeiten. b) Kuchen. c) Eis.,mid,,kuchen,kuche,12
+fixes,"Und psychologisch gesehen ist Heuchlerrei ähnlich zum Dunning-Kruger-Effekt: Wir haben hier einen Widerspruch zwischen dem, wie ich mich sehe, und wie ich meine Mitmenschen sehe.",mid,,mitmensch,mitmensche,26
+fixes,"Sie nehmen hin, dass jüdische und andere unerwünschte Mitmenschen entrechtet, ausgeraubt, gewaltvoll inhaftiert und getötet werden.",mid,,mitmensch,mitmensche,9
+fixes,"Der Stab hat dafür zu sorgen, dass dieser Mensch unschädlich gemacht wird, dass er aufhört für seine Mitmenschen eine Gefahr zu sein.",mid,,mitmensch,mitmensche,19
+fixes,"Vielleicht ist euch aufgefallen, dass ich in diesem Video gar nicht über die Modalverben “sollen” und “wollen” gesprochen habe.",mid,,modalverb,modalverbe,14
+fixes,Heute behandeln wir ein sehr wichtiges Thema und zwar die Modalverben.,mid,,modalverb,modalverbe,10
+fixes,"Aber nicht für alle Passivsätze, sondern für Passivsätze mit den Modalverben , , und .",mid,,modalverb,modalverbe,11
+fixes,"Auch Nomen mit der Endung ""age"" oder ""ade"" sind weiblich.",mid,,nomen,nom,1
+fixes,"Dort findet ihr unter anderem einen Gender Trainer, der euch dabei hilft, die Artikel zu den wichtigsten 2000 deutschen Nomen zu trainieren.",mid,,nomen,nom,21
+fixes,"Auch Nomen mit der Endung ""ei"" sind weiblich.",mid,,nomen,nom,1
+fixes,Hmm essen Sie gerne Pfannkuchen? - Und womit?,mid,,pfannkuchen,pfannkuche,4
+fixes,"Für Pfannkuchen ist eine gute Pfanne wichtig, denn der Pfannkuchen darf nicht kleben bleiben, und man muss ihn gut wenden können.",mid,,pfannkuchen,pfannkuche,1
+fixes,"Wir werden den ganzen Teig jetzt verrühren, schön cremig rühren und dann können wir die Pfannkuchen auch schon backen.",mid,,pfannkuchen,pfannkuche,16
+fixes,Und tatsächlich muss man diese Pronomen auch in diesen Fällen anpassen.,mid,,pronomen,pronome,5
+fixes,"Die zweite Funktion oder die zweite Variante von ""das"" ist ""das"" als Pronomen.",mid,,pronomen,pronome,16
+fixes,"Und so müsst ihr euch merken, dass man, ja, dass man dieses Pronomen immer anpassen muss.",mid,,pronomen,pronome,15
+fixes,"Das ist üblich, dass es im ersten Quartal weniger Arbeitslose gibt als in den letzten beiden Quartalen.",mid,,quartal,quartale,17
+fixes,Dann gibt es halb freie Sklaven.,mid,,sklave,sklav,5
+fixes,Die Sklaven müssen körperlich hart arbeiten.,mid,,sklave,sklav,1
+fixes,"Heute kaufen wir billige Waren, die manchmal von Menschen produziert werden. deren Leben sich nicht sehr von dem römischer Sklaven unterscheidet.",mid,,sklave,sklav,21
+fixes,Sprich stärkere Sonnencreme senkt das Hautkrebsrisiko.,mid,,sonnencreme,sonnencrem,2
+fixes,Hast du die Sonnencreme eingepackt?,mid,,sonnencreme,sonnencrem,3
+fixes,"Ich hab gehört, Sonnencreme soll auch ganz lecker sein.",mid,,sonnencreme,sonnencrem,4
+fixes,Unten in der Infobox ist er verlinkt.,mid,,unten,unt,0
+fixes,"Aber als Daniel den Grafen sieht, erkennt er Karl.",mid,,graf,grafe,4
+fixes,War das bei dir auch so? Manchmal stellen wir unsere Ergebnisse in einer Arbeit mit Hilfe von Grafen oder Diagrammen dar.,mid,,graf,grafe,18
+fixes,Er hat nie Zeit für mich und wir haben sehr wenig Kontakt zueinander.,mid,,zueinander,zueinand,12
+fixes,Naja in letzter Zeit haben wir sehr wenig Kontakt zueinander.,mid,,zueinander,zueinand,9
+fixes,In der Schule haben die Kinder viel Kontakt zueinander.,mid,,zueinander,zueinand,8
+fixes,Da sind sich sämtliche Experten einig.,mid,,sämtlich,sämtlicher,3
+fixes,"Wenn man sämtliche Namen vorlesen wollte, bräuchte man fast sieben Jahre.",mid,,sämtlich,sämtlicher,2
+fixes,"Russland sagt, als Bedingung für einen dauerhaften Waffenstillstand machen wir, dass sämtliche ukrainische Truppen aus den von uns besetzten Gebieten abgezogen werden.",mid,,sämtlich,sämtlicher,13
+fixes,"Wenn wir jetzt auf Perspektive Bundeswehr schauen, auf Perspektive Zentrum Innere Führung, braucht es eine Führungskultur, die sich ihrer Werte bewusst ist.",mid,,inner,innerer,11
+fixes,"Der innere Erdkern hat also eine sehr hohe Schmelztemperatur, weil dort eine ein so hoher Druck herrscht.",mid,,inner,innerer,1
+fixes,"Um Antworten auf diese Fragen zu erhalten, kontaktieren wir das Zentrum für Innere Führung der Bundeswehr.",mid,,inner,innerer,13
+goals,schreien,bare,schreien,schreien,,0
+goals,rauschen,bare,rauschen,rauschen,,0
+goals,weinen,bare,weinen,weinen,,0
+goals,klappen,bare,klappen,klappen,,0
+goals,reisen,bare,reisen,reisen,,0
+goals,hingehen,bare,hingehen,hingehen,,0
+goals,aufwachsen,bare,aufwachsen,aufwachsen,,0
+goals,vorherrschen,bare,vorherrschen,vorherrschen,,0
+goals,bisschen,bare,bisschen,bisschen,,0
+goals,besonder,bare,besonder,besonder,,0
+goals,inner,bare,inner,inner,,0
+goals,euer,bare,euer,euer,,0
+goals,letzt,bare,letzt,letzt,,0
+goals,gesamt,bare,gesamt,gesamt,,0
+goals,lieb,bare,lieb,lieb,,0
+goals,bewusst,bare,bewusst,bewusst,,0
+goals,einverstanden,bare,einverstanden,einverstanden,,0
+goals,ander,bare,ander,anderer,,0
+readme,Hast du Zeit?,initial,Hast,haben,,0
+readme,Du hast Zeit.,mid,hast,haben,,1
+readme,Gibst du das Tom?,initial,Gibst,geben,,0
+readme,Willst du das?,initial,Willst,wollen,,0

@@ -1,0 +1,121 @@
+  known set: 254 units
+
+=== b1_parsed: 34 blocked ===
+  -- said by the corpus but never teachable (34) --
+    das Öl                              120x   needs: öl
+    die E-Mail                          108x   needs: e-mail
+    der Stock                            32x   needs: etage
+    das Gewissen                         31x   needs: gewiß
+    etw. (Akk) erfordern                 30x   needs: tatsächlich
+    die Zone                             29x   needs: trostlos
+    die Flüssigkeit                      26x   needs: vorwärts, waten
+    die Datei                            25x   needs: downgeloadet
+    erforderlich                         24x   needs: ermessen
+    sämtlich                             19x   needs: software-lizenzvertrag
+    voraussichtlich                      18x   needs: vizekanzler
+    die Sportart                         17x   needs: interessenbereiche
+    ökologisch                           16x   needs: 'n, sozial
+    das Grundstück                       16x   needs: hypothek
+    der Käufer                           14x   needs: betrug
+    die Steckdose                        14x   needs: erneuerbar
+    städtisch                            13x   needs: struktur
+    die CD                               13x   needs: cd
+    das Rathaus                          12x   needs: uniriesen
+    der Sänger                           10x   needs: needles
+    das Quartal                          10x   needs: arbeitslose, letzter
+    verschied                             9x   needs: wissenschaft
+    inner                                 9x   needs: unkritisch
+    interkulturell                        9x   needs: herkommen
+    der Ordner                            9x   needs: musiktitel
+    die Einzelheit                        8x   needs: auslöserreiz
+    die Beschäftigung                     6x   needs: verschieden
+    der Kunststoff                        5x   needs: erdelement
+    das Tennis                            5x   needs: sachlich
+    das Heft                              2x   needs: lehrbuch, stift
+    vorig                                 2x   needs: fahrstuhl
+    das Wiedersehen                       2x   needs: emotional
+    die Phantasie                         2x   needs: burgruine
+    das Top                               1x   needs: beliebt, rechtschreibfehler
+
+=== study_list: 78 blocked ===
+  -- said by the corpus but never teachable (67) --
+    das Öl                              120x   needs: öl
+    die E-Mail                          108x   needs: e-mail
+    die Flüssigkeit                      26x   needs: gelangt
+    geradezu                             17x   needs: fanatisch
+    das Grundstück                       16x   needs: hypothek
+    die Steckdose                        14x   needs: krabbeln
+    die CD                               13x   needs: cd
+    samt                                 13x   needs: seide
+    etw. (Akk) von etw. / sich abgrenzen   10x   needs: linker
+    die Sammlung                          9x   needs: unschätzbar
+    das Management                        8x   needs: liebevoll
+    amtlich                               8x   needs: beglaubigung
+    steuerlich                            8x   needs: eu-land
+    schulisch                             8x   needs: hinkriegen
+    der Graf                              8x   needs: überfall
+    das Kloster                           8x   needs: burge
+    seufzen                               8x   needs: wimmern
+    etw. (Akk) fixieren                   7x   needs: realst
+    die Wechselwirkung                    7x   needs: kollabieren
+    das Milligramm                        6x   needs: körpergewicht
+    jdm. (Dat) etw. (Akk) flüstern        6x   needs: kriegsproduktion
+    die Datenverarbeitung                 6x   needs: prozeß
+    die Tageszeitung                      6x   needs: abo
+    der Champion                          6x   needs: besiegen
+    die Ausführung                        6x   needs: chair
+    vorwiegend                            6x   needs: kutsche
+    die Zunahme                           5x   needs: obst
+    das Weib                              5x   needs: haltes
+    der Kunststoff                        5x   needs: erdelement
+    mitunter                              5x   needs: verschieden
+    unterdessen                           5x   needs: atomprogramm
+    das TV                                5x   needs: tv
+    gleichwohl                            5x   needs: antisemitismus
+    die Rechtsprechung                    5x   needs: ernsthaftigkeit
+    die Erfassung                         4x   needs: methodik
+    vergeblich                            4x   needs: linksterrorismus
+    das Lebensjahr                        4x   needs: gouvernante
+    die Benutzung                         4x   needs: cloud, privatnutzer
+    die Koralle                           4x   needs: alge
+    ferner                                3x   needs: sicherheitskraft
+    das Pro                               3x   needs: stimmberechtigte
+    die Konzeption                        3x   needs: aufgabenbereich
+    der Schilling                         3x   needs: krone
+    die Verbindlichkeit                   3x   needs: mitschwingen
+    elementar                             2x   needs: spielregel
+    der Dolmetscher                       2x   needs: anhörung, dolmetscherin
+    jdn. (Akk) zu etw. mahnen             2x   needs: grausamkeite, unschuldig
+    das Center                            2x   needs: fahr
+    der Zinssatz                          2x   needs: anyfin
+    das Heft                              2x   needs: überein
+    vorig                                 2x   needs: fahrstuhl
+    die Phantasie                         2x   needs: seelisch
+    das Niederländisch                    2x   needs: pur
+    die Fachhochschule                    1x   needs: fachprüfung, führungskraft, weiterbilden
+    die Anleihe                           1x   needs: leihen
+    das Top                               1x   needs: beliebt, rechtschreibfehler
+    gleichsam                             1x   needs: disruption, qualitätsmerkmal, vereinigt
+    die Berücksichtigung                  1x   needs: beharren, eigenheit, wiederbelebung
+    das Riff                              1x   needs: alge, grasen, meeresboden
+    der Absolvent                         1x   needs: kriegsmaschine, panzergrenadier
+    der Bube                              1x   needs: kohlpechrabenschwarzer
+    indes                                 1x   needs: Treffen
+    nunmehr                               1x   needs: angestrebt, designer, leitend
+    etw. (Akk) murmeln                    1x   needs: beifällig, zustimmend
+    pakistanisch                          1x   needs: ausweise
+    zumeist                               1x   needs: erbauen, lehmziegel, pyramidenstümpfe
+    allenfalls                            1x   needs: gruppierung, mitgliederzahl, zweistellig
+  -- never said at all (11) --
+    der Beschäftigte, die Beschäftigte
+    das BGB
+    das HGB
+    herein, rein
+    die Realisierung
+    das Olympia
+    die Zielsetzung
+    detaillieren
+    sogleich
+    zueinander
+    fotografisch
+

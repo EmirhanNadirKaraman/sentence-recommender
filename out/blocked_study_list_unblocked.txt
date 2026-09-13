@@ -1,0 +1,704 @@
+study_list · unblocked reading
+67 goals out of reach · 56 the corpus says · 11 it never says at all
+==============================================================================
+
+geradezu   [lemma]   said 17x   gap 2
+  1. Darauf arbeitet er geradezu fanatisch hin.
+       needs lemma:fanatisch
+  2. Der Leser wird geradezu in das Geschehen hineingeworfen.
+       needs lemma:hineingeworfen
+  3. Geradezu als Rebell des deutschen Fußballs gilt zu der Zeit gilt Paul Breitner, der seine politische Haltung offen nach außen trägt.
+       needs lemma:rebell
+  4. Jenny verschlang geradezu seine Bücher.
+       needs lemma:verschlingen
+  5. Rechts wird das Wasser geradezu weggegluckert.
+       needs lemma:weggegluckert
+  6. Wanderameisen sind so tödlich, dass andere Arten sich geradezu darauf spezialisiert haben, ihre Angriffe zu überleben.
+       needs lemma:wanderameise
+
+die Steckdose   [pattern]   said 14x   gap 2
+  1. (Musik) An einer Steckdose kann einerseits die Höhe gefährlich sein, weil diese genau auf der Höhe von kleinen Kindern ist, die krabbeln oder kriechen.
+       needs lemma:krabbeln
+  2. Das mobile Internet ist kaum noch verfügbar und auch das Internet zu Hause sozusagen aus der Steckdose ist kaum abrufbar.
+       needs lemma:abrufbar
+  3. Der Strom aus der Steckdose kommt zu fast 50 Prozent aus erneuerbaren Energien.
+       needs lemma:erneuerbar
+  4. Einerseits kann man auf Steckdosen, die man nicht braucht, Schutzdeckel anbringen.
+       needs lemma:schutzdeckel
+  5. Ja, und deswegen soll es in diesem Video um smarte Steckdosen gehen, wie die P110 hier von Tapo.
+       needs lemma:smart
+  6. Mit Adaptern kann mit diesen an unterschiedlichen CEE Steckdosen geladen werden.
+       needs lemma:adapter
+
+samt   [lemma]   said 13x   gap 2
+  1. Auch im Kampf trägt er Samt und Seide.
+       needs lemma:seide
+  2. Oder: Ich fahre an Weihnachten mit meiner Schwester samt Kindern in den Skiurlaub.
+       needs lemma:skiurlaub
+  3. Oder: Katrin hat ihren Geldbeutel samt 100 Euro und ihrem Ausweis verloren.
+       needs lemma:geldbeutel
+  4. Ihr müsst übrigens nicht wirklich mitschreiben, ihr könnt alles noch mal in Ruhe samt Quellen hier nachlesen.
+       needs lemma:mitschreiben
+       needs lemma:nachlesen
+  5. „Ihre Taille ist eingewickelt.“ aus elektrisch blauem Samt.
+       needs lemma:einwickeln
+       needs lemma:taille
+  6. Die Präpositionen "samt" und "mitsamt" bedeuten dasselbe, nämlich "zusammen mit", "einschließlich" oder "inklusive".
+       needs lemma:inklusive
+       needs lemma:mitsamt
+       needs lemma:präposition
+
+etw. (Akk) von etw. / sich abgrenzen   [pattern]   said 10x   gap 2
+  1. Um sich von bisherigen Regierungen abzugrenzen, würde es wohl mehr in die politisch linke Richtung gehen als momentan.
+       needs lemma:linker
+  2. Die Bundesregierung grenzt sich damit auch von der DDR ab, in der die Geschwindigkeit auf Autobahnen auf 100 km/h begrenzt ist.
+       needs lemma:grenzen
+       needs lemma:km
+  3. Für linke oder rechte Politiker ist es ganz wichtig, sich von Extremisten abzugrenzen und ihre Forderungen und Ideen nicht zu unterstützen.
+       needs lemma:extremist
+       needs lemma:linker
+  4. Wenn es inhaltlich nötig ist und man sich von der nationalsozialistischen Ideologie deutlich abgrenzt.
+       needs lemma:ideologie
+       needs lemma:nationalsozialistisch
+  5. Wenn man sich nicht abgrenzt, verschwimmen die Grenzen zwischen Privatleben und Beruf.
+       needs lemma:privatleben
+       needs lemma:verschwimmen
+  6. Willst du dich von den offensichtlich unsinnigen Vorwürfen abgrenzen, solltest du Konjunktiv 2 nehmen.
+       needs lemma:konjunktiv
+       needs lemma:unsinnig
+
+das Management   [pattern]   said 8x   gap 2
+  1. Aber gleichzeitig ja Art, liebevolles Management des Alltags.
+       needs lemma:liebevoll
+  2. Das Management der Lufthansa hat deshalb vor einiger Zeit einen Prozess angestoßen.
+       needs lemma:anstoßen
+  3. Kritisiert wird auch das Management von Scholz rund um den G20-Gipfel 2017 in Hamburg.
+       needs lemma:g20-gipfel
+  4. Liebevolles Management des Alltags, das gefällt mir.
+       needs lemma:gefällt
+  5. Nach gut einem Jahr des Prototyping, flog Microsofts Management für eine Demonstration ein.
+       needs lemma:demonstration
+       needs lemma:prototyping
+  6. das Zeitmanagement oder wie wir Zeit empfinden, the time management or how we perceive time, dass Zeit so was Kostbares ist.
+       needs lemma:kostbares
+       needs lemma:zeitmanagement
+
+amtlich   [lemma]   said 8x   gap 2
+  1. Doch nun fehlt noch die amtliche Beglaubigung.
+       needs lemma:beglaubigung
+  2. Eine zentrale Änderung war dabei, dass amtliche Dokumente nicht zur Verifizierung genutzt werden dürfen.
+       needs lemma:verifizierung
+  3. Endgültig wissen wir es erst, wenn das amtliche Endergebnis vorliegen wird.
+       needs lemma:endergebnis
+  4. Wie gesagt, es gibt noch kein amtliches Endergebnis, aber es gibt Zahlen, die dem Ergebnis mutmaßlich sehr nahe kommen.
+       needs lemma:endergebnis
+  5. Zuerst ist eine Sache ganz wichtig: Die Wahl ist zwar vorbei und überall kursieren Zahlen, aber ein amtliches Endergebnis gibt es noch gar nicht.
+       needs lemma:endergebnis
+       needs lemma:kursieren
+  6. Ein Amtliches Endergebnis gibt es zwar noch nicht, aber es gibt erste Hochrechnungen und die sind erfahrungsgemäß ziemlich präzise.
+       needs lemma:endergebnis
+       needs lemma:erfahrungsgemäß
+       needs lemma:hochrechnung
+
+steuerlich   [lemma]   said 8x   gap 2
+  1. Innerhalb der EU stößt die SPD eine Richtlinie an, die vorsieht, dass kein EU-Land mehr große internationale Unternehmen steuerlich bevorzugen darf.
+       needs lemma:eu-land
+  2. Ins Spiel gebracht werden Förderungen beim Kauf eines europäischen Autos, Ladekarten und steuerliche Vorteile.
+       needs lemma:ladekart
+  3. Das BSW möchte Einkommen bis zu 7.500 Euro brutto pro Monat steuerlich entlasten.
+       needs lemma:brutto
+       needs lemma:entlasten
+  4. Dazu sollen Firmen steuerlich belohnt werden, wenn sie in Deutschland Investitionen tätigen.
+       needs lemma:belohnen
+       needs lemma:tätigen
+  5. Hier kannst du dir steuerliche Änderungen für das ausgewählte Jahr durchlesen.
+       needs lemma:ausgewählt
+       needs lemma:durchlesen
+  6. Ich hoffe mit diesen kurzen Überblickvideo hast du einen groben ersten Überblick darüber bekommen, was steuerlich eventuell auf dich zukommt als Selbstständiger.
+       needs lemma:selbstständiger
+       needs lemma:überblickvideo
+
+der Graf   [pattern]   said 8x   gap 2
+  1. Allerdings wird danach von einem Überfall berichtet, und dass der Graf Appiani dabei ums Leben kam.
+       needs lemma:überfall
+  2. Im Frühjahr 1943 lernt er dann den damaligen Oberstleutnant Claus Schenk Graf von Stauffenberg kennen.
+       needs lemma:oberstleutnant
+  3. Auch Schmorell, Huber und Graf werden gefasst, verurteilt und hingerichtet.
+       needs lemma:gefasst
+       needs lemma:hinrichten
+  4. Claus Schenk Graf von Stauffenberg kommt aus einer christlich geprägten Adelsfamilie.
+       needs lemma:adelsfamilie
+       needs lemma:geprägt
+  5. Der Urheber des Attentats: Claus Schenk Graf von Stauffenberg, ein hoher Offizier.
+       needs lemma:attentat
+       needs lemma:urheber
+  6. Der gutgläubige Maximilian von Moor ist ein altersschwacher Graf.
+       needs lemma:altersschwach
+       needs lemma:gutgläubig
+       needs lemma:moor
+
+das Kloster   [pattern]   said 8x   gap 2
+  1. Die sind, wie auch die Klöster, einigermaßen befestigt, aber eben keine Burgen.
+       needs lemma:burge
+  2. Klöster und kleine Dörfer werden von vielleicht drei Booten überfallen.
+       needs lemma:überfallen
+  3. Denn über Bischöfe und Klöster können die Päpste Einfluss auf die Politik im Reich nehmen.
+       needs lemma:bischof
+       needs lemma:papst
+  4. Und so werden mit der Zeit auch Klöster aufgegeben, weil die Wikinger sie Jahr für Jahr ruinieren.
+       needs lemma:ruinieren
+       needs lemma:wikinger
+  5. Auf dem Weg zur Zugspitze haben wir spontan einen Zwischenstopp im Kloster Ettal gemacht und Kosuke war mal wieder total begeistert.
+       needs lemma:begeistert
+       needs lemma:zugspitze
+       needs lemma:zwischenstopp
+  6. Der überfall auf das Kloster Lindas im Norden des heutigen Großbritannien galt lange Zeit als quasi offizieller Startpunkt für die Raubzüge.
+       needs lemma:raubzug
+       needs lemma:startpunkt
+       needs lemma:überfall
+
+seufzen   [lemma]   said 8x   gap 2
+  1. Ich verspreche nicht weinen, wimmern oder seufzen.
+       needs lemma:wimmern
+  2. Man kann seufzen zur Erleichterung.
+       needs lemma:erleichterung
+  3. Richtung Flughafen ist es um diese Uhrzeit immer so voll.“ Tim und Christian seufzen.
+       needs lemma:uhrzeit
+  4. Wenn das Seufzen der Israels ebenfalls „stenagmos“ ist, haben wir eine überzeugende Kombination.
+       needs lemma:überzeugend
+  5. Das Sprachengebet entspricht dem Seufzen oder Stöhnen im Alten Testament.
+       needs lemma:stöhnen
+       needs lemma:testament
+  6. Wenn das Seufzen der Israeliten ebenfalls „stenagmos“ ist, haben wir eine überzeugende Kombination.
+       needs lemma:israelite
+       needs lemma:überzeugend
+
+etw. (Akk) fixieren   [pattern]   said 7x   gap 2
+  1. Wir fixieren uns darauf und verstärken so die Wirkung, denn der Tod erscheint uns am realsten.
+       needs lemma:realst
+  2. Als letztes setzen wir den Toilettenpapierhalter auf und fixieren diesen mit einer Inbusschraube.
+       needs lemma:inbusschraube
+       needs lemma:toilettenpapierhalter
+  3. Es gab in den 60er- und 70er-Jahren Visionen zum Thema Mobilität in der Stadt, die sehr stark auf das einzelne Fahrzeug fixiert waren.
+       needs lemma:mobilität
+       needs lemma:vision
+  4. Abschließend sollte der Tupfer auf die Punktionsstelle gedrückt und dann mit einem Klebestreifen fixiert werden.
+       needs lemma:klebestreifen
+       needs lemma:punktionsstelle
+       needs lemma:tupfer
+  5. Damit sich die Isolierung und das Kunststofftape nicht wieder abwickelt fixiere ich es mit dem Duct Tape.
+       needs lemma:abwickeln
+       needs lemma:duct
+       needs lemma:isolierung
+       needs lemma:kunststofftape
+  6. Statt dessen wird die Nadel fixiert und nur der umhüllende Katheter vorgeschoben.
+       needs lemma:katheter
+       needs lemma:nadel
+       needs lemma:umhüllend
+       needs lemma:vorschieben
+
+die Wechselwirkung   [pattern]   said 7x   gap 2
+  1. Unerwartete Wechselwirkungen zwischen den Arten und plötzliche Krankheiten könnten alles zum Kollabieren bringen.
+       needs lemma:kollabieren
+  2. Wechselwirkungen könnten Organe wie Herz oder Kreislaufsystem angreifen.
+       needs lemma:kreislaufsystem
+  3. Die Gesetze des Universums nennen wir Kräfte und bisher wurden vier grundlegende Kräfte entdeckt: Schwerkraft, elektromagnetische, starke-, und schwache Wechselwirkung.
+       needs lemma:elektromagnetisch
+       needs lemma:schwerkraft
+       needs lemma:starke-
+  4. So können Quarks durch Elektromagnetismus und starke Wechselwirkung interagieren.
+       needs lemma:elektromagnetismus
+       needs lemma:interagieren
+       needs lemma:quark
+  5. In diesem Video beschäftigen wir uns mit dem Aufbau von Atomkern aus Nukleonen den Quarks und der starken Wechselwirkung beziehungsweise starken Kernkraft.
+       needs lemma:atomker
+       needs lemma:kernkraft
+       needs lemma:nukleon
+       needs lemma:quark
+  6. Die Austauschteilchen der starken Wechselwirkung sorgen durch den ständigen Austausch für den Zusammenhalt der Quarks innerhalb eines Protons oder Neutrons.
+       needs lemma:austauschteilchen
+       needs lemma:neutron
+       needs lemma:proton
+       needs lemma:quark
+
+das Milligramm   [pattern]   said 6x   gap 2
+  1. Also täglich 40 Milligramm pro Kilogramm Körpergewicht.
+       needs lemma:körpergewicht
+  2. Und tatsächlich nutzen viele weniger als diese zwei Milligramm pro Quadratzentimeter.
+       needs lemma:quadratzentimeter
+  3. Anders gesagt: Die Abweichung von 0 Milligramm Glyphosat ist nicht groß genug, dass sie nicht auch zufällig sein könnte.
+       needs lemma:abweichung
+       needs lemma:glyphosat
+  4. Es gibt den empfohlenen Höchstwert von einem Milligramm pro Kilogramm Körpergewicht und Woche.
+       needs lemma:höchstwert
+       needs lemma:körpergewicht
+  5. Und es gibt sogar bei thyssenkrupp beim Werk Duisburg zum Beispiel, da wird dank Gewebe gewickelte an Staub wird von einem Milligramm erreicht.
+       needs lemma:gewickelt
+       needs lemma:thyssenkrupp
+  6. Gesundheitlich gilt Sucralose grundsätzlich als unbedenklich, wenn man die maximale Tagesdosis von 15 Milligramm pro Kilogramm Körpergewicht nicht überschreitet.
+       needs lemma:gesundheitlich
+       needs lemma:körpergewicht
+       needs lemma:sucralose
+       needs lemma:tagesdosis
+
+jdm. (Dat) etw. (Akk) flüstern   [pattern]   said 6x   gap 2
+  1. "Coal and steel producers are whispering,‎" Es flüstert die chemische Kriegsproduktion.
+       needs lemma:kriegsproduktion
+  2. "Worker don't you hear them?‎" Es flüstern die Kohle- und Stahlproduzenten.
+       needs lemma:stahlproduzent
+  3. Das ist also auch ein Synonym von “flüstern”, aber es ist noch etwas sanfter, noch etwas vorsichtiger.
+       needs lemma:synonym
+  4. Marketa flüsterte in die Kamera, dass er ihr vertrauen solle.
+       needs lemma:marketa
+  5. Ihr etwas ins Ohr flüstern, sie taufen lassen?“ Ich sage: „Tauf sie doch.
+       needs lemma:tauf
+       needs lemma:taufen
+  6. Ohne diesen, ich nenne es "wissenschaftlichen Spirit", wäre die Menschheit am (flüstert) Arsch.
+       needs lemma:arsch
+       needs lemma:spirit
+
+die Datenverarbeitung   [pattern]   said 6x   gap 2
+  1. Ich bin nicht gut, äh, wenn es um Excel oder um andere Themen, äh, in der Datenverarbeitung geht.
+       needs lemma:excel
+  2. So gehen wir dann alle Prozesse im Unternehmen durch und haben schnell ein gutes Gefühl für die allgemeine Sicherheit unserer Datenverarbeitungen.
+       needs lemma:prozeß
+  3. Weiterhin ist der Auftragsverarbeiter verpflichtet, technische und organisatorische Maßnahmen zu ergreifen, um die Sicherheit der Datenverarbeitung zu gewährleisten.
+       needs lemma:auftragsverarbeiter
+  4. Zudem erfolgt die Datenverarbeitung nicht irgendwie, sondern entsprechend den Weisungen des Verantwortlichen.
+       needs lemma:weisung
+  5. Datenverarbeitung und Kommunikation läuft mit Quipus, mit Schnüren, die unterschiedlich geknotet werden.
+       needs lemma:knoten
+       needs lemma:schnüre
+  6. Eine Rechtsgrundlage für die eigentlich dahinterliegende Datenverarbeitung wird aber entgegen weitläufiger Missverständnisse natürlich weiterhin benötigt.
+       needs lemma:dahinterliegend
+       needs lemma:entgegen
+       needs lemma:missverständnis
+       needs lemma:rechtsgrundlage
+
+die Tageszeitung   [pattern]   said 6x   gap 2
+  1. Die Schulden stammen vom Abo einer Tageszeitung.
+       needs lemma:abo
+  2. Die Tageszeitung "Taz" hat 2023 von der prekären Lage beim Hamburger Allgemeinen Sozialen Dienst berichtet.
+       needs lemma:hamburger
+       needs lemma:prekär
+  3. Die Tageszeitung hatte ihn ebenfalls mit den fragwürdigen Aussagen in seinem Baumwoll-Video konfrontiert.
+       needs lemma:baumwoll-video
+       needs lemma:fragwürdig
+  4. Gerade in der Euro- und Staatsschulden-Krise wird Angela Merkel in verschiedenen Tageszeitungen als Wiedergeburt der Wehrmachtstruppen dargestellt.
+       needs lemma:staatsschulden-krise
+       needs lemma:wehrmachtstruppe
+       needs lemma:wiedergeburt
+  5. Laut der Berliner Tageszeitung "Tagesspiegel" entwickeln manche unter 60-Jährige neue Strategien, um vorzeitig an ihre Coronaimpfung zu kommen.
+       needs lemma:60-jährige
+       needs lemma:berliner
+       needs lemma:coronaimpfung
+  6. Äh, unter anderem Tagesschau beziehungsweise die in Deutschland am häufigsten publizierten Tageszeitungen wie Welt-Zeitung, Süddeutsche Zeitung und co.
+       needs lemma:co.
+       needs lemma:publiziert
+       needs lemma:süddeutsch
+
+die Ausführung   [pattern]   said 6x   gap 2
+  1. So, möchte jemand zu Chair Ausführung Stellung nehmen?
+       needs lemma:chair
+  2. Dank euren Ausführungen verstehe ich, dass Satan mit ihnen den Menschen bloß betrügt und verdirbt.
+       needs lemma:betrügen
+       needs lemma:verderben
+  3. Der Vorwurf ist unsachgemäße Ausführungen von Bauarbeiten.
+       needs lemma:bauarbeit
+       needs lemma:unsachgemäß
+  4. Die Ausführung von Kommandos zur Neuformierung dauerte mehrere Sekunden.
+       needs lemma:kommando
+       needs lemma:neuformierung
+  5. Verschwendet keine Zeit mit unnötigen Ausführungen.
+       needs lemma:unnötig
+       needs lemma:verschwenden
+  6. Seine Ausführungen überzeugen, denn die Entwürfe werden auf Befehl Görings mit Nachdruck ausgearbeitet und in technische Detailzeichnungen umgesetzt.
+       needs lemma:ausarbeiten
+       needs lemma:detailzeichnung
+       needs lemma:nachdruck
+
+die Zunahme   [pattern]   said 5x   gap 2
+  1. Aber auch an der starken Zunahme von Obst und Gemüse.
+       needs lemma:obst
+  2. Auch hier erfolgt die Zunahme auf der Soll­Seite.
+       needs lemma:soll­seite
+  3. Wir haben das ganze Jahr über, die letzten drei, vier, fünf Jahre, immer mehr eine weitere Zunahme an Cyberangriffen gehabt.
+       needs lemma:cyberangriffe
+  4. Wir stellten fest, dass es zu einer deutlichen Zunahme von Kinderpornos in Sozialen Netzwerken gekommen ist.
+       needs lemma:kinderporno
+       needs lemma:netzwerke
+  5. Und der vorliegende Reformvorschlag enthält aus unserer Sicht zahlreiche Änderungen, die zu einer Zunahme der Komplexität von behördlichen Genehmigungsentscheidungen und steigenden Vollzugsanforderungen führen.
+       needs lemma:behördlich
+       needs lemma:genehmigungsentscheidung
+       needs lemma:komplexität
+       needs lemma:reformvorschlag
+
+das Weib   [pattern]   said 5x   gap 2
+  1. Haltes Weib mit einer blauen Jacke ist meine Mutter.
+       needs lemma:haltes
+  2. Kommt, Leute, der Weib hier gefällt mir gar nicht.
+       needs lemma:gefällt
+  3. Das wilde Weib des Sumpfes höchstpersönlich.
+       needs lemma:höchstpersönlich
+       needs lemma:sumpf
+  4. Die Weibe müssen sich mehr an die Bullen ranmachen.
+       needs lemma:bulle
+       needs lemma:ranmachen
+  5. Wenn nicht liebt Wein, Weib, Gesang, der bleibt ein Narr ein Leben lang.
+       needs lemma:gesang
+       needs lemma:narr
+
+der Kunststoff   [pattern]   said 5x   gap 2
+  1. Diese Schicht würde außerdem seltene Erdelemente und die Kunststoffe der Menschen enthalten.
+       needs lemma:erdelement
+  2. Nein, also ich lege Wert darauf, dass es Leder ist und kein Kunststoff.
+       needs lemma:leder
+  3. Ab dem Jahr 2023 sind Gastronomiebetriebe in Deutschland verpflichtet, statt Kunststoff Mehrwegverpackungen anzubieten.
+       needs lemma:gastronomiebetriebe
+       needs lemma:mehrwegverpackung
+  4. DEHP wird Kunststoffen als Weichmacher beigefügt, Könnte aber auch krebserregend sein.
+       needs lemma:beigefügt
+       needs lemma:krebserregend
+       needs lemma:weichmacher
+  5. Ich versuche die Außeneinheit mit den mitgelieferten Schrauben und Kunststoff Teilen sinnvoll zu befestigen.
+       needs lemma:außeneinheit
+       needs lemma:mitgeliefert
+       needs lemma:schraube
+
+unterdessen   [lemma]   said 5x   gap 2
+  1. Der Iran kündigt unterdessen an, sein Atomprogramm fortzusetzen.
+       needs lemma:atomprogramm
+  2. Die Briten setzen unterdessen eine Kommission ein, die über Indiens Zukunft beraten soll.
+       needs lemma:brite
+  3. Der amische Präsident Harry Truman zögert unterdessen nicht die Drohung des Ultimatums von Potdam in die Tat umzusetzen.
+       needs lemma:amisch
+       needs lemma:drohung
+       needs lemma:ultimatum
+  4. Die Gastzelle wurde unterdessen zum Kraftwerk der Wirtszelle.
+       needs lemma:gastzelle
+       needs lemma:kraftwerk
+       needs lemma:wirtszelle
+  5. Und der war ein bis an die Zähne gerüsteter Ritter unterdessen Helm einfach ein blankes Skelett steckt.
+       needs lemma:blank
+       needs lemma:gerüstet
+       needs lemma:ritter
+       needs lemma:skelett
+
+das TV   [pattern]   said 5x   gap 2
+  1. Einmalige Bilder, die so noch nie im TV gezeigt wurden.
+       needs lemma:tv
+  2. Hitler wird zum TV- und YouTube-Star, und er findet wieder Leute, die ihn bewundern.
+       needs lemma:bewundern
+       needs lemma:tv
+  3. Ich kann's dir nicht erklären, es ist viel zu komplex, wenn Schreiber im TV ist, gibt es Wichtigeres als Sex.
+       needs lemma:kann's
+       needs lemma:sex
+       needs lemma:tv
+       needs lemma:wichtigere
+  4. Ob Mörder oder Räuber oder Exhibitionist, wenn Schreiber im TV ist, da glaubst du jeden Mist!
+       needs lemma:exhibitionist
+       needs lemma:glaubst
+       needs lemma:mist
+       needs lemma:räuber
+  5. Fairer wäre es, das Geld gleichwertig unter allen Vereinen aufzuteilen oder Faktoren wie Zuschauerzahlen im Stadion und Einschaltquoten im TV mit in die Wertung reinzunehmen.
+       needs lemma:aufzuteilen
+       needs lemma:einschaltquot
+       needs lemma:gleichwertig
+       needs lemma:reinzunehmen
+
+gleichwohl   [lemma]   said 5x   gap 2
+  1. Gleichwohl hat die Bundesregierung Lehren gezogen in Bezug auf die Bekämpfung des heutigen Antisemitismus und auch Maßnahmen zum Schutz jüdischen Lebens umgesetzt.
+       needs lemma:antisemitismus
+  2. So schallt es gleichwohl von allen Seiten.
+       needs lemma:schallen
+  3. Gleichwohl diese Angebote entsprechen dann nicht der Berufsordnung, nicht unseren Qualitätshinweisen und unseren Qualitätsanforderungen.
+       needs lemma:berufsordnung
+       needs lemma:qualitätsanforderunge
+       needs lemma:qualitätshinweis
+  4. Gleichwohl es eine Wettbewerbssituation gibt, so stehen wir natürlich im Lager von Rechtsstaatlichkeit und Demokratie und sind den Vereinigten Staaten näher als China.
+       needs lemma:rechtsstaatlichkeit
+       needs lemma:vereinigt
+       needs lemma:wettbewerbssituation
+  5. Zurück an seinem Dienstort im Berliner Bendlerblock, versucht Stauffenberg gleichwohl mit Mitstreitern den Staatsstreich voranzutreiben.
+       needs lemma:bendlerblock
+       needs lemma:berliner
+       needs lemma:dienstort
+       needs lemma:mitstreiter
+
+die Erfassung   [pattern]   said 4x   gap 2
+  1. Und immer wieder wird die Methodik der Erfassung der Daten verändert.
+       needs lemma:methodik
+  2. Die Sache ist, eine statistische Erfassung von Mobbing durch Lehrkräfte gibt's momentan nicht.
+       needs lemma:lehrkraft
+       needs lemma:mobbing
+  3. Es erfüllt wichtige Aufgaben, die für die moderne Welt unerlässlich sind: Globale Kommunikation, GPS und Navigation, Erfassung von Wetterdaten, Asteroiden-Tracking und wissenschaftliche Entdeckungen.
+       needs lemma:asteroiden-tracking
+       needs lemma:navigation
+       needs lemma:unerlässlich
+       needs lemma:wetterdat
+  4. Neben der Einkommensteuererklärung kannst du mit WISO Steuer auch eine Umsatzsteuererklärung, Gewerbesteuererklärung und Fragebogen zur steuerlichen Erfassung erstellen und abschicken.
+       needs lemma:abschicken
+       needs lemma:einkommensteuererklärung
+       needs lemma:fragebogen
+       needs lemma:gewerbesteuererklärung
+
+vergeblich   [lemma]   said 4x   gap 2
+  1. Die Hoffnung, dass der Linksterrorismus damit ein Ende hat, ist aber vergeblich.
+       needs lemma:linksterrorismus
+  2. Im Sommer versucht Preußen vergeblich, Sachsen zu erobern.
+       needs lemma:erobern
+  3. Nach vielen vergeblichen Anfragen gibt es endlich eine Zusage.
+       needs lemma:zusage
+  4. Während die USA ihren unsichtbaren Gegner im Dschungel ohne feste Front vergeblich zu stellen versuchen.
+       needs lemma:dschungel
+
+das Lebensjahr   [pattern]   said 4x   gap 2
+  1. Die ersten vier Lebensjahre erzieht ihn eine Gouvernante.
+       needs lemma:gouvernante
+  2. Wie meine letzten Lebensjahre, äh, gesundheitlich verlaufen werden.
+       needs lemma:gesundheitlich
+  3. Deshalb sind etwa in Deutschland alle Kinder ab dem sechsten Lebensjahr schulpflichtig.
+       needs lemma:schulpflichtig
+       needs lemma:sechster
+  4. Seit 2013 gibt es in Deutschland einen Rechtsanspruch auf einen Kindergarten- oder Krippenplatz vom ersten Lebensjahr bis zur Einschulung.
+       needs lemma:einschulung
+       needs lemma:kindergarte
+       needs lemma:krippenplatz
+       needs lemma:rechtsanspruch
+
+die Benutzung   [pattern]   said 4x   gap 3
+  1. Das Speichern in der Cloud kostet dich als Privatnutzer nichts, genauso wie dich die Benutzung von OneNote nichts kostet.
+       needs lemma:cloud
+       needs lemma:privatnutzer
+  2. "Abnutzen" bedeutet, "etwas durch Benutzung verbrauchen" oder auch "etwas durch den Gebrauch in seinem Wert und in seiner Brauchbarkeit mindern".
+       needs lemma:abnutzen
+       needs lemma:brauchbarkeit
+       needs lemma:mindern
+  3. Deutschland ist mit seiner Atompolitik eher der Außenseiter: Aktuell sind noch 7 Reaktoren in Benutzung, und auch die sollen bis 2022 abgeschaltet werden.
+       needs lemma:atompolitik
+       needs lemma:außenseiter
+       needs lemma:reaktor
+  4. Darin heißt es: "Die Tank & Rast wird sich bemühen, die unentgeltliche Benutzung von sanitären Einrichtungen ganzjährig durchgehend sicherzustellen." Eigentlich klar.
+       needs lemma:durchgehend
+       needs lemma:ganzjährig
+       needs lemma:rast
+       needs lemma:sanitär
+
+die Koralle   [pattern]   said 4x   gap 2
+  1. Theoretisch können sich die Korallen davon erholen und neue Algen wachsen.
+       needs lemma:alge
+  2. Selbst für die Korallen lohnt sich noch jeder Strich auf dem Thermometer.
+       needs lemma:strich
+       needs lemma:thermometer
+  3. Überall auf der Welt stoßen Korallen ihre Algen ab und verlieren damit ihre Fähigkeit, Photosynthese zu betreiben.
+       needs lemma:alge
+       needs lemma:photosynthese
+  4. Aber die meisten der Pazifikinseln sind nur ein paar nasse Felsen oder Korallen, vielleicht ein paar Palmen und mal einem Vogel auf der Durchreise.
+       needs lemma:durchreise
+       needs lemma:nasse
+       needs lemma:palme
+       needs lemma:pazifikinsel
+
+ferner   [lemma]   said 3x   gap 2
+  1. Wir haben ferner vereinbart, dass wir auch die Zusammenarbeit der Sicherheitskräfte deutlich stärken.
+       needs lemma:sicherheitskraft
+  2. Der Kaiser von Byzanz hätte gerne, dass die Kreuzfahrer sich seiner Oberhoheit unterstellen, aber denen liegt nichts ferner.
+       needs lemma:kreuzfahrer
+       needs lemma:oberhoheit
+  3. Ferner für die Psyche: Wer zu Depressionen neigt, der wird in der Phase, wo Steroide abgesetzt werden, die Depression eher bekommen.
+       needs lemma:depression
+       needs lemma:psyche
+       needs lemma:steroid
+
+das Pro   [pattern]   said 3x   gap 2
+  1. Die Vorschläge werden zusammen mit Pros und Kontras an alle Stimmberechtigten geschickt.
+       needs lemma:stimmberechtigte
+  2. Ohne iPhone ab 15 Pro läuft es nicht.
+       needs lemma:iphone
+  3. Da sind wir bei der Debatte und beim Pro für eine geschlechtergerechte oder gendergerechte Sprache.
+       needs lemma:gendergerecht
+       needs lemma:geschlechtergerecht
+
+die Konzeption   [pattern]   said 3x   gap 2
+  1. Die Planung und Konzeption einer Anlage gehört zu deinem Aufgabenbereich.
+       needs lemma:aufgabenbereich
+  2. Basis dieses Papiers ist wiederum die Konzeption Zivile Verteidigung aus dem Jahr 2016.
+       needs lemma:verteidigung
+       needs lemma:zivil
+  3. Trotz der außergewöhnlichen Konzeption einer Doppelrumpfauslegung bleibt die Höchstgeschwindigkeit hinter den Konkurrenzentwürfen von Arado, Gota und Junkers zurück.
+       needs lemma:doppelrumpfauslegung
+       needs lemma:höchstgeschwindigkeit
+       needs lemma:konkurrenzentwürf
+
+der Schilling   [pattern]   said 3x   gap 2
+  1. Aus 10.000 alten Kronen wird ein Schilling.
+       needs lemma:krone
+  2. Mit dem stabilen Schilling beginnt das österreichische Wirtschaftswunder.
+       needs lemma:wirtschaftswunder
+  3. Sozusagen der Abschluss dieser Sanierung sollte dann sein im Jahr 1925 die Umstellung der Währung auf den Schilling.
+       needs lemma:sanierung
+       needs lemma:umstellung
+
+die Verbindlichkeit   [pattern]   said 3x   gap 2
+  1. Aber eben auch viel Verbindlichkeit, die da mitschwingt.
+       needs lemma:mitschwingen
+  2. Die Passivseite untergliederst du in Eigenkapital und Verbindlichkeiten.
+       needs lemma:eigenkapital
+       needs lemma:passivseite
+       needs lemma:untergliedern
+  3. Diese umfassen Verbindlichkeiten, die bereits bestehen, aber deren Höhe und Fälligkeit noch nicht feststehen, zum Beispiel zu erwartende Steuerzahlungen.
+       needs lemma:erwartend
+       needs lemma:feststehen
+       needs lemma:fälligkeit
+       needs lemma:steuerzahlung
+
+elementar   [lemma]   said 2x   gap 2
+  1. Er hat durch diesen Akt des Zuhörens die kommunikativen Spielregeln des gesamten Systems elementar verändert.
+       needs lemma:spielregel
+  2. Jahrmilliarden haben elementare Kräfte unseren Planeten geformt.
+       needs lemma:jahrmilliarde
+
+der Dolmetscher   [pattern]   said 2x   gap 3
+  1. Außerdem würden Anhörungen nur auf Deutsch und ohne Dolmetscher oder Dolmetscherin stattfinden.
+       needs lemma:anhörung
+       needs lemma:dolmetscherin  <-- shares a stem with the goal
+  2. Mehr als 15 Jahre seines Lebens war Klaus Brendel soloselbstständig, arbeitete als Fremdsprachenlehrer und Dolmetscher.
+       needs lemma:fremdsprachenlehrer
+       needs lemma:soloselbstständig
+
+jdn. (Akk) zu etw. mahnen   [pattern]   said 2x   gap 3
+  1. Genau das mahnt uns, immer daran zu denken, welche Grausamkeiten Menschen anderen, völlig Unschuldigen antun.
+       needs lemma:grausamkeite
+       needs lemma:unschuldig
+  2. Und es mahnt diejenigen, die es lesen, dass sie Antisemitismus und Judenhass entgegentreten müssen.
+       needs lemma:antisemitismus
+       needs lemma:entgegentreten
+       needs lemma:judenhass
+
+das Center   [pattern]   said 2x   gap 2
+  1. Fahr einfach zum Shopping Center.
+       needs lemma:fahr
+  2. Auf Basis dieses Command Center getauften Programms, gründete Tony mit vier Schulfreunden 1990 die Ensemble Corporation.
+       needs lemma:getauft
+       needs lemma:schulfreunde
+
+der Zinssatz   [pattern]   said 2x   gap 2
+  1. Ein dritter Faktor, den wir berücksichtigen müssen, ist der beispiellose Anstieg der Zinssätze in den letzten Jahrzehnten.
+       needs lemma:beispiellos
+  2. Wenn Anyfin deinen Zinssatz senken kann, bekommst du ein Angebot.
+       needs lemma:anyfin
+
+das Heft   [pattern]   said 2x   gap 2
+  1. Stimmt mit dem Buch überein, also mit dem Lösungs Heft.
+       needs lemma:überein
+  2. Ja, ich habe ein Lehrbuch, ein Heft und zwei Stifte dabei.
+       needs lemma:lehrbuch
+       needs lemma:stift
+
+vorig   [lemma]   said 2x   gap 2
+  1. Ich bin vorige Woche mit Ihnen im Fahrstuhl stecken geblieben.
+       needs lemma:fahrstuhl
+  2. Noch nie haben Deutschlands Arbeitnehmerinnen und Arbeitnehmer so viele Stunden gearbeitet wie im vorigen Jahr.
+       needs lemma:arbeitnehmerin
+
+die Phantasie   [pattern]   said 2x   gap 2
+  1. Und zwar den Menschen als seelisches Wesen mit seinen Gefühlen und seiner Phantasie.
+       needs lemma:seelisch
+  2. Wenn wir eine Burgruine sehen, dann legt bei uns doch auch die Phantasie los, oder?
+       needs lemma:burgruine
+
+das Niederländisch   [pattern]   said 2x   gap 2
+  1. In Maastricht wird auch kein pures Niederländisch gesprochen.
+       needs lemma:pur
+  2. Jetzt könnt ihr mal testen, wie viel Niederländisch ihr versteht, denn wir haben ein Partner-Video.
+       needs lemma:partner-video
+
+die Fachhochschule   [pattern]   said 1x   gap 4
+  1. Kann man sich an einer höheren Fachhochschule zur Fach und Führungskraft weiterbilden und mit viel Erfahrung im Beruf eine höhere Fachprüfung ablegen.
+       needs lemma:fachprüfung  <-- shares a stem with the goal
+       needs lemma:führungskraft
+       needs lemma:weiterbilden
+
+die Anleihe   [pattern]   said 1x   gap 2
+  1. Sie können zum Beispiel in eine Anleihe investieren und einem Unternehmen Geld leihen.
+       needs lemma:leihen
+
+das Top   [pattern]   said 1x   gap 3
+  1. Das klingt nach einem Fall für die TOP 5 der beliebtesten Rechtschreibfehler!
+       needs lemma:beliebt
+       needs lemma:rechtschreibfehler
+
+gleichsam   [lemma]   said 1x   gap 4
+  1. Disruption ist ja in den Vereinigten Staaten gleichsam zu einem Qualitätsmerkmal geworden.
+       needs lemma:disruption
+       needs lemma:qualitätsmerkmal
+       needs lemma:vereinigt
+
+die Berücksichtigung   [pattern]   said 1x   gap 4
+  1. Deswegen haben wir auch auf diese Strategie zur Wiederbelebung unter Berücksichtigung der Eigenheiten beharrt.
+       needs lemma:beharren
+       needs lemma:eigenheit
+       needs lemma:wiederbelebung
+
+das Riff   [pattern]   said 1x   gap 6
+  1. Sie grasen am Meeresboden oder Riffen, jagen Quallen in der Tiefe oder fressen an der Oberfläche Plankton und Algen.
+       needs lemma:alge
+       needs lemma:grasen
+       needs lemma:meeresboden
+       needs lemma:plankton
+
+der Absolvent   [pattern]   said 1x   gap 3
+  1. Patton, ebenfalls Westpoint Absolvent, hatte sich im ersten Weltkrieg freiwillig als Panzergrenadier gemeldet und sah in Kriegsmaschinen eine Reflexion auf seine eigene Persönlichkeit.
+       needs lemma:kriegsmaschine
+       needs lemma:panzergrenadier
+
+der Bube   [pattern]   said 1x   gap 2
+  1. Die Geschichte von den schwarzen Buben Es ging spazieren vor dem Tor ein kohlpechrabenschwarzer Mohr.
+       needs lemma:kohlpechrabenschwarzer
+
+indes   [lemma]   said 1x   gap 2
+  1. Zu einem Treffen mit Fidel Castro indes kommt es nicht.
+       needs lemma:Treffen
+
+nunmehr   [lemma]   said 1x   gap 4
+  1. Für das mittlerweile angestrebte Age of Empires III, stieg er nunmehr zum leitenden Designer auf.
+       needs lemma:angestrebt
+       needs lemma:designer
+       needs lemma:leitend
+
+etw. (Akk) murmeln   [pattern]   said 1x   gap 3
+  1. Hier murmelt die Menge “beifällig”, also zustimmend.
+       needs lemma:beifällig
+       needs lemma:zustimmend
+
+pakistanisch   [lemma]   said 1x   gap 2
+  1. Pop kennt da jeden und unsere pakistanischen Partner, die geben uns all die Ausweise und das ganze Zeug.
+       needs lemma:ausweise
+
+zumeist   [lemma]   said 1x   gap 4
+  1. Pyramidenstümpfe, zumeist aus Lehmziegeln erbaut.
+       needs lemma:erbauen
+       needs lemma:lehmziegel
+       needs lemma:pyramidenstümpfe
+
+allenfalls   [lemma]   said 1x   gap 4
+  1. Eine Gruppierung mit einer Mitgliederzahl allenfalls im niedrigen zweistelligen Bereich, von denen auch nicht alle Mitglieder selber Juden sind.
+       needs lemma:gruppierung
+       needs lemma:mitgliederzahl
+       needs lemma:zweistellig
+
+
+==============================================================================
+NEVER SAID IN THIS CORPUS
+
+  der Beschäftigte, die Beschäftigte   [pattern]
+  das BGB   [pattern]
+  das HGB   [pattern]
+  herein, rein   [pattern]
+  die Realisierung   [pattern]
+  das Olympia   [pattern]
+  die Zielsetzung   [pattern]
+  detaillieren   [lemma]
+  sogleich   [lemma]
+  zueinander   [lemma]
+  fotografisch   [lemma]

@@ -1,0 +1,380 @@
+b1_parsed · unblocked reading
+24 goals out of reach · 24 the corpus says · 0 it never says at all
+==============================================================================
+
+das Gewissen   [pattern]   said 31x   gap 2
+  1. Aber die Frau hatte kein schlechtes Gewissen deswegen.
+       needs lemma:gewiß  <-- shares a stem with the goal
+  2. Aber ihr Gewissen ist stärker als ihre Angst.
+       needs lemma:gewiß  <-- shares a stem with the goal
+  3. Du brauchst deswegen kein schlechtes Gewissen zu haben.
+       needs lemma:gewiß  <-- shares a stem with the goal
+  4. Jetzt kommen wir zu einem weiteren interessanten Ausdruck: “guten Gewissens”.
+       needs lemma:gewiß  <-- shares a stem with the goal
+  5. Sie wollten unser böses Gewissen sein.
+       needs lemma:gewiß  <-- shares a stem with the goal
+  6. Zumindest keine, hinter denen ich mit gutem Gewissen stehen würde.
+       needs lemma:gewiß  <-- shares a stem with the goal
+
+die Zone   [pattern]   said 29x   gap 2
+  1. Auch wenn diese Zone recht trostlos wirkt, verbringen doch viele Fische und andere Tiere mindestens die Hälfte ihres Lebens hier unten.
+       needs lemma:trostlos
+  2. Ausschließlich in der Twilight Zone, einem schmalen Landstrich zwischen diesen Hälften, lebten Menschen.
+       needs lemma:landstrich
+  3. Die Bewohner dieser Zone machen nur dann rasche Bewegungen, wenn sie in Gefahr sind.
+       needs lemma:rasch
+  4. Die Menschen in den urbaneren Zonen im Osten und Süden geht es allgemein gut.
+       needs lemma:urbaner
+  5. Die Zone soll verhindern, dass die Kämpfe wieder aufflammen.
+       needs lemma:aufflammen
+  6. Entlang der Grenze wird eine demilitarisierte Zone eingerichtet.
+       needs lemma:demilitarisiert
+
+die Flüssigkeit   [pattern]   said 26x   gap 2
+  1. Woran erkennt man, ob da genug Flüssigkeit drin ist?
+       needs lemma:woran
+  2. Aber wenn man in einer Flüssigkeit läuft und dabei nur sehr schwer vorwärts kommt, dann watet man.
+       needs lemma:vorwärts
+       needs lemma:waten
+  3. Bringt sie ins Labor für synthetische Flüssigkeiten Z12?
+       needs lemma:synthetisch
+       needs lemma:z12
+  4. In so einem Refraktometer trifft ein Lichtstrahl auf die Flüssigkeit, die man untersuchen will.
+       needs lemma:lichtstrahl
+       needs lemma:refraktometer
+  5. Sie wird von Flüssigkeiten transportiert und gelangt so in deinen ganzen Körper.
+       needs lemma:gelangt
+       needs pattern:zu etw. gelangen
+  6. Sobald wir alles mixen und filtern, bleibt nur die Flüssigkeit übrig.
+       needs lemma:filtern
+       needs lemma:mixen
+
+die Datei   [pattern]   said 25x   gap 2
+  1. Die Datei wurde erfolgreich downgeloadet.
+       needs lemma:downgeloadet
+  2. Ich habe die Datei auf dem Computer angewählt.
+       needs lemma:anwählen
+  3. Weil diese Daten aus Backups von Mitarbeiterlaptops bestehen, Geräte, auf denen auch private Dateien liegen werden.
+       needs lemma:backups
+  4. Zum Beispiel einer, der beim Start eine Liste von Dateien und deren Checksummen überprüft.
+       needs lemma:checksumma
+  5. Das bedeutet dann, dass man anderen Personen erlaubt, diese Dateien zu sehen oder zu bearbeiten.
+       needs lemma:bearbeiten
+       needs pattern:etw. (Akk) bearbeiten
+  6. Man kann auch Dateien freigeben.
+       needs pattern:etw. (Akk) freigeben
+       needs lemma:freigeben
+
+sämtlich   [lemma]   said 19x   gap 2
+  1. Dann haben wir natürlich sämtliche Software-Lizenzverträge gelesen und akzeptieren sie.
+       needs lemma:software-lizenzvertrag
+  2. Der bis zu 115 m hohe Turm soll nach Vorstellung der Studenten sämtliche Stasiakten aus Sachsen enthalten.
+       needs lemma:m
+       needs lemma:stasiakt
+  3. Er scheint deshalb, an Ort und stelle zu schweben, und macht dort einmal pro Tag sämtliche Mondphasen durch.
+       needs lemma:mondphas
+       needs lemma:schweben
+  4. Sie sind viel größer als sämtliche bisher bekannte Viren.
+       needs pattern:das Virus
+       needs lemma:virus
+  5. Die Emissionen von Mülldeponien sind genauso erheblich wie die sämtlicher Flugzeuge.
+       needs lemma:emission
+       needs lemma:erheblich
+       needs lemma:mülldeponie
+  6. Ein Beispiel: Würde die AfD verboten, dann müssten ihre Abgeordneten sofort sämtliche Parlamente verlassen.
+       needs lemma:abgeordneter
+       needs pattern:das Parlament
+       needs lemma:parlament
+
+die Sportart   [pattern]   said 17x   gap 2
+  1. Dort kannst du dich für deine Stadt anmelden und dann bestimmte Interessenbereiche angeben, wie zum Beispiel Fotografie, Kochen oder eine bestimmte Sportart.
+       needs lemma:interessenbereiche
+  2. Eine Sportart, die hier recht unbekannt ist.
+       needs lemma:unbekannt
+  3. Er hat Lust, neue Sportarten auszuprobieren.
+       needs lemma:auszuprobieren
+  4. Okay, ich hab nur einen, also so einen recht großen, und der ist eigentlich ziemlich gemischt, aus allen möglichen Jahrgängen, äh, von vielen Sportarten.
+       needs lemma:jahrgänge
+  5. Aus einer einfachen Sportart hat sich ein Geschäft entwickelt, das zu einem wichtigen Aspekt unserer Wirtschaft geworden ist.
+       needs lemma:aspekt
+       needs pattern:der Aspekt
+  6. Das ist keine Rosinenpicken, auch in anderen Sportarten sieht's wirklich gut aus.
+       needs lemma:rosinenpicken
+       needs lemma:sieht's
+
+ökologisch   [lemma]   said 16x   gap 2
+  1. 'n ökologisches, soziales Projekt zu gründen und das würde es halt zum Beispiel viel einfacher machen.
+       needs lemma:sozial
+  2. Aus ökologischer Sicht ist es ganz klar besser.
+       needs pattern:die Sicht
+       needs lemma:sicht
+  3. Beispielsätze: Wir arbeiten daran, den ökologischen Fußabdruck unserer Produkte zu reduzieren.
+       needs lemma:beispielsatz
+       needs lemma:fußabdruck
+  4. Das wäre die ultimative ökologische Katastrophe, der Vakuumzerfall.
+       needs lemma:ultimativ
+       needs lemma:vakuumzerfall
+  5. Der CO2-Preis übersetzt unsere ökologischen Ambitionen.
+       needs lemma:ambition
+       needs lemma:co2-preis
+  6. Es geht dabei im Jahr 1900 um ökologische Landwirtschaft, vegetarische Ernährung, bewusstes Leben.
+       needs lemma:bewusst
+       needs lemma:vegetarisch
+
+der Käufer   [pattern]   said 14x   gap 2
+  1. Der Käufer hat den Betrug erst zu Hause bemerkt, weil er seinen Kauf nicht sofort überprüft hat.
+       needs lemma:betrug
+  2. Käufer müssen herkommen, auch wenn sie ein, zwei Stunden fahren müssen.
+       needs lemma:herkommen
+  3. Und dieser Dealer, ja, der fragt sicher nicht nach dem Ausweis seines Käufers.
+       needs lemma:dealer
+  4. Und als einzelner Käufer kann man gegen die Rechtsabteilungen der großen Autokonzerne wenig machen.
+       needs lemma:autokonzern
+       needs lemma:rechtsabteilung
+  5. Aber die Waren entsprechen nicht immer oder nur teilweise EU-Standards und können im schlimmsten Fall sogar Folgen für die Käufer haben.
+       needs lemma:entsprechen
+       needs pattern:etw./jdm. (Dat) entsprechen
+       needs lemma:eu-standard
+  6. Käufer einer Aktie und Verkäufer einer Aktie werden sich auf einen Aktienpreis einigen.
+       needs lemma:aktie
+       needs lemma:aktienpreis
+       needs pattern:die Aktie
+
+die Steckdose   [pattern]   said 14x   gap 2
+  1. Der Strom aus der Steckdose kommt zu fast 50 Prozent aus erneuerbaren Energien.
+       needs lemma:erneuerbar
+  2. Ja, und deswegen soll es in diesem Video um smarte Steckdosen gehen, wie die P110 hier von Tapo.
+       needs lemma:smart
+  3. So können die Steckdosen, die man nicht braucht, besonders wenn man kleine Kinder hat, zudecken.
+       needs lemma:zudecken
+  4. Und wenn ihr nach Deutschland kommt, braucht ihr einen Adapter, damit das in die Steckdose passt.
+       needs lemma:adapter
+  5. (Musik) An einer Steckdose kann einerseits die Höhe gefährlich sein, weil diese genau auf der Höhe von kleinen Kindern ist, die krabbeln oder kriechen.
+       needs lemma:krabbeln
+       needs lemma:kriechen
+  6. Mit Adaptern kann mit diesen an unterschiedlichen CEE Steckdosen geladen werden.
+       needs lemma:adapter
+       needs pattern:jdn./etw. (Akk) laden
+
+städtisch   [lemma]   said 13x   gap 2
+  1. Sie wurden Oppida genannt und hatten städtische Strukturen.
+       needs lemma:struktur
+  2. Städtischer Kurier wird nicht gehalten.
+       needs lemma:kurier
+  3. Als städtisches Wahrzeichen und Touristenattraktion.
+       needs lemma:touristenattraktion
+       needs lemma:wahrzeichen
+  4. Bauern oder das städtische Bürgertum haben in dieser Konstellation nicht viel zu sagen.
+       needs lemma:bürgertum
+       needs lemma:konstellation
+  5. Hans Mustermann kommt in seiner Heimatstadt als städtischer Mitarbeiter in der Kommunalverwaltung unter.
+       needs lemma:heimatstadt
+       needs lemma:kommunalverwaltung
+  6. Die Jesus Bewegung verbreitet sich erst einmal in den städtischen Zentren des östlichen Mittelmeers.
+       needs pattern:etw. (Akk) verbreiten
+       needs lemma:verbreiten
+       needs lemma:östlich
+
+das Rathaus   [pattern]   said 12x   gap 2
+  1. Es gibt den Uniriesen, das Neue Rathaus.
+       needs lemma:uniriesen
+  2. I geah ins Rathaus inni.
+       needs lemma:geah
+  3. I kimm von Rathaus ausser.
+       needs lemma:ausser
+  4. Ich habe schon gehört, dass in Ermangelung einer solchen Möglichkeit Mitarbeiter mit dem Kind im Rathaus geschlafen haben.
+       needs lemma:ermangelung
+  5. Man hat da den Blick Richtung Gründungspunkt Berlins, also, man sieht den Turm vom Roten Rathaus.
+       needs lemma:gründungspunkt
+  6. Was auch geht: vorab im Rathaus wählen.
+       needs lemma:vorab
+
+der Sänger   [pattern]   said 10x   gap 2
+  1. Er ist der Sänger der Needles.
+       needs lemma:needles
+  2. Ich habe mir Sänger besorgt.
+       needs lemma:besorgt
+  3. Keine Band, aber einen äh Sänger, oder Rapper, ja.
+       needs lemma:rapper
+  4. Der war nicht nur berühmter Sänger und Poet, sondern sang auch manches Loblied auf seinen König.
+       needs lemma:loblied
+       needs lemma:poet
+  5. Der war nämlich nicht einfach nur Dichter und Sänger.
+       needs pattern:der Dichter
+       needs lemma:dichter
+  6. Ein von offizieller Seite besonders unbeliebter westdeutscher Sänger ist Udo Lindenberg.
+       needs lemma:unbeliebt
+       needs lemma:westdeutsch
+
+das Quartal   [pattern]   said 10x   gap 2
+  1. Das ist üblich, dass es im ersten Quartal weniger Arbeitslose gibt als in den letzten beiden Quartalen.
+       needs lemma:arbeitslose
+  2. Im Vergleich zum ersten Quartal 2024 sind die Verkäufe im ersten Quartal 2025 um rund 21 Prozent zurückgegangen.
+       needs pattern:der Verkauf
+       needs lemma:verkauf
+  3. Im letzten Quartal 2018 konnte Facebook einen Rekordgewinn einfahren.
+       needs lemma:einfahren
+       needs lemma:rekordgewinn
+  4. In der Regel ist dieser Zeitraum ein Jahr oder ein bestimmtes Quartal.
+       needs pattern:der Zeitraum
+       needs lemma:zeitraum
+  5. Und BMW hat im ersten Quartal 2026 jeden zwanzigsten Kunden bei Neuwagen verloren.
+       needs lemma:neuwagen
+       needs lemma:zwanzigster
+  6. Die Akquise des neuen Großkunden im letzten Quartal war ein signifikanter Erfolg.
+       needs lemma:akquise
+       needs lemma:großkunde
+       needs lemma:signifikant
+
+inner   [lemma]   said 9x   gap 2
+  1. Diese Inner Circle, zu dem Winifred Wagner auch gehört, ist nicht unkritisch ihm gegenüber.
+       needs lemma:unkritisch
+  2. Diese Denkblasen funktionieren so wie ein innerer Monolog.
+       needs lemma:denkblase
+       needs lemma:monolog
+  3. Und da habe ich auch erst mal wirklich dieses Gefühl von innerem Frieden in meinem Körper gehabt.
+       needs pattern:der Frieden
+       needs lemma:frieden
+  4. So, und jetzt ist interessant, welche Hirne, also welche Hirnströme die Leute nutzen Menschen um was bewegen besser mit innerer Aufregung.
+       needs lemma:aufregung
+       needs lemma:hirn
+       needs lemma:hirnstrom
+  5. So, wie lange jetzt mein innerer Tag ist das liegt in unseren Genen.
+       needs lemma:gen
+       needs lemma:lange
+       needs pattern:lange, lang
+  6. Dann kommt sie irgendwann an den Punkt, wo der New Yorker Tagesanfang genau 30 Minuten vor Mais innerer Uhr, ihrem inneren Tagesanfang kommt.
+       needs lemma:innerer  <-- shares a stem with the goal
+       needs lemma:mais
+       needs lemma:tagesanfang
+       needs lemma:yorker
+
+interkulturell   [lemma]   said 9x   gap 2
+  1. Entweder einfach interkulturelles Interesse, mal mit Fachleuten aus der Ukraine zu sprechen, oder aus Afrika, oder wo auch immer die herkommen.
+       needs lemma:herkommen
+  2. Mein Deutsch vielleicht auch verbessern Wunderbare Erlebnisse Eine interkulturelle Erfahrung Der Perspektivenwechsel Es ist eine schöne Möglichkeit, andere Kulturen kennenzulernen.
+       needs lemma:perspektivenwechsel
+  3. Schreibt uns einen Kommentar, das ist unsere kleine interkulturelle, wissenschaftliche Untersuchung.
+       needs lemma:wissenschaftlich
+  4. Als interkulturelle Paartherapeutin kennt sie das Konfliktthema Geld.
+       needs lemma:konfliktthema
+       needs lemma:paartherapeutin
+  5. Ja eine UNESCO-Schule ist 'ne Schule, die sich besonders für Menschenrechtsbildung, Demokratieerziehung, interkulturelles Lernen, Globales Lernen, Umweltbildung und UNESCO Weltkulturerbe einsetzt.
+       needs lemma:demokratieerziehung
+       needs lemma:menschenrechtsbildung
+       needs lemma:umweltbildung
+       needs lemma:unesco-schule
+  6. Was die Bundeswehr hat, sind interkulturelle Einsatzberater, die in jedem Einsatz vor Ort sind.
+       needs lemma:bundeswehr
+       needs pattern:der Einsatz
+       needs pattern:die Bundeswehr
+       needs lemma:einsatz
+
+der Ordner   [pattern]   said 9x   gap 2
+  1. Ich hab hier einen extra Ordner in dem meine Musiktitel liegen.
+       needs lemma:musiktitel
+  2. Ich kann die Musik ganz einfach aus einem Ordner hier unter meine Videospur ziehen.
+       needs lemma:videospur
+  3. Ich weiß, sie müsste im Ordner sein oder in der Schublade oder vielleicht zwischen anderen Papieren.
+       needs lemma:schublade
+  4. Vielleicht ein kleines Regal um meine Ordner besser zu sortieren.
+       needs lemma:sortieren
+  5. Weil man in der Regel vor Ort nicht die Zeit hatte alle Ordner in Ruhe durchzulesen.
+       needs lemma:durchzulesen
+  6. Ein Deutscher ohne einen Ordner voller Zertifikate fühlt sich nackt.
+       needs lemma:nackt
+       needs lemma:zertifikat
+
+die Einzelheit   [pattern]   said 8x   gap 2
+  1. Auslöserreizen, die aus Einzelheiten oder ganzen Situationen bestehen können.
+       needs lemma:auslöserreiz
+  2. Einzelheiten, die für das Verständnis nicht notwendig sind, kannst du weglassen.
+       needs lemma:weglassen
+  3. Allerdings ist das Gericht natürlich auch unabhängig und hat sicherlich die Einzelheiten dieses Falles genau geprüft.
+       needs lemma:sicherlich
+       needs lemma:unabhängig
+  4. Auf Einzelheiten werde ich später eingehen.” Also: Über die Einzelheiten des Projekts spreche ich später.
+       needs pattern:auf etw. eingehen
+       needs lemma:eingehen
+  5. Ich soll mir noch mehr zu den Einzelheiten Gedanken machen.
+       needs pattern:der Gedanke
+       needs lemma:gedanke
+  6. Kleine Einzelheiten ignoriere ich in meiner Bewertung.
+       needs lemma:bewertung
+       needs lemma:ignorieren
+
+der Kunststoff   [pattern]   said 5x   gap 2
+  1. Diese Schicht würde außerdem seltene Erdelemente und die Kunststoffe der Menschen enthalten.
+       needs lemma:erdelement
+  2. Nein, also ich lege Wert darauf, dass es Leder ist und kein Kunststoff.
+       needs lemma:leder
+  3. DEHP wird Kunststoffen als Weichmacher beigefügt, Könnte aber auch krebserregend sein.
+       needs lemma:beigefügt
+       needs lemma:krebserregend
+       needs lemma:weichmacher
+  4. Ab dem Jahr 2023 sind Gastronomiebetriebe in Deutschland verpflichtet, statt Kunststoff Mehrwegverpackungen anzubieten.
+       needs lemma:gastronomiebetriebe
+       needs pattern:jdn. (Akk) zu etw. verpflichten
+       needs lemma:mehrwegverpackung
+       needs lemma:verpflichten
+  5. Ich versuche die Außeneinheit mit den mitgelieferten Schrauben und Kunststoff Teilen sinnvoll zu befestigen.
+       needs lemma:außeneinheit
+       needs lemma:befestigen
+       needs pattern:der Teil, das Teil
+       needs pattern:etw. (Akk) an etw. (Dat) befestigen
+
+das Tennis   [pattern]   said 5x   gap 2
+  1. Der Herr Hopp, der ruhige, sachliche, mehr so Typ Roger Federer im Tennis, würde ich sagen.
+       needs lemma:sachlich
+  2. frisbee, we play table tennis.
+       needs lemma:tabel
+  3. Terror statt Tennis: Darum geht es nicht.
+       needs pattern:der Terror
+       needs lemma:terror
+  4. Vielleicht nicht unbedingt die Weltranglistenerste im Tennis, aber andere in der Vergangenheit.
+       needs pattern:die Vergangenheit
+       needs lemma:weltranglistenerste
+  5. Aber in der DDR steht in dieser Zeit nicht Tennis im Vordergrund, Leichtathletik wird gerne und viel betrieben.
+       needs lemma:betreiben
+       needs pattern:der Vordergrund
+       needs pattern:etw. (Akk) betreiben
+       needs pattern:gern, gerne
+
+das Heft   [pattern]   said 2x   gap 3
+  1. Ja, ich habe ein Lehrbuch, ein Heft und zwei Stifte dabei.
+       needs lemma:lehrbuch
+       needs lemma:stift
+  2. Stimmt mit dem Buch überein, also mit dem Lösungs Heft.
+       needs pattern:mit jdm./etw. (Dat) übereinstimmen
+       needs lemma:überein
+
+vorig   [lemma]   said 2x   gap 2
+  1. Ich bin vorige Woche mit Ihnen im Fahrstuhl stecken geblieben.
+       needs lemma:fahrstuhl
+  2. Noch nie haben Deutschlands Arbeitnehmerinnen und Arbeitnehmer so viele Stunden gearbeitet wie im vorigen Jahr.
+       needs lemma:arbeitnehmerin
+
+das Wiedersehen   [pattern]   said 2x   gap 2
+  1. Und es wird ein emotionales Wiedersehen.
+       needs lemma:emotional
+  2. Manchmal sind diese Zeiten sogar schöner als der Urlaub, die Party oder das Wiedersehen selbst.
+       needs lemma:selbst
+       needs pattern:selbst, selber
+
+die Phantasie   [pattern]   said 2x   gap 2
+  1. Wenn wir eine Burgruine sehen, dann legt bei uns doch auch die Phantasie los, oder?
+       needs lemma:burgruine
+  2. Und zwar den Menschen als seelisches Wesen mit seinen Gefühlen und seiner Phantasie.
+       needs pattern:das Wesen
+       needs lemma:seelisch
+       needs lemma:wesen
+
+das Top   [pattern]   said 1x   gap 3
+  1. Das klingt nach einem Fall für die TOP 5 der beliebtesten Rechtschreibfehler!
+       needs lemma:beliebt
+       needs lemma:rechtschreibfehler
+
+
+==============================================================================
+NEVER SAID IN THIS CORPUS
+
