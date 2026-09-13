@@ -40,6 +40,31 @@ ENOUGH_LINES = 40
 TYPICAL_COVERAGE = 0.5
 
 
+# What subscribing and setting aside are worth, applied to a finished score
+# rather than folded into it: watchability is a fact about the video and this
+# is a fact about you, and keeping them apart is what lets taste be changed
+# without rescoring anything.
+#
+# Four either way, which against the spread the corpus actually produces --
+# the top eight videos run 0.073 down to 0.006 -- moves a channel several
+# places without letting it own the feed. A set-aside channel still holds its
+# order among its peers, so the one video on it that teaches the word you
+# need is four times harder to reach, not gone. Nothing here is ever zero:
+# `video_blacklist` is what removes something, and it takes a video at a
+# time, deliberately.
+SUBSCRIBED = 2.0
+SET_ASIDE = 0.25
+
+
+def taste_weight(taste: str | None) -> float:
+    """The multiplier for what you have said about a channel."""
+    if taste == "up":
+        return SUBSCRIBED
+    if taste == "down":
+        return SET_ASIDE
+    return 1.0
+
+
 def length_band(minutes: float | None) -> float:
     """How well a video's length sits, on its own, in [0, 1].
 

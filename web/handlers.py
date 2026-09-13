@@ -29,7 +29,8 @@ from vocab.search import UnitSearch
 from vocab.word_lists import WordListStore
 from fingerprint import analyser_fingerprint
 from scores import ScoreStore
-from watchability import ENOUGH_LINES, watchability
+from vocab.channel_taste import TASTES, ChannelTaste
+from watchability import ENOUGH_LINES, taste_weight, watchability
 
 # Bump when scoring changes: the stored rows are only valid for
 # the code that wrote them.
@@ -152,6 +153,13 @@ class Viewer:
         self._marks: Queue = Queue()
         self._worker: Thread | None = None
         self._scores = ScoreStore(app.settings.state_path)
+        self._taste = ChannelTaste(app.settings.state_path)
+        # Video -> the channel that published it, and channel -> its name.
+        # Keyed by YouTube's id rather than the catalogue's integer, which
+        # `sync-catalogue` refills wholesale: a preference pinned to a row
+        # number would quietly move to another channel after a sync.
+        self._channel: dict[str, str] | None = None
+        self._channel_names: dict[str, str] | None = None
         self._durations: dict[str, float] | None = None
         self._video_titles: dict[str, str] | None = None
         self._machine: frozenset[str] | None = None
@@ -1731,6 +1739,9 @@ class Viewer:
             + f"</span> of {len(ranked):,}, ranked by how well it plays with "
               "your hands full. Swipe up and down to move, right to say you "
               "know a word, left to set it aside.</p>"
+            + f"<div id='reel-taste'>"
+            + self._taste_control(row["video"], f"/reels?i={here}")
+            + "</div>"
             + self._audio_toggle()
             + "<div class='card' id='reel'>"
             # `stage`, not `player`: it carries the caption line under the
@@ -1773,6 +1784,9 @@ class Viewer:
             "title": row["title"] or row["video"],
             "scoreboard": self._scoreboard(row),
             "panel": self._to_follow(source, row, back=f"/reels?i={here}"),
+            # Follows the reel, because what you think of a channel is about
+            # the channel this one came from, not the one you started on.
+            "taste": self._taste_control(row["video"], f"/reels?i={here}"),
         }
 
     def _scoreboard(self, row: dict) -> str:
@@ -1875,7 +1889,16 @@ class Viewer:
                 if rows is None:
                     rows = self._compute(source)
                     self._ranked[source] = rows
-        return [r for r in rows if r["lines"] >= floor]
+        # Taste is applied here and never stored with the score. What you
+        # think of a channel is not a property of its videos, so keeping it
+        # out of the cached number means saying so costs no rescore at all --
+        # and the stamp, which exists to say whether a stored score still
+        # describes you, does not have to learn about it.
+        taste, channel = self._taste.all(), self._channel_of()
+        return sorted(
+            (r for r in rows if r["lines"] >= floor),
+            key=lambda r: -r["watch"] * taste_weight(
+                taste.get(channel.get(r["video"]))))
 
     def _compute(self, source: str) -> list[dict]:
         """Stored scores if they still describe you, otherwise scored afresh."""
@@ -1890,6 +1913,62 @@ class Viewer:
                       key=lambda r: -r["watch"])
         self._scores.save(source, stamp, rows)
         return rows
+
+    def _channel_of(self) -> dict[str, str]:
+        """Video -> the YouTube id of the channel that published it."""
+        if self._channel is None:
+            with Database(self.app.settings.own) as db:
+                self._channel = dict(db.rows(
+                    "SELECT v.video_id, c.youtube_channel_id FROM video v"
+                    " JOIN channel c ON c.id = v.channel_id"
+                    " WHERE c.youtube_channel_id IS NOT NULL"))
+        return self._channel
+
+    def _channel_titles(self) -> dict[str, str]:
+        if self._channel_names is None:
+            with Database(self.app.settings.own) as db:
+                self._channel_names = dict(db.rows(
+                    "SELECT youtube_channel_id, channel_name FROM channel"
+                    " WHERE youtube_channel_id IS NOT NULL"))
+        return self._channel_names
+
+    def _taste_control(self, video_id: str, back: str) -> str:
+        """Say you want more of this channel, or less.
+
+        Both buttons toggle: pressing the one already chosen takes the
+        opinion back, because neutral is the absence of an opinion and there
+        is no third button for it.
+        """
+        channel = self._channel_of().get(video_id)
+        if not channel:
+            return ""
+        now = self._taste.all().get(channel)
+        name = self._channel_titles().get(channel) or "this channel"
+
+        def button(value: str, label: str) -> str:
+            chosen = now == value
+            mark = " class='on'" if chosen else ""
+            return (f"<button name='taste' value='{value}'{mark}"
+                    f" aria-pressed='{'true' if chosen else 'false'}'>"
+                    f"{label}</button>")
+
+        return ("<form class='taste' method='post' action='/taste'>"
+                f"<input type='hidden' name='channel' value='{escape(channel)}'>"
+                f"<input type='hidden' name='back' value='{escape(back)}'>"
+                f"<span class='who'>{escape(name)}</span>"
+                + button("up", "More of this")
+                + button("down", "Less of this")
+                + "</form>")
+
+    def set_taste(self, form: dict) -> str:
+        """Record what you said about a channel, or take it back."""
+        channel = (form.get("channel") or "").strip()
+        wanted = (form.get("taste") or "").strip()
+        back = form.get("back") or "/reels"
+        if channel and wanted in TASTES:
+            current = self._taste.all().get(channel)
+            self._taste.set(channel, None if current == wanted else wanted)
+        return back
 
     def _spoken_lines(self, source: str) -> dict[str, int]:
         """Lines per video before filtering, cached per source."""

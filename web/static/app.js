@@ -370,6 +370,7 @@ function cueAt(cues, now) {
   var title = document.getElementById('reel-title');
   var board = document.getElementById('reel-board');
   var panel = document.getElementById('reel-panel');
+  var taste = document.getElementById('reel-taste');
   var counter = document.getElementById('reel-at');
   var caption = document.getElementById('caption');
   var cues = [], marking = -1;
@@ -415,6 +416,7 @@ function cueAt(cues, now) {
         title.textContent = d.title;
         board.innerHTML = d.scoreboard;
         panel.innerHTML = d.panel;
+        if (taste) taste.innerHTML = d.taste || '';
         if (counter) counter.textContent = d.at + 1;
         // The URL follows so a reload lands where you are, without the
         // navigation that would take the player with it.
@@ -429,6 +431,34 @@ function cueAt(cues, now) {
       .catch(function () {})
       .then(function () { busy = false; });
   }
+
+  // Saying more or less of a channel, without leaving the page and without
+  // reordering the feed under you. The server toggles — pressing the chosen
+  // one takes the opinion back — so the button state is flipped to match and
+  // the new order arrives with the next swipe, which is the moment it can be
+  // seen without something jumping out from under a thumb.
+  if (taste) taste.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('button[name="taste"]') : null;
+    if (!b || !b.form) return;
+    e.preventDefault();
+    var body = new URLSearchParams(new FormData(b.form));
+    body.append('taste', b.value);
+    var was = b.classList.contains('on');
+    fetch('/taste', {method: 'POST', body: body, redirect: 'manual',
+                     keepalive: true})
+      .catch(function () {})
+      .then(function () {
+        var all = b.form.querySelectorAll('button[name="taste"]');
+        Array.prototype.forEach.call(all, function (x) {
+          x.classList.remove('on');
+          x.setAttribute('aria-pressed', 'false');
+        });
+        if (!was) {
+          b.classList.add('on');
+          b.setAttribute('aria-pressed', 'true');
+        }
+      });
+  });
 
   // The panel's own forms, posted without leaving the page — a navigation
   // here would destroy the player, which is the thing this whole file exists

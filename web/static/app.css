@@ -111,6 +111,16 @@ button {
 button.go { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 button:hover { border-color: var(--target); }
 
+/* More or less of a channel. Quiet until you have said something: this sits
+   above the picture on every reel and must not compete with it. */
+.taste { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin: 0 0 18px; }
+.taste .who { font-size: 14px; color: var(--ink-2); margin-right: auto;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.taste button { font-size: 13px; padding: 6px 12px; min-height: 36px;
+  color: var(--ink-2); }
+.taste button.on { color: var(--ink); border-color: var(--target); }
+
 /* Source switch: quiet, and it says what it is switching. */
 .switch { display: flex; gap: 16px; align-items: baseline; margin: 0 0 28px;
   font-size: 14px; color: var(--ink-2); flex-wrap: wrap; }

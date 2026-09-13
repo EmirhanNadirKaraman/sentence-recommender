@@ -185,6 +185,8 @@ def _make_handler(viewers: "Viewers"):
                     self._redirect(viewer.add_channel(form))
                 elif posted == "/quiz":
                     self._redirect(viewer.answer_quiz(form))
+                elif posted == "/taste":
+                    self._redirect(viewer.set_taste(form))
                 elif posted == "/hide":
                     self._redirect(viewer.hide_sentence(form))
                 elif posted == "/fix":
