@@ -13,6 +13,7 @@ so out loud when it is used; anything beyond that wants a real front door
 """
 from __future__ import annotations
 
+import os
 import socket
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -87,13 +88,17 @@ class LocalServer:
     def serve(self, open_browser: bool = True) -> None:
         handler = _make_handler(self._viewers)
         server = ThreadingHTTPServer((self._host, self._port), handler)
-        url = f"http://{self._reachable_at()}:{self._port}/"
+        where = self._reachable_at()
+        url = f"http://{where}:{self._port}/"
         # Flushed, both of them. Redirected output is block-buffered, so the
         # one line whose entire job is telling you what to type into the other
         # device is the one that vanishes under nohup, ssh or a service
         # manager — which is exactly where it is needed.
         print(f"serving {url}  (ctrl-c to stop)", flush=True)
-        if self._host != LOOPBACK:
+        # Keyed on where it is reachable, not where it is bound. In a
+        # container the bind is always `0.0.0.0` and this fired every time,
+        # while compose publishes on loopback and nobody else could reach it.
+        if where != LOOPBACK:
             print("  no authentication — anyone who can reach this port can "
                   "read your corpus and mark words known", flush=True)
         if open_browser:
@@ -115,7 +120,16 @@ class LocalServer:
 
         A bind address is not one of these — `0.0.0.0` means "every
         interface", which is not somewhere a phone can be pointed.
+
+        `SERVE_ANNOUNCE` wins over all of it, because inside a container none
+        of this is knowable from within: the bind is `0.0.0.0`, the hostname
+        is a random container id, and `<id>.local` resolves nowhere at all.
+        Which address the port is published on is a fact only compose holds,
+        so compose passes it in.
         """
+        announced = os.environ.get("SERVE_ANNOUNCE", "").strip()
+        if announced:
+            return announced
         if self._host == LOOPBACK:
             return self._host
         if self._host not in ("0.0.0.0", "::", ""):

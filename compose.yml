@@ -47,6 +47,12 @@ services:
       DB_PASSWORD: local_db_password
       DB_HOST: db
       DB_PORT: 5432
+      # The address to print when it starts. Inside the container the bind is
+      # `0.0.0.0` and the hostname is a random container id, so left to itself
+      # it announced `http://<id>.local:8765/` — a URL that resolves nowhere,
+      # on the one line someone is waiting to read. Keep it in step with the
+      # published port below.
+      SERVE_ANNOUNCE: 127.0.0.1
     ports:
       # 127.0.0.1 only. There is no authentication anywhere in this app.
       - "127.0.0.1:8765:8765"
