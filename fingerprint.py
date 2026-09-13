@@ -39,7 +39,12 @@ SOURCES = (
     ROOT / "data" / "lemma_fixes.txt",
 )
 
-PACKAGES = ("spacy", "de_core_news_md", "de_core_news_sm")
+# The parser, and only what is actually loaded. `de_core_news_sm` was
+# hashed here too and is loaded by nothing: the matcher asks for `md` by
+# name, because under `sm` it lemmatises `schreien` to `schreie`. Hashing
+# a package nobody parses with meant installing or removing it announced a
+# parser change that had not happened.
+PACKAGES = ("spacy", "de_core_news_md")
 
 
 def analyser_fingerprint() -> str:

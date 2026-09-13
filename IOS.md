@@ -137,8 +137,8 @@ already co-located there. Everything below is the cost of *not* doing that.
   falls onto a full corpus walk. Split into a rules hash and a separate
   `packages_fingerprint()` recorded alongside — a spaCy upgrade on the Mac
   should still say "rebuild", but a *different machine* should not look stale.
-  Five call sites. (`de_core_news_sm` is loaded by nothing and exists only to
-  be hashed; consider dropping it.)
+  Five call sites. (`de_core_news_sm` was loaded by nothing and hashed
+  anyway; it is no longer in `PACKAGES`.)
 - **`vocab/cache.py:49-66`** — `resolved.json` stamps the **absolute path** plus
   mtime and size, so it cannot survive a checkout elsewhere: `git clone` writes
   identical bytes with fresh mtimes under a different root. Hash contents
