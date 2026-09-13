@@ -173,9 +173,13 @@ don't know.
 uv venv --python 3.12 .venv
 uv pip install --python .venv/bin/python -r requirements.txt
 uv pip install --python .venv/bin/python \
-  https://github.com/explosion/spacy-models/releases/download/de_core_news_sm-3.8.0/de_core_news_sm-3.8.0-py3-none-any.whl
+  https://github.com/explosion/spacy-models/releases/download/de_core_news_md-3.8.0/de_core_news_md-3.8.0-py3-none-any.whl
 cp .env.example .env      # Postgres credentials
 ```
+
+The medium model, not the small one. The matcher loads `de_core_news_md`
+by name, so `sm` does not stand in for it: `spacy.load` raises and the
+first parse fails.
 
 `spacy-lookups-data` is not optional in practice. Without it spaCy resolves
 `musst` to `mussen` rather than `müssen`, so inflected forms stay separate
@@ -190,6 +194,56 @@ LLM_MODEL=<model>
 ```
 
 Without it, generation is skipped and everything else works.
+
+Create the database itself once, and build its schema:
+
+```
+createdb sentence_recommender
+alembic upgrade head
+```
+
+That leaves you with an empty catalogue. Filling it means scraping subtitles
+and parsing them, which is the expensive part — so if someone already has a
+corpus, take theirs.
+
+## Moving the corpus to another machine
+
+Not by copying files. Postgres is a server with its own storage layout, and
+most of what is on disk is index rather than data: 3,315 MB of database is a
+162 MB dump, because `pg_dump` writes the *definition* of an index and the
+restore rebuilds it.
+
+On the machine that has one:
+
+```
+pg_dump -Fc -Z6 -f corpus.dump sentence_recommender
+```
+
+On the machine that wants it, after the Setup above but *instead of*
+`alembic upgrade head` — the dump carries the schema and the
+`alembic_version` row with it, so migrations land in step:
+
+```
+createdb sentence_recommender
+pg_restore --no-owner --role=$(whoami) -d sentence_recommender corpus.dump
+```
+
+`--no-owner` is not optional unless both machines happen to use the same
+database role. The dump names its owner in a hundred places and the restore
+reports an error at every one of them otherwise.
+
+**Send nothing else.** `data/state.sqlite3` is one person's answers — the
+words they have marked known, their review cards, their stored roadmaps, what
+they think of which channel — and it is created empty on first run. Nobody
+else's copy is useful and it is the one file that is nobody else's business.
+`data/tatoeba.sqlite3` predates the move to Postgres and nothing reads it.
+`.env` holds credentials; `.env.example` is the one to copy.
+
+What arrives is a catalogue and an analysed corpus, so the receiving machine
+can serve pages immediately. It still needs its own roadmap: those live in
+`data/state.sqlite3` and are not in the dump at all. Run `build-roadmap`
+once after restoring — it walks against your known set, which is why the
+plans are not the shareable part.
 
 ## The local viewer
 
