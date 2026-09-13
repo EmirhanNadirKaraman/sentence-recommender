@@ -1,0 +1,46 @@
+# Words marked known on the page, cleared so the only thing assumed
+# known is what data/function_words.txt says. Restore a line by
+# marking it known again on /blocked, or re-insert into known_units.
+lemma	gar	2026-09-10T14:42:15.016139
+lemma	leid	2026-09-11T00:46:14.738881
+lemma	möchte	2026-09-11T00:47:23.364096
+lemma	sicher	2026-09-10T23:13:52.663458
+pattern	all, alle	2026-09-10T11:21:08.261852
+pattern	das Haus	2026-09-10T23:13:56.917231
+pattern	das Jahr	2026-09-10T19:43:19.599078
+pattern	das Kind	2026-09-11T00:46:22.208781
+pattern	das Paar	2026-09-11T09:59:12.218186
+pattern	der Herr	2026-09-10T14:23:50.839099
+pattern	der Mann	2026-09-11T00:46:12.093456
+pattern	der Papa	2026-09-10T23:15:38.101124
+pattern	der Tag	2026-09-10T14:25:33.316224
+pattern	der Vater	2026-09-10T14:36:54.323446
+pattern	der, die, das	2026-09-09T13:51:43.874151
+pattern	die Frau	2026-09-10T23:05:43.298326
+pattern	die Schule	2026-09-11T00:46:13.588155
+pattern	die Zeit	2026-09-10T14:42:32.028105
+pattern	ein paar	2026-09-11T00:46:39.065432
+pattern	etw. (Akk) bekommen	2026-09-11T00:46:33.871645
+pattern	etw. (Akk) fahren	2026-09-08T12:09:46.999200
+pattern	etw. (Akk) können	2026-09-08T11:52:07.241417
+pattern	etw. (Akk) machen	2026-09-08T11:29:26.829172
+pattern	etw. (Akk) tun	2026-09-08T11:53:33.442726
+pattern	etw. (Akk) wissen	2026-09-09T03:19:15.855250
+pattern	etw. (Akk) wollen	2026-09-08T11:53:27.832304
+pattern	etw./jdn. (Akk) brauchen	2026-09-10T23:01:42.002937
+pattern	etw./jdn. (Akk) finden	2026-09-09T03:48:49.241000
+pattern	etw./jdn. (Akk) haben	2026-09-08T11:05:53.207111
+pattern	etw./jdn. (Akk) sehen	2026-09-08T11:53:47.909540
+pattern	jdm. (Dat) / etw. (Akk) glauben	2026-09-09T03:49:23.938378
+pattern	jdm. (Dat) etw. (Akk) bedeuten	2026-09-10T23:12:56.455860
+pattern	jdm. (Dat) etw. (Akk) erzählen	2026-09-11T00:43:53.887014
+pattern	jdm. (Dat) etw. (Akk) geben	2026-09-08T14:17:53.705330
+pattern	jdm. (Dat) etw. (Akk) sagen	2026-09-08T11:52:40.454903
+pattern	jdm. (Dat) helfen	2026-09-11T23:00:16.196956
+pattern	jdm. (Dat) passieren	2026-09-10T23:13:45.845153
+pattern	jdn. (Akk) / sich mit jdm. treffen	2026-09-10T23:05:28.163169
+pattern	jdn. (Akk) fragen	2026-09-10T23:05:32.561286
+pattern	jdn./etw. (Akk) lieben	2026-09-10T14:41:02.746069
+pattern	mit jdm. / über etw. reden	2026-09-10T23:13:54.763595
+pattern	mit jdm. / über etw./jdn. sprechen	2026-09-10T14:16:06.749212
+pattern	nichts, nix	2026-09-10T23:05:45.220057

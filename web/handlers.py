@@ -621,18 +621,32 @@ class Viewer:
     def counting_switch(self, query: dict, page: str) -> str:
         """The three readings, minus any this corpus has no plan for.
 
-        Offered only where one is stored, because `_stored_label` falls back
-        to the neighbouring reading when a plan is missing — so a position
-        with nothing behind it would look like it worked and quietly serve
-        the plan next door. A switch that silently does nothing is worse
-        than a switch with two positions.
+        Offered only where the page can answer it. `_stored_label` falls back
+        to the neighbouring reading when a plan is missing, so a position with
+        nothing behind it would look like it worked and quietly serve the plan
+        next door. A switch that silently does nothing is worse than a switch
+        with two positions.
+
+        Which page it is decides what "can answer it" means. `/blocked`
+        computes reachability live — `reachable` with a budget, in seconds —
+        so it needs no stored plan and the position always works there. The
+        reading page and `/roadmap` display stored steps, so they can only
+        offer it where a plan was built.
+
+        That distinction exists because the unblocked *plan* was dropped. Left
+        unbounded it taught 59,000 words to reach 4,000 B1 goals — thirty off
+        the list for every one on it — and gating every page on its presence
+        removed the one reading that had become both cheap and honest.
         """
         source = self.source(query)
         here = ("list" if self.counting(query)
                 else "unblock" if self.unblocked(query) else "all")
         offered = [("all", "every word in the sentence"),
                    ("list", "only my study list")]
-        if self._stored_label(source, False, True).endswith(":unblock"):
+        answerable = (page == "/blocked"
+                      or self._stored_label(source, False, True)
+                          .endswith(":unblock"))
+        if answerable:
             offered.insert(1, ("unblock", "…and teach what blocks one"))
         links = "".join(
             f"<a href='{self._link(page, source, count=value)}' "
