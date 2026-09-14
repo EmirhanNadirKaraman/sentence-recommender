@@ -22,8 +22,9 @@ perfectly into `hoch` and `zeit` and means "wedding".
 **One word can be two units**, and that is why a part is a *set* of units
 rather than one. The study list writes a noun with its article, so `das Haus`
 is the goal while the analyser also yields a bare `haus`; strict counting
-then drops the bare form from every sentence as a duplicate of the goal that
-teaches it. Resolving `haus` to the bare lemma alone therefore found nothing
+then renames the bare form to the goal that teaches it, so the sentence says
+`das Haus` and not `haus`. Resolving `haus` to the bare lemma alone found
+nothing
 where it mattered most: 187 of 231 parts disappear under strict, and the
 whole hand-checked list granted two compounds instead of a hundred and
 eighty. A part is satisfied by *any* unit meaning that word.

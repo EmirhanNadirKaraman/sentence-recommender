@@ -298,7 +298,7 @@ class CorpusStore:
              video: str | None = None,
              holding: tuple[str, str] | None = None,
              text: str | None = None,
-             keep=None) -> list[Sentence]:
+             resolve=None) -> list[Sentence]:
         """Stored sentences. By default only the ones worth studying from —
         pass `teachable_only=False` for the full transcript, which is what an
         overlay needs.
@@ -356,10 +356,13 @@ class CorpusStore:
             # nearly every one is a repeat. Interning them turns most of those
             # rows into a dict lookup instead of an object, which is most of
             # the cost of loading a large corpus.
-            # (kind, key) -> the interned unit, or None where `keep` refused
-            # it. The verdict depends on the unit alone, so it is reached once
-            # per distinct unit rather than once per row — 46,433 decisions
-            # instead of 1,742,479.
+            # (kind, key) -> the unit that stands for it, or None where
+            # `resolve` dropped it. The verdict depends on the unit alone, so
+            # it is reached once per distinct unit rather than once per row —
+            # 46,433 decisions instead of 1,742,479. That is also why strict
+            # counting renames a duplicate rather than deciding per sentence
+            # whether the goal that covers it is nearby: the rename needs
+            # nothing but the unit, so it keeps this.
             seen: dict[tuple[str, str], Unit | None] = {}
             unseen = object()          # None already means "refused"
             cur.execute(
@@ -373,7 +376,7 @@ class CorpusStore:
                 if unit is unseen:
                     made = Unit(kind, key)
                     unit = seen[(kind, key)] = (
-                        made if keep is None or keep(made) else None)
+                        made if resolve is None else resolve(made))
                 if unit is None:
                     continue
                 units.setdefault(sid, set()).add(unit)

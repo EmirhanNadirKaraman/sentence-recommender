@@ -33,7 +33,13 @@ ALL = "all"
 # way, a column that means something new. The analyser fingerprint catches a
 # rebuilt corpus but not a rewritten walk, and a stamp that only watches its
 # inputs will happily vouch for output the current code would never produce.
-ROADMAP_VERSION = 2
+#
+# 3: strict counting renames a duplicate instead of deleting it. The rule
+# runs at load time, so the corpus cache is untouched and the analyser
+# fingerprint cannot see the change — but every step of every plan moves,
+# and a plan built under the old rule offered sentences holding words it had
+# not taught. See `Aliases`.
+ROADMAP_VERSION = 3
 
 
 def current_stamp() -> str:

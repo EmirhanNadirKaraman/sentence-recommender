@@ -459,7 +459,9 @@ class Viewer:
             # Not narrowed means strict, not raw: the bare lemma the
             # analyser yields beside the goal that already teaches it is one
             # word arriving twice, and counting it as unknown is bookkeeping
-            # rather than vocabulary. See `Application.covered_forms`.
+            # rather than vocabulary. Strict renames the one to the other
+            # rather than dropping it, so the word still counts where the
+            # goal is not there to stand in for it. See `Aliases`.
             self._corpora[key] = self.app.corpus(*self._builds(source),
                                                  list_only=list_only,
                                                  strict=not list_only)

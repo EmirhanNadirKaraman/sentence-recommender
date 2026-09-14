@@ -20,6 +20,7 @@ from srs import CardStore, PromptBuilder, SM2Scheduler
 from vocab import (CheckedStore, GoalList, KnownStore, SnoozeStore, Unit,
                    WordListLoader)
 from vocab.cache import ResolvedCache
+from vocab.aliases import Aliases
 from vocab.compounds import Compounds
 
 
@@ -97,24 +98,25 @@ class Application:
         something you set out to learn.
 
         `strict` is the answer to that, and supersedes `list_only` rather
-        than combining with it. It keeps every word in the sentence and drops
-        only the ones the list already teaches under another name — `Kugel`
-        arriving a second time as a bare `kugel` — so a word you genuinely do
-        not know still counts against the sentence. See `covered_forms` for
-        which is which.
+        than combining with it. It keeps every word in the sentence and
+        *renames* the ones the list already teaches under another name —
+        `Kugel` arriving a second time as a bare `kugel` becomes the goal
+        `die Kugel` — so the duplicate collapses without the word leaving the
+        sentence. See `Aliases`, and the bug that comes of deleting it
+        instead.
         """
         self.check_freshness()
         # Decided once and applied while the units are read, rather than by a
-        # pass over the finished sentences — see `_keep_rule`.
-        keep = self._keep_rule(strict, list_only)
+        # pass over the finished sentences — see `_unit_rule`.
+        resolve = self._unit_rule(strict, list_only)
         # `holding` asks for the sentences saying one word. A page that wants
         # twenty-five of them has no business materialising a hundred and
         # fifteen thousand, which is what it did before the index existed.
         return self.apply_overrides(self.corpus_store.load(
             *(builds or self.corpus_store.builds()),
             teachable_only=teachable_only, holding=holding, text=text,
-            keep=keep,
-        ), keep)
+            resolve=resolve,
+        ), resolve)
 
     @cached_property
     def check_freshness(self):
@@ -167,11 +169,11 @@ class Application:
     def covered_by(self) -> dict[str, frozenset[Unit]]:
         """Which goal unit teaches each form, for the callers that need it.
 
-        `covered_forms` answers "is this word already on the list", which is
-        all the strict keep-rule needs. Compounds need the other half: a
-        compound part written `haus` is taught by the goal `das Haus`, and
-        under strict counting the bare form is dropped from every sentence as
-        a duplicate of it. Resolving the part to the form alone found nothing
+        `covered_forms` answers "is this word already on the list". Compounds
+        need the other half: a compound part written `haus` is taught by the
+        goal `das Haus`, and under strict counting the bare form is renamed to
+        that goal in every sentence. Resolving the part to the form alone
+        found nothing
         -- 187 of 231 parts vanish that way, and the whole list granted two
         compounds instead of a hundred and eighty.
 
@@ -227,23 +229,41 @@ class Application:
                     out[word.lower()].add(unit)
         return {form: frozenset(units) for form, units in out.items()}
 
-    def _keep_rule(self, strict: bool, list_only: bool):
-        """Which units count, as a test applied while they are read.
+    @cached_property
+    def aliases(self) -> Aliases:
+        """The list's own name for each word it teaches. See `Aliases`."""
+        return Aliases(self.goal_units)
 
-        Returns None when everything counts, so the common path pays nothing.
+    def _unit_rule(self, strict: bool, list_only: bool):
+        """What each unit counts as, applied while the units are read.
 
-        `strict` keeps every word in the sentence and drops only the ones the
+        Returns None when every unit counts as itself, so the common path
+        pays nothing. Otherwise a function from a unit to the unit that
+        should stand in its place, or to None to drop it.
+
+        `strict` keeps every word in the sentence and renames the ones the
         list already teaches under another name — `Kugel` arriving a second
-        time as a bare `kugel`. What is left is the goals, the words already
-        known, and the genuine strangers: words neither known nor on the list,
-        which the walk will never teach and which therefore keep a sentence
-        out of an i+1 reading for good.
+        time as a bare `kugel` becomes the goal `die Kugel` that teaches it.
+        What is left is the goals, the words already known, and the genuine
+        strangers: words neither known nor on the list, which the walk will
+        never teach and which therefore keep a sentence out of an i+1 reading
+        for good.
 
-        `list_only` keeps only what the list names. That removes the duplicate
-        too, and removes unknowns with it, so sentences that were two or three
-        away become i+1 — at the price of calling a sentence readable while it
-        holds a word you do not know, because that word was never something
-        you set out to learn.
+        It used to *delete* the duplicate rather than rename it, testing only
+        whether the list taught that word somewhere — never whether the goal
+        that teaches it was anywhere near. `die Technologie` is on the list,
+        so `technologie` was struck out of every sentence in the corpus,
+        including the ones that neither say the goal nor teach it. 31% of
+        sentences lost a word with nothing standing in, and 1,206 of 3,910
+        roadmap steps offered a sentence holding a word the reader had no way
+        to have learned. Renaming collapses the same duplicate and leaves the
+        word — as the goal, so the walk can still teach it.
+
+        `list_only` keeps only what the list names. That removes the
+        duplicate too, and removes unknowns with it, so sentences that were
+        two or three away become i+1 — at the price of calling a sentence
+        readable while it holds a word you do not know, because that word was
+        never something you set out to learn.
 
         This was two passes over the finished corpus, each rebuilding every
         sentence it touched. Doing it during the read costs one dictionary
@@ -253,23 +273,13 @@ class Application:
             return None
         goals = frozenset(self.goal_units)
         if list_only and not strict:
-            return lambda unit: unit in goals
-        covered = self.covered_forms
+            return lambda unit: unit if unit in goals else None
+        aliases = self.aliases
+        # A goal is already the name the list teaches by, so it stands as
+        # itself; everything else is asked whether the list has a name for it.
+        return lambda unit: unit if unit in goals else aliases.of(unit)
 
-        def keep(unit) -> bool:
-            # Compared as written, not lowercased. Lemma keys are lowercase
-            # except the nouns that share a lemma with a verb, which keep a
-            # capital to say which of the two they are — see the analyser's
-            # `noun_splits`. Lowercasing here put `Treffen` back together with
-            # `treffen` and handed the noun to whatever taught the verb.
-            # Nothing else is affected: every other lemma key is already
-            # lowercase, and a multi-word pattern key never matches `covered`,
-            # which holds single words.
-            return unit in goals or unit.key not in covered
-
-        return keep
-
-    def apply_overrides(self, sentences: list, keep=None) -> list:
+    def apply_overrides(self, sentences: list, resolve=None) -> list:
         """What the reader has said about particular sentences, applied.
 
         Public because the reading page needs it too: a deck stored with a
@@ -289,12 +299,15 @@ class Application:
             fix = corrected.get(sentence.text)
             if fix is not None:
                 # A correction replaces the units outright, and those units
-                # have not been past `keep` — the store applied it to what it
-                # read, and this did not come from the store. Filtering here
-                # keeps a corrected sentence counted the same way as every
-                # other one.
-                items = [(unit, surface) for unit, surface in fix.items()
-                         if keep is None or keep(unit)]
+                # have not been past `resolve` — the store applied it to what
+                # it read, and this did not come from the store. Resolving
+                # here keeps a corrected sentence counted the same way as
+                # every other one.
+                items = []
+                for unit, surface in fix.items():
+                    stands = unit if resolve is None else resolve(unit)
+                    if stands is not None:
+                        items.append((stands, surface))
                 sentence = sentence.with_units(
                     frozenset(unit for unit, _ in items),
                     tuple((unit, surface) for unit, surface in items if surface),
@@ -341,6 +354,13 @@ class Application:
                  # `exact`, so `das Leben` reaches the noun `Leben` and not
                  # only the verb `leben` the database resolves it to.
                  | self.marked_known.units())
+        # Under the list's own names as well as the reader's. Vocabulary
+        # files give bare lemmas, and strict counting renames those to the
+        # goal that teaches them — so a reader who knows `schule` has to be
+        # credited with `die Schule` or every sentence saying it grows an
+        # unknown that was never there. Added rather than substituted,
+        # because the non-strict corpora still say the bare form.
+        units |= {self.aliases.of(unit) for unit in units}
         # And the compounds those words already cover. Closed here rather
         # than only inside the walk so that every reader of this agrees with
         # it: the rail beside a sentence, the "needs N more words" counts,
@@ -357,9 +377,9 @@ class Application:
         """
         inventory = {Unit.exact(key) for key in self.corpus_store.lemma_keys()}
         inventory |= {Unit.exact(lemma) for lemma in self._known_lemmas()}
-        # `covered_by` as well as the corpus, because strict counting drops
-        # the bare `haus` from every sentence in favour of the goal `das
-        # Haus` that teaches it. See `Compounds`.
+        # `covered_by` as well as the corpus, because strict counting
+        # renames the bare `haus` in every sentence to the goal `das Haus`
+        # that teaches it. See `Compounds`.
         return Compounds.over(inventory, covered_by=self.covered_by)
 
     def _known_lemmas(self) -> list[str]:

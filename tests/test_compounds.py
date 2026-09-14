@@ -97,8 +97,8 @@ class GoalFormTest(unittest.TestCase):
     """One word, two units — the reason a part is a set.
 
     The study list writes `das Haus`, the analyser writes `haus`, and strict
-    counting drops the bare form from every sentence as a duplicate of the
-    goal that teaches it. Resolving to the bare lemma alone left 187 of 231
+    counting renames the bare form to the goal that teaches it. Resolving to
+    the bare lemma alone left 187 of 231
     parts unresolvable and granted two compounds where the file holds 183.
     """
 
