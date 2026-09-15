@@ -20,6 +20,7 @@ never run this behaves exactly as it did.
 """
 from __future__ import annotations
 
+import re
 import time
 
 # `de` and `en` because those are the two languages in the material: German
@@ -28,10 +29,36 @@ import time
 CHOICES = ("de", "en")
 BATCH = 5000
 
+# What a sentence quotes is not what language the sentence is in. A bilingual
+# transcript renders `Mathias, wann sagt man "Du gehst mir auf den Keks"?`
+# into English and keeps the idiom in German, so six of the eleven words in
+# the English line are German and every detector calls the whole thing
+# German. Judging the frame instead gets it right, and leaves the German
+# sentence quoting German exactly where it was.
+QUOTED = re.compile(r'"[^"]*"|„[^“]*“|«[^»]*»|\'[^\']{6,}\'')
+# Below this, the remainder is too short to judge and the whole sentence is
+# used instead — `"Schaun mer mol, dann seng ma scho".` is nothing but quote.
+ENOUGH_WORDS = 3
+
+
+def language_of(text: str, detector) -> str:
+    """`de` or `en`, judged on the sentence outside anything it quotes.
+
+    Undetectable is German, not English: this is German material, and a line
+    too short to judge — `Ja.`, `Genau.` — is far likelier to be the language
+    everything else is in than the one that leaks into it.
+    """
+    from lingua import Language                           # noqa: PLC0415
+
+    outside = QUOTED.sub(" ", text).strip()
+    judged = outside if len(outside.split()) >= ENOUGH_WORDS else text
+    return "en" if detector.detect_language_of(judged) == Language.ENGLISH \
+        else "de"
+
 
 class DetectLanguageCommand:
     def run(self, app, rebuild: bool = False, limit: int | None = None) -> None:
-        from lingua import Language, LanguageDetectorBuilder  # noqa: PLC0415
+        from lingua import Language, LanguageDetectorBuilder  # noqa: PLC0415  # noqa: F401
         from psycopg2.extras import execute_batch             # noqa: PLC0415
 
         detector = (LanguageDetectorBuilder
@@ -65,12 +92,7 @@ class DetectLanguageCommand:
                 break
             found = []
             for sentence_id, text in rows:
-                got = detector.detect_language_of(text)
-                # Undetectable is German by default, not English: this corpus
-                # is German material, and a line too short to judge — `Ja.`,
-                # `Genau.` — is far likelier to be the language everything
-                # else is in than the one that leaks into it.
-                name = "en" if got == Language.ENGLISH else "de"
+                name = language_of(text, detector)
                 counts[name] += 1
                 found.append((name, sentence_id))
             with store._conn().cursor() as cur:
