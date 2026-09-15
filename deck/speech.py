@@ -137,6 +137,34 @@ class TransformersSpeaker:
         return (clipped * 32767).to(torch.int16).cpu().numpy().tobytes()
 
 
+# Long enough to be a seam between two voices, short enough that the gloss
+# still reads as one sentence rather than two.
+GAP_MID_GLOSS = 0.12
+
+
+def split_gloss(means: str, spoken: str) -> list[tuple[str, bool]]:
+    """A gloss line as (text, is_german) pieces.
+
+    `die Geschichte means history.` is the only line on a card that is half
+    one language and half the other, and read whole by the English voice its
+    German half comes out mispronounced -- `etwas machen` spoken as English
+    spelling. The word is known, so the seam is found rather than guessed:
+    the gloss opens with exactly the word that was asked about.
+
+    Falls back to ` means ` when the model has not quoted the word back
+    verbatim, and to one English piece when neither is found — a gloss in
+    some other shape is still better read than dropped.
+    """
+    head = means[:len(spoken)]
+    if head.lower() == spoken.lower():
+        tail = means[len(spoken):].lstrip()
+        return [(head, True), (tail, False)] if tail else [(head, True)]
+    before, sep, after = means.partition(" means ")
+    if sep and before:
+        return [(before, True), (f"means {after}".strip(), False)]
+    return [(means, False)]
+
+
 def _silence(seconds: float, rate: int) -> bytes:
     return b"\x00\x00" * int(seconds * rate)
 
@@ -166,7 +194,13 @@ def lines_for(card: Card,
         if example.translation:
             out.append((example.translation, False, False, GAP_AFTER_LINE))
         if example.means and example.means != said_already:
-            out.append((example.means, False, False, GAP_AFTER_LINE))
+            # Split across the two voices: the word in German, the rest in
+            # English. See `split_gloss`.
+            pieces = split_gloss(example.means, card.spoken)
+            for at, (text, is_german) in enumerate(pieces):
+                gap = (GAP_AFTER_LINE if at == len(pieces) - 1
+                       else GAP_MID_GLOSS)
+                out.append((text, is_german, False, gap))
             said_already = example.means
         if index != len(card.examples) - 1:
             text, german, is_slow, _ = out[-1]

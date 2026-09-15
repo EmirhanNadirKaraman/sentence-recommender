@@ -14,7 +14,7 @@ from pathlib import Path
 
 from corpus.sentence import Sentence
 from deck import Card, Example, cards_from
-from deck.speech import speak, write_manifest
+from deck.speech import lines_for, speak, split_gloss, write_manifest
 from roadmap.step import RoadmapStep
 from vocab.entry import Unit
 
@@ -242,6 +242,57 @@ class GlossGateTest(unittest.TestCase):
             written, skipped, waiting = speak([self._bare()], de, en,
                                               Path(tmp))
         self.assertEqual((written, skipped, waiting), (0, 1, 0))
+
+
+class GlossVoiceTest(unittest.TestCase):
+    """The gloss is the one bilingual line, and needs both voices.
+
+    `etwas machen means to do something.` read whole by the English voice
+    mispronounces its German half — English spelling rules applied to German
+    words. The word being glossed is known, so the seam is found rather than
+    guessed.
+    """
+
+    def test_the_german_head_and_english_tail_are_split(self) -> None:
+        self.assertEqual(
+            split_gloss("etwas machen means to do something.", "etwas machen"),
+            [("etwas machen", True), ("means to do something.", False)])
+
+    def test_the_match_ignores_case(self) -> None:
+        """The model sometimes capitalises the word at the start of its
+        sentence, and the text it wrote is kept rather than the one asked
+        for."""
+        self.assertEqual(split_gloss("Die Zeit means time.", "die Zeit"),
+                         [("Die Zeit", True), ("means time.", False)])
+
+    def test_a_gloss_that_does_not_quote_the_word_still_splits(self) -> None:
+        self.assertEqual(split_gloss("laufen means to run.", "etwas laufen"),
+                         [("laufen", True), ("means to run.", False)])
+
+    def test_an_unexpected_shape_is_read_as_english(self) -> None:
+        """Better spoken in one voice than dropped."""
+        self.assertEqual(split_gloss("to happen to someone", "jemandem passieren"),
+                         [("to happen to someone", False)])
+
+    def test_the_word_reaches_the_german_voice_in_a_real_card(self) -> None:
+        card = Card(1, "etwas machen", True,
+                    (Example("Was machst du?", "What are you doing?",
+                             "etwas machen means to do something."),), None, 1)
+        de, en = voices()
+        with tempfile.TemporaryDirectory() as tmp:
+            speak([card], de, en, Path(tmp))
+        self.assertIn("etwas machen", [text for text, _ in de.said])
+        self.assertIn("means to do something.", [text for text, _ in en.said])
+        self.assertNotIn("etwas machen means to do something.",
+                         [text for text, _ in en.said])
+
+    def test_a_gloss_is_still_said_once_per_sense(self) -> None:
+        """Splitting it must not undo the collapsing."""
+        card = Card(1, "die Zeit", True, tuple(
+            Example(f"Satz {i}.", f"Sentence {i}.", "die Zeit means time.")
+            for i in (1, 2, 3)), None, 1)
+        german = [t for t, de, _, _ in lines_for(card) if de]
+        self.assertEqual(german.count("die Zeit"), 2)   # the word, then one gloss
 
 
 class RenderTest(unittest.TestCase):
