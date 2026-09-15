@@ -13,7 +13,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import os
+
 from deck import cards_from
+from deck.gloss import GlossStore
 from roadmap.store import RoadmapStore
 
 # The strict plan aimed at the study list: the one whose every step is i+1
@@ -25,7 +28,7 @@ DEFAULT_LABEL = "generated+subtitle+transcript:good:strict:goals"
 class ExportDeckCommand:
     def run(self, app, out_dir: Path, label: str = DEFAULT_LABEL,
             formats: tuple[str, ...] = ("pdf", "pptx"),
-            limit: int | None = None) -> None:
+            limit: int | None = None, examples: int = 3) -> None:
         store = RoadmapStore(app.settings.state_path)
         steps = store.load(label, limit=limit)
         if not steps:
@@ -43,11 +46,24 @@ class ExportDeckCommand:
             print("warning: this plan was built under different rules — "
                   "rebuild it with `build-roadmap` for a current deck")
 
-        cards = cards_from(steps)
-        translated = sum(1 for c in cards if c.translation)
+        # Decks and glosses, not just the steps. Left out, this rendered one
+        # sentence per card and only the handful of translations the corpus
+        # carried of its own -- 85 of 3,902 -- which looks like a finished
+        # document and is a third of one.
+        decks = store.decks(label, steps, limit=examples)
+        glosses = GlossStore(app.settings.state_path)
+        said = os.environ.get("LLM_MODEL", "")
+        cards = cards_from(steps, decks, glosses.senses(said),
+                           glosses.sentences(said))
+        sentences = sum(len(c.examples) for c in cards)
+        glossed = sum(1 for c in cards if c.glossed)
         relaxed = sum(1 for c in cards if c.beside)
-        print(f"{len(cards):,} steps · {translated:,} with a translation"
+        print(f"{len(cards):,} steps · {sentences:,} sentences · "
+              f"{glossed:,} glossed"
               + (f" · {relaxed:,} taught two words at once" if relaxed else ""))
+        if glossed < len(cards):
+            print(f"  {len(cards) - glossed:,} have no English yet and are "
+                  "marked in the document; `gloss-deck` fills them in")
 
         # Imported here rather than at the top: reportlab and python-pptx
         # are wanted by this one command, and every other command would pay

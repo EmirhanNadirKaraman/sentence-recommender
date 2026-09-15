@@ -199,6 +199,8 @@ def _parser() -> argparse.ArgumentParser:
                       help="which files to write (default: both)")
     deck.add_argument("--limit", type=int, default=None,
                       help="only the first N steps, for a quick look")
+    deck.add_argument("--examples", type=int, default=3,
+                      help="sentences per card")
 
     gloss = sub.add_parser(
         "gloss-deck",
@@ -576,7 +578,8 @@ def main() -> int:
         CheckModelCommand().run(app, args.steps)
     elif args.command == "export-deck":
         ExportDeckCommand().run(app, args.out, args.label,
-                                tuple(args.formats), args.limit)
+                                tuple(args.formats), args.limit,
+                                args.examples)
     elif args.command == "gloss-deck":
         GlossDeckCommand().run(app, args.label, args.out, args.log,
                                args.workers, args.every, args.limit,
