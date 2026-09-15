@@ -33,11 +33,19 @@ logs
 # Corpus dumps to restore from. Handed to you, not committed.
 dump/
 
-# Generated from the stored plan and rebuildable from it: the documents, the
-# audio, a still per card, the episodes those two make together, and the Anki
-# packages. Gigabytes, none of it authored here. The rest of out/ is run logs
-# and is tracked.
-out/deck/
+# Generated from the stored plan and rebuildable from it: the audio, a still
+# per card, the episodes those two make together, and the Anki packages.
+# Gigabytes, none of it authored here. The rest of out/ is run logs and is
+# tracked.
+#
+# The documents, but not the sheet they are made from. git keeps whole copies
+# of a binary rather than deltas, so committing a rebuild costs 11.5 MB
+# whether one card moved or three thousand did, and the diff says nothing a
+# person can read. `out/deck/*.tsv` is the same deck as text: a rebuild that
+# moves 5% of it is a 5% diff, and `export-deck --from` turns it back into
+# both documents on a machine with no corpus, no Postgres and no model.
+out/deck/*.pdf
+out/deck/*.pptx
 out/audio/
 out/stills/
 out/episodes/

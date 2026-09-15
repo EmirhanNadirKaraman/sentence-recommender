@@ -211,6 +211,10 @@ def _parser() -> argparse.ArgumentParser:
                       help="only the first N steps, for a quick look")
     deck.add_argument("--examples", type=int, default=3,
                       help="sentences per card")
+    deck.add_argument("--from", type=Path, default=None, dest="sheet",
+                      metavar="SHEET",
+                      help="render from a deck sheet instead of the database "
+                           "— needs no corpus, no Postgres and no model")
 
     bundle = sub.add_parser(
         "bundle-deck",
@@ -636,7 +640,7 @@ def main() -> int:
     elif args.command == "export-deck":
         ExportDeckCommand().run(app, args.out, args.label,
                                 tuple(args.formats), args.limit,
-                                args.examples)
+                                args.examples, args.sheet)
     elif args.command == "gloss-deck":
         GlossDeckCommand().run(app, args.label, args.out, args.log,
                                args.workers, args.every, args.limit,

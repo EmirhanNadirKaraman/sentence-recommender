@@ -17,6 +17,7 @@ import os
 
 from deck import cards_from
 from deck.gloss import GlossStore
+from deck.sheet import read_sheet, write_sheet
 from roadmap.store import RoadmapStore
 
 # The strict plan aimed at the study list: the one whose every step is i+1
@@ -28,7 +29,18 @@ DEFAULT_LABEL = "generated+subtitle+transcript:good:strict:goals"
 class ExportDeckCommand:
     def run(self, app, out_dir: Path, label: str = DEFAULT_LABEL,
             formats: tuple[str, ...] = ("pdf", "pptx"),
-            limit: int | None = None, examples: int = 3) -> None:
+            limit: int | None = None, examples: int = 3,
+            sheet: Path | None = None) -> None:
+        # From a sheet, the database is beside the point: the renderers take
+        # cards and nothing else, so this file and this repository rebuild
+        # both documents on a machine with no corpus, no Postgres and no
+        # model. Checked first, before anything reaches for a connection.
+        if sheet is not None:
+            cards = read_sheet(sheet)
+            print(f"{len(cards):,} cards from {sheet}")
+            self._render(cards, out_dir, sheet.stem, formats, None)
+            return
+
         store = RoadmapStore(app.settings.state_path)
         steps = store.load(label, limit=limit)
         if not steps:
@@ -65,6 +77,17 @@ class ExportDeckCommand:
             print(f"  {len(cards) - glossed:,} have no English yet and are "
                   "marked in the document; `gloss-deck` fills them in")
 
+        stem = label.replace(":", "_").replace("+", "-")
+        # The sheet first, because it is the one of the three worth keeping
+        # in version control: a rebuild that moves 5% of the deck is a 5%
+        # diff, where the documents are 11.5 MB of binary whatever changed.
+        written = write_sheet(cards, out_dir / f"{stem}.tsv")
+        print(f"  {written}  {written.stat().st_size / 1e6:.1f} MB"
+              "  — the deck as text, and what the documents are made from")
+        self._render(cards, out_dir, stem, formats, stamp)
+
+    @staticmethod
+    def _render(cards, out_dir: Path, stem: str, formats, stamp) -> None:
         # Imported here rather than at the top: reportlab and python-pptx
         # are wanted by this one command, and every other command would pay
         # for them at start-up.
@@ -72,12 +95,11 @@ class ExportDeckCommand:
         from deck.slides import write_pptx    # noqa: PLC0415
 
         out_dir.mkdir(parents=True, exist_ok=True)
-        stem = label.replace(":", "_").replace("+", "-")
         for kind in formats:
             path = out_dir / f"{stem}.{kind}"
             writer = write_pdf if kind == "pdf" else write_pptx
             print(f"  writing {path} …", flush=True)
-            writer(cards, path, label, stamp)
+            writer(cards, path, stem, stamp)
             print(f"  {path}  {path.stat().st_size / 1e6:.1f} MB")
 
 
