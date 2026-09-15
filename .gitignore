@@ -33,11 +33,15 @@ logs
 # Corpus dumps to restore from. Handed to you, not committed.
 dump/
 
-# Generated from the stored plan by `export-deck` and `speak-deck`: a few
-# hundred megabytes of WAV and a slideshow with a slide per step, both
-# rebuildable in minutes. The rest of out/ is run logs and is tracked.
+# Generated from the stored plan and rebuildable from it: the documents, the
+# audio, a still per card, the episodes those two make together, and the Anki
+# packages. Gigabytes, none of it authored here. The rest of out/ is run logs
+# and is tracked.
 out/deck/
 out/audio/
+out/stills/
+out/episodes/
+out/anki/
 
 # Piper voices, fetched on first use of `speak-deck`. ~60 MB of ONNX that
 # belongs to whoever trained it, not to this repository.
