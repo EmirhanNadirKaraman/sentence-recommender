@@ -368,6 +368,28 @@ class Application:
         # as it goes and completes compounds the seed could not.
         return KnownSet(units | self.compounds.derivable(units))
 
+    def beginner_set(self) -> KnownSet:
+        """What someone opening this for the first time knows.
+
+        The function words and nothing else. `known_set` also carries
+        `known_words.txt` and everything this reader has marked while
+        reading, which is one person's vocabulary rather than a new one's — a
+        plan built on it is a plan for them.
+
+        Filtered out of the full set rather than resolved separately, so both
+        go through the same lemmatisation and the two are comparable: 86
+        units against 131, which costs exactly one goal of 4,002 (`belieben`)
+        and makes the plan longer, because more has to be taught.
+        """
+        from vocab.loader import WordListLoader          # noqa: PLC0415
+
+        surfaces = set(WordListLoader().load(
+            self.settings.function_words).surfaces)
+        units = {unit for unit in self.known_set().units
+                 if unit.key in surfaces or unit.key.lower() in surfaces}
+        units |= {self.aliases.of(unit) for unit in units}
+        return KnownSet(units | self.compounds.derivable(units))
+
     @cached_property
     def compounds(self) -> Compounds:
         """Compound words resolved against this corpus's own lemmas.

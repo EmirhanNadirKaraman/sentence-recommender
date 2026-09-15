@@ -12,3 +12,13 @@ requests>=2.31                 # the local model client
 #   python -m spacy download de_core_news_md
 
 pulp>=3.0                      # `cover` only; the wheel carries its own CBC
+
+# `export-deck` only — the teaching order as a document and a slideshow.
+reportlab>=4.0
+python-pptx>=1.0
+
+# `speak-deck` only — reads the deck aloud with a model on this machine.
+# The voices are downloaded on first use into data/voices.  The transformers
+# backend is for weights of your own and needs torch as well; neither is
+# required to run anything else here.
+piper-tts>=1.8

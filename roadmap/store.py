@@ -266,6 +266,16 @@ class RoadmapStore:
                 timing.start if timing else None,
                 timing.end if timing else None)
 
+    def labels(self) -> list[str]:
+        """Every plan in the store, by the name it was filed under.
+
+        Only ever asked for when a caller has named one that is not there, so
+        the answer can be a list of what is.
+        """
+        with open_state(self._path) as conn:
+            return [row[0] for row in conn.execute(
+                "SELECT DISTINCT source FROM roadmap ORDER BY source")]
+
     def load(self, source: str = ALL, limit: int | None = None) -> list[RoadmapStep]:
         """The steps, without their decks.
 
@@ -315,6 +325,36 @@ class RoadmapStore:
                 " WHERE source = ? AND position = ? ORDER BY n",
                 (source, step.position)).fetchall()
         return [self._as_sentence(row, step.unit) for row in rows]
+
+    def decks(self, source: str, steps: list[RoadmapStep],
+              limit: int | None = None) -> dict[int, list[Sentence]]:
+        """Every step's deck at once, keyed by position.
+
+        `deck` asks for one because a page shows one. Anything wanting the
+        whole plan -- an export, an audio run -- would make several thousand
+        queries that way, which is the difference between a second and a
+        minute for rows that come off one index in a single pass.
+
+        `limit` is applied per step rather than to the query, since the cap
+        is "the first N examples of each" and not "the first N rows".
+        """
+        by_unit = {step.position: step.unit for step in steps}
+        out: dict[int, list[Sentence]] = {}
+        with open_state(self._path) as conn:
+            rows = conn.execute(
+                f"SELECT {EXAMPLE_COLUMNS} FROM roadmap_example"
+                " WHERE source = ? ORDER BY position, n", (source,))
+            for row in rows:
+                # Column order is `position, n, ...` — `n` is the rank of the
+                # example within its deck, not the step.
+                position = row[0]
+                unit = by_unit.get(position)
+                if unit is None:
+                    continue
+                here = out.setdefault(position, [])
+                if limit is None or len(here) < limit:
+                    here.append(self._as_sentence(row, unit))
+        return out
 
     @staticmethod
     def _as_sentence(row, unit: Unit) -> Sentence:

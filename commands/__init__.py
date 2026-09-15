@@ -7,6 +7,10 @@ from .difficulty import DifficultyCommand
 from .build_roadmap import BuildRoadmapCommand
 from .build_video_roadmap import BuildVideoRoadmapCommand
 from .build_study_list import BuildStudyListCommand
+from .check_model import CheckModelCommand
+from .export_deck import ExportDeckCommand
+from .gloss_deck import GlossDeckCommand
+from .speak_deck import SpeakDeckCommand
 from .export_subtitles import ExportSubtitlesCommand
 from .fill_gaps import FillGapsCommand
 from .unblock import UnblockCommand
@@ -23,7 +27,8 @@ __all__ = [
     "AddVideoCommand", "BackfillChannelsCommand", "AddVideosCommand", "BuildCorpusCommand", "BuildRoadmapCommand",
     "BuildVideoRoadmapCommand",
     "BuildStudyListCommand", "CheckWordCommand", "DifficultyCommand",
-    "ExportSubtitlesCommand", "UnblockCommand",
+    "CheckModelCommand", "ExportDeckCommand", "GlossDeckCommand", "ExportSubtitlesCommand",
+    "SpeakDeckCommand", "UnblockCommand",
     "FillGapsCommand",
     "HuntVideosCommand", "QuizCommand", "ReviewCommand", "ServeCommand", "BlockersCommand",
     "OutOfReachCommand", "StatusCommand", "SyncCatalogueCommand",

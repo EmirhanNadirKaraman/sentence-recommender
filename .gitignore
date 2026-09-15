@@ -29,3 +29,17 @@ logs
 
 # Corpus dumps to restore from. Handed to you, not committed.
 dump/
+
+# Generated from the stored plan by `export-deck` and `speak-deck`: a few
+# hundred megabytes of WAV and a slideshow with a slide per step, both
+# rebuildable in minutes. The rest of out/ is run logs and is tracked.
+out/deck/
+out/audio/
+
+# Piper voices, fetched on first use of `speak-deck`. ~60 MB of ONNX that
+# belongs to whoever trained it, not to this repository.
+data/voices/
+
+# What `gloss-deck` appends as it runs, so a long job can be tailed. Its
+# contents are in the state database as well; this is the readable copy.
+out/gloss.log

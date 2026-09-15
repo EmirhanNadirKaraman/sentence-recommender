@@ -43,7 +43,8 @@ class BuildRoadmapCommand:
     def run(self, app, steps: int | None = None, builds: tuple[str, ...] = (),
             goals: bool = False, list_only: bool = False,
             quality_only: bool = False, strict: bool = False,
-            relax: bool = False, unblock: bool = False) -> None:
+            relax: bool = False, unblock: bool = False,
+            beginner: bool = False) -> None:
         settings = app.settings
         # Strict counting only makes sense aimed at the list: it leaves the
         # words the list will never teach in the sentences, and the walk has
@@ -67,6 +68,17 @@ class BuildRoadmapCommand:
             )
 
         known = app.known_set()
+        if beginner:
+            # What someone opening this for the first time knows: the
+            # function words and nothing else. The ordinary seed also carries
+            # `known_words.txt` and whatever the reader has marked while
+            # reading, which is this reader's vocabulary rather than a new
+            # one's -- a plan built on it teaches nobody but them.
+            #
+            # Measured before it was offered: 86 units instead of 131, and it
+            # costs one goal out of 4,002 (`belieben`). The plan is longer
+            # because more has to be taught, which is the point.
+            known = app.beginner_set()
         targets = frozenset(app.goal_units) if goals else frozenset()
         print(f"corpus {len(sentences)} sentences · known set {len(known)} units"
               + (f" · aiming at {len(targets):,} goals" if goals else ""))
@@ -100,6 +112,8 @@ class BuildRoadmapCommand:
             named = settings.goal_words.stem
             if named != Settings().goal_words.stem:
                 label = f"{label}:{named}"
+        if beginner:
+            label = f"{label}:beginner"
         if unblock:
             # Before `:relax` and after the list name, which is the order
             # `read_label` unwinds them in.

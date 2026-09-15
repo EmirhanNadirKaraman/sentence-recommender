@@ -186,14 +186,44 @@ first parse fails.
 units from their infinitives. The analyser warns loudly if it is absent and
 carries on, but a corpus built that way is measurably worse.
 
-For sentence generation, add to `.env`:
+For sentence generation and the English glosses, add to `.env`:
 
 ```
 LLM_BASE_URL=http://<tailscale-host>:11434/v1
 LLM_MODEL=<model>
 ```
 
-Without it, generation is skipped and everything else works.
+Any OpenAI-compatible server does: Ollama, LM Studio, llama.cpp, vLLM. The
+URL almost always has to end in `/v1`.
+
+Reached over a public tunnel — Cloudflare's, say — the endpoint is on the
+open internet and wants a secret too:
+
+```
+LLM_BASE_URL=https://<name>.trycloudflare.com/v1
+LLM_MODEL=<model>
+LLM_API_KEY=<the password>
+LLM_AUTH=bearer
+```
+
+`bearer` is the default and is what an OpenAI-compatible server means by an
+API key. Two other shapes are supported for tunnels fronted differently:
+`LLM_AUTH=basic` (with `LLM_USER`) for HTTP basic auth, and
+`LLM_AUTH=header` (with `LLM_AUTH_HEADER`, default `CF-Access-Client-Secret`)
+for a Cloudflare Access service token.
+
+Check it before relying on it:
+
+```
+python main.py check-model
+```
+
+That reports what the endpoint serves, says plainly which auth shape it
+wants if the secret is refused, and times one round trip so a run over the
+whole deck can be estimated from a measurement rather than a guess. `.env`
+is gitignored, and the key is never printed or logged.
+
+Without any of it, generation is skipped and everything else works.
 
 Create the database itself once, and build its schema:
 

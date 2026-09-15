@@ -38,6 +38,7 @@ GOOD = ":good"
 STRICT = ":strict"
 RELAX = ":relax"
 UNBLOCK = ":unblock"
+BEGINNER = ":beginner"
 
 
 class Plan(NamedTuple):
@@ -64,6 +65,10 @@ class Plan(NamedTuple):
     # to unblock a goal. Strict counting normally forbids that, which is a
     # different curriculum and so a different name.
     unblock: bool = False
+    # Whether the walk started from the function words alone rather than
+    # from this reader's vocabulary. A different starting point is a
+    # different curriculum, so it is part of the name.
+    beginner: bool = False
 
 
 def read_label(label: str) -> Plan:
@@ -93,6 +98,13 @@ def read_label(label: str) -> Plan:
     unblock = label.endswith(UNBLOCK)
     if unblock:
         label = label[: -len(UNBLOCK)]
+    # Before the `:goals:` partition below, like the two above it: left on
+    # the tail, `...:goals:beginner` partitions into a goal list called
+    # "beginner", and the refresh rebuilds the plan against a word list that
+    # does not exist.
+    beginner = label.endswith(BEGINNER)
+    if beginner:
+        label = label[: -len(BEGINNER)]
 
     goal_list = ""
     marker = GOALS + ":"
@@ -118,7 +130,7 @@ def read_label(label: str) -> Plan:
     # was added, and the label still parsed, just wrongly.
     return Plan(builds=builds, list_only=list_only, goals=goals,
                 quality_only=quality_only, strict=strict, goal_list=goal_list,
-                relax=relax, unblock=unblock)
+                relax=relax, unblock=unblock, beginner=beginner)
 
 
 class RoadmapRefresher:
@@ -174,7 +186,12 @@ class RoadmapRefresher:
                 sentences = [s for s in sentences if well_formed(s.text)]
             if not sentences:
                 continue
-            index = CorpusIndex(sentences, known)
+            # A beginner plan started from the function words alone, and a
+            # refresh that seeded it from this reader's vocabulary would
+            # quietly turn it into a different curriculum under the same name.
+            index = CorpusIndex(
+                sentences,
+                self._app.beginner_set() if plan.beginner else known)
 
             done = [] if rebuild else self._store.load(label)
             for step in done:

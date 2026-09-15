@@ -10,7 +10,10 @@ from commands import (
     AddVideoCommand, BlockersCommand, AddVideosCommand, BuildCorpusCommand, BuildRoadmapCommand,
     BuildVideoRoadmapCommand,
     CheckWordCommand, DifficultyCommand, QuizCommand, UnblockCommand,
-    BuildStudyListCommand, ExportSubtitlesCommand, FillGapsCommand,
+    BuildStudyListCommand, CheckModelCommand, ExportDeckCommand,
+    GlossDeckCommand,
+    ExportSubtitlesCommand,
+    FillGapsCommand, SpeakDeckCommand,
     HuntVideosCommand, ReviewCommand, ServeCommand, StatusCommand,
     SyncCatalogueCommand, OutOfReachCommand,
     BackfillChannelsCommand,
@@ -24,6 +27,12 @@ SOURCE_HELP = (
     "corpus builds to use (default: all cached). "
     "e.g. --source subtitle:llm to study real video subtitles only"
 )
+
+
+from commands.export_deck import DEFAULT_LABEL as DECK_LABEL
+from deck.speech import DEFAULT_HF_MODEL as HF_MODEL
+from deck.speech import DEFAULT_ENGLISH as ENGLISH_VOICE
+from deck.speech import DEFAULT_GERMAN as PIPER_VOICE
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -137,6 +146,10 @@ def _parser() -> argparse.ArgumentParser:
                       help="when nothing anywhere is one word away, teach two "
                            "from one sentence rather than stopping. Only at "
                            "that wall — the order stays i+1 while it can")
+    plan.add_argument("--beginner", action="store_true",
+                      help="seed from the function words alone, as someone "
+                           "opening this for the first time would — not from "
+                           "this reader's own vocabulary")
     plan.add_argument("--unblock", action="store_true",
                       help="with --strict, let the walk teach a word that is "
                            "not on the list when one stands between it and a "
@@ -165,6 +178,80 @@ def _parser() -> argparse.ArgumentParser:
                         help="which subtitle build to export (default: subtitle)")
     export.add_argument("--translation", action="store_true",
                         help="include the translation as a second cue line")
+
+    check = sub.add_parser(
+        "check-model",
+        help="is the local model reachable, and how fast is it?",
+    )
+    check.add_argument("--steps", type=int, default=3861,
+                       help="how many steps to estimate a run over")
+
+    deck = sub.add_parser(
+        "export-deck",
+        help="write the teaching order as a PDF and a slideshow",
+    )
+    deck.add_argument("--out", type=Path, default=Path("out/deck"),
+                      help="directory to write the files into")
+    deck.add_argument("--label", default=DECK_LABEL,
+                      help="which stored plan to export")
+    deck.add_argument("--format", nargs="+", dest="formats",
+                      choices=("pdf", "pptx"), default=["pdf", "pptx"],
+                      help="which files to write (default: both)")
+    deck.add_argument("--limit", type=int, default=None,
+                      help="only the first N steps, for a quick look")
+
+    gloss = sub.add_parser(
+        "gloss-deck",
+        help="write each card's English with a local model",
+    )
+    gloss.add_argument("--label", default=DECK_LABEL)
+    gloss.add_argument("--out", type=Path, default=Path("out/deck"),
+                       help="where to re-render the PDF as it goes")
+    gloss.add_argument("--log", type=Path, default=Path("out/gloss.log"),
+                       help="a text log to tail while it runs")
+    gloss.add_argument("--workers", type=int, default=2,
+                       help="calls in flight; more needs more KV cache")
+    gloss.add_argument("--every", type=int, default=50,
+                       help="re-render the PDF every N cards")
+    gloss.add_argument("--examples", type=int, default=3,
+                       help="sentences per card")
+    gloss.add_argument("--limit", type=int, default=None,
+                       help="only the first N steps")
+
+    aloud = sub.add_parser(
+        "speak-deck",
+        help="read the teaching order aloud with a local model",
+    )
+    aloud.add_argument("--out", type=Path, default=Path("out/audio"),
+                       help="directory to write one WAV per step into")
+    aloud.add_argument("--label", default=DECK_LABEL,
+                       help="which stored plan to read")
+    aloud.add_argument("--engine", choices=("piper", "transformers"),
+                       default="piper",
+                       help="piper for the whole deck; transformers for your "
+                            "own weights")
+    aloud.add_argument("--german", default=PIPER_VOICE,
+                       help="piper voice for the German lines")
+    aloud.add_argument("--english", default=ENGLISH_VOICE,
+                       help="piper voice for the English lines")
+    aloud.add_argument("--slow", action="store_true",
+                       help="read the teaching sentence a second time, slower")
+    aloud.add_argument("--examples", type=int, default=3,
+                       help="sentences per card")
+    aloud.add_argument("--model", default=HF_MODEL,
+                       help="transformers: hub id or a local directory")
+    aloud.add_argument("--device", default=None,
+                       help="transformers: cuda, mps or cpu (default: best)")
+    aloud.add_argument("--limit", type=int, default=None,
+                       help="only the first N steps")
+    aloud.add_argument("--overwrite", action="store_true",
+                       help="re-read sentences that already have a file")
+    aloud.add_argument("--german-only", action="store_true",
+                       dest="german_only",
+                       help="read cards that have no English yet, in German "
+                            "alone, instead of leaving them for a later run")
+    aloud.add_argument("--cuda", action="store_true",
+                       help="piper: use the CUDA execution provider")
 
     review = sub.add_parser("review", help="review the cards that are due")
     review.add_argument("--limit", type=int, default=20)
@@ -483,7 +570,23 @@ def main() -> int:
     elif args.command == "build-roadmap":
         BuildRoadmapCommand().run(app, args.steps, tuple(args.source),
                                   args.goals, args.list_only, args.quality,
-                                  args.strict, args.relax, args.unblock)
+                                  args.strict, args.relax, args.unblock,
+                                  args.beginner)
+    elif args.command == "check-model":
+        CheckModelCommand().run(app, args.steps)
+    elif args.command == "export-deck":
+        ExportDeckCommand().run(app, args.out, args.label,
+                                tuple(args.formats), args.limit)
+    elif args.command == "gloss-deck":
+        GlossDeckCommand().run(app, args.label, args.out, args.log,
+                               args.workers, args.every, args.limit,
+                               args.examples)
+    elif args.command == "speak-deck":
+        SpeakDeckCommand().run(app, args.out, args.label, args.engine,
+                               args.german, args.english, args.model,
+                               args.device, args.limit, args.overwrite,
+                               args.cuda, args.slow, args.examples,
+                               args.german_only)
     elif args.command == "export-subtitles":
         ExportSubtitlesCommand().run(
             app, args.out, tuple(args.source), args.translation
