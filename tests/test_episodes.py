@@ -14,7 +14,8 @@ import wave
 from pathlib import Path
 
 from deck import Card, Example
-from deck.episodes import Chapter, plan, timestamp, write
+from deck.episodes import (Chapter, concat_list, plan, timestamp,
+                           write)
 
 RATE = 22050
 
@@ -154,6 +155,87 @@ class WriteTest(unittest.TestCase):
             episode = plan(cards, audio, per=50)[0]
             with self.assertRaises(SystemExit):
                 write(episode, audio, out)
+
+
+class ConcatTest(unittest.TestCase):
+    """The list ffmpeg reads to hold each still for its own clip.
+
+    Every timestamp in the chapter list is a promise about where a word is,
+    and the concat durations are the same promise made to the encoder. They
+    have to agree exactly or the video drifts out of step with its chapters.
+    """
+
+    def _episode(self, tmp: Path, lengths):
+        audio = tmp / "audio"
+        audio.mkdir()
+        cards = [card(i) for i in range(1, len(lengths) + 1)]
+        for one, secs in zip(cards, lengths):
+            clip(audio / f"{one.stem}.wav", secs)
+        return plan(cards, audio, per=50)[0]
+
+    def test_durations_add_up_to_the_episode(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            episode = self._episode(Path(tmp), (10.0, 5.0, 20.0))
+            listing = concat_list(episode, Path("/stills"),
+                                  Path(tmp) / "e.concat")
+            text = listing.read_text(encoding="utf-8")
+        said = [float(line.split()[1]) for line in text.splitlines()
+                if line.startswith("duration")]
+        self.assertEqual(said, [10.0, 5.0, 20.0])
+        self.assertAlmostEqual(sum(said), episode.seconds, places=3)
+
+    def test_the_last_still_is_repeated_without_a_duration(self) -> None:
+        """The demuxer reads a duration as the gap to the *next* file, so
+        without the repeat the final card shows for one frame."""
+        with tempfile.TemporaryDirectory() as tmp:
+            episode = self._episode(Path(tmp), (4.0, 6.0))
+            listing = concat_list(episode, Path("/stills"),
+                                  Path(tmp) / "e.concat")
+            lines = listing.read_text(encoding="utf-8").strip().splitlines()
+        self.assertTrue(lines[-1].startswith("file "))
+        self.assertEqual(lines[-1], lines[-3])
+
+    def test_a_still_is_named_for_its_card(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            episode = self._episode(Path(tmp), (4.0,))
+            listing = concat_list(episode, Path("/stills"),
+                                  Path(tmp) / "e.concat")
+            text = listing.read_text(encoding="utf-8")
+        self.assertIn(f"{episode.chapters[0].card.stem}.png", text)
+
+
+class StillTest(unittest.TestCase):
+    def test_a_card_is_drawn_at_1080p(self) -> None:
+        from PIL import Image
+
+        from deck import Example
+        from deck.stills import SIZE, draw_card
+        one = Card(412, "die Geschichte", True,
+                   (Example("Was kann man aus der Geschichte lernen?",
+                            "What can one learn from history?",
+                            "die Geschichte means history."),), None, 3902)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = draw_card(one, Path(tmp) / f"{one.stem}.png")
+            with Image.open(path) as image:
+                self.assertEqual(image.size, SIZE)
+
+    def test_a_long_card_still_fits_the_frame(self) -> None:
+        """Sized down until it does, rather than running off the bottom
+        where nothing reports it."""
+        from PIL import Image
+
+        from deck import Example
+        from deck.stills import SIZE, draw_card
+        long = ("Die beiden kommen aus dem Sudan, studieren gerade in "
+                "Deutschland und sie haben uns mit einem sehr interessanten "
+                "Thema angesprochen.")
+        one = Card(1, "jemanden auf etwas ansprechen", True,
+                   tuple(Example(long, long, f"means {i}") for i in range(3)),
+                   None, 3902)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = draw_card(one, Path(tmp) / "x.png")
+            with Image.open(path) as image:
+                self.assertEqual(image.size, SIZE)
 
 
 if __name__ == "__main__":

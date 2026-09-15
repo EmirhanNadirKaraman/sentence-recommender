@@ -216,6 +216,12 @@ def _parser() -> argparse.ArgumentParser:
                         help="words per episode (default 50, about 23 min)")
     bundle.add_argument("--examples", type=int, default=3)
     bundle.add_argument("--limit", type=int, default=None)
+    bundle.add_argument("--video", action="store_true",
+                        help="also write an MP4 per episode, each card held "
+                             "as a still for its own clip (needs ffmpeg)")
+    bundle.add_argument("--stills", type=Path, default=Path("out/stills"),
+                        dest="stills_dir",
+                        help="where to draw the card stills")
 
     gloss = sub.add_parser(
         "gloss-deck",
@@ -592,7 +598,8 @@ def main() -> int:
     elif args.command == "bundle-deck":
         BundleDeckCommand().run(app, args.audio, args.out,
                                 args.label, args.per,
-                                args.examples, args.limit)
+                                args.examples, args.limit,
+                                args.video, args.stills_dir)
     elif args.command == "check-model":
         CheckModelCommand().run(app, args.steps)
     elif args.command == "export-deck":

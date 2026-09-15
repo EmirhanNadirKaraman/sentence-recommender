@@ -13,7 +13,7 @@ from pathlib import Path
 
 from commands.export_deck import DEFAULT_LABEL
 from deck import cards_from
-from deck.episodes import PER_EPISODE, plan, timestamp, write
+from deck.episodes import PER_EPISODE, plan, timestamp, write, write_video
 from deck.gloss import GlossStore
 from roadmap.store import RoadmapStore
 
@@ -22,7 +22,9 @@ class BundleDeckCommand:
     def run(self, app, audio_dir: Path = Path("out/audio"),
             out_dir: Path = Path("out/episodes"),
             label: str = DEFAULT_LABEL, per: int = PER_EPISODE,
-            examples: int = 3, limit: int | None = None) -> None:
+            examples: int = 3, limit: int | None = None,
+            video: bool = False,
+            stills_dir: Path = Path("out/stills")) -> None:
         settings = app.settings
         store = RoadmapStore(settings.state_path)
         steps = store.load(label, limit=limit)
@@ -48,9 +50,25 @@ class BundleDeckCommand:
             print(f"  {len(cards) - heard:,} have no clip yet and are left "
                   "out; `speak-deck` writes them")
 
+        if video:
+            # Drawn once each, before any episode is encoded: a card can
+            # appear in only one episode, but drawing them together keeps the
+            # slow part in one place and makes a failure obvious early.
+            from deck.stills import draw_card          # noqa: PLC0415
+            print(f"  drawing {heard:,} stills …", flush=True)
+            for at, episode in enumerate(episodes):
+                for chapter in episode.chapters:
+                    still = stills_dir / f"{chapter.card.stem}.png"
+                    if not still.exists():
+                        draw_card(chapter.card, still)
+
         index: list[str] = []
         for episode in episodes:
             audio, chapters = write(episode, audio_dir, out_dir)
+            if video:
+                clip = write_video(episode, stills_dir, audio, out_dir)
+                print(f"  {clip.name}  "
+                      f"{clip.stat().st_size / 1e6:,.0f} MB", flush=True)
             first = episode.chapters[0].card
             last = episode.chapters[-1].card
             index.append(

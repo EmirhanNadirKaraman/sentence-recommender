@@ -225,6 +225,15 @@ is gitignored, and the key is never printed or logged.
 
 Without any of it, generation is skipped and everything else works.
 
+`bundle-deck --video` needs ffmpeg, and only that command does:
+
+```
+brew install ffmpeg
+```
+
+Without it the episodes and their chapter lists are still written; only the
+MP4s are skipped, and the command says so rather than failing late.
+
 Create the database itself once, and build its schema:
 
 ```

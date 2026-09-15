@@ -22,6 +22,8 @@ harder to notice than one that is obviously broken.
 """
 from __future__ import annotations
 
+import shutil
+import subprocess
 import wave
 from dataclasses import dataclass
 from pathlib import Path
@@ -81,6 +83,61 @@ class Episode:
             head += ("(Too few chapters for YouTube, which wants at least "
                      "three.)\n\n")
         return head + "\n".join(chapter.line() for chapter in self.chapters)
+
+
+def concat_list(episode: "Episode", stills_dir: Path, path: Path) -> Path:
+    """ffmpeg's concat demuxer, one still held for its own clip's length.
+
+    The last entry is repeated without a duration, which is what the demuxer
+    wants: it reads a `duration` as the gap until the *next* file, so the
+    final image would otherwise flash for one frame and end the video before
+    its audio.
+    """
+    lines = []
+    for at, chapter in enumerate(episode.chapters):
+        still = (stills_dir / f"{chapter.card.stem}.png").resolve()
+        ends = (episode.chapters[at + 1].at if at + 1 < len(episode.chapters)
+                else episode.seconds)
+        lines.append(f"file '{still}'")
+        lines.append(f"duration {ends - chapter.at:.3f}")
+    last = (stills_dir / f"{episode.chapters[-1].card.stem}.png").resolve()
+    lines.append(f"file '{last}'")
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
+def write_video(episode: "Episode", stills_dir: Path, audio: Path,
+                out_dir: Path, fps: int = 5) -> Path:
+    """One episode as an MP4: its stills over its audio.
+
+    Five frames a second, because nothing moves. libx264 with `stillimage`
+    tuning turns that into a file dominated by its audio rather than its
+    video, which is the right shape for something that is really a recording
+    with pictures.
+
+    `-shortest` so a rounding difference between the concat list and the WAV
+    cannot leave a second of silence on a black frame at the end.
+    """
+    if shutil.which("ffmpeg") is None:
+        raise SystemExit(
+            "ffmpeg is needed to write video and is not installed — "
+            "`brew install ffmpeg`. The audio and chapter files are written "
+            "without it.")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    listing = concat_list(episode, stills_dir, out_dir / f"{episode.stem}.txt.concat")
+    video = out_dir / f"{episode.stem}.mp4"
+    done = subprocess.run(
+        ["ffmpeg", "-y", "-loglevel", "error",
+         "-f", "concat", "-safe", "0", "-i", str(listing),
+         "-i", str(audio),
+         "-c:v", "libx264", "-preset", "veryfast", "-tune", "stillimage",
+         "-pix_fmt", "yuv420p", "-r", str(fps),
+         "-c:a", "aac", "-b:a", "128k", "-shortest", str(video)],
+        capture_output=True, text=True)
+    if done.returncode != 0:
+        raise SystemExit(f"ffmpeg failed on {episode.stem}:\n{done.stderr[:400]}")
+    listing.unlink()
+    return video
 
 
 def _duration(path: Path) -> float:
