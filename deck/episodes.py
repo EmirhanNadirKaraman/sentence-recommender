@@ -132,7 +132,17 @@ def write_video(episode: "Episode", stills_dir: Path, audio: Path,
          "-i", str(audio),
          "-c:v", "libx264", "-preset", "veryfast", "-tune", "stillimage",
          "-pix_fmt", "yuv420p", "-r", str(fps),
-         "-c:a", "aac", "-b:a", "128k", "-shortest", str(video)],
+         # 48 kHz, which every player and YouTube expect of video. The
+         # clips are 22,050 Hz because that is what Piper writes, and
+         # carried through unchanged the file is legal AAC that QuickTime
+         # and several browsers play silently — the track is there, at full
+         # level, and nothing comes out. Resampling costs a few kilobytes a
+         # minute and removes the whole class of problem.
+         "-c:a", "aac", "-b:a", "128k", "-ar", "48000", "-ac", "1",
+         # Moves the index to the front, so a player can start before it has
+         # the whole file — which matters for anything streamed.
+         "-movflags", "+faststart",
+         "-shortest", str(video)],
         capture_output=True, text=True)
     if done.returncode != 0:
         raise SystemExit(f"ffmpeg failed on {episode.stem}:\n{done.stderr[:400]}")

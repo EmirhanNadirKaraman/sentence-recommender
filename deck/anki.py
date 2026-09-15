@@ -10,9 +10,10 @@ to a phone; at 64 kbit mono the same deck is under a gigabyte and sounds no
 different through earphones, because a single voice reading slowly is about
 the easiest thing there is to compress.
 
-Split into several packages rather than one. A single gigabyte import is slow
-enough on a phone to look hung, and a deck you are halfway through is a
-better thing to carry than one you have not managed to load.
+Split into several packages rather than one, but every package names the same
+deck, so they merge into one on import. A single gigabyte import is slow
+enough on a phone to look hung; several files that land in one deck give the
+manageable import without splitting the curriculum into eight piles.
 
 The card asks the word and answers with everything else, which is the way
 round that suits the plan: the roadmap teaches a word and the sentences are
@@ -116,9 +117,10 @@ def build(cards: list[Card], audio_dir: Path, out_dir: Path, name: str,
     for start in range(0, len(cards), per_package):
         chunk = cards[start:start + per_package]
         part = len(written) + 1
-        title = (f"{name}::{part:02d} — {chunk[0].position}-"
-                 f"{chunk[-1].position}")
-        anki_deck = genanki.Deck(_id(title), title)
+        # One deck across every package. The id comes from the name, so each
+        # file names the same deck and Anki merges them on import rather than
+        # making eight piles of a curriculum that is one ordered sequence.
+        anki_deck = genanki.Deck(_id(name), name)
         media: list[str] = []
         for card in chunk:
             clip = audio_dir / f"{card.stem}.wav"
@@ -127,17 +129,22 @@ def build(cards: list[Card], audio_dir: Path, out_dir: Path, name: str,
                 mp3 = to_mp3(clip, media_dir / f"{card.stem}.mp3", bitrate)
                 media.append(str(mp3))
                 sound = f"[sound:{mp3.name}]"
-            # Position first, because Anki sorts a note by its first field
-            # and that is what should put the browser in teaching order.
-            # Written plainly rather than zero-padded: Anki's `sfld` column
-            # has integer affinity, so SQLite stores `412` as a number and
-            # orders it numerically — checked across 1, 10, 100 and 1000
-            # rather than assumed, since a text sort there would list a
-            # 3,902-card deck as 1, 10, 100, 1000, 11.
+            # `due` is what Anki studies in order; the first field is only
+            # what the *browser* sorts by. They are separate columns and
+            # only one of them decides which card you are shown next --
+            # left unset, every card carries due=0, Anki falls back to the
+            # card id, and a deck whose whole purpose is its order opens on
+            # the 382nd word.
+            #
+            # The position doubles as both: first field for the browser,
+            # `due` for the scheduler. Written plainly rather than
+            # zero-padded, since Anki's sort column has integer affinity and
+            # stores `412` as a number.
             anki_deck.add_note(genanki.Note(
                 model=model,
                 fields=[str(card.position), html.escape(card.spoken),
                         first_meaning(card), sentences_html(card), sound],
+                due=card.position,
             ))
             done += 1
             if on_progress and (done % every == 0 or done == len(cards)):

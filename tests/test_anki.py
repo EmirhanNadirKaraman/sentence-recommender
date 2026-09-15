@@ -77,6 +77,34 @@ class PackageTest(unittest.TestCase):
             conn = sqlite3.connect(db)
             return conn.execute("SELECT sfld FROM notes ORDER BY sfld").fetchall()
 
+    @staticmethod
+    def _deck_names(path: Path):
+        with tempfile.TemporaryDirectory() as tmp:
+            with zipfile.ZipFile(path) as archive:
+                archive.extractall(tmp)
+            db = next(p for p in Path(tmp).iterdir()
+                      if p.name.startswith("collection"))
+            conn = sqlite3.connect(db)
+            try:
+                return [r[0] for r in conn.execute("SELECT name FROM decks")]
+            except sqlite3.OperationalError:      # older single-table schema
+                import json
+                blob = conn.execute("SELECT decks FROM col").fetchone()[0]
+                return [d["name"] for d in json.loads(blob).values()]
+
+    def test_every_package_names_the_same_deck(self) -> None:
+        """Eight files, one deck. Split for the import, not for the
+        curriculum — the roadmap is one ordered sequence."""
+        cards = [card(i) for i in range(1, 8)]
+        with tempfile.TemporaryDirectory() as tmp:
+            written = build(cards, Path(tmp) / "none", Path(tmp) / "out",
+                            "probe", per_package=3)
+            # Inside the block: the packages are gone once it exits.
+            names = [set(self._deck_names(p)) - {"Default"} for p in written]
+        self.assertEqual(len(written), 3)
+        self.assertEqual(names[0], names[-1])
+        self.assertIn("probe", names[0])
+
     def test_it_splits_into_packages(self) -> None:
         """A gigabyte import looks hung on a phone."""
         cards = [card(i) for i in range(1, 8)]
@@ -97,6 +125,43 @@ class PackageTest(unittest.TestCase):
             order = [row[0] for row in self._notes(written[0])]
         self.assertEqual(order, sorted(order, key=int))
         self.assertEqual(order[:4], [1, 2, 9, 10])
+
+    @staticmethod
+    def _cards_due(path: Path):
+        with tempfile.TemporaryDirectory() as tmp:
+            with zipfile.ZipFile(path) as archive:
+                archive.extractall(tmp)
+            db = next(p for p in Path(tmp).iterdir()
+                      if p.name.startswith("collection"))
+            conn = sqlite3.connect(db)
+            return conn.execute(
+                "SELECT c.due, n.sfld FROM cards c JOIN notes n ON n.id = c.nid"
+                " ORDER BY c.due").fetchall()
+
+    def test_the_study_order_is_the_teaching_order(self) -> None:
+        """`due` is what Anki shows next; the first field is only what the
+        browser sorts by. Left unset every card carries due=0, Anki falls
+        back to the card id, and a deck whose whole point is its order opens
+        on the 382nd word."""
+        cards = [card(i) for i in (1, 2, 9, 10, 11, 99, 100, 1000)]
+        with tempfile.TemporaryDirectory() as tmp:
+            written = build(cards, Path(tmp) / "none", Path(tmp) / "out",
+                            "probe", per_package=100)
+            rows = self._cards_due(written[0])
+        self.assertEqual([due for due, _ in rows],
+                         [1, 2, 9, 10, 11, 99, 100, 1000])
+        self.assertEqual([int(sfld) for _, sfld in rows],
+                         [due for due, _ in rows])
+
+    def test_every_card_gets_its_own_due(self) -> None:
+        """One shared value is the failure this guards: 500 cards at due=0
+        look fine in the browser and shuffle in the reviewer."""
+        cards = [card(i) for i in range(1, 21)]
+        with tempfile.TemporaryDirectory() as tmp:
+            written = build(cards, Path(tmp) / "none", Path(tmp) / "out",
+                            "probe", per_package=100)
+            dues = [due for due, _ in self._cards_due(written[0])]
+        self.assertEqual(len(set(dues)), len(cards))
 
     def test_a_card_without_audio_is_still_written(self) -> None:
         """Text-only is worth having; refusing the whole deck is not."""
