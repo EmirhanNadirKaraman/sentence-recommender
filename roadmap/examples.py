@@ -56,11 +56,19 @@ def rank(unit: Unit, known: frozenset[Unit],
     """How example sentences for `unit` are ordered.
 
     Readability first, because an example is only useful if the learner can
-    read the rest of it, and a translation after that — it makes an otherwise
-    opaque sentence usable.  Then quality.
+    read the rest of it. Then what anyone has said about the sentence — see
+    `verdicts` — and then quality.
+
+    There is no key for whether the corpus shipped a translation. There was
+    one, second, above quality, and it was right while a translation was
+    scarce: 85 sentences of 11,398 had one, and it was the only English a
+    reader would ever see. Once `gloss-deck` translated every sentence the
+    field stopped saying anything about what the reader gets and went on
+    deciding anyway — see the note beside the key itself for what that did to
+    step 48.
 
     Quality, and not length.  Length was the original third key, and with no
-    translations in the subtitle corpus the second key never fires, so the
+    translations in the subtitle corpus the second key never fired, so the
     ranking was in practice "the shortest sentence that is readable".  For
     `all, alle` — a pattern in 2,223 sentences — that is `H, wo sind die
     alle?`, a five-word fragment with a name cut off the front of it, chosen
@@ -126,8 +134,29 @@ def rank(unit: Unit, known: frozenset[Unit],
                       # as an ordinary sentence and is not one. Known-bad
                       # should lose to merely-thought-worse.
                       -verdict(s),
-                      s.translation is None,
                       -quality(s.text),
+                      # No term for whether the corpus shipped a translation,
+                      # and its removal is the point rather than an omission.
+                      # It used to sit *above* quality, which was right while
+                      # a translation was scarce and the only English anyone
+                      # would see: 85 sentences of 11,398 had one. Left there
+                      # once `gloss-deck` existed it decided outright — step
+                      # 48 showed three sentences scoring 0.644, 0.644 and
+                      # 0.532, two trailing off mid-thought and one starting
+                      # lowercase, while twenty-one scoring 1.000 sat unused
+                      # behind them for no better reason than that the bad
+                      # three came with subtitles.
+                      #
+                      # Demoting it below quality fixed that and was still
+                      # wrong. `score` plateaus — 80% of the sentences shown
+                      # score exactly 1.000 — so quality ties constantly and
+                      # the term went on deciding which of many equally good
+                      # sentences a reader saw. What it selects for is which
+                      # video happened to ship subtitles, which is a fact
+                      # about the source and not about the sentence; 3.9% of
+                      # the corpus has one, so it steered the whole deck into
+                      # that slice. The English is generated for every
+                      # sentence now, so the field tells a reader nothing.
                       video_gap(s),
                       -video_fit(s),
                       -variety(s.text),
