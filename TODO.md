@@ -1274,3 +1274,46 @@ on inspection — the subtitles are already in Postgres, and the expensive
 step it would have protected is one nobody uses. Worth revisiting only if a
 `subtitle:llm` build is ever wanted, and then the shape above is the one to
 build.
+
+### 25. English sentences in the German corpus
+
+Step 5 of the beginner plan teaches `so` with:
+
+```
+or I'm dissatisfied with something, I say so, too.
+```
+
+Step 20 teaches `also` with `then you very often also hear "Na?" as an
+answer.` Both sit in `corpus_sentence.text` — the German field — with
+`origin=transcript`, and both were chosen by the walk as the best available
+example. Nothing in the pipeline looks at what language a sentence is in.
+
+The source is not a mystery. The transcripts are bilingual: Easy German
+publishes German with an English rendering alongside, and the import takes
+lines without asking which side of the page they came from.
+
+**The scale is unmeasured, and a first attempt at measuring it failed
+instructively.** A word-list test — two or more English function words and no
+German ones — found four sentences in 11,398 and *missed both of the known
+cases*, because their English contains `so` and `also`, which are German
+words too. Every cheap heuristic has that shape: the two languages share
+enough short words that presence tests are nearly useless on one sentence.
+
+**What would actually work.** A real language identifier, run once over the
+corpus to size the problem before anything is built on it. `lingua` and
+`langdetect` both do this and both are a new dependency; a German
+function-word *density* test would be cheaper and worse, but might be enough
+to decide whether the count is four or four thousand.
+
+**Where the fix belongs, if there is one.** `corpus/filter.py`, which already
+decides what enters the corpus and runs before analysis, and whose rejections
+are already counted by reason. A language check is exactly the kind of thing
+it exists for — unlike `quality.py`, which ranks survivors and would leave
+these sentences in the corpus to be picked when nothing better exists.
+
+**What it is not.** The fragment rule added in this session demotes both
+known cases, because both happen to start lowercase. That is luck, not a fix:
+a capitalised English sentence would rank as well as any German one.
+
+**Worth doing before the next corpus rebuild**, since a filter change means
+re-analysing anyway and the two would share one rebuild.

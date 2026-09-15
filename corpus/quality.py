@@ -22,7 +22,9 @@ import re
 #
 # 4: the band's floor from eight words to five.
 # 5: the band's ceiling from fifteen to twenty-five.
-# 6: a sentence whose first letter is lowercase is a fragment.
+# 6: a sentence whose first letter is lowercase is a fragment, and so is one
+#    opening with punctuation that cannot begin a sentence, and so is one
+#    with an ellipsis anywhere in it.
 VERSION = 6
 
 # Speech, not prose. Long enough to show the word doing something, short
@@ -76,6 +78,31 @@ INTERNAL_BREAK = re.compile(r"[.!?]\s+\S")
 # noun is not mistaken for one — `islower` is false for both.
 FIRST_LETTER = re.compile(r"[^\W\d_]")
 
+# Punctuation that cannot begin a sentence. Opening quotes and brackets can
+# and do — 311 of the 376 sentences in this corpus that start with a mark
+# start with a quote, and `"Schaun mer mol, dann seng ma scho".` is a whole
+# sentence that happens to open in speech. Penalising the class would demote
+# all of them to catch the rest.
+#
+# What is left is punctuation that only ever continues something: an ellipsis
+# where the first half went to the previous subtitle line, a closing bracket
+# with no opening one, a dash or comma dangling off a cut. Most of these are
+# already caught by the lowercase rule above — `...weil mir ist das nie
+# passiert` fails on its `w` — and this is for the ones that are not, like a
+# tail that happens to resume at a capitalised noun.
+CANNOT_OPEN = frozenset(".…,;:)]}»-–—")
+
+# An ellipsis anywhere says the thought is not finished: a speaker trailing
+# off, correcting themselves mid-word, or a line cut where the subtitle was.
+# `Aber du bist… du bist schon in Italien gewesen` is a stutter written down,
+# and `das kann ich eigentlich nicht so genau...` stops before it says what.
+#
+# Charged rather than refused, like everything here. Of the 42 steps in the
+# beginner plan taught by one, every single one had an ellipsis-free
+# candidate of its own — so this costs no coverage at all — but the rule has
+# to hold for the word where it would, and that word still gets taught.
+ELLIPSIS = re.compile(r"\.\.\.|…")
+
 # There is no terminal-punctuation rule here, and the omission is deliberate.
 # One was drafted: every sentence in the corpus already ends in `.`, `!` or
 # `?` — 0 of 11,398 examples in the beginner plan do not — because
@@ -127,9 +154,18 @@ def score(text: str) -> float:
         length = max(0.0, 1 - (words - IDEAL[1]) * LONG_PENALTY)
     else:
         length = 1.0
-    if INTERNAL_BREAK.search(text):
+    # Ellipses out of the way first: `bist... du` is one thought trailing
+    # off, not two sentences on one line, and `[.!?]\s+\S` cannot tell the
+    # difference. Left in, the two spellings of the same fault scored two to
+    # one — `bist... du` charged for a break as well as for the ellipsis,
+    # `bist… du` only for the ellipsis.
+    if INTERNAL_BREAK.search(ELLIPSIS.sub(" ", text)):
         length *= 0.5
+    opening = text.lstrip()[:1]
     first = FIRST_LETTER.search(text)
-    if first is not None and first.group().islower():
+    if opening in CANNOT_OPEN or (first is not None
+                                  and first.group().islower()):
+        length *= FRAGMENT_PENALTY
+    if ELLIPSIS.search(text):
         length *= FRAGMENT_PENALTY
     return length

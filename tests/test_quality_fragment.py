@@ -64,3 +64,58 @@ class FragmentTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class OpeningTest(unittest.TestCase):
+    """Punctuation that cannot begin a sentence, and quotes that can.
+
+    83% of the sentences in this corpus that open with a mark open with a
+    quote, and `"Schaun mer mol, dann seng ma scho".` is a whole sentence
+    that happens to start in speech. Penalising the class would demote three
+    hundred of those to catch thirty.
+    """
+
+    def test_an_opening_quote_is_fine(self) -> None:
+        for opened in ('"Na?" ist eine ganze Frage auf Deutsch heute.',
+                       '„Das ist alles", sagte er zu mir gestern Abend.',
+                       "(Sie) sagt also, das ist ein guter Comedian heute."):
+            self.assertGreater(score(opened), 0.9, opened)
+
+    def test_a_mark_that_cannot_open_is_charged(self) -> None:
+        """A closing bracket with nothing opened, a dangling dash: the line
+        was cut, and the half that explains it went elsewhere."""
+        whole = "Ich gehe meinen Freund in Madrid besuchen am Mittwoch."
+        for cut in (") " + whole, "- " + whole, ", " + whole):
+            self.assertLess(score(cut), score(whole), cut)
+
+    def test_a_capitalised_tail_is_caught_too(self) -> None:
+        """The lowercase rule misses `...Dass`, which is why the opening is
+        checked as well as the first letter."""
+        self.assertLess(score("...Dass du gekommen bist, freut mich sehr."),
+                        score("Dass du gekommen bist, freut mich wirklich."))
+
+
+class EllipsisTest(unittest.TestCase):
+    """A thought that does not finish.
+
+    42 of the 3,902 steps in the beginner plan were taught by one, and every
+    one of those had an ellipsis-free candidate of its own — so charging for
+    it costs no coverage at all.
+    """
+
+    def test_a_trailing_off_is_charged(self) -> None:
+        self.assertLess(score("das kann ich eigentlich nicht so genau..."),
+                        score("das kann ich eigentlich nicht so genau sagen."))
+
+    def test_a_stutter_in_the_middle_is_charged(self) -> None:
+        self.assertLess(score("Aber du bist... du bist schon in Italien."),
+                        score("Aber du bist schon einmal in Italien gewesen."))
+
+    def test_the_unicode_ellipsis_counts_too(self) -> None:
+        self.assertEqual(score("Aber du bist… du bist schon in Italien."),
+                         score("Aber du bist... du bist schon in Italien."))
+
+    def test_it_charges_rather_than_rejects(self) -> None:
+        """A word whose only example trails off is still taught with it."""
+        self.assertGreater(score("das kann ich eigentlich nicht so genau..."),
+                           0.0)
