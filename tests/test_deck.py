@@ -13,7 +13,7 @@ import unittest
 from pathlib import Path
 
 from corpus.sentence import Sentence
-from deck import Card, Example, cards_from
+from deck import Card, Example, cards_from, slug
 from deck.speech import lines_for, speak, split_gloss, write_manifest
 from roadmap.step import RoadmapStep
 from vocab.entry import Unit
@@ -60,12 +60,60 @@ class CardTest(unittest.TestCase):
     def test_every_card_knows_the_length_of_the_plan(self) -> None:
         self.assertEqual({c.total for c in cards_from(PLAN)}, {3})
 
+    def test_the_stem_carries_the_order_and_the_word(self) -> None:
+        """A folder of five-digit numbers says nothing about what you are
+        scrubbing through."""
+        card = Card(412, "die Geschichte", True, (Example("Satz."),), None, 3861)
+        self.assertEqual(card.stem, "00412-die-Geschichte")
+
     def test_the_stem_is_padded(self) -> None:
         """A media player goes by the name, and two steps can teach words
         that sort the other way round from their positions."""
-        self.assertEqual(cards_from(PLAN)[0].stem, "00001")
+        self.assertTrue(cards_from(PLAN)[0].stem.startswith("00001-"))
         self.assertEqual(
-            Card(412, "x", False, (Example("y"),), None, 3861).stem, "00412")
+            Card(412, "x", False, (Example("y"),), None, 3861).stem, "00412-x")
+        # Padded, so a directory listing sorts the way the plan runs.
+        names = sorted(Card(n, "w", False, (Example("s"),), None, 3861).stem
+                       for n in (2, 10, 1000))
+        self.assertEqual([n.split("-")[0] for n in names],
+                         ["00002", "00010", "01000"])
+
+
+class SlugTest(unittest.TestCase):
+    """A word as something safe to put in a filename."""
+
+    def test_spaces_become_hyphens(self) -> None:
+        self.assertEqual(slug("sich auf etwas freuen"),
+                         "sich-auf-etwas-freuen")
+
+    def test_umlauts_are_written_out_not_flattened(self) -> None:
+        """`ü` to `u` makes `fuhren` of `führen`, which is a different word.
+        German writes them this way when it cannot print them."""
+        self.assertEqual(slug("führen"), "fuehren")
+        self.assertEqual(slug("zurücktreten"), "zuruecktreten")
+        self.assertEqual(slug("größer"), "groesser")
+        self.assertEqual(slug("Öl"), "Oel")
+
+    def test_capitals_are_kept(self) -> None:
+        """German nouns carry one, and it is information."""
+        self.assertEqual(slug("die Geschichte"), "die-Geschichte")
+
+    def test_a_hyphenated_word_stays_one_word(self) -> None:
+        self.assertEqual(slug("die E-Mail"), "die-E-Mail")
+
+    def test_an_accent_loses_the_accent_not_the_letter(self) -> None:
+        self.assertEqual(slug("das Café"), "das-Cafe")
+
+    def test_a_long_key_is_cut_but_not_left_ragged(self) -> None:
+        name = slug("sich mit jemandem über etwas unterhalten")
+        self.assertLessEqual(len(name), 48)
+        self.assertFalse(name.endswith("-"))
+
+    def test_nothing_unsafe_survives(self) -> None:
+        for word in ("etw./jdn. (Akk) lassen", "gern, gerne", "a/b\\c:d*e?f"):
+            name = slug(word)
+            for junk in "/\\:*?\"<>| .,()":
+                self.assertNotIn(junk, name, f"{word} -> {name}")
 
 
 class ManifestTest(unittest.TestCase):
@@ -74,7 +122,8 @@ class ManifestTest(unittest.TestCase):
             path = write_manifest(cards_from(PLAN), Path(tmp) / "deck.tsv")
             rows = list(csv.DictReader(open(path, encoding="utf-8"),
                                        delimiter="\t"))
-        self.assertEqual(rows[0]["audio"], "[sound:00001.wav]")
+        self.assertEqual(rows[0]["audio"],
+                         f"[sound:{cards_from(PLAN)[0].stem}.wav]")
         self.assertEqual(rows[1]["word"], "die Zeit")
 
     def test_a_sentence_with_a_comma_survives(self) -> None:
@@ -123,7 +172,8 @@ class SpeakTest(unittest.TestCase):
             written, skipped, _ = spoken(cards_from(PLAN), de, en, Path(tmp))
             names = sorted(p.name for p in Path(tmp).glob("*.wav"))
         self.assertEqual((written, skipped), (3, 0))
-        self.assertEqual(names, ["00001.wav", "00002.wav", "00003.wav"])
+        self.assertEqual(names, sorted(f"{c.stem}.wav"
+                                       for c in cards_from(PLAN)))
 
     def test_german_and_english_go_to_different_voices(self) -> None:
         """A Piper voice speaks one language. Read by the German voice,
@@ -166,7 +216,7 @@ class SpeakTest(unittest.TestCase):
         from nothing after 3,000 files is a worse failure than a slow one."""
         with tempfile.TemporaryDirectory() as tmp:
             spoken(cards_from(PLAN), *voices(), Path(tmp))
-            (Path(tmp) / "00002.wav").unlink()
+            (Path(tmp) / f"{cards_from(PLAN)[1].stem}.wav").unlink()
             de, en = voices()
             written, skipped, _ = spoken(cards_from(PLAN), de, en, Path(tmp))
         self.assertEqual((written, skipped), (1, 2))

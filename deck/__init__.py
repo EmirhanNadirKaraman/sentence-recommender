@@ -25,9 +25,40 @@ shorter.
 """
 from __future__ import annotations
 
+import re
+import unicodedata
 from dataclasses import dataclass, field
 
 from deck.spoken import spoken
+
+# German writes its umlauts out this way when it cannot print them, which is
+# what a filename is. Done before the general strip below, because that would
+# turn `ü` into `u` and make `fuhren` of `führen` -- a different word.
+UMLAUTS = str.maketrans({
+    "ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss",
+    "Ä": "Ae", "Ö": "Oe", "Ü": "Ue",
+})
+# Long enough for the longest key the list holds (40 characters, `sich mit
+# jemandem über etwas unterhalten`) and short enough that the whole name
+# stays comfortably inside every filesystem's limit.
+SLUG_LIMIT = 48
+
+
+def slug(text: str) -> str:
+    """A word as something safe to put in a filename.
+
+    Spaces become hyphens and umlauts are written out; anything else that is
+    not a letter, digit or hyphen is dropped rather than transliterated by
+    guesswork. The result keeps its capitals, because German nouns carry one
+    and `00412-die-Geschichte` says more than `00412-die-geschichte`.
+    """
+    written = text.translate(UMLAUTS)
+    # Everything left that is not plain ASCII -- one `é` across the whole
+    # deck -- loses its accent rather than the letter under it.
+    written = "".join(ch for ch in unicodedata.normalize("NFKD", written)
+                      if not unicodedata.combining(ch))
+    written = re.sub(r"[^A-Za-z0-9]+", "-", written).strip("-")
+    return written[:SLUG_LIMIT].rstrip("-")
 
 
 @dataclass(frozen=True)
@@ -96,12 +127,16 @@ class Card:
     def stem(self) -> str:
         """The filename this card owns, without an extension.
 
-        Zero-padded so a directory listing and the plan agree on order, which
-        is the whole reason the audio is named by position rather than by the
-        word: two steps can teach words that sort the other way round, and a
-        media player goes by the name.
+        Position first and zero-padded, so a directory listing and the plan
+        agree on order: two steps can teach words that sort the other way
+        round, and a media player goes by the name. Then the word, because a
+        folder of five-digit numbers tells you nothing about what you are
+        scrubbing through — `00412-die-Geschichte` does.
+
+        One property, so the clip, the slide that names it and the manifest
+        row cannot drift apart.
         """
-        return f"{self.position:05d}"
+        return f"{self.position:05d}-{slug(self.spoken)}"
 
 
 def cards_from(steps, decks=None, senses=None, english=None) -> list[Card]:
