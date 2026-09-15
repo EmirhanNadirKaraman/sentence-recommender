@@ -1219,29 +1219,58 @@ score, so a sentence known to be bad loses to one merely thought worse. The
 computed score stays where it is and keeps being computed; nothing is stored
 that a function already answers. No change to i+1, no re-analysis.
 
-### 24. Keep the fetched subtitles, and stop asking YouTube twice
+### 24. Cache the correction? — measured, and there is nothing to cache
 
-`build-corpus subtitle` reads subtitles that were fetched by the scraper in
-the sibling project, and this repository keeps none of them: it stores the
-*analysed* result — `corpus_sentence`, `corpus_unit` — and the raw fetch
-lives outside as files. So a rebuild from scratch depends on a directory
-this project does not own, and re-fetching means going back to YouTube,
-which rate-limits hard: a harvest across four channels once returned 413
-HTTP 429s and imported nothing.
+Written first as "store the fetched subtitles in Postgres". They are already
+in Postgres. `build-corpus subtitle` reads them through `SubtitleSource`
+straight out of the shared server, and the migration named *the tables the
+scraper also fills* exists precisely so that the scraper can write where this
+project reads. Nothing re-downloads anything on a rebuild, and the premise
+of the original entry was wrong.
 
-Storing the raw subtitles in Postgres beside the corpus makes the corpus
-self-contained. A rebuild re-analyses rather than re-downloads, someone
-handed a dump can rebuild without credentials or cookies, and the analyser
-can change as often as it likes — which it does, since
-`analyser_fingerprint` invalidates every cached build whenever it does.
+What a rebuild *does* throw away is the **correction**. `_collect` reads the
+raw cues, corrects them, aligns them per video, and only then analyses. The
+corrected text is never stored — only its analysed result is — so every
+rebuild redoes it from scratch.
 
-**What it costs.** The text is small next to what is already stored: the
-same sentences are already in `corpus_sentence` once analysed, and the raw
-cues are roughly the same volume again. A table of `(video_id, language,
-fetched_at, cues JSONB)` and a writer in the import path.
+For `merge` that is cheap: pure Python, no network, spread over processes.
+For `llm` it is not. That corrector sends every chunk to a model, and the
+corpus is hundreds of thousands of subtitle lines.
 
-**The one real question** is where the boundary sits. The scraper is a
-separate project with its own database, and this would move a responsibility
-across it. Either this repository fetches too, or the scraper writes into a
-table this one reads. The second is smaller and keeps the scraping — cookies,
-rate limits, yt-dlp — on the side that already deals with it.
+The waste is structural rather than occasional. `analyser_fingerprint`
+invalidates every cached build whenever the analyser or its data files
+change — which is often, and correctly, since a changed analyser means
+different units. But correction happens *before* analysis and has nothing to
+do with it. A comment fix in `analyzer.py` currently means re-running every
+LLM correction in the corpus to get back to the same corrected text.
+
+**Shape.** Content-addressed rather than keyed by video: hash the input
+chunk, store the corrected text against `(hash, corrector, version)`. Then
+re-importing a video, re-chunking it, or importing the same line from two
+videos all hit the same entry, and a corrector change invalidates by version
+exactly as `GLOSS_VERSION` does for the glosses.
+
+**Cost.** A Postgres table and an alembic migration, plus a read-through in
+`LLMCorrector`. The rows are the same order of magnitude as
+`corpus_sentence`, which the database already holds comfortably.
+
+**Measured, and that is the answer.** `--corrector` defaults to `merge` and
+`llm` is opt-in. An LLM-corrected build is filed under `subtitle:llm`
+(`build_corpus.py`), and the corpus holds:
+
+```
+generated      288
+subtitle   397,125
+transcript  53,134
+```
+
+There is no `subtitle:llm`. The LLM corrector has never produced a stored
+build, so a cache for it would cache something nothing runs — and `merge`,
+which is what everything here was actually built with, is pure Python
+over a process pool with no network in it and nothing worth saving.
+
+So: **not built, on purpose.** Both halves of the original entry dissolved
+on inspection — the subtitles are already in Postgres, and the expensive
+step it would have protected is one nobody uses. Worth revisiting only if a
+`subtitle:llm` build is ever wanted, and then the shape above is the one to
+build.
