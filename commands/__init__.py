@@ -9,6 +9,7 @@ from .build_video_roadmap import BuildVideoRoadmapCommand
 from .build_study_list import BuildStudyListCommand
 from .bundle_deck import BundleDeckCommand
 from .check_model import CheckModelCommand
+from .export_anki import ExportAnkiCommand
 from .export_deck import ExportDeckCommand
 from .gloss_deck import GlossDeckCommand
 from .speak_deck import SpeakDeckCommand
@@ -28,7 +29,8 @@ __all__ = [
     "AddVideoCommand", "BackfillChannelsCommand", "AddVideosCommand", "BuildCorpusCommand", "BuildRoadmapCommand",
     "BuildVideoRoadmapCommand",
     "BuildStudyListCommand", "CheckWordCommand", "DifficultyCommand",
-    "BundleDeckCommand", "CheckModelCommand", "ExportDeckCommand", "GlossDeckCommand", "ExportSubtitlesCommand",
+    "BundleDeckCommand", "CheckModelCommand", "ExportAnkiCommand",
+    "ExportDeckCommand", "GlossDeckCommand", "ExportSubtitlesCommand",
     "SpeakDeckCommand", "UnblockCommand",
     "FillGapsCommand",
     "HuntVideosCommand", "QuizCommand", "ReviewCommand", "ServeCommand", "BlockersCommand",

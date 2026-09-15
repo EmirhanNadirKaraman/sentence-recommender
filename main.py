@@ -11,7 +11,7 @@ from commands import (
     BuildVideoRoadmapCommand,
     CheckWordCommand, DifficultyCommand, QuizCommand, UnblockCommand,
     BuildStudyListCommand, BundleDeckCommand, CheckModelCommand,
-    ExportDeckCommand,
+    ExportAnkiCommand, ExportDeckCommand,
     GlossDeckCommand,
     ExportSubtitlesCommand,
     FillGapsCommand, SpeakDeckCommand,
@@ -240,6 +240,24 @@ def _parser() -> argparse.ArgumentParser:
                        help="sentences per card")
     gloss.add_argument("--limit", type=int, default=None,
                        help="only the first N steps")
+
+    anki = sub.add_parser(
+        "export-anki",
+        help="write the deck as .apkg files with the audio inside",
+    )
+    anki.add_argument("--audio", type=Path, default=Path("out/audio"))
+    anki.add_argument("--out", type=Path, default=Path("out/anki"))
+    anki.add_argument("--label", default=DECK_LABEL)
+    anki.add_argument("--name", default="German roadmap",
+                      help="what the deck is called in Anki")
+    anki.add_argument("--per-package", type=int, default=500,
+                      dest="per_package",
+                      help="cards per .apkg; a gigabyte import looks hung "
+                           "on a phone")
+    anki.add_argument("--bitrate", default="64k",
+                      help="mp3 bitrate for the audio")
+    anki.add_argument("--examples", type=int, default=3)
+    anki.add_argument("--limit", type=int, default=None)
 
     aloud = sub.add_parser(
         "speak-deck",
@@ -610,6 +628,11 @@ def main() -> int:
         GlossDeckCommand().run(app, args.label, args.out, args.log,
                                args.workers, args.every, args.limit,
                                args.examples)
+    elif args.command == "export-anki":
+        ExportAnkiCommand().run(app, args.audio, args.out,
+                                args.label, args.name,
+                                args.per_package, args.bitrate,
+                                args.examples, args.limit)
     elif args.command == "speak-deck":
         SpeakDeckCommand().run(app, args.out, args.label, args.engine,
                                args.german, args.english, args.model,

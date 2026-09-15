@@ -22,3 +22,6 @@ python-pptx>=1.0
 # backend is for weights of your own and needs torch as well; neither is
 # required to run anything else here.
 piper-tts>=1.8
+
+# `export-anki` only — the deck as .apkg files with the audio inside.
+genanki>=0.13
