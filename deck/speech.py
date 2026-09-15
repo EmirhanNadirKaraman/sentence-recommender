@@ -212,13 +212,20 @@ def speak(cards: Iterable[Card], german: Speaker, english: Speaker,
           out_dir: Path, overwrite: bool = False, slow: bool = False,
           on_progress: Callable[[int, int, int], None] | None = None,
           every: int = 25,
-          require_gloss: bool = True) -> tuple[int, int, int]:
+          require_gloss: bool = True,
+          on_card: Callable[[Card, bool], None] | None = None,
+          ) -> tuple[int, int, int]:
     """Write one WAV per card. Returns (written, skipped, waiting).
 
     Both voices must agree on a sample rate, because the lines are laid end
     to end as raw PCM. They do when both are Piper `medium` voices; a
     mismatch is refused here rather than producing a file that plays one
     language at the wrong pitch.
+
+    `on_card(card, written)` is called for each card as it is decided, which
+    is where a caller hangs a log. Counts alone make a long run opaque: the
+    reader can see that it is moving but not what it is moving through, and
+    `ls -t` is a poor substitute for being told.
 
     A card with no English yet is left alone rather than read in German
     only, and that is what lets this run beside `gloss-deck` instead of
@@ -258,6 +265,8 @@ def speak(cards: Iterable[Card], german: Speaker, english: Speaker,
                 handle.setframerate(rate)
                 handle.writeframes(bytes(body))
             written += 1
+            if on_card is not None:
+                on_card(card, True)
         if on_progress and (index % every == 0 or index == len(cards)):
             on_progress(index, len(cards), written)
     return written, skipped, waiting

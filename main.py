@@ -291,6 +291,8 @@ def _parser() -> argparse.ArgumentParser:
                        dest="german_only",
                        help="read cards that have no English yet, in German "
                             "alone, instead of leaving them for a later run")
+    aloud.add_argument("--log", type=Path, default=Path("out/speak.log"),
+                       help="a text log to tail while it runs")
     aloud.add_argument("--cuda", action="store_true",
                        help="piper: use the CUDA execution provider")
 
@@ -638,7 +640,7 @@ def main() -> int:
                                args.german, args.english, args.model,
                                args.device, args.limit, args.overwrite,
                                args.cuda, args.slow, args.examples,
-                               args.german_only)
+                               args.german_only, args.log)
     elif args.command == "export-subtitles":
         ExportSubtitlesCommand().run(
             app, args.out, tuple(args.source), args.translation

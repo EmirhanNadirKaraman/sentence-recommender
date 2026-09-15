@@ -241,6 +241,27 @@ class SpeakTest(unittest.TestCase):
         self.assertEqual(de.said, [])
 
 
+class SpeakLogTest(unittest.TestCase):
+    def test_each_written_card_is_reported(self) -> None:
+        """Counts alone make a long run opaque: you can see it moving but
+        not what it is moving through."""
+        de, en = voices()
+        seen = []
+        with tempfile.TemporaryDirectory() as tmp:
+            spoken(cards_from(PLAN), de, en, Path(tmp),
+                   on_card=lambda card, written: seen.append(card.spoken))
+        self.assertEqual(seen, [c.spoken for c in cards_from(PLAN)])
+
+    def test_a_skipped_card_is_not_reported(self) -> None:
+        """A second run should log what it did, not what was already done."""
+        with tempfile.TemporaryDirectory() as tmp:
+            spoken(cards_from(PLAN), *voices(), Path(tmp))
+            seen = []
+            spoken(cards_from(PLAN), *voices(), Path(tmp),
+                   on_card=lambda card, written: seen.append(card.spoken))
+        self.assertEqual(seen, [])
+
+
 class GlossGateTest(unittest.TestCase):
     """A card with no English is left for a later run, not read in German.
 

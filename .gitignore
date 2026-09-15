@@ -46,3 +46,4 @@ data/voices/
 # What `gloss-deck` appends as it runs, so a long job can be tailed. Its
 # contents are in the state database as well; this is the readable copy.
 out/gloss.log
+out/speak.log

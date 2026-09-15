@@ -46,7 +46,8 @@ class SpeakDeckCommand:
             device: str | None = None, limit: int | None = None,
             overwrite: bool = False, cuda: bool = False,
             slow: bool = False, examples: int = 3,
-            german_only: bool = False) -> None:
+            german_only: bool = False,
+            log: Path = Path("out/speak.log")) -> None:
         settings = app.settings
         store = RoadmapStore(settings.state_path)
         steps = store.load(label, limit=limit)
@@ -79,10 +80,18 @@ class SpeakDeckCommand:
         print(f"{len(cards):,} cards · {de.name} + {en.name} · "
               f"{de.sample_rate:,} Hz", flush=True)
 
+        log.parent.mkdir(parents=True, exist_ok=True)
+
+        def note(card, _written: bool) -> None:
+            """What it is reading, not just how many. See `deck.speech`."""
+            with open(log, "a", encoding="utf-8") as handle:
+                handle.write(f"{card.position:>5}  {card.spoken}\n")
+
         started = time.perf_counter()
         written, skipped, waiting_now = speak(
             cards, de, en, out_dir, overwrite=overwrite, slow=slow,
-            on_progress=self._report(started), require_gloss=not german_only)
+            on_progress=self._report(started), require_gloss=not german_only,
+            on_card=note)
         manifest = write_manifest(cards, out_dir / "deck.tsv")
 
         spent = time.perf_counter() - started
@@ -94,5 +103,6 @@ class SpeakDeckCommand:
             print(f"  run it again when `gloss-deck` has caught up; the "
                   f"{written + skipped:,} already read are not read twice")
         print(f"  {out_dir}  {size / 1e6:,.0f} MB of audio")
+        print(f"  {log}  — the running log")
         print(f"  {manifest}  — position, word, sentence, translation, "
               "meaning, audio")
