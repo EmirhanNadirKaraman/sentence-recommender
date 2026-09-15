@@ -298,7 +298,8 @@ class CorpusStore:
              video: str | None = None,
              holding: tuple[str, str] | None = None,
              text: str | None = None,
-             resolve=None) -> list[Sentence]:
+             resolve=None,
+             german_only: bool = True) -> list[Sentence]:
         """Stored sentences. By default only the ones worth studying from —
         pass `teachable_only=False` for the full transcript, which is what an
         overlay needs.
@@ -327,6 +328,21 @@ class CorpusStore:
         if not builds:
             return []          # `= ANY('{}')` matches nothing, but say so here
         teachable = " AND teachable" if teachable_only else ""
+        # English sentences are kept in the corpus and skipped by everything
+        # that learns from it. The transcripts are bilingual, and 5,228 of
+        # these rows are English — two of them were teaching steps 5 and 20
+        # of the beginner roadmap. They stay because they were still *said*,
+        # and the overlay is assembled from everything said; `german_only=
+        # False` is how the overlay asks for them.
+        #
+        # `IS NULL` is kept, and that is the whole reason this is safe to add
+        # to a corpus already built: NULL means nobody has looked, which is
+        # not the same as not-German. A build that has never run
+        # `detect-language` loads exactly as it did before.
+        german = (" AND (language IS NULL OR language = 'de')"
+                  if german_only else "")
+        joined_german = (" AND (s.language IS NULL OR s.language = 'de')"
+                         if german_only else "")
         # Narrowing both halves matters: the unit join is the larger of the
         # two, and filtering only the sentences would still walk every unit
         # row in the corpus to find the handful belonging to this video.
@@ -348,7 +364,7 @@ class CorpusStore:
                 "SELECT id, origin, text, translation, raw_text, source_ids,"
                 " video_id, start_time, end_time, teachable"
                 f" FROM corpus_sentence WHERE build = ANY(%s){teachable}"
-                f"{one_video}{said_here}{one_text}", args)
+                f"{german}{one_video}{said_here}{one_text}", args)
             rows = cur.fetchall()
             units: dict[int, set[Unit]] = {}
             surfaces: dict[int, list[tuple[Unit, str]]] = {}
@@ -369,7 +385,7 @@ class CorpusStore:
                 "SELECT su.sentence_id, su.kind, su.key, su.surface"
                 " FROM corpus_unit su"
                 " JOIN corpus_sentence s ON s.id = su.sentence_id"
-                f" WHERE s.build = ANY(%s){joined_video}"
+                f" WHERE s.build = ANY(%s){joined_german}{joined_video}"
                 f"{joined_here}{joined_text}", args)
             for sid, kind, key, surface in cur:
                 unit = seen.get((kind, key), unseen)

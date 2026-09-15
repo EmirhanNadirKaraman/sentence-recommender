@@ -1275,7 +1275,7 @@ step it would have protected is one nobody uses. Worth revisiting only if a
 `subtitle:llm` build is ever wanted, and then the shape above is the one to
 build.
 
-### 25. English sentences in the German corpus
+### 25. English sentences in the German corpus — DONE, 12,621 of them
 
 Step 5 of the beginner plan teaches `so` with:
 
@@ -1315,5 +1315,25 @@ these sentences in the corpus to be picked when nothing better exists.
 known cases, because both happen to start lowercase. That is luck, not a fix:
 a capitalised English sentence would rank as well as any German one.
 
-**Worth doing before the next corpus rebuild**, since a filter change means
-re-analysing anyway and the two would share one rebuild.
+**Done, and it needed no rebuild.** `lingua` over the whole table found
+**12,621 English sentences of 445,547 (2.83%)** in sixty seconds — 5,229 of
+them in the teachable corpus the roadmap draws from.
+
+`langdetect` was tried first, as proposed, and rejected on measurement. Over
+600 real sentences it flagged seven as not-German and five of those were
+plainly German — `Papa, wann können wir Samuel abholen?`, `Oder oder kann das
+passieren?` — because it is a port of a library built for documents and this
+corpus is single short lines. lingua flagged two, both English, and ran seven
+times faster. With the plan as stated — use only the German sentences — that
+false-positive rate would have deleted real German from the corpus.
+
+A **column**, not a filter, for the reason the entry above gives: the
+sentences stay and the algorithms skip them. `corpus_sentence.language` is
+nullable, NULL means nobody has looked, and `load(german_only=True)` — the
+default — excludes only what has actually been judged. So a corpus that has
+never run `detect-language` behaves exactly as it did, and no rebuild was
+needed to adopt this.
+
+Verified from both sides: the teachable corpus loads 309,988 sentences with
+the default and 315,217 with `german_only=False`, and the sentence teaching
+step 5 is absent from the first and present in the second.

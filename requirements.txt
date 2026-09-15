@@ -25,3 +25,11 @@ piper-tts>=1.8
 
 # `export-anki` only — the deck as .apkg files with the audio inside.
 genanki>=0.13
+
+# `detect-language` only — which language a stored sentence is in. `lingua`
+# rather than `langdetect`: measured over 600 real sentences, langdetect
+# flagged seven as not-German of which five plainly were (`Papa, wann können
+# wir Samuel abholen?`), because it is a port of a library built for
+# documents and this corpus is single short lines. lingua flagged two and
+# both were English.
+lingua-language-detector>=2.0

@@ -11,6 +11,7 @@ from commands import (
     BuildVideoRoadmapCommand,
     CheckWordCommand, DifficultyCommand, QuizCommand, UnblockCommand,
     BuildStudyListCommand, BundleDeckCommand, CheckModelCommand,
+    DetectLanguageCommand,
     ExportAnkiCommand, ExportDeckCommand,
     GlossDeckCommand,
     ExportSubtitlesCommand,
@@ -179,6 +180,14 @@ def _parser() -> argparse.ArgumentParser:
                         help="which subtitle build to export (default: subtitle)")
     export.add_argument("--translation", action="store_true",
                         help="include the translation as a second cue line")
+
+    lang = sub.add_parser(
+        "detect-language",
+        help="say what language each stored sentence is in",
+    )
+    lang.add_argument("--rebuild", action="store_true",
+                      help="read every sentence again, not only the unjudged")
+    lang.add_argument("--limit", type=int, default=None)
 
     check = sub.add_parser(
         "check-model",
@@ -620,6 +629,8 @@ def main() -> int:
                                 args.label, args.per,
                                 args.examples, args.limit,
                                 args.video, args.stills_dir)
+    elif args.command == "detect-language":
+        DetectLanguageCommand().run(app, args.rebuild, args.limit)
     elif args.command == "check-model":
         CheckModelCommand().run(app, args.steps)
     elif args.command == "export-deck":
