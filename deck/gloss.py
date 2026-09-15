@@ -316,14 +316,26 @@ def describe(client, card: Card) -> list[tuple[str, str | None]]:
 def missing(cards: Iterable[Card]) -> list[Card]:
     """The cards still worth asking about.
 
-    A card needs asking when a sentence has no English, or when nothing on
-    it has a meaning at all. Not when *some* sentence lacks one: the model
-    legitimately declines to gloss a sentence that does not carry the
-    pattern being taught, and treating that as unfinished would ask about
-    the same card on every run for ever.
+    A card needs asking when nothing on it has been said at all — no
+    English anywhere, or no meaning anywhere. Not when *some* sentence
+    lacks one.
+
+    That was asymmetric and the asymmetry bit. Meanings were judged this way
+    from the start, because the model legitimately declines to gloss a
+    sentence that does not carry the pattern being taught. Translations were
+    judged the other way — every sentence had to have one — and a card whose
+    third sentence the model would not translate came back on every run for
+    ever, failing the same call each time. `das Blatt` and `ausgerechnet`
+    did exactly that: two of three sentences glossed, the third refused, and
+    the pair queued indefinitely.
+
+    So the test now matches `Card.glossed`, which is what the renderers ask.
+    The cost is that a card can settle with one sentence untranslated, shown
+    in German alone — which is what the page already does for a sentence
+    whose sense repeats the one above it, and better than asking for ever.
     """
     return [card for card in cards
-            if any(e.translation is None for e in card.examples)
+            if not any(e.translation for e in card.examples)
             or not any(e.means for e in card.examples)]
 
 
