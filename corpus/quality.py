@@ -22,7 +22,8 @@ import re
 #
 # 4: the band's floor from eight words to five.
 # 5: the band's ceiling from fifteen to twenty-five.
-VERSION = 5
+# 6: a sentence whose first letter is lowercase is a fragment.
+VERSION = 6
 
 # Speech, not prose. Long enough to show the word doing something, short
 # enough to hold in mind while reading it.
@@ -62,8 +63,25 @@ IDEAL = (9, 11)         # equally good, and the tie is broken on merit
 SHORT_PENALTY = 0.08
 LONG_PENALTY = 0.06
 
-TERMINAL = re.compile(r"[.!?]")
 INTERNAL_BREAK = re.compile(r"[.!?]\s+\S")
+# The first letter, past any quote, bracket or ellipsis it opens with. German
+# capitalises the first word of a sentence, so a lowercase one is the middle
+# of something — `das hab' ich denen bis heute auch nicht gesagt.` is the
+# tail of a sentence whose beginning went to another subtitle line. That is
+# the same fault the length floor exists for, stated the other way round:
+# missing context, and less taught.
+#
+# Checked as the first *letter* rather than the first character so a sentence
+# opening with `"`, `(` or `...` is judged on its word, and so a number or a
+# noun is not mistaken for one — `islower` is false for both.
+FIRST_LETTER = re.compile(r"[^\W\d_]")
+
+# There is no terminal-punctuation rule here, and the omission is deliberate.
+# One was drafted: every sentence in the corpus already ends in `.`, `!` or
+# `?` — 0 of 11,398 examples in the beginner plan do not — because
+# `filter.py` and the aligner settle it upstream. A rule here would cost a
+# regex per sentence to discover something already guaranteed.
+FRAGMENT_PENALTY = 0.7
 
 
 def well_formed(text: str) -> bool:
@@ -111,4 +129,7 @@ def score(text: str) -> float:
         length = 1.0
     if INTERNAL_BREAK.search(text):
         length *= 0.5
+    first = FIRST_LETTER.search(text)
+    if first is not None and first.group().islower():
+        length *= FRAGMENT_PENALTY
     return length
