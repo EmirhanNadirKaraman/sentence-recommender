@@ -43,8 +43,10 @@ class RoadmapBuilder:
         only_goals: bool = False,
         relax: bool = False,
         video_minutes: dict[str, float] | None = None,
+        verdicts: dict[str, float] | None = None,
     ) -> None:
         self._index = index
+        self._verdicts = verdicts
         self._priority = priority
         self._weight = priority_weight
         self._goals = goals
@@ -181,7 +183,9 @@ class RoadmapBuilder:
         return tuple(nsmallest(
             DECK_SIZE,
             (self._index.sentence(p) for p in found),
-            key=rank(unit, known, self._minutes, self._gaps),
+            # Verdicts too, or the deck stored with a step would be ranked
+            # differently from the one the page rebuilds — see `rank`.
+            key=rank(unit, known, self._minutes, self._gaps, self._verdicts),
         ))
 
     def _relaxed_step(self, position: int) -> RoadmapStep | None:

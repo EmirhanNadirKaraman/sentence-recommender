@@ -94,8 +94,10 @@ class GlossDeckCommand:
             print(f"  … {index:>5,}/{total:,} · {failed:,} failed · "
                   f"{rate * 3600:,.0f}/h · {left:.1f} h left", flush=True)
 
-        done, failed = run(cards, glosses, client, model, workers=workers,
-                           on_progress=say, every=10, on_card=note)
+        done, failed = run(cards, glosses, client, model,
+                           verdicts=app.overrides,
+                           workers=workers, on_progress=say, every=10,
+                           on_card=note)
 
         from deck.pdf import write_pdf                  # noqa: PLC0415
         write_pdf(build(), pdf, label)

@@ -368,6 +368,15 @@ class Application:
         # as it goes and completes compounds the seed could not.
         return KnownSet(units | self.compounds.derivable(units))
 
+    def verdicts(self) -> dict[str, float]:
+        """What anyone has said about particular sentences, for ranking.
+
+        Read fresh rather than cached: a reader marking a sentence bad
+        expects the next page to stop offering it, and this is one small
+        query against a table that holds only what has been judged.
+        """
+        return self.overrides.verdicts()
+
     def beginner_set(self) -> KnownSet:
         """What someone opening this for the first time knows.
 

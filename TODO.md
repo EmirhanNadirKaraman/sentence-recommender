@@ -1130,3 +1130,118 @@ files, so this invalidates every stored plan and needs a full
 `build-corpus subtitle`. With an import running that would make
 `RoadmapRefresher` rebuild all ten plans after every chunk, so the change
 waits for the imports to finish and one rebuild then covers both.
+
+## Deck, and what the corpus still does not know
+
+### 21. Read the sentence with the voice that said it
+
+The deck is read by Piper. It is clear, it is consistent, and it is not
+German as anyone speaks it — no elision, no swallowed endings, one speed.
+A learner who can follow the deck has learned to follow a synthesiser.
+
+The alignment to do better already exists. `Timing(video_id, start, end)` is
+carried on every subtitle sentence, and **8,066 of the 11,398 example
+sentences (71%) have one** — the corpus knows which video each came from and
+where in it. Cutting the real audio is `ffmpeg -ss start -to end`, which is
+the same tool the episodes already use.
+
+What is missing is the audio itself. The corpus stores text and timings, not
+media, so this needs the source videos fetched and kept — audio-only would
+do, and at ~1 MB a minute for speech that is perhaps 40 GB across the
+channels taken so far. `yt-dlp` is already a dependency of the scraper.
+
+**The boundary.** 29% of examples have no timing at all: everything from
+`transcript` origin, which was written down rather than aligned, plus every
+`generated` sentence, which nobody ever said. So this is a mixed deck or a
+smaller one — real speech where it exists and Piper elsewhere, or a deck
+restricted to what can be cut, which loses a third of the examples and would
+change which sentences the walk may use.
+
+Worth a trial on one channel before 40 GB: cut fifty and listen. Subtitle
+timings are routinely a beat off, and a clip that starts mid-word is worse
+than a clean synthetic one.
+
+### 22. Grammar as something i+1 can count
+
+A sentence is i+1 when it holds one unknown *word*. It can still hold a
+tense, a case or a clause order the reader has never met, and the roadmap
+has no idea — `Wenn ich das gewusst hätte, wäre ich gegangen` is i+1 by
+vocabulary and is a wall.
+
+This is the deepest change on this list, and it is worth saying why before
+anyone starts it. `Unit(kind, key)` is the atom of the whole system: 1.7M
+unit rows, the known set, the counting rule, the walk, compounds, aliases.
+Adding grammar means every sentence carries constructions as well as words,
+every one of them has to be detected at analysis time, and every count in
+the project gains an axis. It is not a feature on top of this system; it is
+a second system beside it.
+
+**What makes it tractable, if it is done.** spaCy already parses every
+sentence and the analyser already throws the parse away after taking lemmas.
+Tense, mood, voice and case are in the morphology it has in hand, and clause
+type is a dependency-tree question. So the *detection* is mostly free — the
+cost is the counting model, not the linguistics.
+
+**The cheap half.** Grammar as a filter rather than a unit: tag each
+sentence with the constructions it uses, and let a reader exclude
+subjunctive or say "no relative clauses yet". That is a column and a
+`WHERE`, needs no change to what i+1 means, and would answer most of what
+this is actually for.
+
+### 23. Quality as a number the walk can read
+
+`corpus/quality.py` already scores a sentence — `well_formed`, `variety`,
+`score` — and the `:good` builds already use the first as a gate. But it is
+a gate: pass or fail, recomputed on every load, and the walk cannot prefer a
+good sentence over a merely acceptable one.
+
+Three things follow from storing it per sentence instead.
+
+The walk could **rank** rather than filter, which is what the deck actually
+wants: of the sentences that teach `die Geschichte`, show the clearest, not
+the first to survive a boolean.
+
+A **reader's** judgement could join the model's. The overrides table already
+holds hidden and corrected sentences, so the shape exists; a score is a
+third verdict alongside them.
+
+And a **model's** could too, now that one is wired up. The gloss pass just
+read 11,398 sentences and refused to gloss 28 of them — that refusal is a
+quality signal that was thrown away. `etwas machen` was glossed three ways
+because its examples were weak; `von etwas zurücktreten` failed four passes
+because one of its sentences is transcribed as *"die Verlet"*, which is not
+a word.
+
+**Smallest useful version.** A verdict table beside the other overrides,
+holding only what cannot be computed — a reader's mark and the gloss pass's
+refusals — read by `roadmap/examples.py` as a term *above* the computed
+score, so a sentence known to be bad loses to one merely thought worse. The
+computed score stays where it is and keeps being computed; nothing is stored
+that a function already answers. No change to i+1, no re-analysis.
+
+### 24. Keep the fetched subtitles, and stop asking YouTube twice
+
+`build-corpus subtitle` reads subtitles that were fetched by the scraper in
+the sibling project, and this repository keeps none of them: it stores the
+*analysed* result — `corpus_sentence`, `corpus_unit` — and the raw fetch
+lives outside as files. So a rebuild from scratch depends on a directory
+this project does not own, and re-fetching means going back to YouTube,
+which rate-limits hard: a harvest across four channels once returned 413
+HTTP 429s and imported nothing.
+
+Storing the raw subtitles in Postgres beside the corpus makes the corpus
+self-contained. A rebuild re-analyses rather than re-downloads, someone
+handed a dump can rebuild without credentials or cookies, and the analyser
+can change as often as it likes — which it does, since
+`analyser_fingerprint` invalidates every cached build whenever it does.
+
+**What it costs.** The text is small next to what is already stored: the
+same sentences are already in `corpus_sentence` once analysed, and the raw
+cues are roughly the same volume again. A table of `(video_id, language,
+fetched_at, cues JSONB)` and a writer in the import path.
+
+**The one real question** is where the boundary sits. The scraper is a
+separate project with its own database, and this would move a responsibility
+across it. Either this repository fetches too, or the scraper writes into a
+table this one reads. The second is smaller and keeps the scraping — cookies,
+rate limits, yt-dlp — on the side that already deals with it.

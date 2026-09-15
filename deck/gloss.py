@@ -328,6 +328,7 @@ def missing(cards: Iterable[Card]) -> list[Card]:
 
 
 def run(cards: list[Card], store: GlossStore, client, model: str,
+        verdicts=None,
         workers: int = 2, on_progress: Callable[[int, int, int], None] | None = None,
         every: int = 25,
         on_card: Callable[[Card, list | None], None] | None = None,
@@ -344,6 +345,14 @@ def run(cards: list[Card], store: GlossStore, client, model: str,
     server and was in fact this setting. One call needs about 730 tokens all
     told, so the ceiling is the cache rather than the tokens.
 
+    `verdicts`, when given a `SentenceOverrides`, is marked wherever the
+    model declines to gloss a sentence. That refusal is the one quality
+    signal here that no function can compute: `corpus.quality.score` reads
+    length and variety, and `Du hast studiert, also wo die Verlet
+    zurückgetreten ist` is an ordinary length with ordinary variety and a
+    word that is not German. A model asked to say what it means, and
+    declining, has noticed something the characters do not show.
+
     Writing stays on this thread: SQLite connections do not cross threads
     safely, and the saving is not what takes the time. `on_card` is called
     there too, once per card, with the answer or None -- which is where a
@@ -359,10 +368,14 @@ def run(cards: list[Card], store: GlossStore, client, model: str,
                 failed += 1
             else:
                 kind = "pattern" if card.is_pattern else "lemma"
-                store.save(kind, card.word,
-                           [(example.text, english, means)
-                            for example, (english, means)
-                            in zip(card.examples, result)], model)
+                rows = [(example.text, english, means)
+                        for example, (english, means)
+                        in zip(card.examples, result)]
+                store.save(kind, card.word, rows, model)
+                if verdicts is not None:
+                    for text, _, means in rows:
+                        if means is None:
+                            verdicts.mark(text, 0.0, source="model")
                 done += 1
             if on_card is not None:
                 on_card(card, result)

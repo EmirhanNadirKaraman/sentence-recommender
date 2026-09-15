@@ -51,7 +51,8 @@ def gaps_by_video(sentences, known: frozenset[Unit]) -> dict[str, float]:
 
 def rank(unit: Unit, known: frozenset[Unit],
            minutes: dict[str, float] | None = None,
-           gaps: dict[str, float] | None = None):
+           gaps: dict[str, float] | None = None,
+           verdicts: dict[str, float] | None = None):
     """How example sentences for `unit` are ordered.
 
     Readability first, because an example is only useful if the learner can
@@ -91,6 +92,15 @@ def rank(unit: Unit, known: frozenset[Unit],
     served from the store opens on a different sentence than one served from
     the corpus.
     """
+    def verdict(s) -> float:
+        """What someone thought of this sentence, or no opinion.
+
+        Absent means unjudged, which scores as 1.0 — the best — so adding
+        this reorders nothing that has not been marked. Only a sentence
+        somebody has actually called bad moves, and it moves down.
+        """
+        return 1.0 if verdicts is None else verdicts.get(s.text, 1.0)
+
     def video_fit(s) -> float:
         # No lengths to hand means no preference, so every sentence ties here
         # and the ranking is exactly what it was before.
@@ -108,6 +118,14 @@ def rank(unit: Unit, known: frozenset[Unit],
         return float("inf") if found is None else round(found, GAP_BAND)
 
     return lambda s: (len(s.units - known - {unit}),
+                      # Above quality, and deliberately. `quality` reads the
+                      # text and can only see length and variety; a verdict
+                      # is someone having noticed that the sentence is
+                      # broken in a way the characters do not show — a
+                      # transcription error like `die Verlet`, which scores
+                      # as an ordinary sentence and is not one. Known-bad
+                      # should lose to merely-thought-worse.
+                      -verdict(s),
                       s.translation is None,
                       -quality(s.text),
                       video_gap(s),
@@ -135,6 +153,7 @@ class ExampleIndex:
         limit: int = 3,
         minutes: dict[str, float] | None = None,
         gaps: dict[str, float] | None = None,
+        verdicts: dict[str, float] | None = None,
     ) -> list[Sentence]:
         """The `limit` most readable sentences using `unit`, by `rank`.
 
@@ -146,6 +165,12 @@ class ExampleIndex:
         from the corpus, on videos a median 16.6 minutes long against the
         walk's 14.3.
 
+        `verdicts` is the same bargain: what a reader or a model has said
+        about particular sentences, passed rather than looked up, so the
+        walk and the page rank alike. Left out here once, and the third term
+        of the key would differ between them for every sentence anybody had
+        marked.
+
         `gaps` has to be measured over a whole corpus, so the listings built
         from `holding=` — every sentence saying one word, and nothing else —
         pass only `minutes`. A mean taken over that slice would not be the
@@ -154,4 +179,4 @@ class ExampleIndex:
         """
         candidates = self._by_unit.get(unit, ())
         return sorted(candidates,
-                      key=rank(unit, known, minutes, gaps))[:limit]
+                      key=rank(unit, known, minutes, gaps, verdicts))[:limit]
