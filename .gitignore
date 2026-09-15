@@ -1,5 +1,8 @@
 .env
 __pycache__/
+
+# macOS writes one of these into every folder it has been looked at in.
+.DS_Store
 *.pyc
 .venv/
 data/state.sqlite3
