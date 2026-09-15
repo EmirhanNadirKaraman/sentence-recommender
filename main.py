@@ -10,7 +10,8 @@ from commands import (
     AddVideoCommand, BlockersCommand, AddVideosCommand, BuildCorpusCommand, BuildRoadmapCommand,
     BuildVideoRoadmapCommand,
     CheckWordCommand, DifficultyCommand, QuizCommand, UnblockCommand,
-    BuildStudyListCommand, CheckModelCommand, ExportDeckCommand,
+    BuildStudyListCommand, BundleDeckCommand, CheckModelCommand,
+    ExportDeckCommand,
     GlossDeckCommand,
     ExportSubtitlesCommand,
     FillGapsCommand, SpeakDeckCommand,
@@ -201,6 +202,20 @@ def _parser() -> argparse.ArgumentParser:
                       help="only the first N steps, for a quick look")
     deck.add_argument("--examples", type=int, default=3,
                       help="sentences per card")
+
+    bundle = sub.add_parser(
+        "bundle-deck",
+        help="join the clips into episodes with chapter timestamps",
+    )
+    bundle.add_argument("--audio", type=Path, default=Path("out/audio"),
+                        help="where `speak-deck` wrote the clips")
+    bundle.add_argument("--out", type=Path, default=Path("out/episodes"),
+                        help="where to write the episodes")
+    bundle.add_argument("--label", default=DECK_LABEL)
+    bundle.add_argument("--per", type=int, default=50,
+                        help="words per episode (default 50, about 23 min)")
+    bundle.add_argument("--examples", type=int, default=3)
+    bundle.add_argument("--limit", type=int, default=None)
 
     gloss = sub.add_parser(
         "gloss-deck",
@@ -574,6 +589,10 @@ def main() -> int:
                                   args.goals, args.list_only, args.quality,
                                   args.strict, args.relax, args.unblock,
                                   args.beginner)
+    elif args.command == "bundle-deck":
+        BundleDeckCommand().run(app, args.audio, args.out,
+                                args.label, args.per,
+                                args.examples, args.limit)
     elif args.command == "check-model":
         CheckModelCommand().run(app, args.steps)
     elif args.command == "export-deck":
