@@ -173,3 +173,48 @@ class PackageTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PerSentenceAudioTest(unittest.TestCase):
+    """A player beside each sentence, not one for the whole card.
+
+    Drilling a card means hearing the example you are looking at. With a
+    single clip per card, checking the third sentence meant sitting through
+    the first two — which is only fixable once each line is recorded as its
+    own piece rather than baked into a card-length blob.
+    """
+
+    def _card(self) -> Card:
+        return Card(
+            position=1, word="die Zeit", is_pattern=False, total=3,
+            examples=(
+                Example(text="Ich habe heute keine Zeit.",
+                        translation="I have no time today.",
+                        means="die Zeit means time."),
+                Example(text="Die Zeit vergeht zu schnell.",
+                        translation="Time passes too quickly."),
+            ))
+
+    def test_each_sentence_carries_its_own_player(self) -> None:
+        sounds = {"Ich habe heute keine Zeit.": "aaa.mp3",
+                  "Die Zeit vergeht zu schnell.": "bbb.mp3"}
+        got = sentences_html(self._card(), sounds)
+        self.assertIn("[sound:aaa.mp3]", got)
+        self.assertIn("[sound:bbb.mp3]", got)
+        self.assertEqual(got.count("[sound:"), 2)
+
+    def test_the_player_sits_with_its_own_sentence(self) -> None:
+        """Not merely present — attached to the right line."""
+        sounds = {"Die Zeit vergeht zu schnell.": "bbb.mp3"}
+        got = sentences_html(self._card(), sounds)
+        self.assertIn("Die Zeit vergeht zu schnell. [sound:bbb.mp3]", got)
+        self.assertNotIn("Ich habe heute keine Zeit. [sound:", got)
+
+    def test_a_sentence_with_no_clip_is_still_shown(self) -> None:
+        got = sentences_html(self._card(), {})
+        self.assertIn("Ich habe heute keine Zeit.", got)
+        self.assertNotIn("[sound:", got)
+
+    def test_without_the_argument_it_renders_as_before(self) -> None:
+        self.assertEqual(sentences_html(self._card()),
+                         sentences_html(self._card(), {}))

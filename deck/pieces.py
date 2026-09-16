@@ -110,6 +110,31 @@ class PieceStore:
                 [(key, text, voice, int(slow), role, path, seconds, now)
                  for key, text, voice, slow, role, path, seconds in rows])
 
+    def paths_for(self, texts, role: str | None = None) -> dict[str, str]:
+        """Where each of these lines was recorded, as text -> path.
+
+        By text rather than by key, because a caller that has a sentence
+        usually does not know which voice read it -- and only one did. `role`
+        narrows it where the same words are said in two capacities: `etwas
+        machen` is both a word and the opening of its own meaning line.
+        """
+        wanted = list(dict.fromkeys(texts))
+        if not wanted:
+            return {}
+        found: dict[str, str] = {}
+        with open_state(self._path) as conn:
+            for at in range(0, len(wanted), 400):
+                block = wanted[at:at + 400]
+                marks = ",".join("?" * len(block))
+                sql = (f"SELECT text, path FROM audio_piece"
+                       f" WHERE text IN ({marks})")
+                args = list(block)
+                if role is not None:
+                    sql += " AND role = ?"
+                    args.append(role)
+                found.update(conn.execute(sql, args))
+        return found
+
     def by_role(self) -> dict[str, int]:
         with open_state(self._path) as conn:
             return dict(conn.execute(

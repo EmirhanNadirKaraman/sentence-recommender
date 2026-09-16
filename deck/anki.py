@@ -57,11 +57,25 @@ FRONT = '<div class="pos">{{Position}}</div><div class="word">{{Word}}</div>'
 BACK = (FRONT + "<hr>{{Meaning}}{{Sentences}}<div>{{Audio}}</div>")
 
 
-def sentences_html(card: Card) -> str:
-    """The examples, with the meaning said once per sense as everywhere else."""
+def sentences_html(card: Card, sounds: dict[str, str] | None = None) -> str:
+    """The examples, with the meaning said once per sense as everywhere else.
+
+    `sounds` maps a sentence to its own clip, and each one becomes a player
+    beside the sentence it reads. Anki renders `[sound:...]` as a button
+    wherever it appears, so three sentences give three buttons -- which is
+    what you want on a card you are drilling: hearing the second example
+    should not mean listening to the first.
+
+    The whole-card clip stays in its own field, because playing a card
+    straight through is a different thing from checking one line of it.
+    Given nothing, this renders exactly as it did before audio was split.
+    """
+    sounds = sounds or {}
     out, said_already = [], None
     for example in card.examples:
-        out.append(f'<div class="de">{html.escape(example.text)}</div>')
+        clip = sounds.get(example.text, "")
+        player = f" [sound:{clip}]" if clip else ""
+        out.append(f'<div class="de">{html.escape(example.text)}{player}</div>')
         if example.translation:
             out.append(f'<div class="en">{html.escape(example.translation)}</div>')
         if example.means and example.means != said_already:
@@ -95,7 +109,8 @@ def to_mp3(source: Path, target: Path, bitrate: str = "64k") -> Path:
 def build(cards: list[Card], audio_dir: Path, out_dir: Path, name: str,
           per_package: int = 500, bitrate: str = "64k",
           on_progress: Callable[[int, int], None] | None = None,
-          every: int = 50) -> list[Path]:
+          every: int = 50,
+          pieces: dict[str, str] | None = None) -> list[Path]:
     """Write one `.apkg` per chunk of `per_package` cards."""
     import genanki                                       # noqa: PLC0415
 
@@ -110,6 +125,7 @@ def build(cards: list[Card], audio_dir: Path, out_dir: Path, name: str,
         templates=[{"name": "Word to meaning", "qfmt": FRONT, "afmt": BACK}],
         css=CSS,
     )
+    pieces = pieces or {}
     media_dir = out_dir / "media"
     out_dir.mkdir(parents=True, exist_ok=True)
     written: list[Path] = []
@@ -122,6 +138,21 @@ def build(cards: list[Card], audio_dir: Path, out_dir: Path, name: str,
         # making eight piles of a curriculum that is one ordered sequence.
         anki_deck = genanki.Deck(_id(name), name)
         media: list[str] = []
+        # One mp3 per recorded line, named after the recording rather than
+        # the card. A sentence teaching two words is one file referenced
+        # twice, which is the same economy the piece store itself is for.
+        per_sentence: dict[str, str] = {}
+        for card in chunk:
+            for example in card.examples:
+                source = pieces.get(example.text)
+                if not source or example.text in per_sentence:
+                    continue
+                path = Path(source)
+                if not path.is_file():
+                    continue
+                mp3 = to_mp3(path, media_dir / f"{path.stem}.mp3", bitrate)
+                media.append(str(mp3))
+                per_sentence[example.text] = mp3.name
         for card in chunk:
             clip = audio_dir / f"{card.stem}.wav"
             sound = ""
@@ -143,7 +174,8 @@ def build(cards: list[Card], audio_dir: Path, out_dir: Path, name: str,
             anki_deck.add_note(genanki.Note(
                 model=model,
                 fields=[str(card.position), html.escape(card.spoken),
-                        first_meaning(card), sentences_html(card), sound],
+                        first_meaning(card),
+                        sentences_html(card, per_sentence), sound],
                 due=card.position,
             ))
             done += 1

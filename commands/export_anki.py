@@ -12,6 +12,7 @@ from pathlib import Path
 from commands.export_deck import DEFAULT_LABEL
 from corpus.fixes import FixStore
 from deck import cards_from
+from deck.pieces import PieceStore
 from deck.anki import build
 from deck.gloss import GlossStore
 from roadmap.store import RoadmapStore
@@ -52,8 +53,17 @@ class ExportAnkiCommand:
             rate = done / max(time.perf_counter() - started, 1e-9)
             print(f"  … {done:>5,}/{total:,} · {rate:.1f}/s", flush=True)
 
+        # Where each sentence was recorded, so the card can carry a player
+        # per line rather than one for the whole thing. `role="de"` because
+        # a card plays its German; the English and the meaning are recorded
+        # too and are what a different arrangement would reach for.
+        store = PieceStore(app.settings.state_path)
+        spoken = store.paths_for(
+            [e.text for card in cards for e in card.examples], role="de")
+        if spoken:
+            print(f"  {len(spoken):,} sentences have their own clip", flush=True)
         written = build(cards, audio_dir, out_dir, name, per_package,
-                        bitrate, on_progress=say)
+                        bitrate, on_progress=say, pieces=spoken)
         size = sum(p.stat().st_size for p in written)
         print(f"\n{len(written)} package(s), {size / 1e6:,.0f} MB total")
         for path in written:
