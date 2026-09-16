@@ -93,8 +93,20 @@ def first_meaning(card: Card) -> str:
 
 
 def to_mp3(source: Path, target: Path, bitrate: str = "64k") -> Path:
-    """One clip, re-encoded. Skipped when it is already there."""
-    if target.exists():
+    """One clip, re-encoded. Skipped when it is already there and current.
+
+    "There" is not enough, and assuming it was the bug this comment exists
+    for: the media directory held 6,422 mp3s from a build two days and five
+    reorderings earlier, and existence alone would have shipped every one of
+    them beside sentences they no longer read.
+
+    The card clips are the ones that go stale — they are named for a position
+    and a word, neither of which changes when the sentences under them do. The
+    piece clips cannot: they are named after a hash of what they say, so a
+    changed line is a different file rather than the same file changed. One
+    mtime comparison covers both and costs a stat.
+    """
+    if target.exists() and target.stat().st_mtime >= source.stat().st_mtime:
         return target
     target.parent.mkdir(parents=True, exist_ok=True)
     done = subprocess.run(
