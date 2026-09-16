@@ -99,7 +99,14 @@ class SpeakDeckCommand:
         # reordering the plan changes which lines go together, not what the
         # lines are.
         pieces = PieceStore(settings.state_path)
+        # Two folders under one root: the lines as recorded, and the cards
+        # assembled from them. Kept apart because they are different things
+        # to look through -- 31,802 pieces named by a hash, against 3,902
+        # cards named by the word they teach -- and a folder holding both at
+        # once is navigable as neither.
         piece_dir = out_dir / "pieces"
+        card_dir = out_dir / "cards"
+        card_dir.mkdir(parents=True, exist_ok=True)
         speakable = [c for c in cards if c.glossed or german_only]
         fresh, already = synthesise(
             speakable, de, en, pieces, piece_dir, slow=slow,
@@ -109,13 +116,13 @@ class SpeakDeckCommand:
               f"{pieces.count():,} in the store", flush=True)
 
         written, skipped, waiting_now = speak(
-            cards, de, en, out_dir, overwrite=overwrite, slow=slow,
+            cards, de, en, card_dir, overwrite=overwrite, slow=slow,
             on_progress=self._report(started), require_gloss=not german_only,
             on_card=note, pieces=pieces.have(), piece_dir=piece_dir)
-        manifest = write_manifest(cards, out_dir / "deck.tsv")
+        manifest = write_manifest(cards, card_dir / "deck.tsv")
 
         spent = time.perf_counter() - started
-        size = sum(p.stat().st_size for p in out_dir.glob("*.wav"))
+        size = sum(p.stat().st_size for p in card_dir.glob("*.wav"))
         print(f"\n{written:,} written, {skipped:,} already there, "
               f"{waiting_now:,} still waiting on English, in "
               f"{spent / 60:.1f} min")

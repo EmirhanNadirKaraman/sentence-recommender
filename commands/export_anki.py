@@ -19,7 +19,7 @@ from roadmap.store import RoadmapStore
 
 
 class ExportAnkiCommand:
-    def run(self, app, audio_dir: Path = Path("out/audio"),
+    def run(self, app, audio_dir: Path = Path("out/audio/cards"),
             out_dir: Path = Path("out/anki"), label: str = DEFAULT_LABEL,
             name: str = "German roadmap", per_package: int = 500,
             bitrate: str = "64k", examples: int = 3,

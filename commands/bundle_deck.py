@@ -20,7 +20,7 @@ from roadmap.store import RoadmapStore
 
 
 class BundleDeckCommand:
-    def run(self, app, audio_dir: Path = Path("out/audio"),
+    def run(self, app, audio_dir: Path = Path("out/audio/cards"),
             out_dir: Path = Path("out/episodes"),
             label: str = DEFAULT_LABEL, per: int = PER_EPISODE,
             examples: int = 3, limit: int | None = None,

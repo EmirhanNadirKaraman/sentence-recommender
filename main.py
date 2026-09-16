@@ -251,7 +251,8 @@ def _parser() -> argparse.ArgumentParser:
         "bundle-deck",
         help="join the clips into episodes with chapter timestamps",
     )
-    bundle.add_argument("--audio", type=Path, default=Path("out/audio"),
+    bundle.add_argument("--audio", type=Path,
+                        default=Path("out/audio/cards"),
                         help="where `speak-deck` wrote the clips")
     bundle.add_argument("--out", type=Path, default=Path("out/episodes"),
                         help="where to write the episodes")
@@ -289,7 +290,8 @@ def _parser() -> argparse.ArgumentParser:
         "export-anki",
         help="write the deck as .apkg files with the audio inside",
     )
-    anki.add_argument("--audio", type=Path, default=Path("out/audio"))
+    anki.add_argument("--audio", type=Path,
+                      default=Path("out/audio/cards"))
     anki.add_argument("--out", type=Path, default=Path("out/anki"))
     anki.add_argument("--label", default=DECK_LABEL)
     anki.add_argument("--name", default="German roadmap",
