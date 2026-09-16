@@ -46,6 +46,7 @@ dump/
 # both documents on a machine with no corpus, no Postgres and no model.
 out/deck/*.pdf
 out/deck/*.pptx
+out/deck/*.epub
 out/audio/
 out/stills/
 out/episodes/

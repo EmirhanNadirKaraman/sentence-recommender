@@ -12,6 +12,9 @@ from commands import (
     CheckWordCommand, DifficultyCommand, QuizCommand, UnblockCommand,
     BuildStudyListCommand, BundleDeckCommand, CheckModelCommand,
     DetectLanguageCommand,
+    JudgeSentencesCommand,
+    EmbedSentencesCommand,
+    PolishSentencesCommand,
     ExportAnkiCommand, ExportDeckCommand,
     GlossDeckCommand,
     ExportSubtitlesCommand,
@@ -189,6 +192,33 @@ def _parser() -> argparse.ArgumentParser:
                       help="read every sentence again, not only the unjudged")
     lang.add_argument("--limit", type=int, default=None)
 
+    judge = sub.add_parser(
+        "judge-sentences",
+        help="mark sentences with no verb, an English word, or a strange name",
+    )
+    judge.add_argument("--limit", type=int, default=None)
+    judge.add_argument("--dry-run", action="store_true",
+                       help="count them and show a few, write nothing")
+
+    embed = sub.add_parser(
+        "embed-sentences",
+        help="store a vector for every sentence the walk compares",
+    )
+    embed.add_argument("--label", default=None)
+    embed.add_argument("--limit", type=int, default=None)
+    embed.add_argument("--batch", type=int, default=128)
+
+    polish = sub.add_parser(
+        "polish-sentences",
+        help="repair punctuation and spelling, and mark dialect",
+    )
+    polish.add_argument("--label", default=None)
+    polish.add_argument("--limit", type=int, default=None)
+    polish.add_argument("--batch", type=int, default=20)
+    polish.add_argument("--workers", type=int, default=4)
+    polish.add_argument("--all", action="store_true", dest="everything",
+                        help="every candidate the walk weighed, not just\n                             the sentences a card shows")
+
     check = sub.add_parser(
         "check-model",
         help="is the local model reachable, and how fast is it?",
@@ -205,8 +235,9 @@ def _parser() -> argparse.ArgumentParser:
     deck.add_argument("--label", default=DECK_LABEL,
                       help="which stored plan to export")
     deck.add_argument("--format", nargs="+", dest="formats",
-                      choices=("pdf", "pptx"), default=["pdf", "pptx"],
-                      help="which files to write (default: both)")
+                      choices=("pdf", "pptx", "epub"),
+                      default=["pdf", "pptx", "epub"],
+                      help="which files to write (default: all three)")
     deck.add_argument("--limit", type=int, default=None,
                       help="only the first N steps, for a quick look")
     deck.add_argument("--examples", type=int, default=3,
@@ -635,6 +666,15 @@ def main() -> int:
                                 args.video, args.stills_dir)
     elif args.command == "detect-language":
         DetectLanguageCommand().run(app, args.rebuild, args.limit)
+    elif args.command == "judge-sentences":
+        JudgeSentencesCommand().run(app, args.limit, args.dry_run)
+    elif args.command == "embed-sentences":
+        EmbedSentencesCommand().run(app, args.label, limit=args.limit,
+                                    batch=args.batch)
+    elif args.command == "polish-sentences":
+        PolishSentencesCommand().run(app, args.label, args.limit,
+                                     args.batch, args.workers,
+                                     args.everything)
     elif args.command == "check-model":
         CheckModelCommand().run(app, args.steps)
     elif args.command == "export-deck":

@@ -17,6 +17,7 @@ import time
 from pathlib import Path
 
 from commands.export_deck import DEFAULT_LABEL
+from corpus.fixes import FixStore
 from deck import cards_from
 from deck.gloss import GlossStore
 from deck.speech import (DEFAULT_ENGLISH, DEFAULT_GERMAN, DEFAULT_HF_MODEL,
@@ -59,7 +60,8 @@ class SpeakDeckCommand:
         glosses = GlossStore(settings.state_path)
         said = os.environ.get("LLM_MODEL", "")
         cards = cards_from(steps, decks, glosses.senses(said),
-                           glosses.sentences(said))
+                           glosses.sentences(said),
+                           FixStore(app.settings.state_path).all())
 
         waiting = sum(1 for card in cards if not card.glossed)
         if waiting:

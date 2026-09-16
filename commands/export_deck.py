@@ -15,15 +15,22 @@ from pathlib import Path
 
 import os
 
+from corpus.fixes import FixStore
 from deck import cards_from
 from deck.gloss import GlossStore
 from deck.sheet import read_sheet, write_sheet
 from roadmap.store import RoadmapStore
 
-# The strict plan aimed at the study list: the one whose every step is i+1
-# with every word in the sentence counted. The looser plans are exportable by
-# name, but this is the one worth printing.
-DEFAULT_LABEL = "generated+subtitle+transcript:good:strict:goals"
+# The strict plan aimed at the study list, seeded from the function words
+# alone: every step is i+1 with every word in the sentence counted, and the
+# only thing assumed at the start is what a beginner has. The looser plans
+# are exportable by name, but this is the one worth printing.
+#
+# `:beginner` was missing here long after the plans were being built with it,
+# so every export quietly wrote the plan seeded from *this* reader's own
+# vocabulary -- a deck that teaches nobody but them, and one that no rebuild
+# of the beginner plan ever reached.
+DEFAULT_LABEL = "generated+subtitle+transcript:good:strict:goals:beginner"
 
 
 class ExportDeckCommand:
@@ -66,7 +73,8 @@ class ExportDeckCommand:
         glosses = GlossStore(app.settings.state_path)
         said = os.environ.get("LLM_MODEL", "")
         cards = cards_from(steps, decks, glosses.senses(said),
-                           glosses.sentences(said))
+                           glosses.sentences(said),
+                           FixStore(app.settings.state_path).all())
         sentences = sum(len(c.examples) for c in cards)
         glossed = sum(1 for c in cards if c.glossed)
         relaxed = sum(1 for c in cards if c.beside)
@@ -91,13 +99,18 @@ class ExportDeckCommand:
         # Imported here rather than at the top: reportlab and python-pptx
         # are wanted by this one command, and every other command would pay
         # for them at start-up.
+        from deck.epub import write_epub      # noqa: PLC0415
         from deck.pdf import write_pdf        # noqa: PLC0415
         from deck.slides import write_pptx    # noqa: PLC0415
 
+        # A mapping rather than a chain of conditionals: with two formats a
+        # ternary said it, with three it would start hiding which name went
+        # with which writer.
+        writers = {"pdf": write_pdf, "pptx": write_pptx, "epub": write_epub}
         out_dir.mkdir(parents=True, exist_ok=True)
         for kind in formats:
             path = out_dir / f"{stem}.{kind}"
-            writer = write_pdf if kind == "pdf" else write_pptx
+            writer = writers[kind]
             print(f"  writing {path} …", flush=True)
             writer(cards, path, stem, stamp)
             print(f"  {path}  {path.stat().st_size / 1e6:.1f} MB")

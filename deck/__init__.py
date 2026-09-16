@@ -139,7 +139,8 @@ class Card:
         return f"{self.position:05d}-{slug(self.spoken)}"
 
 
-def cards_from(steps, decks=None, senses=None, english=None) -> list[Card]:
+def cards_from(steps, decks=None, senses=None, english=None,
+               fixes=None) -> list[Card]:
     """Turn stored roadmap steps into cards, in plan order.
 
     `decks` maps a position to the sentences that teach it, as
@@ -147,17 +148,24 @@ def cards_from(steps, decks=None, senses=None, english=None) -> list[Card]:
     sentence the step itself carries. `senses` and `english` are what the
     model has already said -- keyed by (kind, key, sentence) and by sentence
     -- so a card picks up work from an earlier run instead of repeating it.
+
+    `fixes` are repairs from `corpus.fixes`, and they are applied last and to
+    the displayed text alone. Everything else here still looks the sentence up
+    by what the corpus holds: the gloss, the sense and the vector are all
+    keyed by the original, and a card that searched for them under a repaired
+    spelling would find nothing and come back blank.
     """
     total = len(steps)
     senses = senses or {}
     english = english or {}
+    fixes = fixes or {}
     out = []
     for step in steps:
         said = (decks or {}).get(step.position)
         if said is None:
             said = [step.sentence] if step.sentence else []
         examples = tuple(
-            Example(text=s.text,
+            Example(text=fixes.get(s.text, s.text),
                     translation=english.get(s.text) or s.translation,
                     means=senses.get((step.unit.kind, step.unit.key, s.text)))
             for s in said)

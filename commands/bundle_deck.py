@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 
 from commands.export_deck import DEFAULT_LABEL
+from corpus.fixes import FixStore
 from deck import cards_from
 from deck.episodes import PER_EPISODE, plan, timestamp, write, write_video
 from deck.gloss import GlossStore
@@ -36,7 +37,8 @@ class BundleDeckCommand:
         glosses = GlossStore(settings.state_path)
         said = os.environ.get("LLM_MODEL", "")
         cards = cards_from(steps, decks, glosses.senses(said),
-                           glosses.sentences(said))
+                           glosses.sentences(said),
+                           FixStore(app.settings.state_path).all())
 
         episodes = plan(cards, audio_dir, per)
         if not episodes:

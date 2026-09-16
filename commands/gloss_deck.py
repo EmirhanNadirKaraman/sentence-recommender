@@ -22,6 +22,7 @@ import time
 from pathlib import Path
 
 from commands.export_deck import DEFAULT_LABEL
+from corpus.fixes import FixStore
 from deck import cards_from
 from deck.gloss import GlossStore, missing, run
 from generation.client import LLMClient
@@ -52,7 +53,8 @@ class GlossDeckCommand:
 
         def build():
             return cards_from(steps, decks, glosses.senses(model),
-                              glosses.sentences(model))
+                              glosses.sentences(model),
+                           FixStore(app.settings.state_path).all())
 
         cards = build()
         todo = missing(cards)

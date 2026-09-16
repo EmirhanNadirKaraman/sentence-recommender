@@ -10,6 +10,9 @@ from .build_study_list import BuildStudyListCommand
 from .bundle_deck import BundleDeckCommand
 from .check_model import CheckModelCommand
 from .detect_language import DetectLanguageCommand
+from .judge_sentences import JudgeSentencesCommand
+from .embed_sentences import EmbedSentencesCommand
+from .polish_sentences import PolishSentencesCommand
 from .export_anki import ExportAnkiCommand
 from .export_deck import ExportDeckCommand
 from .gloss_deck import GlossDeckCommand
@@ -31,6 +34,9 @@ __all__ = [
     "BuildVideoRoadmapCommand",
     "BuildStudyListCommand", "CheckWordCommand", "DifficultyCommand",
     "BundleDeckCommand", "CheckModelCommand", "DetectLanguageCommand",
+    "JudgeSentencesCommand",
+    "EmbedSentencesCommand",
+    "PolishSentencesCommand",
     "ExportAnkiCommand",
     "ExportDeckCommand", "GlossDeckCommand", "ExportSubtitlesCommand",
     "SpeakDeckCommand", "UnblockCommand",
