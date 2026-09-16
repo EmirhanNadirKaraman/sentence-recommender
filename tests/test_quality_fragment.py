@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import unittest
 
-from corpus.quality import score
+from corpus.quality import score, well_formed
 
 WHOLE = "Der Kanzler ist gestern von seinem Amt zurückgetreten."
 FRAGMENT = "das hab' ich denen bis heute auch nicht gesagt."
@@ -111,10 +111,33 @@ class OpeningTest(unittest.TestCase):
 class EllipsisTest(unittest.TestCase):
     """A thought that does not finish.
 
-    42 of the 3,902 steps in the beginner plan were taught by one, and every
-    one of those had an ellipsis-free candidate of its own — so charging for
-    it costs no coverage at all.
+    It began as a charge and became a refusal. Charging worked -- by the time
+    the rule was reconsidered, 0 of the 3,902 teaching sentences carried one
+    and only 5 of 11,395 shown examples did -- but a sentence that trails off
+    cannot be understood alone, and being understood alone is the whole
+    promise of an i+1 sentence. So it is not a poor example of its word, it is
+    not an example of it.
+
+    Refusing is the thing that can cost coverage, so it was measured before it
+    was done: 2,170 of 274,947 well-formed sentences carry one, and every one
+    of the 4,002 goals is said in at least one sentence without. No word loses
+    its only chance of being taught.
     """
+
+    def test_a_sentence_that_trails_off_is_refused(self) -> None:
+        self.assertFalse(well_formed(
+            "das kann ich eigentlich nicht so genau sagen..."))
+
+    def test_a_stutter_in_the_middle_is_refused_too(self) -> None:
+        """Both spellings, since the corpus carries each."""
+        self.assertFalse(well_formed(
+            "Aber du bist… du bist schon in Italien gewesen und so."))
+        self.assertFalse(well_formed(
+            "Aber du bist... du bist schon in Italien gewesen und so."))
+
+    def test_a_whole_sentence_still_passes(self) -> None:
+        self.assertTrue(well_formed(
+            "Der Kanzler ist gestern von seinem Amt zurückgetreten heute."))
 
     def test_a_trailing_off_is_charged(self) -> None:
         self.assertLess(score("das kann ich eigentlich nicht so genau..."),

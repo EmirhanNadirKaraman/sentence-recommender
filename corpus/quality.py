@@ -27,7 +27,8 @@ import re
 #    with an ellipsis anywhere in it.
 # 7: a pronoun with nothing in its own sentence to attach to is charged for,
 #    once per pronoun.
-VERSION = 7
+# 8: a sentence with an ellipsis in it is refused rather than charged.
+VERSION = 8
 
 # Speech, not prose. Long enough to show the word doing something, short
 # enough to hold in mind while reading it.
@@ -230,9 +231,25 @@ def unbound(text: str) -> int:
 
 
 def well_formed(text: str) -> bool:
-    """One sentence, of a length worth reading."""
+    """One whole sentence, of a length worth reading.
+
+    An ellipsis is refused outright here, where everything else in this file
+    is merely charged for. A thought that does not finish cannot be understood
+    on its own, and being understood on its own is the entire promise of an
+    i+1 sentence -- so `das kann ich eigentlich nicht so genau...` is not a
+    poor example of the word it teaches, it is not an example of it.
+
+    Refusing rather than charging was measured first, because refusing is how
+    coverage gets lost: 2,170 of the 274,947 well-formed sentences carry one,
+    0.8%, and every one of the 4,002 goals is said in at least one sentence
+    without. So this costs no word its only chance of being taught. The
+    penalty in `score` stays for the builds that do not pass through this
+    gate, where charging is still the right treatment.
+    """
     words = len(text.split())
-    return BAND[0] <= words <= BAND[1] and not INTERNAL_BREAK.search(text)
+    return (BAND[0] <= words <= BAND[1]
+            and not INTERNAL_BREAK.search(text)
+            and not ELLIPSIS.search(text))
 
 
 def variety(text: str) -> float:
