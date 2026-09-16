@@ -115,10 +115,18 @@ class SpeakDeckCommand:
         print(f"  {fresh:,} lines recorded · {already:,} already had one · "
               f"{pieces.count():,} in the store", flush=True)
 
+        # The recipes say what each card was last built from, so this
+        # re-merges the cards whose lines moved and leaves the rest alone --
+        # including their modification times, which everything downstream
+        # re-encodes from.
+        made: dict[str, str] = {}
         written, skipped, waiting_now = speak(
             cards, de, en, card_dir, overwrite=overwrite, slow=slow,
             on_progress=self._report(started), require_gloss=not german_only,
-            on_card=note, pieces=pieces.have(), piece_dir=piece_dir)
+            on_card=note, pieces=pieces.have(), piece_dir=piece_dir,
+            recipes=pieces.card_recipes(), made=made)
+        if made:
+            pieces.remember_cards(made)
         manifest = write_manifest(cards, card_dir / "deck.tsv")
 
         spent = time.perf_counter() - started

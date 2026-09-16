@@ -29,7 +29,7 @@ from __future__ import annotations
 
 import wave
 
-from deck.pieces import path_for as pieces_path, write_wav
+from deck.pieces import key_for, path_for as pieces_path, write_wav
 from pathlib import Path
 from typing import Callable, Iterable, Protocol
 
@@ -302,6 +302,8 @@ def speak(cards: Iterable[Card], german: Speaker, english: Speaker,
           on_card: Callable[[Card, bool], None] | None = None,
           pieces: dict[str, str] | None = None,
           piece_dir: Path | None = None,
+          recipes: dict[str, str] | None = None,
+          made: dict[str, str] | None = None,
           ) -> tuple[int, int, int]:
     """Write one WAV per card. Returns (written, skipped, waiting).
 
@@ -323,6 +325,7 @@ def speak(cards: Iterable[Card], german: Speaker, english: Speaker,
     the audio was run again. `require_gloss=False` asks for the German-only
     reading deliberately.
     """
+    made = {} if made is None else made
     if german.sample_rate != english.sample_rate:
         raise SystemExit(
             f"the two voices disagree on a sample rate — {german.name} at "
@@ -335,9 +338,23 @@ def speak(cards: Iterable[Card], german: Speaker, english: Speaker,
     written = skipped = waiting = 0
     for index, card in enumerate(cards, 1):
         path = out_dir / f"{card.stem}.wav"
+        # What this card would be made of, now. A card is re-merged when its
+        # recipe has changed and left alone when it has not -- so a rebuild
+        # rewrites the handful of cards whose sentences actually moved,
+        # rather than all of them. That matters beyond the seconds it saves:
+        # rewriting a file updates its mtime, and everything downstream that
+        # re-encodes from it would follow.
+        recipe = "|".join(
+            f"{key_for(t, (german if de else english).name, sl)}:{gap:.2f}"
+            for t, de, sl, gap, _role in lines_for(card, slow))
+        # No recipes given means no way to tell, and the old answer:
+        # a file that exists is the card. Callers that track them get
+        # the precise one.
+        current = True if recipes is None else recipes.get(card.stem) == recipe
         if require_gloss and not card.glossed and not path.exists():
             waiting += 1
-        elif not card.sentence.strip() or (path.exists() and not overwrite):
+        elif not card.sentence.strip() or (
+                path.exists() and not overwrite and current):
             # A zero-length WAV plays as silence and gets mistaken for a
             # model that has stopped working.
             skipped += 1
@@ -353,6 +370,7 @@ def speak(cards: Iterable[Card], german: Speaker, english: Speaker,
                 handle.setframerate(rate)
                 handle.writeframes(bytes(body))
             written += 1
+            made[card.stem] = recipe
             if on_card is not None:
                 on_card(card, True)
         if on_progress and (index % every == 0 or index == len(cards)):

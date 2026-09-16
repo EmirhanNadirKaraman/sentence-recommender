@@ -51,6 +51,18 @@ CREATE TABLE IF NOT EXISTS audio_piece (
     made_at  TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS ix_piece_role ON audio_piece (role);
+-- What a card's clip was assembled from, so the next run can tell whether it
+-- still would be. The recipe is the ordered list of pieces and the gaps
+-- between them, which is everything the merge depends on: same recipe, same
+-- bytes. Without it the only questions available are "does the file exist"
+-- (which misses a card whose sentences changed) and "rebuild everything"
+-- (which touches 3,902 files to fix five, and re-encodes every mp3 behind
+-- them because their sources look newer).
+CREATE TABLE IF NOT EXISTS card_audio (
+    stem    TEXT PRIMARY KEY,
+    recipe  TEXT NOT NULL,
+    made_at TEXT NOT NULL
+);
 """
 
 
@@ -109,6 +121,19 @@ class PieceStore:
                 " VALUES (?,?,?,?,?,?,?,?)",
                 [(key, text, voice, int(slow), role, path, seconds, now)
                  for key, text, voice, slow, role, path, seconds in rows])
+
+    def card_recipes(self) -> dict[str, str]:
+        """What each card was last merged from, as stem -> recipe."""
+        with open_state(self._path) as conn:
+            return dict(conn.execute("SELECT stem, recipe FROM card_audio"))
+
+    def remember_cards(self, recipes: dict[str, str]) -> None:
+        now = datetime.now().isoformat(timespec="seconds")
+        with open_state(self._path) as conn:
+            conn.executemany(
+                "INSERT OR REPLACE INTO card_audio (stem, recipe, made_at)"
+                " VALUES (?, ?, ?)",
+                [(stem, recipe, now) for stem, recipe in recipes.items()])
 
     def paths_for(self, texts, role: str | None = None) -> dict[str, str]:
         """Where each of these lines was recorded, as text -> path.
