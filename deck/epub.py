@@ -38,7 +38,16 @@ body { margin: 0 6%; font-family: Georgia, "Times New Roman", serif;
 h1 { font-size: 1.4em; margin: 1.4em 0 0.8em; font-weight: normal;
      letter-spacing: 0.02em; }
 h2 { font-size: 1em; margin: 0; font-weight: bold; page-break-after: avoid; }
-.card { margin: 0 0 1.6em; page-break-inside: avoid; }
+/* One word to a page. A reader flicking through a deck wants the next
+   word to start where the last one ended, not three lines down a page it
+   is sharing — and on a phone a card that straddles a page turn hides
+   either its word or its last example. `break-*` beside `page-break-*`
+   because readers are split between the two spellings. */
+.card { margin: 0; page-break-inside: avoid; break-inside: avoid;
+        page-break-before: always; break-before: page; }
+/* Except the first on a chapter, which would otherwise leave the heading
+   alone on a page of its own. */
+.card:first-of-type { page-break-before: avoid; break-before: avoid; }
 .step { font-size: 0.75em; color: #999999; letter-spacing: 0.08em;
         margin: 0 0 0.15em; }
 .kind { font-size: 0.7em; color: #999999; letter-spacing: 0.08em;

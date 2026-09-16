@@ -22,7 +22,6 @@ import time
 from pathlib import Path
 
 from commands.export_deck import DEFAULT_LABEL
-from corpus.fixes import FixStore
 from deck import cards_from
 from deck.gloss import GlossStore, missing, run
 from generation.client import LLMClient
@@ -52,12 +51,20 @@ class GlossDeckCommand:
         glosses = GlossStore(settings.state_path)
 
         def build():
+            # No repairs applied here, deliberately. The gloss store is keyed
+            # by the sentence as the corpus holds it, so a card carrying
+            # repaired text would ask about one string and store under
+            # another — and `missing` would then see every repaired sentence
+            # as never asked, for ever.
             return cards_from(steps, decks, glosses.senses(model),
-                              glosses.sentences(model),
-                           FixStore(app.settings.state_path).all())
+                              glosses.sentences(model))
 
         cards = build()
-        todo = missing(cards)
+        # What has been *asked*, not what came back with something. A sentence
+        # the model declined has a row with nothing against it and is left
+        # alone; one that was never put to it has no row at all and is the
+        # whole point of this pass.
+        todo = missing(cards, glosses.sentences(model).keys())
         print(f"{len(cards):,} cards · {len(cards) - len(todo):,} already "
               f"done · {len(todo):,} to ask\n  {client.describe()}", flush=True)
         if not todo:

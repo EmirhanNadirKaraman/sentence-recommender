@@ -313,7 +313,7 @@ def describe(client, card: Card) -> list[tuple[str, str | None]]:
                                   response_format=RESPONSE_FORMAT), len(said))
 
 
-def missing(cards: Iterable[Card]) -> list[Card]:
+def missing(cards: Iterable[Card], asked: Iterable[str] = ()) -> list[Card]:
     """The cards still worth asking about.
 
     A card needs asking when nothing on it has been said at all — no
@@ -329,14 +329,28 @@ def missing(cards: Iterable[Card]) -> list[Card]:
     did exactly that: two of three sentences glossed, the third refused, and
     the pair queued indefinitely.
 
-    So the test now matches `Card.glossed`, which is what the renderers ask.
-    The cost is that a card can settle with one sentence untranslated, shown
-    in German alone — which is what the page already does for a sentence
-    whose sense repeats the one above it, and better than asking for ever.
+    So the test matched `Card.glossed`, which is what the renderers ask — and
+    that was right about refusals and wrong about everything else. A rebuild
+    changes which sentences teach a step, and a card holding two old sentences
+    and one newly promoted one already has English "somewhere", so it was
+    never asked again. After one rebuild that left 3,092 shown sentences with
+    no translation across 2,341 cards, and a re-run reached seven of them.
+
+    `asked` closes it, and needs nothing new to be stored: `save` already
+    writes a row for every sentence it asked about, whether or not the model
+    had anything to say. So a sentence absent from that set has never been put
+    to the model, while one present with nothing against it has been put and
+    declined. The first is worth asking; the second is the case this docstring
+    was written about, and is still left alone.
+
+    Pass the keys of `GlossStore.sentences()`. Given nothing, this behaves as
+    it did before.
     """
+    asked = frozenset(asked or ())
     return [card for card in cards
             if not any(e.translation for e in card.examples)
-            or not any(e.means for e in card.examples)]
+            or not any(e.means for e in card.examples)
+            or any(e.text not in asked for e in card.examples)]
 
 
 def run(cards: list[Card], store: GlossStore, client, model: str,
