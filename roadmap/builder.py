@@ -21,7 +21,7 @@ from heapq import nsmallest
 
 from corpus.quality import score as quality, variety
 from corpus.sentence import Sentence
-from roadmap.examples import DECK_SIZE, gaps_by_video, rank
+from roadmap.examples import DECK_SIZE, gaps_by_video, rank, spread
 from roadmap.index import CorpusIndex
 from roadmap.priority import UnitPriority
 from roadmap.step import RoadmapStep
@@ -180,13 +180,19 @@ class RoadmapBuilder:
         """
         known = self._index.known
         found = positions if self._only_goals else self._index.containing(unit)
-        return tuple(nsmallest(
+        # Spread as well as ranked, and for the same reason the verdicts are
+        # here: the deck stored with a step has to be the deck the page would
+        # rebuild, and `CorpusIndex.examples` spreads. Without this the walk
+        # wrote the plain ranking, so `der Fall` opened on `auf jeden Fall`
+        # three times over while `Das wäre der Fall, wenn es Schengen nicht
+        # mehr gäbe.` sat four rows below it, unused.
+        return tuple(spread(nsmallest(
             DECK_SIZE,
             (self._index.sentence(p) for p in found),
             # Verdicts too, or the deck stored with a step would be ranked
             # differently from the one the page rebuilds — see `rank`.
             key=rank(unit, known, self._minutes, self._gaps, self._verdicts),
-        ))
+        ), unit, DECK_SIZE))
 
     def _relaxed_step(self, position: int) -> RoadmapStep | None:
         """One step where no i+1 step exists — two new words from one sentence.
@@ -265,8 +271,21 @@ class RoadmapBuilder:
         that was the first attempt, and it quietly rebuilt the bias the score
         exists to remove — half the roadmap landed on the shortest length the
         score still called perfect.
+
+        Verdicts come first, above quality, exactly as they do in `rank`.
+        `quality` reads the characters of a sentence and can see length and
+        variety; what it cannot see is that `Zum Beispiel von Markus Söder,
+        dem Chef der CSU.` has no verb in it and is therefore a caption
+        rather than a sentence. Left out here, the 17,691 marks that pass
+        said so reached the examples beside the step and never the step
+        itself — and since the pronoun rule lives in `quality` and a verbless
+        noun phrase has no pronouns to charge, leaving this out actively
+        promoted fragments: 162 of the plan's steps were taught by one before
+        that rule, and 184 after.
         """
+        verdicts = self._verdicts or {}
         return max(
             (self._index.sentence(p) for p in positions),
-            key=lambda s: (quality(s.text), variety(s.text), s.text),
+            key=lambda s: (verdicts.get(s.text, 1.0), quality(s.text),
+                           variety(s.text), s.text),
         )
