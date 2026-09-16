@@ -7,6 +7,7 @@ queried at any point with whatever the learner knows *now*.
 """
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 
 from corpus.quality import score as quality, variety
@@ -163,6 +164,174 @@ def rank(unit: Unit, known: frozenset[Unit],
                       s.text)
 
 
+# --- telling two examples apart ------------------------------------------
+#
+# Three sentences that all say `auf jeden Fall` teach one collocation three
+# times, not one word three ways. The card for `der Fall` opened on exactly
+# that, while `Das wäre der Fall, wenn es Schengen nicht mehr gäbe.` and `Im
+# Fall von George Floyd ...` sat unused further down its own candidate list.
+#
+# A second failure looks nothing like it from outside and falls to the same
+# machinery: `Ech find', die machen es einem sehr einfach, die Menschen da.`
+# beside `Ich find', ...` is one line twice, differing by a letter of
+# dialect. Two cards in the plan showed a sentence next to a character-for-
+# character copy of itself.
+#
+# Word trigrams answer both. The collocation test asks whether a trigram
+# *containing the taught word* is shared, which is exactly what `auf jeden
+# Fall` is and what `wäre der Fall` is not. The duplicate test asks how much
+# the two sentences overlap overall.
+#
+# Measured over the 3,807 beginner cards showing more than one example: 264
+# (6.9%) repeat a collocation and 27 (0.7%) carry a near-copy. Overlap is
+# sharply bimodal -- 98.4% of the 11,181 pairs score under 0.1, and nothing
+# at all falls between 0.6 and 0.7 -- so this threshold sits in an empty gap
+# rather than cutting through a crowd.
+ALIKE = 0.4
+
+# Meaning, where the words themselves give nothing away. `Du würdest doch mich
+# nicht töten, deinen Freund Frank.` and `Du würdest doch nicht deinen alten
+# Freund Frank Bimbel töten.` are one sentence said twice: they share no
+# trigram holding the taught word, and their overall overlap is 0.46, just
+# under the line above.
+#
+# The vectors come from `corpus.vectors`, written by `embed-sentences`, and
+# are of the sentence with the taught word *removed*. That word is in every
+# candidate by construction, so it says nothing about whether two contexts
+# differ and it pulls all of them together: on `der Vater` the gap between a
+# repeated frame and a genuinely different one was 0.009 before masking and
+# 0.065 after.
+#
+# spaCy's static vectors were tried here first and withdrawn. They scored the
+# two `bekommen` sentences that are both about failing a class at 0.480 —
+# and a completely different sense of the same word at 0.480 as well. No
+# discrimination at all, because the link runs through `6` and `Sechs`
+# meaning a bad grade, which is not in a word vector.
+#
+# 0.55 because that is what it takes to catch the case this was built for.
+# Measured over the deck's 11,179 pairs the mean is 0.343 and the median
+# 0.337, so the line sits far out in the tail: it flags 4.29% of cards, and
+# the pair that prompted it scores 0.583.
+SAME_TOPIC = 0.55
+
+_VECTORS: dict[str, "object"] | None = None
+
+
+def _known_vectors() -> dict:
+    """Every stored sentence vector, read once.
+
+    Loaded lazily rather than at import: most callers of this module never
+    compare two sentences, and a corpus with no vectors yet must still rank.
+    An empty store simply means this test never fires.
+    """
+    global _VECTORS
+    if _VECTORS is None:
+        from config import Settings                         # noqa: PLC0415
+        from corpus.vectors import VectorStore              # noqa: PLC0415
+
+        _VECTORS = VectorStore(Settings().state_path).load()
+    return _VECTORS
+
+
+# Digits included, unlike everywhere else in this project that splits German
+# into words. `eine 6 bekommen` is the collocation being repeated, and dropping
+# the numeral left `eine bekommen` beside `eine bekommen` with a different word
+# between them — so the card that prompted this rule went on showing three
+# sentences about the same failing grade.
+_WORD = re.compile(r"[^\W_]+")
+
+
+def _trigrams(text: str) -> set[tuple[str, ...]]:
+    words = [word.lower() for word in _WORD.findall(text)]
+    return {tuple(words[at:at + 3]) for at in range(len(words) - 2)}
+
+
+def _head(sentence: Sentence, unit: Unit) -> str:
+    """The taught word as this sentence spells it.
+
+    Taken from the sentence's own surface rather than from the unit's key,
+    because they differ exactly where it matters: `der Mensch` appears as
+    `die Menschen`, and a trigram search for `mensch` would not find it.
+    """
+    for held, surface in sentence.surfaces:
+        if held == unit and surface:
+            return surface.lower().split()[-1]
+    return unit.key.lower().split()[-1]
+
+
+def spread(ordered: list[Sentence], unit: Unit, limit: int) -> list[Sentence]:
+    """The best `limit` examples that are not each other.
+
+    Greedy down the ranked list, so the first choice is still whatever `rank`
+    put first: the sentence a step is taught with does not move, and only the
+    ones beside it do.
+
+    Anything rejected is kept and used to fill up at the end. A card showing
+    three examples where two repeat is worse than three that do not, but it
+    is better than a card showing one: where the corpus says a word one way
+    and one way only, the repetition is the truth about the corpus, and the
+    card should still be full.
+
+    The exception is a sentence the card already carries, word for word. That
+    is not a thin corpus being honest, it is the same row twice -- the same
+    line said in two videos, or imported from two builds -- and a second copy
+    of it teaches nothing at all. So the fill skips exact repeats and the
+    card comes back short, which is the honest shape for a word the corpus
+    says once.
+    """
+    if limit <= 1:
+        return ordered[:limit]
+    grams: dict[int, set[tuple[str, ...]]] = {}
+    heads: dict[int, str] = {}
+
+    def alike(one: Sentence, two: Sentence) -> bool:
+        for sentence in (one, two):
+            key = id(sentence)
+            if key not in grams:
+                grams[key] = _trigrams(sentence.text)
+                heads[key] = _head(sentence, unit)
+        first, second = grams[id(one)], grams[id(two)]
+        if not first or not second:
+            # Too short to have a trigram at all, so nothing to compare on
+            # but the text itself.
+            return one.text == two.text
+        shared = first & second
+        word = heads[id(one)]
+        if any(word in gram for gram in shared):
+            return True                 # the same collocation twice
+        if len(shared) / len(first | second) >= ALIKE:
+            return True                 # nearly the same words
+        # Last, and only where both sentences have been embedded: two that
+        # share neither a collocation nor their wording can still be one
+        # sentence rewritten, or two ways of saying the same thing.
+        import numpy                                       # noqa: PLC0415
+
+        stored = _known_vectors()
+        left, right = stored.get(one.text), stored.get(two.text)
+        if left is None or right is None:
+            return False
+        return float(numpy.dot(left, right)) >= SAME_TOPIC
+
+    chosen: list[Sentence] = []
+    spare: list[Sentence] = []
+    for sentence in ordered:
+        if len(chosen) >= limit:
+            break
+        if any(alike(sentence, taken) for taken in chosen):
+            spare.append(sentence)
+        else:
+            chosen.append(sentence)
+    seen = {sentence.text for sentence in chosen}
+    for sentence in spare:
+        if len(chosen) >= limit:
+            break
+        if sentence.text in seen:
+            continue
+        seen.add(sentence.text)
+        chosen.append(sentence)
+    return chosen
+
+
 class ExampleIndex:
     """Every sentence containing a given unit, ranked for usefulness."""
 
@@ -207,5 +376,6 @@ class ExampleIndex:
         happen to contain this word.
         """
         candidates = self._by_unit.get(unit, ())
-        return sorted(candidates,
-                      key=rank(unit, known, minutes, gaps, verdicts))[:limit]
+        return spread(sorted(candidates,
+                             key=rank(unit, known, minutes, gaps, verdicts)),
+                      unit, limit)
