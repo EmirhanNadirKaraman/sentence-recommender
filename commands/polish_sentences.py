@@ -60,6 +60,10 @@ MISREAD_SOURCE = "misparsed"
 
 BATCH = 20
 REPORT = 2_000
+# Consecutive failed batches before the run stops asking. One bad reply is
+# ordinary; twenty in a row is the endpoint being gone, and carrying on only
+# marks every remaining sentence as owed while learning nothing.
+GIVE_UP = 20
 
 SYSTEM = (
     "You clean up German subtitle lines for a learner.\n"
@@ -169,15 +173,32 @@ class PolishSentencesCommand:
 
         blocks = [todo[at:at + batch] for at in range(0, len(todo), batch)]
 
+        # Why a batch failed, and how many have failed in a row. A run over
+        # thousands of sentences should survive one bad reply, and should not
+        # spend thirty seconds cheerfully recording ten thousand failures
+        # because the endpoint went away -- which is exactly what happened
+        # when a tunnel expired mid-run. The first reason is printed rather
+        # than swallowed, because "10,606 failed" says nothing a person can
+        # act on and "Failed to resolve" says everything.
+        trouble = {"said": False, "streak": 0}
+
         def ask(block):
+            if trouble["streak"] >= GIVE_UP:
+                return {}, {}, len(block)
             numbered = "\n".join(f"{n}. {text}"
                                  for n, text in enumerate(block, start=1))
             try:
                 reply = client.complete(SYSTEM, numbered, temperature=0.1,
                                         response_format=RESPONSE_FORMAT)
                 rows = json.loads(_FENCE.sub("", reply.strip()))["sentences"]
-            except Exception:                               # noqa: BLE001
+            except Exception as error:                      # noqa: BLE001
+                trouble["streak"] += 1
+                if not trouble["said"]:
+                    trouble["said"] = True
+                    print(f"  ! {type(error).__name__}: {error}"[:200],
+                          flush=True)
                 return {}, {}, len(block)
+            trouble["streak"] = 0
             fixes, dialect = {}, {}
             for row in rows:
                 index = int(row.get("n", 0)) - 1
@@ -253,3 +274,7 @@ class PolishSentencesCommand:
         print(f"  {len(dialect):,} are dialect, marked at {DIALECT}")
         if failed:
             print(f"  {failed:,} failed and are still owed — run it again")
+        if trouble["streak"] >= GIVE_UP:
+            raise SystemExit(
+                f"gave up after {GIVE_UP} batches in a row failed — the "
+                "endpoint looks unreachable; nothing already stored is lost")
