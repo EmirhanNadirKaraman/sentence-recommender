@@ -60,3 +60,9 @@ data/voices/
 # contents are in the state database as well; this is the readable copy.
 out/gloss.log
 out/speak.log
+
+# Where long runs write their logs, so they are findable next to the output
+# they produced rather than in a session temp directory that holds every log
+# since the project started. Ignored for the same reason as the two above:
+# whatever they say that matters is in the database or in the deck.
+out/logs/

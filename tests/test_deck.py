@@ -362,7 +362,7 @@ class GlossVoiceTest(unittest.TestCase):
         card = Card(1, "die Zeit", True, tuple(
             Example(f"Satz {i}.", f"Sentence {i}.", "die Zeit means time.")
             for i in (1, 2, 3)), None, 1)
-        german = [t for t, de, _, _ in lines_for(card) if de]
+        german = [t for t, de, _, _, _ in lines_for(card) if de]
         self.assertEqual(german.count("die Zeit"), 2)   # the word, then one gloss
 
 

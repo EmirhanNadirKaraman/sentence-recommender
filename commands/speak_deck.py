@@ -20,9 +20,10 @@ from commands.export_deck import DEFAULT_LABEL
 from corpus.fixes import FixStore
 from deck import cards_from
 from deck.gloss import GlossStore
+from deck.pieces import PieceStore
 from deck.speech import (DEFAULT_ENGLISH, DEFAULT_GERMAN, DEFAULT_HF_MODEL,
                          PiperSpeaker, TransformersSpeaker, speak,
-                         write_manifest)
+                         synthesise, write_manifest)
 from roadmap.store import RoadmapStore
 
 
@@ -90,10 +91,27 @@ class SpeakDeckCommand:
                 handle.write(f"{card.position:>5}  {card.spoken}\n")
 
         started = time.perf_counter()
+
+        # Two phases, and the split is the point. The first records every
+        # distinct line the deck says, once, named by what it says; the
+        # second lays those end to end into a card. Only the first costs a
+        # voice, and it is the one a rebuild almost never has work for --
+        # reordering the plan changes which lines go together, not what the
+        # lines are.
+        pieces = PieceStore(settings.state_path)
+        piece_dir = out_dir / "pieces"
+        speakable = [c for c in cards if c.glossed or german_only]
+        fresh, already = synthesise(
+            speakable, de, en, pieces, piece_dir, slow=slow,
+            on_progress=lambda n, total: print(
+                f"  … {n:,} of {total:,} lines recorded", flush=True))
+        print(f"  {fresh:,} lines recorded · {already:,} already had one · "
+              f"{pieces.count():,} in the store", flush=True)
+
         written, skipped, waiting_now = speak(
             cards, de, en, out_dir, overwrite=overwrite, slow=slow,
             on_progress=self._report(started), require_gloss=not german_only,
-            on_card=note)
+            on_card=note, pieces=pieces.have(), piece_dir=piece_dir)
         manifest = write_manifest(cards, out_dir / "deck.tsv")
 
         spent = time.perf_counter() - started

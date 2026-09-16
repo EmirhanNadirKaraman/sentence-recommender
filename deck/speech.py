@@ -28,6 +28,8 @@ after 3,000 files is a worse failure than a slow one.
 from __future__ import annotations
 
 import wave
+
+from deck.pieces import path_for as pieces_path, write_wav
 from pathlib import Path
 from typing import Callable, Iterable, Protocol
 
@@ -170,8 +172,14 @@ def _silence(seconds: float, rate: int) -> bytes:
 
 
 def lines_for(card: Card,
-              slow: bool = False) -> list[tuple[str, bool, bool, float]]:
-    """The card as (text, is_german, is_slow, gap_after), in reading order.
+              slow: bool = False
+              ) -> list[tuple[str, bool, bool, float, str]]:
+    """The card as (text, is_german, is_slow, gap_after, role), in order.
+
+    `role` says what each line is for -- `word`, `de`, `en`, `means` -- and it
+    is here rather than inferred later because only this function knows. A
+    caller that wants the German alone, or the word and one example, filters
+    on it; without it, an arrangement can only be had by recording one.
 
     The slow flag belongs here rather than in `speak`, because this is the
     only place that knows which line is a repeat. Decided there instead, the
@@ -182,17 +190,18 @@ def lines_for(card: Card,
     means the sense has not changed and repeating it would say the same thing
     three times.
     """
-    out: list[tuple[str, bool, bool, float]] = [
-        (card.spoken, True, False, GAP_AFTER_WORD)]
+    out: list[tuple[str, bool, bool, float, str]] = [
+        (card.spoken, True, False, GAP_AFTER_WORD, "word")]
     said_already: str | None = None
     for index, example in enumerate(card.examples):
-        out.append((example.text, True, False, GAP_AFTER_LINE))
+        out.append((example.text, True, False, GAP_AFTER_LINE, "de"))
         if slow and index == 0:
             # The teaching sentence only. A slow repeat of all three doubles
             # a clip that is already eight utterances long.
-            out.append((example.text, True, True, GAP_AFTER_LINE))
+            out.append((example.text, True, True, GAP_AFTER_LINE, "de"))
         if example.translation:
-            out.append((example.translation, False, False, GAP_AFTER_LINE))
+            out.append((example.translation, False, False,
+                        GAP_AFTER_LINE, "en"))
         if example.means and example.means != said_already:
             # Split across the two voices: the word in German, the rest in
             # English. See `split_gloss`.
@@ -200,12 +209,89 @@ def lines_for(card: Card,
             for at, (text, is_german) in enumerate(pieces):
                 gap = (GAP_AFTER_LINE if at == len(pieces) - 1
                        else GAP_MID_GLOSS)
-                out.append((text, is_german, False, gap))
+                out.append((text, is_german, False, gap, "means"))
             said_already = example.means
         if index != len(card.examples) - 1:
-            text, german, is_slow, _ = out[-1]
-            out[-1] = (text, german, is_slow, GAP_BETWEEN_EXAMPLES)
+            text, german, is_slow, _, role = out[-1]
+            out[-1] = (text, german, is_slow, GAP_BETWEEN_EXAMPLES, role)
     return out
+
+
+def needed_pieces(cards: Iterable[Card], german: Speaker, english: Speaker,
+                  slow: bool = False) -> dict[str, tuple[str, str, bool, str]]:
+    """Every distinct line the deck says, as key -> (text, voice, slow, role).
+
+    Distinct is the point. `Den Link findet ihr unten` is said by whichever
+    cards teach its words, and one recording serves all of them -- so this is
+    far smaller than the sum of the cards, and smaller again on a rebuild,
+    where almost every line is one the corpus already said.
+    """
+    from deck.pieces import key_for                               # noqa: PLC0415
+
+    wanted: dict[str, tuple[str, str, bool, str]] = {}
+    for card in cards:
+        for text, is_german, is_slow, _gap, role in lines_for(card, slow):
+            if not text.strip():
+                continue
+            name = (german if is_german else english).name
+            # `setdefault`, not assignment: one recording can serve several
+            # roles. The word `etwas machen` is also how its meaning line
+            # opens, so both hash to one piece -- correctly, since it is one
+            # sound -- and assigning would label it by whichever came last.
+            # Reading order puts the primary use first, so the first wins.
+            wanted.setdefault(key_for(text, name, is_slow),
+                              (text, name, is_slow, role))
+    return wanted
+
+
+def synthesise(cards: Iterable[Card], german: Speaker, english: Speaker,
+               store, root: Path, slow: bool = False,
+               on_progress: Callable[[int, int], None] | None = None,
+               every: int = 200) -> tuple[int, int]:
+    """Record every line the deck says that has not been recorded already.
+
+    Returns (written, skipped). Nothing here knows about cards beyond which
+    lines they contain: a piece belongs to the text, not to the step that
+    happens to teach it today.
+    """
+    wanted = needed_pieces(cards, german, english, slow)
+    have = store.have()
+    todo = [(key, row) for key, row in wanted.items() if key not in have]
+    rate = german.sample_rate
+    rows, written = [], 0
+    for index, (key, (text, name, is_slow, role)) in enumerate(todo, start=1):
+        voice = german if name == german.name else english
+        path = pieces_path(root, key)
+        seconds = write_wav(path, voice.pcm(text, slow=is_slow), rate)
+        rows.append((key, text, name, is_slow, role, str(path), seconds))
+        written += 1
+        if len(rows) >= 200:
+            store.add_many(rows)
+            rows = []
+        if on_progress and (index % every == 0 or index == len(todo)):
+            on_progress(index, len(todo))
+    if rows:
+        store.add_many(rows)
+    return written, len(wanted) - len(todo)
+
+
+def _pcm_for(text: str, voice: Speaker, slow: bool,
+             pieces: dict[str, str] | None, root: Path | None) -> bytes:
+    """The line as audio, from the piece store if it is there.
+
+    Falling back to the voice when it is not, so this works with no store at
+    all -- which is what makes a card recordable without one, and what keeps
+    the merge honest if a piece has been deleted from under it.
+    """
+    if pieces is not None and root is not None:
+        from deck.pieces import key_for, read_pcm                # noqa: PLC0415
+
+        stored = pieces.get(key_for(text, voice.name, slow))
+        if stored:
+            path = Path(stored)
+            if path.is_file():
+                return read_pcm(path)
+    return voice.pcm(text, slow=slow)
 
 
 def speak(cards: Iterable[Card], german: Speaker, english: Speaker,
@@ -214,6 +300,8 @@ def speak(cards: Iterable[Card], german: Speaker, english: Speaker,
           every: int = 25,
           require_gloss: bool = True,
           on_card: Callable[[Card, bool], None] | None = None,
+          pieces: dict[str, str] | None = None,
+          piece_dir: Path | None = None,
           ) -> tuple[int, int, int]:
     """Write one WAV per card. Returns (written, skipped, waiting).
 
@@ -255,9 +343,9 @@ def speak(cards: Iterable[Card], german: Speaker, english: Speaker,
             skipped += 1
         else:
             body = bytearray()
-            for text, is_german, is_slow, gap in lines_for(card, slow):
+            for text, is_german, is_slow, gap, _role in lines_for(card, slow):
                 voice = german if is_german else english
-                body += voice.pcm(text, slow=is_slow)
+                body += _pcm_for(text, voice, is_slow, pieces, piece_dir)
                 body += _silence(gap, rate)
             with wave.open(str(path), "wb") as handle:
                 handle.setnchannels(1)
