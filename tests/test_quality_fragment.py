@@ -76,10 +76,23 @@ class OpeningTest(unittest.TestCase):
     """
 
     def test_an_opening_quote_is_fine(self) -> None:
-        for opened in ('"Na?" ist eine ganze Frage auf Deutsch heute.',
-                       '„Das ist alles", sagte er zu mir gestern Abend.',
-                       "(Sie) sagt also, das ist ein guter Comedian heute."):
-            self.assertGreater(score(opened), 0.9, opened)
+        """A comparison rather than a threshold, and deliberately so.
+
+        What this rule owes is that the mark itself costs nothing, which is
+        exactly the same sentence scoring the same with and without it. An
+        absolute floor said more than that, and broke the day an unrelated
+        rule arrived: `„Das ist alles", sagte er zu mir gestern Abend.` is
+        charged for `das` and `er` having nobody to refer to, which is true,
+        is the pronoun rule's business, and is not this one's.
+        """
+        for opened, bare in (
+                ('"Na?" ist eine ganze Frage auf Deutsch heute.',
+                 'Na ist eine ganze Frage auf Deutsch heute.'),
+                ('„Das ist alles", sagte er zu mir gestern Abend.',
+                 'Das ist alles, sagte er zu mir gestern Abend.'),
+                ("(Sie) sagt also, das ist ein guter Comedian heute.",
+                 "Sie sagt also, das ist ein guter Comedian heute.")):
+            self.assertEqual(score(opened), score(bare), opened)
 
     def test_a_mark_that_cannot_open_is_charged(self) -> None:
         """A closing bracket with nothing opened, a dangling dash: the line

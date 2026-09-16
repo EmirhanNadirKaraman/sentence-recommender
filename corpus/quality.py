@@ -25,7 +25,9 @@ import re
 # 6: a sentence whose first letter is lowercase is a fragment, and so is one
 #    opening with punctuation that cannot begin a sentence, and so is one
 #    with an ellipsis anywhere in it.
-VERSION = 6
+# 7: a pronoun with nothing in its own sentence to attach to is charged for,
+#    once per pronoun.
+VERSION = 7
 
 # Speech, not prose. Long enough to show the word doing something, short
 # enough to hold in mind while reading it.
@@ -110,6 +112,122 @@ ELLIPSIS = re.compile(r"\.\.\.|…")
 # regex per sentence to discover something already guaranteed.
 FRAGMENT_PENALTY = 0.7
 
+# A pronoun is only as good as what it points at. `Warum hast du ihm nicht
+# gesagt, dass Riton Albana ist?` is perfectly clear -- `ihm` is a person the
+# sentence goes on to name -- while `Und jetzt erwartet der von ihnen, dass
+# sie ihm glauben.` is three pronouns and no one to hang them on. The
+# difference is not how many pronouns there are, which is why counting them
+# was useless: 53.6% of the roadmap has one and German simply talks that way.
+#
+# What separates the two is whether the sentence contains its own antecedent,
+# and German orthography answers that almost for free. Nouns are capitalised,
+# so a capitalised word earlier in the sentence is something a later pronoun
+# can refer to. Measured over the 3,902 beginner steps this flags 714 (18.3%),
+# and 689 of those steps have a pronoun-free candidate already among the
+# examples the picker kept -- so it is nearly all reordering.
+#
+# First and second person are deliberately absent. `ich` and `du` are fixed by
+# the act of speaking: a sentence with `ich` in it is about whoever said it,
+# and needs no earlier line to be understood.
+THIRD_PERSON = frozenset(("er", "ihn", "ihm", "sie", "ihr", "ihnen", "es"))
+
+# `das` and its relatives do a pronoun's work as often as an article's, and
+# only the pronoun reading points outside the sentence. Nouns being
+# capitalised settles this one too: an article is followed by its noun, across
+# an adjective or two at most, so a determiner with no capitalised word behind
+# it is standing in for something that was said earlier.
+DETERMINER = frozenset(("das", "dies", "die", "der", "den", "dem", "denen",
+                        "deren", "dessen"))
+LOOKAHEAD = 3           # how far past a determiner its noun may sit
+
+# Two readings that look like context-dependence and are not. Both were found
+# by reading what the rule flagged: `Wie ihr wisst, ist es schwierig, eine
+# Sprache zu lernen.` was charged twice and is completely self-contained.
+#
+#   `ihr` before a lowercase verb is "you", the second person plural, and is
+#   fixed by the act of speaking exactly as `du` is. Before a capitalised word
+#   it is the possessive, whose noun is right there.
+#
+#   `es` before a `dass`/`ob` clause or a `zu`-infinitive is a placeholder
+#   holding the subject's seat for what comes after it, in the same sentence.
+#   So are the fixed frames `es gibt` and the weather verbs.
+#
+# Together these were 86 of the 800 the rule first flagged -- more than a
+# tenth of it, all of them good sentences.
+FORWARD = frozenset(("dass", "ob"))
+ES_FRAME = frozenset(("gibt", "geht", "regnet", "schneit"))
+# `zu` marks an infinitive only when an infinitive follows it. In `Es war
+# wirklich viel zu teuer.` it means "too", and reading it as the other `zu`
+# excused a pronoun that genuinely points outside the sentence. German
+# infinitives end in `-en`; the determiners that also do are listed out,
+# because `zu den Gästen` is the same shape and is not an infinitive either.
+NOT_INFINITIVE = frozenset((
+    "den", "dem", "denen", "einen", "einem", "diesen", "jenen", "allen",
+    "vielen", "beiden", "anderen", "seinen", "ihren", "meinen", "deinen",
+    "unseren", "euren", "keinen", "welchen", "solchen",
+))
+
+
+def _zu_infinitive(words: list[str]) -> bool:
+    """Is there a `zu` here with an infinitive behind it?"""
+    for index, word in enumerate(words[:-1]):
+        behind = words[index + 1]
+        if word == "zu" and behind.endswith("en") \
+                and behind not in NOT_INFINITIVE:
+            return True
+    return False
+
+# Charged per pronoun, so two unresolved ones cost more than one. The size is
+# about two words off the ideal length, which is the trade it is meant to
+# make: a clean seven-word sentence should beat a nine-word one that opens on
+# an `er` nobody has met.
+UNBOUND_PENALTY = 0.85
+
+WORD = re.compile(r"[^\W\d_]+")
+
+
+def _noun_at(tokens: list[str]) -> int | None:
+    """Where the first word that could be an antecedent stands.
+
+    A capitalised token, ignoring the first position -- every German sentence
+    capitalises its opening word, so position zero says nothing.
+    """
+    for index in range(1, len(tokens)):
+        if tokens[index][:1].isupper():
+            return index
+    return None
+
+
+def unbound(text: str) -> int:
+    """How many pronouns in `text` have nothing inside it to attach to."""
+    tokens = WORD.findall(text)
+    if not tokens:
+        return 0
+    lowered = [token.lower() for token in tokens]
+    noun = _noun_at(tokens)
+    count = 0
+    for index, word in enumerate(lowered):
+        if noun is not None and noun < index:
+            break                       # an antecedent stands before the rest
+        if word == "ihr":
+            after = tokens[index + 1] if index + 1 < len(tokens) else ""
+            if after[:1].isupper() or after.endswith("t"):
+                continue                # "ihr Vater", or "ihr wisst"
+        elif word == "es":
+            rest = lowered[index + 1:]
+            if set(rest) & FORWARD or _zu_infinitive(rest):
+                continue                # holding a seat for what follows
+            if rest[:1] and rest[0] in ES_FRAME:
+                continue                # `es gibt`, `es regnet`
+        elif word in DETERMINER:
+            behind = tokens[index + 1:index + 1 + LOOKAHEAD]
+            if any(token[:1].isupper() for token in behind):
+                continue                # an article, with its noun behind it
+        elif word not in THIRD_PERSON:
+            continue
+        count += 1
+    return count
+
 
 def well_formed(text: str) -> bool:
     """One sentence, of a length worth reading."""
@@ -168,4 +286,7 @@ def score(text: str) -> float:
         length *= FRAGMENT_PENALTY
     if ELLIPSIS.search(text):
         length *= FRAGMENT_PENALTY
+    # Last, and multiplicative like the rest: a sentence can be a fragment
+    # *and* open on an unresolved pronoun, and it should be charged for both.
+    length *= UNBOUND_PENALTY ** unbound(text)
     return length
