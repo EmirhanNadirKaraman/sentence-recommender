@@ -13,6 +13,7 @@ from .detect_language import DetectLanguageCommand
 from .judge_sentences import JudgeSentencesCommand
 from .embed_sentences import EmbedSentencesCommand
 from .polish_sentences import PolishSentencesCommand
+from .progress import ProgressCommand
 from .export_anki import ExportAnkiCommand
 from .export_deck import ExportDeckCommand
 from .gloss_deck import GlossDeckCommand
@@ -37,6 +38,7 @@ __all__ = [
     "JudgeSentencesCommand",
     "EmbedSentencesCommand",
     "PolishSentencesCommand",
+    "ProgressCommand",
     "ExportAnkiCommand",
     "ExportDeckCommand", "GlossDeckCommand", "ExportSubtitlesCommand",
     "SpeakDeckCommand", "UnblockCommand",

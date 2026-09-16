@@ -15,6 +15,7 @@ from commands import (
     JudgeSentencesCommand,
     EmbedSentencesCommand,
     PolishSentencesCommand,
+    ProgressCommand,
     ExportAnkiCommand, ExportDeckCommand,
     GlossDeckCommand,
     ExportSubtitlesCommand,
@@ -218,6 +219,12 @@ def _parser() -> argparse.ArgumentParser:
     polish.add_argument("--workers", type=int, default=4)
     polish.add_argument("--all", action="store_true", dest="everything",
                         help="every candidate the walk weighed, not just\n                             the sentences a card shows")
+
+    progress = sub.add_parser(
+        "progress",
+        help="how much of the deck is translated, recorded and merged",
+    )
+    progress.add_argument("--label", default=None)
 
     check = sub.add_parser(
         "check-model",
@@ -677,6 +684,8 @@ def main() -> int:
         PolishSentencesCommand().run(app, args.label, args.limit,
                                      args.batch, args.workers,
                                      args.everything)
+    elif args.command == "progress":
+        ProgressCommand().run(app, args.label)
     elif args.command == "check-model":
         CheckModelCommand().run(app, args.steps)
     elif args.command == "export-deck":
