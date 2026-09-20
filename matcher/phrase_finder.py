@@ -305,6 +305,7 @@ def carries_another_verb(token) -> bool:
 # corpus at a score of 1.00. The canonical has to exist in `phrase_table`
 # to become a unit, which is what the migration `es gibt` added it for.
 EXPLETIVE = {"geben": "es gibt"}
+CLITIC = {"gibt's": "es gibt", "gibt’s": "es gibt", "gibts": "es gibt"}
 
 
 def expletive_construction(token):
@@ -320,11 +321,22 @@ def expletive_construction(token):
     left alone: the tokeniser does not split it, and where it does, `'s`
     is the accusative as often as the expletive (`er gibt's mir`).
     """
+    # The clitic first, before the lemma is trusted: `gibt's` and `gibts`
+    # stay one token, tagged as a verb with the lemma `gibt's` or `gibt'sn`,
+    # so the sentence carried a nonsense lemma and no construction; with a
+    # curly apostrophe the parser splits `gibt` from `’s` and credited
+    # *give*. 349 teachable subtitle sentences, twenty of twenty read as
+    # `es gibt`. The `es` index is None when it is fused into the verb.
+    text = token.text.lower()
+    if text in CLITIC:
+        return CLITIC[text], None
     canonical = EXPLETIVE.get(token.lemma_.lower())
     if canonical is None:
         return None
     for child in token.children:
         if child.dep_ == "ep" and child.text.lower() == "es":
+            return canonical, child.i
+        if child.text.lower() in ("'s", "’s") and child.dep_ in ("sb", "ep", "oa"):
             return canonical, child.i
     head = token.head
     if token.dep_ == "oc" and head is not token and carries_another_verb(head):
@@ -427,8 +439,9 @@ def extract_german_logic(doc, overrides=None):
             if expletive is not None:
                 blueprint, es = expletive
                 match_info = "exact (expletive)"
-                indices.append(es)
-                consumed.add(es)
+                if es is not None:
+                    indices.append(es)
+                    consumed.add(es)
             elif "sich" in components:
                 blueprint = verb_blueprint_map.get(f"sich {full_verb}")
                 if blueprint is not None:

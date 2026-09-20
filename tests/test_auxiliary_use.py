@@ -110,6 +110,15 @@ class ExpletiveTest(unittest.TestCase):
         self.assertIn("es gibt", self.phrases("Es wird immer Probleme geben."))
         self.assertIn("es gibt", self.phrases("Es kann Ausnahmen geben."))
 
+    def test_the_clitic_is_the_construction(self) -> None:
+        """`gibt's` stays one token with a nonsense lemma; `gibt’s` splits
+        and was credited with *give*. Both are `es gibt`."""
+        for text in ("Da gibt's auch Probleme.", "Da gibt’s den Kanal.",
+                     "Für alle gibts auch ne gute Nachricht."):
+            found = self.phrases(text)
+            self.assertIn("es gibt", found, text)
+            self.assertNotIn(self.GIVE, found, text)
+
     def test_giving_it_is_still_giving(self) -> None:
         """`es` as the accusative object is the thing given, not the expletive."""
         found = self.phrases("Sie gibt es ihm.")
