@@ -1820,6 +1820,51 @@ question version. Each group gets its few-hundred-row measurement first,
 and nothing runs without a go. The B-question re-score on the 450 is
 written (`arm jev plain`) and unrun.
 
+**The questions, decided one by one the same evening.** Quality first;
+grammar out — "I don't want grammar that much, I care more about the
+quality of the sentences." Six survive:
+
+  * `stands_alone` — *Can the sentence be understood without requiring
+    more context?* The reader's own wording; it asks the thing rather
+    than listing the ways it fails, and it means the sentence is judged
+    alone, so the line before it left the state. Replaces `unbound`.
+  * `complete` — *Is the sentence one whole utterance, something someone
+    finished saying?* Replaces `well_formed`, the `parser` verdicts of
+    `judge-sentences`, and `filter._repeats`.
+  * `standard` — *Is it ordinary standard German?* Casual speech and
+    contractions count as standard. Replaces the flat 0.5 dialect mark.
+  * `well_formed` — *Is it correct German as a native speaker would say
+    it?* Names of people, places and brands, numbers, and foreign words
+    used as German uses them are taken as given and never count against
+    it — asked about and settled: a name cannot be judged for spelling
+    from one sentence, and `FREE_TAGS` already says a name costs nothing.
+    Replaces nothing; it is the signal the gloss refusal had been standing
+    in for, and it says which sentences the repair model should be asked
+    about at all.
+  * `plain`, one per pattern unit — *the word itself, in any ordinary
+    sense or frame, not a fixed expression and not a look-alike?* B's
+    question; the 450 labels give it 398 yes and 50 no. Ranks a card's
+    examples.
+  * `expression` — *does the sentence contain a fixed multiword expression
+    a learner needs whole?* A filter, since Jev names nothing: the yes-set
+    goes to the local model for "which one", and what comes back a hundred
+    times is a candidate unit. The only path to `und zwar` and `na ja`,
+    which hang on no pattern unit.
+
+Dropped: `register` (a Choice over conversation / explanation /
+specialist / meta — taste, which lives at the channel level and in the
+hide button) and `demand` (a Score of grammatical load for ordering a
+card's examples — length keeps doing that job). Merging subtitle lines by
+Jev — a Choice per cue boundary, code joins the runs, about a dollar —
+was asked about and declined: the merging logic stays as it is.
+
+State per request: `sentence`, `tokens`, `units` with spoken form,
+canonical and token indices, `notation`. Seven hundred to nine hundred
+input tokens a sentence; the 262k teachable subtitle sentences come to
+roughly $8–11 and four hours at the rate limit, once. Before it: `plain`
+on the 450 rows, and the four quality questions on a slice of three
+hundred against what the rules already say — each with a go.
+
 **What this does not settle.** The list writes `stehen<TAB>jdm. (Dat)
 stehen` and means the verb; the frame came from the dictionary. Once rows
 are judged, the goal `jdm. (Dat) stehen` would teach *to suit someone* from
