@@ -1337,3 +1337,399 @@ needed to adopt this.
 Verified from both sides: the teachable corpus loads 309,988 sentences with
 the default and 315,217 with `german_only=False`, and the sentence teaching
 step 5 is absent from the first and present in the second.
+
+## Judgement
+
+### 26. Where a model's judgement could stand in for a rule — surveyed, not built
+
+Surveyed 2026-09-20 against TypeSafe's Jev (`jev-1.13.0`), read from the
+live docs that day. What Jev is, in one paragraph: a hosted model that takes
+some state and a set of typed questions and returns answers with
+probabilities — a **Noul** is a yes/no with P(yes), a **Choice** picks one of
+up to 255 options and gives the distribution, a **Score** places the state on
+2–10 described levels. It generates no text. Every question in a request is
+evaluated against the same state, independently and in parallel, and the
+state is charged once per request. $0.042 per million input tokens, output
+free; 64k tokens of context; 1,200 requests a minute. The vendor's own
+limitations page says it reads instructions literally, cannot count or do
+arithmetic, does not treat its input as hostile, and — the line that matters
+most here — the state page says *"Primary training uses English; other
+languages have lower accuracy currently."* Nothing below is worth wiring
+until that has been measured on German, which is what the last section is
+for.
+
+**Can it run without the API? No.** There are no weights, no container and
+no offline mode; the docs index has no self-hosting page, `models.md`
+documents one endpoint, and the SDK (`typesafe-sdk`, Python ≥ 3.10) is a
+thin HTTP client for it. `TYPESAFE_BASE_URL` exists, but it redirects that
+client to a proxy or a mock — there is no Jev to put behind it. A key comes
+from console.typesafe.ai; the docs state no free tier either way. So using
+it means sentences leave this machine, which this project has avoided by
+design (`generation/client.py` is "the local model client"; the voices are
+local). Said once, here, and not again per item below.
+
+What *can* be had locally is the shape. The endpoint in `.env` already does
+guided decoding — `response_format` in `LLMClient.complete` — so a yes/no
+question with a two-value enum is one output token, and asked with
+`logprobs` that token's probability is a stand-in for a Noul. Three things
+are lost: it is not calibrated (a chat model's yes/no logprob is famously
+overconfident), questions run one generation at a time rather than in
+parallel over one read of the state, and it is seconds rather than
+milliseconds. What is kept is that nothing leaves. llama.cpp's server and
+vLLM return `logprobs`; whether the current endpoint does is one
+`check-model` call. This is the fallback for every item below, and for a
+few of them it may simply be the answer.
+
+**What i+1 is not.** The ChatGPT note that prompted this survey leads with
+"the best application is your i+1 / sentence-selection system": replace the
+hard rule with `good_i_plus_one: probability`. That is the one thing not to
+do. i+1 here is a count — `sentence.units - known - {target}` is empty — over
+`Unit`, which item 22 already calls the atom of the whole system: 1.7M unit
+rows, the known set, the walk, compounds, aliases. It is exact, it is
+instant, and the vendor's limitations page says of its own model that
+counting is unreliable and "we strongly recommend implementing any
+mathematical logic in code." The same goes for the note's probabilistic
+known set (`während 0.43`): what the reader knows is a list they edit and a
+quiz confirms, and a probability there would change the atom, not decorate
+it. And the "grammar feature vector" is item 22's cheap half, which item 22
+already says is nearly free from the spaCy parse in hand — a Noul fan-out
+(`contains_subordinate_clause`, `contains_konjunktiv_ii`, ...) is the
+model-shaped alternative, worth measuring only if the parse-based tags
+prove unreliable on subtitle German, which nobody has checked yet.
+
+What a model *can* add is the axis the count has no opinion on: whether the
+sentence is worth showing. That axis already has a home — `sentence_verdict`,
+built for item 23, read by `roadmap/examples.rank` and the walk's picker
+above `quality` — and half of what follows lands there.
+
+**Where a rule is standing in for a judgement.** Ranked by how little text
+has to leave and how much a wrong rule currently costs. Every cost below is
+an estimate from average sizes (an example sentence averages 62 characters,
+call it 20 tokens; a Noul with criteria 60–120 tokens) and is to be replaced
+by measuring the first hundred and multiplying.
+
+*1. Which compounds a reader can get from their parts.* `data/compounds.txt`
+holds 184 checked lines above the marker and 4,830 guesses below it, drained
+one keystroke at a time by `review_compounds.py`, and `vocab/compounds.py`
+records that about a third of the guesses are wrong: `hochzeit` splits
+perfectly into `hoch` and `zeit` and means wedding. The rule that generated
+them — both halves are words the corpus says thirty times — cannot see
+meaning, and meaning is the whole question. It is one Noul: *would a learner
+who knows `hoch` and `die Zeit`, and nothing else about this word, take
+`Hochzeit` to mean what it means?* — with the compound, its parts and one
+corpus sentence as state. Route on the probability: above a threshold, above
+the marker; below one, out; the band between stays in the keystroke queue,
+which is the consistency cookbook's shape and turns 4,830 into however many
+the model is unsure of. About 200 tokens each, a million in all: **four
+cents, four minutes.** Nothing changes at runtime — the answer is a file.
+
+One thing to fix before measuring it. `review_compounds.py` deletes a line on
+`p`, so the file holds 184 kept positives and not one kept negative, and
+`git log` recovers nothing: the file was committed once, already reviewed.
+That is the mistake `vocab/function_words.py` records — "the word list is
+derived and can be rebuilt; the judgements about it cannot" — made again in
+the next file over. A `p` should strike the line, not remove it. Until it
+does, a calibration set means two hundred fresh hand labels.
+
+*2. Which word a goal key teaches.* `vocab/aliases.heads` parses the study
+list's own format — `etw./jdn. (Akk) haben`, `jdm. (Dat) etw. (Akk) geben`,
+`gern, gerne`, `die E-Mail` — with `ROLES`, `ARTICLES`, `PREPOSITIONS`, the
+`_ROLE` regex, a two-pass filter and a comma split, and its docstrings list
+the words it had to be taught one at a time (`das Gen` against `(Gen)`, `der
+Dank` against `dank`, 39 verbs left unnamed by one version of the
+preposition rule). `commands/hunt_videos._search_terms` then parses the same
+keys again with a different slot list, `_SLOTS`, and the two need not agree.
+This is the complex parsing the survey was asked about, and it is a Choice
+with the answer set generated in code: the candidates are the key's own
+tokens, the question is *which of these is the word being taught, or none if
+it teaches a phrase*. Roughly 4,100 keys at 150 tokens: **three cents.** The
+honest note is that the model is not the point here — the point is that the
+answer is written down once, as a third column of `study_list.txt`, and both
+parsers go. The local model, or an afternoon, would also do it; Jev would do
+it in a minute with a probability beside each row saying which ones to read.
+
+*3. Whether a sentence stands on its own.* `corpus/quality.unbound` asks one
+semantic question — does every pronoun in this sentence have its referent
+inside it? — and answers it with orthography: `THIRD_PERSON`, `DETERMINER`
+with a `LOOKAHEAD` of three for its noun, `FORWARD` and `ES_FRAME` for the
+placeholder `es`, `NOT_INFINITIVE` to keep `zu den Gästen` from excusing a
+`zu`, `ihr` before a lowercase verb. Each list was added after reading what
+the previous one flagged (86 of the first 800 flags were good sentences), and
+the next reading will add another. `well_formed` and `score` do the same for
+"is this a whole utterance" with `CANNOT_OPEN`, the lowercase-first rule and
+the ellipsis; `judge-sentences` does it for "has this a main clause" with the
+STTS finite tags and a second parse with the first letter lowercased to
+un-mislead the tagger, and stores the result as 21,479 `parser` verdicts;
+`filter._repeats` does it for "is this one thing said twice." These are four
+rules approximating three Nouls — *complete sentence with a finite verb;
+understandable without the lines before it; one utterance, not a repeat or
+a cut* — and the answers land where the parser's already do, as a new
+`source` in `sentence_verdict`, stored as the raw probability with the
+threshold in code so a reweighting never reruns anything. Sizes: the 11,398
+sentences the deck shows, **12 cents, ten minutes**; the 61,978 the walk
+weighed, **65 cents, an hour**; the 315k teachable corpus, **about $3.30
+and four and a half hours** at one sentence per request, less if several
+sentences share one state. The rules stay as the no-network path — the
+verdict is one more source, not a flag beside them.
+
+*4. Standard German.* `polish-sentences` asks the local model two things in
+one call and its docstring says why the second needs a model at all: four
+cheap tests for dialect were tried and thrown away. The two halves should be
+split, because only one of them can move. The repair is generation and
+stays where it is. The `standard` boolean is a Noul — *ordinary standard
+German, allowing casual speech and contractions like `hab' ich`* — and it
+comes back as a probability instead of a flat 0.5 for all 174 marked
+sentences, which lets `Schaun mer mol` and a sentence with one regional word
+in it be told apart. A free rider on the standing-on-its-own pass above:
+one more question on the same state, **four cents** over the shown deck.
+
+*5. Whether a repair repaired anything.* `corpus/fixes.real_damage` decides
+which of the model's 2,047 rewrites are worth showing, and by design it can
+only accept punctuation and capitalisation: a repair counts when the letters
+are untouched, because that is the only way its rule can tell "Was zum
+Teufel" invented from "Verlet" corrected. So a genuine spelling fix — the
+mishearing the pass was partly asked for — is refused every time. State is
+the pair; the question is a Choice over what the edit did: *restored a
+sentence boundary · capitalised an opening · corrected a misspelling or
+mojibake · restyled without fixing anything · changed or invented a word ·
+paraphrased or truncated*. The first three are shown, the rest are not, and
+the last is a signal about the sentence itself. Two thousand pairs, **two
+cents.**
+
+*6. The lemma the vote could not settle.* Not per token — `corpus/analyzer.py`
+runs at 700 sentences a second across four workers and a network call per
+token is the wrong shape, and the two-pass vote already settles the majority.
+The residue is the point: a surface whose competing lemma does not reach
+`CORRECTION_MARGIN`, the `weiß` case where two readings are both real, a
+parser lemma no lexicon knows, and `_proper_nouns` where a word is a name in
+some sentences and a word in others. Each is a Choice over candidates the
+code already has — the parser's lemma, the table's, the surface, the
+override — asked per sentence. Experiment 03 left 5,678 disagreement rows
+with their sentences and 200 of them judged; at 200 tokens each the whole
+file is **five cents**, and the 200 adjudicated rows are the benchmark.
+
+*7. Whether the matcher's sentence carries the pattern.* `deck/gloss.py`
+records that the model, asked to gloss `jemandem etwas geben`, declined on
+two of three sentences because they were `es gibt` and a subjunctive — the
+matcher put them on the card and the meaning is not there — and that
+`etwas machen` came back as three senses that were one. Both are
+verifications, not generations, and they sit either side of the gloss call:
+before it, a Noul per example — *does this sentence use the pattern as
+taught, not a homonymous frame* — so the card is built from sentences that
+carry the word; after it, a Noul per pair of senses — *would a bilingual
+dictionary print these as separate numbered senses* — to merge what the
+model split. The gloss itself stays on the local model. Three questions per
+card over the 3,902 beginner steps: **about ten cents.**
+
+*8. Grading a pattern card.* `srs/prompt.py`: "the learner writes their own
+sentence and grades it against the examples, because nothing here can judge
+free production." A Score with levels written as situations — uses the
+pattern with the right cases · right verb, wrong case or preposition · a
+different construction · not German — is exactly that judge, and a review
+session can afford a round trip per answer. Not a replacement for a rule;
+the one place on this list that is a capability the project does not have.
+
+**Where it should not go.** `detect-language` moved to `lingua` on
+measurement (two flags in 600 sentences against `langdetect`'s seven, five
+of those wrong, seven times faster, local) and swapping a measured-good
+library for a hosted call is a regression; the auto-caption gate's German
+share is the same question over windows and the same answer. `watchability`,
+`difficulty`, `priority`, the SM-2 scheduler and the walk are arithmetic
+over facts the corpus already holds. `SubtitleAligner` is a sequence match
+and is right. `corpus/vectors.py` measured three embeddings and kept the one
+that separates a shared topic from a shared word, locally. And anything that
+rewrites text — the corrector, the gloss, the translation, `fill-gaps` —
+cannot move, because Jev does not generate strings; what moves is the check
+beside each of them.
+
+**Where the answers land, if any of it is built.** In `sentence_verdict`
+under a source of their own, as `judge-sentences` and `polish-sentences`
+already write theirs, with `model` and a question version stored beside
+each row the way `GLOSS_VERSION` is — two models answering the same question
+are the same problem `deck/gloss.py` describes. The probability is stored
+raw and the threshold lives in code, so a change of policy is a `WHERE`, not
+a rerun. The existing rules stay as what runs with no network, which they
+are today; nothing here is a `--judge` flag beside them. What is sent is
+sentence text, compound words and study list keys — never `state.sqlite3`,
+whose reader marks are the one thing that is nobody else's business. The
+sentences are not all equally public: Tatoeba and YouTube subtitles are, the
+`Easy German Transcripts` folder and the language-app corpus are somebody's
+material held here, and whether those may go to a third party is a call for
+the owner of the corpus, not for this entry.
+
+**Experiment 04 comes first, and it is cheap.** Before any of this touches
+the roadmap, the question is whether Jev's probabilities mean anything on
+German, and the labels to ask with already exist: the 200 lemma
+disagreements adjudicated in `03-lemmatisers-judged.csv` — the judge column
+says `claude-opus-5`, a reasoning model's reading rather than a person's,
+which is still the stronger reader by a wide margin — as a Choice benchmark:
+agreement with that verdict, and whether the losing option's probability is
+actually low; the 174 dialect marks and 166 gloss refusals (not gold — a local
+model's opinion — so an agreement figure, not an accuracy); the 21,479
+`parser` verdicts (a rule, so where the two disagree is exactly what to
+read); and, once `review_compounds.py` keeps its negatives, two hundred
+compounds. What the experiment reports is calibration, not a score: of the
+items given p ≥ 0.9, how many are right when read; and how wide the
+unsure band is, because that width is the number of keystrokes the
+compounds pass still costs. All four sets together are under a dollar. If the vendor's
+"lower accuracy" on German turns out to mean the band is most of the file,
+the survey above collapses to the local `logprobs` fallback, and that is
+worth knowing for a dollar rather than after wiring anything.
+
+**Measured 2026-09-20 — what a pattern unit is, and experiment 04 built on
+it.** The note that prompted this survey came back with a second one: use the
+model to judge which lexical unit a sentence realises, with the pipeline
+proposing candidates and the model adjudicating. Checking what the pipeline
+proposes turned the question round. `data/final_result.txt` holds 4,096 keys
+and no key twice — one blueprint per verb, `stehen` is `jdm. (Dat) stehen` and
+nothing else — and `extract_german_logic` hands that blueprint to every
+occurrence of the verb. So a pattern unit is the verb wearing one label, and
+nothing anywhere has asked whether the sentence carries the label. The count
+was never wrong by it: every pattern row co-occurs with its lemma (13,744 of
+13,744 for `stehen` and `geben`), and strict counting renames the lemma into
+the goal, so i+1 saw one unit either way. What was wrong is everything the
+label is read for — the card's title and gloss, the sentences chosen to teach
+it, and the "senses" the gloss splits it into: 1,523 of 2,780 glossed patterns
+came back with two to six meanings, and `jemandem stehen means to stand
+(physically)` is the matcher's collapse, not polysemy. 603,624 pattern rows
+over 263,693 sentences and 2,818 patterns; the top 25 are 31% of the rows;
+11,066 of the 15,434 roadmap goals are patterns.
+
+Two defects, and they are not the same one.
+
+*The parse-decidable half* — built. `Ich habe nicht bestanden` was
+`etw./jdn. (Akk) haben` and `Den Restbetrag können sie später zahlen` was
+`etw. (Akk) können`: an auxiliary or a modal in front of another verb, credited
+with the verb's own frame. The matcher's `dep_ != "aux"` guard never fired,
+because the German parse makes the auxiliary the head and hangs the
+participle or infinitive under it as `oc`. `phrase_finder.carries_another_verb`
+now refuses a `VA*`/`VM*` token with a verb-tagged `oc` child, and skips it
+outright rather than letting it fall through to the catch-all branch, which
+looks the lemma up too. Over 10,000 fresh subtitle sentences it refuses 2,122
+of 10,903 verb pattern rows (19.5%): `haben` 66%, `können` 94%, `wollen` 77%,
+everything else 0 — an estimate from re-deriving the rows by lemma lookup,
+the matcher's exact path without its fuzzy fallback; the true figure is one
+`count(*)` of pattern rows after the rebuild, against 603,624 today. The misses are the tagger's — `gegessen` and `heiraten`
+read as nouns, so their auxiliary is kept — and the false side is `sein` with
+a clausal predicate (`Das Problem ist, dass …`), a few percent of `sein`. Both
+left alone: loosening the test to any `oc` child would refuse `wird grün` and
+`war betrunken`, and neither error touches the count.
+
+Which needed a second line. Under list counting a verb's presence came from
+its pattern row alone — the bare lemma is not a goal and was dropped — so
+refusing the auxiliary row would have made `Ich habe das Buch gelesen`
+readable to someone who never learned `haben`. `_unit_rule` now renames
+before it drops in list mode too, the way strict has since the deletion bug:
+the lemma the list teaches under another name becomes that goal, and a
+stranger still goes (`tests/test_aliases.py`). That rename is load-bearing
+for the matcher change, not a tidy-up beside it: a sentence whose only
+`haben` row was the refused auxiliary now says `haben` as a bare lemma, and
+both counting modes reach the goal only because both rename. `fingerprint.py` hashes the
+matcher, so this invalidates every stored plan and wants a `build-corpus
+subtitle`; not run here, because an import was not the only thing it would
+collide with — the ten plans rebuild after it.
+
+*The semantic half* — measured, not built. `experiments/pattern_sense.py`
+drew 450 pattern rows from the teachable subtitle build, subtitle only so
+nothing of anyone else's leaves the machine if a model is ever asked: 300
+uniformly over rows, which is what the corpus suffers, and three from each of
+the fifty heaviest patterns, which is what the dictionary suffers. Every row
+was read against its sentence and labelled *frame* (the blueprint is
+realised), *other* (the same word in another sense or frame), *construction*
+(a multiword unit the dictionary lacks) or *unclear*; the sheet was judged
+blind and the rule column joined afterwards from a fresh parse, so a label is
+a reading of the sentence and not of the tag. Judge `claude-opus-5`, as
+experiment 03's was, and for the same reason; a spot-check of fifty by a
+person is the next thing owed to it. `04-pattern-sense-judged.csv`, report in
+`04-does-the-sentence-carry-the-pattern.md`.
+
+```
+                       uniform (300)    panel (150)
+  frame                     71%              71%
+  other                     19%              20%
+  construction              10%               9%
+  unclear                    1%               0%
+  tagged by the rule         30               12     judge agreed on all 42
+  residue carrying frame    79%              78%
+```
+
+Per pattern, on the panel, the ones that carried their label in none of three:
+`haben`, `können`, `wollen` (the rule's), `geben` (three `es gibt`), `stehen`
+(be written, `zu etw. stehen`), `bedeuten` (signify, every time), `glauben`
+(`ich glaube, …` — think, not believe someone), `aussehen` (`so aussehen`,
+never `nach`), `gehören` (`zu etw. gehören`, and twice `gehört` the participle
+of `hören` lemmatised onto it — experiment 03's kind of error, not this one).
+Every one of these is on the study list, and each card teaches a sense its
+examples do not show.
+
+`es gibt` is the largest single construction — 7 of the 43 named — and the
+parse marks it: `es` hangs under `gibt` as `ep`, the expletive, in all seven.
+Sixty more `geben` rows read afterwards: fifty were `es gibt`, the mark found
+45 of them and none of the ten that were *give*; the five it missed hang
+their `es` on a modal (`sollte es … geben`) or write it `'s`. So the pattern
+is five parts in six a construction that exists as a candidate nowhere: not
+in `phrase_table`, not in the dictionary, not on the list. A learner taught
+`jdm. (Dat) etw. (Akk) geben` is credited with it and nothing ever teaches
+it. `stehen` has the same shape three times over: of its 2,816 rows, 360
+carry `auf`, 222 `für`, 135 `zu` — `auf etw. stehen`, `für etw. stehen`, `zu
+etw. stehen`, a quarter of the verb between them and none a candidate —
+while a dative pronoun, the one thing the label's *to suit someone* needs,
+is on 72 rows and half of those are `zur Verfügung stehen` or `ihr` read as
+a dative. That is a data decision — a key in `final_result.txt`, a
+canonical in `phrase_table`, a line on the list, and a branch in the matcher
+that reads `ep` — and it is the first thing worth deciding, ahead of any
+model. The other 31 constructions the labels named are in the report's last
+section (`vor allem` ×3, `eine Rolle spielen`, `auf jeden/keinen Fall`, `zum
+Beispiel`, `ums Leben kommen`, `Platz nehmen` …); that list is what the
+note's "candidate generation" would have to produce, and the deck's own gloss
+already produced most of it unprompted, as the distinct `means` strings per
+pattern in `unit_sense`. A discovery pass has a free first draft there.
+
+One bug found on the way, not fixed: `deck/gloss.run` marks a sentence the
+model declined to gloss as `sentence_verdict(text, 'model', 0.0)`, keyed on
+the text alone. The documented refusal was `es gibt` under `geben` — a fine
+sentence that does not carry that pattern — and the mark now keeps it off
+every card, not that one. The refusal is a fact about the pair, and the pair
+is what the judgement above is keyed on; when a pair-keyed store exists the
+refusal belongs in it, and the 166 `model` verdicts should be reread rather
+than trusted as sentence quality.
+
+**What the two model arms are now scored on.** The judged file fixes the
+items and the labels; the arms read it and report calibration, exactly as
+the paragraph above asks: precision and recall at 0.5 on *frame* against the
+rest, then of the items given p ≥ 0.9 how many are *frame*, and how wide the
+0.3–0.7 band is. The residue after the rule is the interesting part — 270
+rows, 79% frame — because the rule already has the rest. Cost is not the
+question: 450 items at about 150 tokens is cents on Jev, and the whole 523k
+pattern rows of the subtitle build are about $3.30. Per pattern the answer
+also says which policy is available: `stehen` keeps one or two rows in a
+hundred, so "drop the row" would leave the card nothing to show, and the
+verdict has to *rank* examples first and change units only where the sense
+survives in enough sentences to teach.
+
+  * *Jev.* `typesafe-sdk` is not installed and `TYPESAFE_API_KEY` is not set;
+    both are the reader's to add. The state is the sentence, its tokens, and
+    the candidate as canonical, spoken form (`deck.gloss` has it), token
+    indices and the gloss's majority meaning; the question is one Noul per
+    row — *do the marked tokens realise this unit in this sense here,
+    inflection and separated parts allowed*. Subtitle rows only, as the
+    sample already is.
+  * *Local.* Probed the same day: `/v1/chat/completions` refuses `logprobs`
+    outright; `/v1/completions` returns them, ignores `response_format`
+    silently, and honours llama.cpp's `grammar` (`root ::= " yes" | " no"`)
+    with the logprobs reported *before* the grammar — which is the
+    distribution wanted. The model wants to `<think>` first, so the chat
+    template is rendered by hand with the thinking block closed. And at
+    temperature 0 the sampled token was not the argmax of what it reported,
+    so the arm reads the distribution and never the text. On the one `es
+    gibt` probe it leaned the right way at 0.7, which is the shape of the
+    calibration question.
+
+**What this does not settle.** The list writes `stehen<TAB>jdm. (Dat)
+stehen` and means the verb; the frame came from the dictionary. Once rows
+are judged, the goal `jdm. (Dat) stehen` would teach *to suit someone* from
+the few sentences that carry it, which is not what line 99 asked for. Whether
+a verb's goal is the verb or the frame is item 2 of the survey above, and the
+per-pattern table is the first measurement of what each answer costs. Experiment
+04 is this benchmark; the lemma disagreements, dialect marks and compounds
+listed above stay as the second set, for the calibration question itself.
