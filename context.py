@@ -321,6 +321,16 @@ class Application:
         readable while it holds a word you do not know, because that word was
         never something you set out to learn.
 
+        It renames before it drops, the same way strict does. It used to
+        keep a unit only if it *was* a goal, which worked while every verb
+        the list teaches arrived as its pattern in every sentence — and that
+        stopped being so when the matcher stopped crediting `etw./jdn. (Akk)
+        haben` to the perfect tense. `Ich habe das Buch gelesen` then carries
+        `haben` only as the bare lemma, which is not a goal, and a filter on
+        goals alone would call the sentence readable to someone who has
+        never learned `haben`. Renaming the lemma to the goal that teaches it
+        keeps the word counting; a stranger the list never names still goes.
+
         This was two passes over the finished corpus, each rebuilding every
         sentence it touched. Doing it during the read costs one dictionary
         lookup per unit row and rebuilds nothing.
@@ -328,9 +338,12 @@ class Application:
         if not strict and not list_only:
             return None
         goals = frozenset(self.goal_units)
-        if list_only and not strict:
-            return lambda unit: unit if unit in goals else None
         aliases = self.aliases
+        if list_only and not strict:
+            # `of` answers with a goal or with the unit itself, so "is the
+            # answer a goal" is exactly "did the list have a name for it".
+            return lambda unit: (named if (named := aliases.of(unit)) in goals
+                                 else None)
         # A goal is already the name the list teaches by, so it stands as
         # itself; everything else is asked whether the list has a name for it.
         return lambda unit: unit if unit in goals else aliases.of(unit)

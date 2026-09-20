@@ -263,6 +263,77 @@ def get_object_token(child):
         return "jdn." if is_person else "etw."
     return "etw."
 
+
+def carries_another_verb(token) -> bool:
+    """Is this `haben`, `sein`, `werden` or a modal standing in front of
+    another verb — an auxiliary, not the verb the dictionary describes?
+
+    `Ich habe nicht bestanden` is not `etw./jdn. (Akk) haben`, and `Ich kann
+    jetzt machen, was ich möchte` is not `etw. (Akk) können`. The verb branch
+    below meant to skip these with `dep_ != "aux"`, and never did: TIGER's
+    German parse makes the auxiliary the head and hangs the participle or
+    infinitive under it as `oc`, so the auxiliary is `ROOT` and the guard
+    passes. Measured over the subtitle corpus, `etw./jdn. (Akk) haben` was
+    the most frequent pattern of all at 46,871 sentences and about seven in
+    twelve of them were the perfect tense; `etw. (Akk) können` was second at
+    23,785 and twelve of twelve sampled were the modal.
+
+    The test is the parse's own: an auxiliary or modal tag (`VA*`, `VM*`)
+    with a verb hanging under it as its clausal object. `Ich kann Deutsch`
+    and `Ich habe Muckis` have no such child and keep their pattern; `Das
+    ist gut` is a copula with a `pd`, not an `oc`, and keeps `sein`. A full
+    verb (`VV*`) is never one of these — `Ich glaube, ich habe …` carries a
+    clause under `glauben`, which is exactly what `glauben` does.
+
+    Skipped outright rather than falling through: the catch-all branch at
+    the bottom looks the lemma up too, and would hand `haben` its blueprint
+    back.
+    """
+    if token.dep_ == "aux":
+        return True
+    if not token.tag_.startswith(("VA", "VM")):
+        return False
+    return any(child.dep_ == "oc" and child.tag_.startswith("V")
+               for child in token.children)
+
+
+# Constructions the dictionary cannot hold, keyed as it is by the verb's
+# lemma: `es gibt` is not a use of `jdm. (Dat) etw. (Akk) geben`, and it
+# was credited as one in five sentences of six (experiment 04). Not a key in
+# `final_result.txt` either — `_base_words` would index it under `es`, and
+# the fuzzy fallback would then hand `es gibt` to every pronoun in the
+# corpus at a score of 1.00. The canonical has to exist in `phrase_table`
+# to become a unit, which is what the migration `es gibt` added it for.
+EXPLETIVE = {"geben": "es gibt"}
+
+
+def expletive_construction(token):
+    """The construction this verb is the expletive half of, or None.
+
+    Read off the parse: `es` hangs under `gibt` as `ep`, the expletive, in
+    `Es gibt ein Problem` and `Was gibt es zum Essen?`, and never in `Ich
+    gebe dir das Buch`. Measured over sixty `geben` sentences: forty-five
+    of the fifty that were `es gibt` carried the mark and none of the ten
+    that were *give*. The five it missed had put the verb under a modal or
+    an auxiliary — `Es wird immer Probleme geben` — where the `es` is the
+    carrier's subject, so that hop is taken too. The clitic `gibt's` is
+    left alone: the tokeniser does not split it, and where it does, `'s`
+    is the accusative as often as the expletive (`er gibt's mir`).
+    """
+    canonical = EXPLETIVE.get(token.lemma_.lower())
+    if canonical is None:
+        return None
+    for child in token.children:
+        if child.dep_ == "ep" and child.text.lower() == "es":
+            return canonical, child.i
+    head = token.head
+    if token.dep_ == "oc" and head is not token and carries_another_verb(head):
+        for child in head.children:
+            if child.dep_ in ("sb", "ep") and child.text.lower() == "es":
+                return canonical, child.i
+    return None
+
+
 def extract_german_logic(doc, overrides=None):
     """
     Extract phrases from a pre-computed spaCy doc.
@@ -280,9 +351,11 @@ def extract_german_logic(doc, overrides=None):
     for token in doc:
         if token.i in consumed:
             continue
+        if token.pos_ in ["VERB", "AUX"] and carries_another_verb(token):
+            continue
 
         # --- VERB MAPPING LOGIC ---
-        if token.pos_ in ["VERB", "AUX"] and token.dep_ != "aux":
+        if token.pos_ in ["VERB", "AUX"]:
             indices = [token.i]
             verb_lemma = token.lemma_.lower()
             
@@ -350,7 +423,13 @@ def extract_german_logic(doc, overrides=None):
             # since the constructed blueprint has needed it all along.
             blueprint = None
             match_info = "exact"
-            if "sich" in components:
+            expletive = expletive_construction(token)
+            if expletive is not None:
+                blueprint, es = expletive
+                match_info = "exact (expletive)"
+                indices.append(es)
+                consumed.add(es)
+            elif "sich" in components:
                 blueprint = verb_blueprint_map.get(f"sich {full_verb}")
                 if blueprint is not None:
                     match_info = "exact (reflexive)"
