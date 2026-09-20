@@ -62,7 +62,12 @@ from state import open_state
 #    three sentences with three senses -- `etwas machen` came back as "to do
 #    something", "to perform an action well" and "to carry out an activity",
 #    which is one sense worded three ways.
-GLOSS_VERSION = 4
+# 5: the word asked about is the verb, not its frame. `spoken` used to hand
+#    the model `jemandem stehen`, and the model, asked what that means in
+#    `Ich stehe auf der Rolltreppe`, answered "jemandem stehen means to stand
+#    (physically)" -- the frame's name on the sentence's sense. Now it is
+#    asked about `stehen`, which is what the card teaches (TODO #26, B).
+GLOSS_VERSION = 5
 
 # The bulk translation prompt has its own version, so a change to how the
 # gloss is asked does not throw away three hundred thousand sentences that

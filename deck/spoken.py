@@ -6,14 +6,23 @@ which slot takes which case, and unspeakable -- read out they become letters,
 spoken case labels and abbreviations. 72% of the plan's steps are patterns,
 so this is most of the deck rather than an edge of it.
 
-The frame is worth keeping rather than discarding. `nach etwas aussehen`
-teaches the preposition the verb takes, which is the thing a learner actually
-gets wrong; `aussehen` alone teaches half of it. So the abbreviations are
-expanded into the words they stand for instead of being cut:
+A verb's key is spoken as the verb, not as its frame. The frame was kept
+at first — `nach etwas aussehen` teaches the preposition, which is the thing
+a learner gets wrong — and that held until experiment 04 read the sentences:
+the frames were never chosen. `build-study-list` took each verb's one
+blueprint from `final_result.txt`, and that blueprint is one use among
+several, often a rare one. `jdm. (Dat) stehen` is *to suit someone*, one or
+two rows in a hundred of `stehen`; not one of three `aussehen` sentences
+carried `nach`; `jdm. etw. bedeuten` never once meant *to someone*. A card
+titled by the frame taught a sense its examples did not show. Decided
+2026-09-20 (TODO #26): the goal is the verb, and a use that a learner
+cannot get from the verb — `es gibt`, `auf jdn. stehen` — is a unit of its
+own with its own line. A reflexive keeps its `sich`, since `sich erinnern`
+and `erinnern` are two words. Everything else is expanded, not cut:
 
-    jdm. (Dat) passieren               -> jemandem passieren
-    etw./jdn. (Akk) lassen             -> etwas lassen
-    mit jdm. / über etw./jdn. sprechen -> mit jemandem sprechen
+    jdm. (Dat) passieren               -> passieren
+    an jdn./etw. sich erinnern         -> sich erinnern
+    etw. (Akk) / sich lassen scheiden  -> sich lassen scheiden   (no one head)
     die Zeit                           -> die Zeit
     gern, gerne                        -> gern
 
@@ -25,6 +34,7 @@ from __future__ import annotations
 import re
 
 from vocab.aliases import heads
+from vocab.goal_list import CASE_FRAME
 
 # What the list's abbreviations stand for, written out.
 SPOKEN = {
@@ -81,6 +91,14 @@ def spoken(key: str) -> str:
     """
     # A comma offers the same word spelled two ways. One of them is enough.
     first = key.split(",")[0].strip()
+    # A verb frame is spoken as its verb -- see the module docstring for
+    # why. `heads` finds the verb; where it finds none, or more than one,
+    # the key is an idiom and is spoken whole below.
+    if CASE_FRAME.search(first):
+        found = heads(first)
+        if len(found) == 1:
+            verb = next(iter(found))
+            return f"sich {verb}" if "sich" in first.split() else verb
     if _BRANCH not in first:
         return _expand(first)
 

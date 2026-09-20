@@ -194,7 +194,8 @@ class SpeakTest(unittest.TestCase):
                     (Example("Das ist passiert.", "That happened."),), None, 1)
         with tempfile.TemporaryDirectory() as tmp:
             spoken([card], de, en, Path(tmp))
-        self.assertIn("jemandem passieren", [text for text, _ in de.said])
+        self.assertIn("passieren", [text for text, _ in de.said])
+        self.assertNotIn("jdm. (Dat) passieren", [text for text, _ in de.said])
 
     def test_slow_repeats_only_the_teaching_sentence(self) -> None:
         de, en = voices()

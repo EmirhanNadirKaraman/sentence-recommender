@@ -54,8 +54,13 @@ class RoundTripTest(unittest.TestCase):
         """Deriving it again would mean a sheet written today rendering
         differently tomorrow if the key-to-speech rule changed, which is the
         drift a tracked file exists to prevent."""
-        back = self._back()
-        self.assertEqual(back[1].spoken, "jemandem passieren")
+        card = Card(2, "jdm. (Dat) passieren", True,
+                    (Example("Das ist mir passiert.", "That happened to me.", None),),
+                    "jetzt", 3, spoken="jemandem passieren")   # how it was said then
+        back = self._back([card])
+        self.assertEqual(back[0].spoken, "jemandem passieren")
+        self.assertNotEqual(back[0].spoken, Card(2, card.word, True, card.examples,
+                                                 "jetzt", 3).spoken)
 
     def test_pattern_and_plain_words_are_told_apart(self) -> None:
         back = self._back()
