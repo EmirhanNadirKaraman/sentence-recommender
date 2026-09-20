@@ -83,3 +83,33 @@ class PrefixedCorrectionTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+@unittest.skipUnless(_PARSER, "de_core_news_md is not installed")
+class ConstructionConsumesItsVerbTest(unittest.TestCase):
+    """`Es gibt ein Problem` is `es gibt` and nothing else.
+
+    With the bare lemma left in, strict counting renamed `geben` back into
+    the `geben` goal, and the sentence stayed a `geben` example after the
+    pattern row had gone — the whole reason `es gibt` was split off.
+    """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.analyzer = UnitAnalyzer(frozenset({"es gibt", "jdm. (Dat) etw. (Akk) geben"}))
+
+    def units(self, text: str) -> set[str]:
+        doc = self.analyzer.matcher.nlp(text)
+        found, _ = self.analyzer._units(doc, Evidence())
+        return {str(u) for u in found}
+
+    def test_there_is_carries_no_geben(self) -> None:
+        found = self.units("Es gibt ein Problem.")
+        self.assertIn("pattern:es gibt", found)
+        self.assertNotIn("lemma:geben", found)
+        self.assertNotIn("pattern:jdm. (Dat) etw. (Akk) geben", found)
+
+    def test_giving_still_carries_geben(self) -> None:
+        found = self.units("Ich gebe dir das Buch.")
+        self.assertIn("lemma:geben", found)
+        self.assertIn("pattern:jdm. (Dat) etw. (Akk) geben", found)

@@ -313,6 +313,19 @@ class UnitAnalyzer:
             unit = Unit.pattern(entry)
             units.add(unit)
             surfaces.setdefault(unit, " ".join(phrase["sentence_phrase"]))
+            # A construction consumes its verb. `Es gibt ein Problem` is
+            # `es gibt` and nothing else: a reader who has it does not need
+            # `geben`, and one who has `geben` does not have it. With the
+            # bare lemma left in, strict counting renamed `geben` back into
+            # the `geben` goal, so the sentence stayed a `geben` example
+            # after the pattern row had gone — the whole reason `es gibt`
+            # was split off (TODO #26).
+            if phrase["match_type"] == "exact (expletive)":
+                for i in phrase["indices"]:
+                    if doc[i].pos_ in ("VERB", "AUX"):
+                        verb = Unit.exact(self._verb_lemma(doc[i]))
+                        units.discard(verb)
+                        surfaces.pop(verb, None)
         return frozenset(units), tuple(surfaces.items())
 
     @staticmethod
