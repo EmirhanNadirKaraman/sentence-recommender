@@ -1970,6 +1970,38 @@ the judge in the pick the deck is the eight best the word has. Six is the
 floor (three shown, spares for `spread`); eight leaves the reading page
 something past the card. Half the judging cost of twenty-four per plan.
 
+**Closed out, 2026-09-21, 02:50.** Five walks and five rebuilds after the
+pass, because each walk showed something the answers had made visible:
+
+  * an unjudged sentence had scored 1.0 and would have won every pick
+    (`9703374`); `gibt's` was one token with a nonsense lemma and no
+    construction (`94cf223`), and the expletive left `es` and `’s` standing
+    as units (`92b8bd3`);
+  * `Why did I stand in the pillory?` was on the `stehen` card because the
+    four rebuilds had wiped every `language` mark — `build-corpus`
+    reinserted the rows and never carried the column; `save` keeps it now
+    and `detect-language` re-marked 12,640 in 76 seconds;
+  * `Und es gefällt mir …` taught `der Fall`, because the corpus vote's
+    correction for the surface `fällen` (the noun's plural, lowercased)
+    was applied to every unit keyed `fällen`, the parser's own lemma for
+    `gefällt` included — 157 sentences; a correction now touches only a
+    unit whose surface is its key;
+  * and, from an audit of every write the code makes, two more of the
+    language-wipe shape: `judge-sentences --limit` replaced the whole
+    `parser` source with its sample, and `polish-sentences`, which resumes,
+    left only its last batch's dialect marks — 174 of thousands — every
+    run; `build-study-list` wrote over the file's hand lines and its
+    header invited the rebuild. All three guarded (`0f33121`).
+
+Ledger: $3.14 of $4.80 — 46,032 subtitle sentences judged, every
+candidate of the beginner plan — and the plan stands at 3,883 steps,
+decks of eight, 27,121 sentences, 385 of them judged in the last cents.
+Backups in `dump/`: the state database before and after, Postgres before.
+Still stale: the four other stored plans (built 2026-09-14, old units,
+decks of 24, unjudged) and the running `serve`, which started before any
+of this and needs restarting to see it. The gloss version is 5, so
+`gloss-deck` will re-ask the cards' meanings about the verb.
+
 **What this does not settle.** The list writes `stehen<TAB>jdm. (Dat)
 stehen` and means the verb; the frame came from the dictionary. Once rows
 are judged, the goal `jdm. (Dat) stehen` would teach *to suit someone* from
