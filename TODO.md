@@ -1751,6 +1751,17 @@ survives in enough sentences to teach.
     32 were right; not yet *drop* a row on p alone, where a third of the
     file would be a coin toss. `experiments/pattern_sense.py arm jev`,
     scores in `04-pattern-sense-arm-jev.csv` and the report.
+  * *Local — run the same evening, 450 rows, 1,304 seconds beside the
+    translate job.* Precision 82% and recall 82% at 0.5 against Jev's 91 and
+    90; 71 of 72 rows given p ≥ 0.9 right, but only five rows given p ≤ 0.1
+    at all — it will not say a confident no — and a band of 163. On the
+    verbs it is mush where Jev was sharp: `können` .35/.49/.64 for three
+    modals, `haben` about .45, `glauben` .67/.65, `es gibt` .62/.36/.48;
+    `gehören` .11/.20/.35 is the one it separates. Usable on the easy
+    nouns, not on the question that matters, and 2.9 seconds a row where
+    Jev takes a quarter of one. **Decided: the judge is Jev, over subtitle
+    text only; the transcripts are not judged.** The local arm stays as
+    what runs with no network, which is what it is.
   * *Local.* Probed the same day: `/v1/chat/completions` refuses `logprobs`
     outright; `/v1/completions` returns them, ignores `response_format`
     silently, and honours llama.cpp's `grammar` (`root ::= " yes" | " no"`)

@@ -166,6 +166,70 @@ Precision and recall are of *frame* against everything else; the two calibration
 | `selbst, selber` | 0.75→frame, 0.75→frame, 0.66→frame |
 
 
+## Arm: local (unsloth/Qwen3.5-9B-GGUF)
+
+450 rows, 1304s.
+
+| view | rows | precision@0.5 | recall@0.5 | p ≥ 0.9: right/n | p ≤ 0.1: right/n | 0.3–0.7 band |
+|---|---|---|---|---|---|---|
+| all | 450 | 82% | 82% | 71/72 | 4/5 | 163 |
+| residue | 408 | 86% | 82% | 71/71 | 3/4 | 141 |
+
+Precision and recall are of *frame* against everything else; the two calibration columns say, of the rows the judge was sure about, how many the label agreed with; the band is the rows it was not sure about, which is the number a person would still read.
+
+| pattern (panel) | p per row → label |
+|---|---|
+| `all, alle` | 0.63→frame, 0.40→frame, 0.63→frame |
+| `das Beispiel` | 0.77→const, 0.62→frame, 0.78→const |
+| `das Geld` | 0.59→frame, 0.79→frame, 0.86→frame |
+| `das Jahr` | 0.88→frame, 0.59→frame, 0.77→frame |
+| `das Kind` | 0.85→frame, 0.85→frame, 0.72→frame |
+| `das Land` | 0.87→frame, 0.84→frame, 0.72→frame |
+| `das Leben` | 0.91→frame, 0.65→const, 0.53→frame |
+| `das Problem` | 0.84→frame, 0.45→frame, 0.97→frame |
+| `das Thema` | 0.77→frame, 0.38→frame, 0.69→frame |
+| `das Video` | 0.92→frame, 0.76→frame, 0.75→frame |
+| `der Fall` | 0.68→frame, 0.27→const, 0.84→frame |
+| `der Herr` | 0.76→frame, 0.42→frame, 0.85→frame |
+| `der Mann` | 0.90→frame, 0.74→frame, 0.60→frame |
+| `der Mensch` | 0.80→frame, 0.82→frame, 0.79→frame |
+| `der Tag` | 0.95→frame, 0.80→frame, 0.78→frame |
+| `die Frage` | 0.81→frame, 0.82→frame, 0.85→frame |
+| `die Frau` | 0.39→frame, 0.32→frame, 0.79→frame |
+| `die Leute` | 0.86→frame, 0.76→frame, 0.68→frame |
+| `die Partei` | 0.78→frame, 0.79→frame, 0.88→frame |
+| `die Zeit` | 0.76→frame, 0.39→frame, 0.62→const |
+| `etw. (Akk) bekommen` | 0.71→frame, 0.93→frame, 0.84→frame |
+| `etw. (Akk) können` | 0.35→other, 0.49→other, 0.64→other |
+| `etw. (Akk) machen` | 0.14→other, 0.96→frame, 0.46→frame |
+| `etw. (Akk) tun` | 0.88→frame, 0.88→frame, 0.32→frame |
+| `etw. (Akk) wissen` | 0.75→frame, 0.17→frame, 0.64→frame |
+| `etw. (Akk) wollen` | 0.47→other, 0.92→other, 0.41→other |
+| `etw./jdn. (Akk) brauchen` | 0.88→frame, 0.16→other, 0.80→frame |
+| `etw./jdn. (Akk) finden` | 0.40→frame, 0.94→frame, 0.70→other |
+| `etw./jdn. (Akk) haben` | 0.47→other, 0.49→other, 0.30→other |
+| `etw./jdn. (Akk) kennen` | 0.87→frame, 0.82→frame, 0.82→frame |
+| `etw./jdn. (Akk) lassen` | 0.48→other, 0.82→frame, 0.84→other |
+| `etw./jdn. (Akk) nehmen` | 0.59→const, 0.76→const, 0.31→frame |
+| `etw./jdn. (Akk) sehen` | 0.80→frame, 0.54→frame, 0.43→frame |
+| `gern, gerne` | 0.81→frame, 0.84→frame, 0.96→frame |
+| `jdm. (Dat) / etw. (Akk) glauben` | 0.67→other, 0.65→other, 0.47→other |
+| `jdm. (Dat) etw. (Akk) bedeuten` | 0.55→other, 0.47→other, 0.38→other |
+| `jdm. (Dat) etw. (Akk) bringen` | 0.60→const, 0.36→const, 0.61→frame |
+| `jdm. (Dat) etw. (Akk) geben` | 0.62→const, 0.36→const, 0.48→const |
+| `jdm. (Dat) etw. (Akk) sagen` | 0.43→frame, 0.88→frame, 0.81→frame |
+| `jdm. (Dat) etw. (Akk) schreiben` | 0.78→frame, 0.86→frame, 0.50→frame |
+| `jdm. (Dat) etw. (Akk) zeigen` | 0.96→frame, 0.41→frame, 0.27→other |
+| `jdm. (Dat) gehören` | 0.11→other, 0.20→other, 0.35→other |
+| `jdm. (Dat) helfen` | 0.96→frame, 0.57→frame, 0.76→frame |
+| `jdm. (Dat) passieren` | 0.67→frame, 0.50→frame, 0.92→frame |
+| `jdm. (Dat) stehen` | 0.88→other, 0.53→other, 0.08→other |
+| `lange, lang` | 0.85→frame, 0.55→frame, 0.86→frame |
+| `mit jdm. / über etw./jdn. sprechen` | 0.53→frame, 0.32→frame, 0.67→frame |
+| `nach etw. aussehen` | 0.38→other, 0.42→other, 0.45→other |
+| `nichts, nix` | 0.95→frame, 0.59→const, 0.25→frame |
+| `selbst, selber` | 0.48→frame, 0.82→frame, 0.38→frame |
+
 
 ## Constructions the labels named
 
