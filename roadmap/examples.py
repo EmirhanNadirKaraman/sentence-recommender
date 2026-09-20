@@ -21,12 +21,15 @@ from watchability import length_band
 # for sentences that were never written down.
 #
 # Twenty-four while the ranking could read nothing but characters: that
-# depth was what it took to find three good sentences among them. Fifteen
+# depth was what it took to find three good sentences among them. Eight
 # from 2026-09-21, once the corpus pass's judge sat in the pick — the deck
-# is then the fifteen best the word has, and a reader steps through fewer
-# and better. It is also what the pass asks about per step, so a plan
-# costs a fifth less to judge.
-DECK_SIZE = 15
+# is then the eight best the word has, and a reader steps through fewer
+# and better. Six is the floor: the card shows three and `spread` needs
+# spares to skip a rewrite of the sentence above; eight leaves the reading
+# page something past the card and the next walk room to swap a judged-bad
+# one out without the card changing. It is also what the pass asks about
+# per step, so a plan costs half as much to judge as it did at twenty-four.
+DECK_SIZE = 8
 
 # How close two videos have to be in difficulty before the ranking stops
 # caring, in unknown words per sentence. Whole words, because that is the unit
