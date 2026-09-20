@@ -414,6 +414,7 @@ class Application:
         return PromptBuilder(
             self.example_index(*builds), self.settings.examples_per_card,
             translate=self.with_english,
+            verdicts=self.verdicts(), judged=self.judged,
         )
 
     # --- vocabulary ------------------------------------------------------

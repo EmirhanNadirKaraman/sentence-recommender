@@ -352,7 +352,15 @@ class QuizCommand:
                 found.append(text)
             if sum(score(t) >= 1.0 for t in found) >= want:
                 break      # enough perfect marks; widening cannot beat them
-        return sorted(found, key=lambda t: -score(t))[:want]
+        # What a reader or the judge has said comes first, as in `rank`:
+        # `score` reads characters, and the judge has read the sentence.
+        verdicts = app.verdicts()
+        judged = app.judged
+
+        def said(text: str) -> float:
+            return (verdicts.get(text, 1.0) * judged.sentence(text)
+                    * judged.unit(text, unit))
+        return sorted(found, key=lambda t: (-said(t), -score(t)))[:want]
 
     @staticmethod
     def _example(app, unit: Unit, source: str,

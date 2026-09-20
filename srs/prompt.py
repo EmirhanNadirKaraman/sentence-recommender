@@ -58,16 +58,27 @@ class ReviewPrompt:
 
 
 class PromptBuilder:
-    def __init__(self, examples, count: int = 3, translate=None) -> None:
+    def __init__(self, examples, count: int = 3, translate=None,
+                 verdicts=None, judged=None) -> None:
         """`translate` maps sentences to the same sentences carrying whatever
         English exists for them -- `Application.with_english`. Without it a
-        card shows only what the corpus shipped."""
+        card shows only what the corpus shipped.
+
+        `verdicts` and `judged` are what a reader and the corpus pass's
+        judge have said about sentences, passed as every other ranking
+        passes them; left out, a review card ranked its examples by
+        characters alone and could show a sentence the judge had marked
+        glued or garbled."""
         self._examples = examples
         self._count = count
         self._translate = translate
+        self._verdicts = verdicts
+        self._judged = judged
 
     def build(self, card: Card, known: frozenset[Unit]) -> ReviewPrompt:
-        found = tuple(self._examples.examples(card.unit, known, self._count))
+        found = tuple(self._examples.examples(card.unit, known, self._count,
+                                              verdicts=self._verdicts,
+                                              judged=self._judged))
         if self._translate is not None:
             found = tuple(self._translate(found))
         if card.unit.is_pattern:
