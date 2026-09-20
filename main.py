@@ -424,9 +424,11 @@ def _parser() -> argparse.ArgumentParser:
                                "almost anything — so this bounds the head of "
                                "it, where one word still frees many")
 
-    sub.add_parser("build-study-list",
-                   help="merge the ranking and the form dictionary into "
-                        "data/study_list.txt")
+    study = sub.add_parser("build-study-list",
+                           help="merge the ranking and the form dictionary into "
+                                "data/study_list.txt")
+    study.add_argument("--force", action="store_true",
+                       help="write over the lines a person added to the file")
     quiz = sub.add_parser(
         "quiz", help="check the words the roadmap assumes you already know")
     quiz.add_argument("--limit", type=int, default=40)
@@ -769,7 +771,7 @@ def main() -> int:
     elif args.command == "mcp-serve":
         McpServeCommand().run(app)
     elif args.command == "build-study-list":
-        BuildStudyListCommand().run(app)
+        BuildStudyListCommand().run(app, args.force)
     elif args.command == "sync-catalogue":
         SyncCatalogueCommand().run(app, args.source_db, tuple(args.table),
                                    args.dry_run, args.replace)

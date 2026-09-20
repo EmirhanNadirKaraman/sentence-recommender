@@ -5,14 +5,14 @@ from vocab.study_list import StudyListBuilder
 
 
 class BuildStudyListCommand:
-    def run(self, app) -> None:
+    def run(self, app, force: bool = False) -> None:
         settings = app.settings
         for path in (settings.order_words, settings.form_words):
             if not path.exists():
                 raise SystemExit(f"missing {path}")
 
         builder = StudyListBuilder(settings.order_words, settings.form_words)
-        ranked, rest = builder.write(settings.goal_words)
+        ranked, rest = builder.write(settings.goal_words, force=force)
 
         print(f"wrote {settings.goal_words}")
         print(f"  {ranked:,} ranked, from {settings.order_words.name}")

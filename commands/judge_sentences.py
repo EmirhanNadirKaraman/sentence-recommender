@@ -177,6 +177,9 @@ class JudgeSentencesCommand:
                 print(f"  {verdicts[text]:.2f}  {text[:66]}")
             return
 
-        app.overrides.mark_many(verdicts, SOURCE)
+        # A limited run replaces only what it read; the full run replaces
+        # the source. See `mark_many`.
+        app.overrides.mark_many(verdicts, SOURCE,
+                                judged=[s.text for s in sentences] if limit else None)
         print(f"\nwrote {len(verdicts):,} verdicts as '{SOURCE}'")
         print("  rebuild the roadmap to re-pick examples with these demoted")

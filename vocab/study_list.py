@@ -38,6 +38,11 @@ HEADER = """\
 """
 
 DIVIDER = "\n# --- below here: known forms that the ranked list never named ---\n"
+# Units the list carries by hand, because the sources cannot: `es gibt` is
+# not a key `final_result.txt` can hold (its fuzzy index would file it
+# under `es`). Named here so `hand_edits` knows a line for one is a hand
+# line and not a generated one.
+HAND_UNITS = frozenset({"es gibt"})
 
 
 class StudyListBuilder:
@@ -66,7 +71,46 @@ class StudyListBuilder:
         rest = [(word, form) for word, form in forms.items() if form not in used]
         return ranked, rest
 
-    def write(self, path: Path) -> tuple[int, int]:
+    def hand_edits(self, path: Path) -> list[str]:
+        """The lines a person wrote into the generated file.
+
+        A `#` line that is not the generated header or the divider, and
+        any `word<TAB>form` line the generator would not produce — a
+        retirement written out (`# der, die, das`), a unit added by hand
+        (`es gibt`, 2026-09-20). The word list is derived and can be
+        rebuilt; the judgements about it cannot, and `build-study-list`
+        used to write over both without saying so.
+        """
+        if not path.exists():
+            return []
+        rendered = HEADER.format(today="", order_file=self._order_file.name,
+                                 form_file=self._form_file.name)
+        header = {line.strip() for line in rendered.splitlines()}
+        divider = DIVIDER.strip()
+        found = []
+        for line in path.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip()
+            if not stripped or stripped == divider:
+                continue
+            if stripped.startswith("#"):
+                # The header, whose one dated line is matched by its prefix.
+                if stripped in header or stripped.startswith("# Generated "):
+                    continue
+                found.append(line)
+            elif "\t" in line and line.split("\t")[0].strip().lower() in HAND_UNITS:
+                found.append(line)
+        return found
+
+    def write(self, path: Path, force: bool = False) -> tuple[int, int]:
+        edits = self.hand_edits(path)
+        if edits and not force:
+            raise SystemExit(
+                f"refusing: {path} holds {len(edits)} lines written by hand, and "
+                f"a rebuild would write over them —\n  "
+                + "\n  ".join(e[:70] for e in edits[:6])
+                + ("\n  …" if len(edits) > 6 else "")
+                + "\n\n  Pass --force to discard them, or fold them into the "
+                "sources first.")
         ranked, rest = self.build()
         lines = [HEADER.format(today=date.today().isoformat(),
                                order_file=self._order_file.name,

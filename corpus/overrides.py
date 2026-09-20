@@ -145,7 +145,8 @@ class SentenceOverrides:
         with open_state(self._path) as conn:
             conn.execute("DELETE FROM sentence_verdict WHERE text = ?", (text,))
 
-    def mark_many(self, verdicts: dict[str, float], source: str) -> None:
+    def mark_many(self, verdicts: dict[str, float], source: str,
+                  judged=None) -> None:
         """Record a whole pass's worth of judgements at once.
 
         One transaction rather than one per sentence: a pass over the corpus
@@ -156,11 +157,23 @@ class SentenceOverrides:
         pass after its rule changed replaces its opinions instead of leaving
         the old ones beside the new. A reader's marks are untouched -- they
         are a different source, and nothing automatic should overwrite them.
+
+        `judged` says which sentences the pass actually read, when it did
+        not read them all. Without it a `--limit 100` run dropped every
+        one of the 21,479 marks the full run had made and wrote back a
+        hundred -- the whole source replaced by a sample of it. Given the
+        texts, only their marks are replaced: a judged sentence the rule no
+        longer flags loses its old mark, and an unjudged one keeps it.
         """
         now = datetime.now().isoformat()
         with open_state(self._path) as conn:
-            conn.execute("DELETE FROM sentence_verdict WHERE source = ?",
-                         (source,))
+            if judged is None:
+                conn.execute("DELETE FROM sentence_verdict WHERE source = ?",
+                             (source,))
+            else:
+                conn.executemany(
+                    "DELETE FROM sentence_verdict WHERE source = ? AND text = ?",
+                    [(source, text) for text in judged])
             conn.executemany(
                 "INSERT OR REPLACE INTO sentence_verdict"
                 " (text, verdict, source, made_at) VALUES (?, ?, ?, ?)",

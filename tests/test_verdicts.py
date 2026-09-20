@@ -35,6 +35,29 @@ class StoreTest(unittest.TestCase):
     def _store(self, tmp) -> SentenceOverrides:
         return SentenceOverrides(Path(tmp) / "state.sqlite3")
 
+    def test_a_partial_pass_replaces_only_what_it_read(self) -> None:
+        """A `--limit` run, or a resumed one, must not drop a source's other
+        marks: the polish pass resumed over what it had not asked and left
+        174 dialect marks standing of thousands made."""
+        with tempfile.TemporaryDirectory() as tmp:
+            store = self._store(tmp)
+            store.mark_many({"a": 0.5, "b": 0.5, "c": 0.5}, source="dialect")
+            # A later run read `a` and `d`; `a` passes now, `d` is flagged.
+            store.mark_many({"d": 0.5}, source="dialect", judged=["a", "d"])
+            got = {t: v for t, v in store.verdicts().items()}
+        self.assertNotIn("a", got)            # re-read, no longer flagged
+        self.assertEqual(got["b"], 0.5)       # unread, kept
+        self.assertEqual(got["d"], 0.5)       # newly flagged
+
+    def test_a_full_pass_replaces_its_source(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            store = self._store(tmp)
+            store.mark_many({"a": 0.5, "b": 0.5}, source="parser")
+            store.mark_many({"b": 0.5}, source="parser")
+            got = store.verdicts()
+        self.assertNotIn("a", got)
+        self.assertIn("b", got)
+
     def test_a_verdict_is_kept_and_returned(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             store = self._store(tmp)

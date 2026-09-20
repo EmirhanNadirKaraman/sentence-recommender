@@ -260,12 +260,16 @@ class PolishSentencesCommand:
             print(f"  {len(misread):,} change what the sentence teaches — "
                   "dropped, and the original marked instead")
 
+        # Its own source, so rerunning this never disturbs what the parser
+        # found and a reader still outranks both. And only what this run
+        # read: the pass resumes over what has not been asked, so every run
+        # is partial, and replacing the whole source each time left the
+        # marks of the last batch alone -- 174 of them, from thousands
+        # polished. See `mark_many`.
         if dialect:
-            # Its own source, so rerunning this never disturbs what the
-            # parser found and a reader still outranks both.
-            app.overrides.mark_many(dialect, SOURCE)
+            app.overrides.mark_many(dialect, SOURCE, judged=todo)
         if misread:
-            app.overrides.mark_many(misread, MISREAD_SOURCE)
+            app.overrides.mark_many(misread, MISREAD_SOURCE, judged=todo)
 
         spent = time.perf_counter() - start
         changed = sum(1 for text, fixed in fixes.items() if fixed != text)
