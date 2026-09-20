@@ -1608,8 +1608,13 @@ outright rather than letting it fall through to the catch-all branch, which
 looks the lemma up too. Over 10,000 fresh subtitle sentences it refuses 2,122
 of 10,903 verb pattern rows (19.5%): `haben` 66%, `können` 94%, `wollen` 77%,
 everything else 0 — an estimate from re-deriving the rows by lemma lookup,
-the matcher's exact path without its fuzzy fallback; the true figure is one
-`count(*)` of pattern rows after the rebuild, against 603,624 today. The misses are the tagger's — `gegessen` and `heiraten`
+the matcher's exact path without its fuzzy fallback. **Rebuilt the same
+evening, 13 minutes over 397,125 subtitle sentences:** pattern rows in the
+subtitle build went from 523,252 to 474,164, −49,088 or −9.4%, where the
+reconstruction had said 10.6% of all rows. `haben` about 40,600 → 14,613,
+`können` about 20,600 → 1,148, `wollen` about 7,000 → 1,406; `geben` about
+10,900 → 2,073, and `es gibt` 8,975 rows of its own, the two together what
+`geben` was. 74,121 distinct units, one more pattern than before. The misses are the tagger's — `gegessen` and `heiraten`
 read as nouns, so their auxiliary is kept — and the false side is `sein` with
 a clausal predicate (`Das Problem ist, dass …`), a few percent of `sein`. Both
 left alone: loosening the test to any `oc` child would refuse `wird grün` and
