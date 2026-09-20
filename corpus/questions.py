@@ -135,16 +135,24 @@ PLAIN = {
 }
 
 # The sentence teaches the word: a reader who had every other word could
-# work this one out, which is the premise of an i+1 step.
+# work this one out, which is the premise of an i+1 step. A rubric, not a
+# yes/no: asked as a Noul it came back compressed — yes rows at a median of
+# .68, no rows at .60, nothing outside .2–.9 — and the three levels spread
+# it to .74 against .55, with 88% of the yes rows above the no median. The
+# expected level over the distribution, scaled to 0–1, is the number. It
+# ranks a card's examples beside `plain`; it never gates.
 GUESSABLE = {
-    "instructions": ("Could a learner who knows every other word in `sentence` work out "
-                     "what `units.{id}.spoken` means from this sentence alone?"),
-    "criteria": {
-        "true": ("The sentence gives the meaning away: `Ich brauche unbedingt eine gute "
-                 "Note.` for `brauchen`."),
-        "false": ("The word could mean almost anything here: `Ich weiß nicht.` for "
-                  "`wissen`, `Das tun wir.` for `tun`."),
-    },
+    "instructions": ("How much does `sentence` tell a learner who knows every other "
+                     "word about what `units.{id}.spoken` means?"),
+    "criteria": [
+        ("Nothing: the word could mean almost anything here. `Ich weiß nicht.` for "
+         "`wissen`; `Das tun wir.` for `tun`."),
+        ("A hint: the sentence narrows it to a few possibilities. `Er hat ein wenig "
+         "Schnupfen und Husten.` for `der Husten` — something you have when ill."),
+        ("Gives it away: a learner could say what the word means from this sentence "
+         "alone. `Ich brauche unbedingt eine gute Note.` for `brauchen`; `Schwer "
+         "bewaffnet nehmen sie dort 11 Sportler als Geiseln.` for `nehmen`."),
+    ],
 }
 
 
@@ -159,14 +167,16 @@ def state_for(text: str, tokens: list[str], units: dict[str, dict]) -> dict:
 
 def questions_for(units: dict[str, dict], level: bool = True) -> dict:
     """Every question for one sentence, as the vendor's question objects."""
-    from typesafe_sdk import Choice, Noul                 # noqa: PLC0415 — optional client
+    from typesafe_sdk import Choice, Noul, Score          # noqa: PLC0415 — optional client
 
     asked: dict = {key: Noul(instructions=q["instructions"], criteria=q["criteria"])
                    for key, q in SENTENCE.items()}
     if level:
         asked["level"] = Choice(instructions=LEVEL["instructions"], criteria=LEVEL["criteria"])
     for unit_id in units:
-        for name, q in (("plain", PLAIN), ("guessable", GUESSABLE)):
-            asked[f"{name}:{unit_id}"] = Noul(
-                instructions=q["instructions"].format(id=unit_id), criteria=q["criteria"])
+        asked[f"plain:{unit_id}"] = Noul(
+            instructions=PLAIN["instructions"].format(id=unit_id), criteria=PLAIN["criteria"])
+        asked[f"guessable:{unit_id}"] = Score(
+            instructions=GUESSABLE["instructions"].format(id=unit_id),
+            criteria=GUESSABLE["criteria"])
     return asked

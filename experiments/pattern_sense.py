@@ -429,7 +429,9 @@ CRITERIA_GUESSABLE = {
 }
 
 QUESTIONS = {"frame": (QUESTION, CRITERIA), "plain": (QUESTION_PLAIN, CRITERIA_PLAIN),
-             "guessable": (QUESTION_GUESSABLE, CRITERIA_GUESSABLE)}
+             "guessable": (QUESTION_GUESSABLE, CRITERIA_GUESSABLE),
+             # the rubric form, from the pass's own question file
+             "guessable_score": None}
 GUESSABLE_LABELS = "04-pattern-sense-guessable-labels"
 
 
@@ -471,13 +473,23 @@ def arm_jev(rows: list[dict], on_progress=None, asking: str = "frame") -> list[d
     from config import load_dotenv                       # noqa: PLC0415
     load_dotenv()
     out = []
-    instructions, criteria = QUESTIONS[asking]
-    question = {"frame": Noul(instructions=instructions, criteria=criteria)}
+    if asking == "guessable_score":
+        from typesafe_sdk import Score                   # noqa: PLC0415
+        from corpus.questions import GUESSABLE           # noqa: PLC0415
+        question = {"frame": Score(
+            instructions=GUESSABLE["instructions"].replace("units.{id}", "unit"),
+            criteria=GUESSABLE["criteria"])}
+        top = len(GUESSABLE["criteria"]) - 1
+        read = lambda a: a.score / top            # noqa: E731 — expected level, 0..1
+    else:
+        instructions, criteria = QUESTIONS[asking]
+        question = {"frame": Noul(instructions=instructions, criteria=criteria)}
+        read = lambda a: a.noul                   # noqa: E731
     with TypeSafeClient() as client:
         for i, row in enumerate(rows, 1):
             started = time.time()
             response = client.system_one(_state(row), question)
-            out.append({"n": row["n"], "p": round(response.answers["frame"].noul, 4),
+            out.append({"n": row["n"], "p": round(read(response.answers["frame"]), 4),
                         "model": response.model,
                         "input_tokens": response.usage.input_tokens,
                         "seconds": round(time.time() - started, 2)})
@@ -502,7 +514,7 @@ _GRAMMAR = 'root ::= "yes" | "no"'
 def _local_prompt(row: dict, asking: str = "frame") -> str:
     import json                                          # noqa: PLC0415
     state = _state(row)
-    question, criteria = QUESTIONS[asking]
+    question, criteria = QUESTIONS[asking] or (None, None)
     return (f"State:\n{json.dumps(state, ensure_ascii=False, indent=1)}\n\n"
             f"Question: {question}\n"
             f"Yes means: {criteria['true']}\nNo means: {criteria['false']}\n"
@@ -567,7 +579,7 @@ def run_arm(name: str, rows: list[dict], limit: int | None = None,
     rows = rows[:limit] if limit else rows
     if asking == "plain":
         rows = [r for r in rows if plain_label(r) is not None]
-    elif asking == "guessable":
+    elif asking in ("guessable", "guessable_score"):
         labels = guessable_labels()
         rows = [r for r in rows if r["n"] in labels]
     answers = ARMS[name](rows, lambda i, n: print(f"  {name}: {i}/{n}", flush=True),
@@ -577,7 +589,7 @@ def run_arm(name: str, rows: list[dict], limit: int | None = None,
         a["verdict"] = by_n[a["n"]]["verdict"]
         a["label"] = ("frame" if asking == "frame"
                       else plain_label(by_n[a["n"]]) if asking == "plain"
-                      else guessable_labels()[a["n"]])
+                      else guessable_labels()[a["n"]])       # both guessable forms
         a["rule"] = by_n[a["n"]].get("rule", "")
         a["stratum"] = by_n[a["n"]]["stratum"]
         a["pattern"] = by_n[a["n"]]["pattern"]
@@ -591,7 +603,8 @@ def score_arm(name: str, asking: str = "frame") -> dict | None:
         return None
     positive = {"frame": lambda a: a["verdict"] == "frame",
                 "plain": lambda a: a.get("label") == "good",
-                "guessable": lambda a: a.get("label") == "yes"}[asking]
+                "guessable": lambda a: a.get("label") == "yes",
+                "guessable_score": lambda a: a.get("label") == "yes"}[asking]
     def view(part):
         p = [(float(a["p"]), positive(a)) for a in part]
         yes = [f for prob, f in p if prob >= 0.5]
@@ -622,7 +635,8 @@ def arm_section(name: str, asking: str = "frame") -> list[str]:
         return []
     what = {"frame": "frame — does the sentence realise the blueprint",
             "plain": "plain — is this the word itself, not a fixed expression or another word",
-            "guessable": "guessable — could a reader who had every other word work this one out"}[asking]
+            "guessable": "guessable — could a reader who had every other word work this one out",
+            "guessable_score": "guessable as a rubric — nothing / a hint / gives it away, expected level scaled to 0–1"}[asking]
     lines = [f"## Arm: {name} ({s['model']}), question: {what}", ""]
     lines += [f"{s['all']['rows']} rows, {s['seconds']:.0f}s"
               + (f", {s['input_tokens']:,} input tokens" if s["input_tokens"] else "") + ".", "",
@@ -632,7 +646,7 @@ def arm_section(name: str, asking: str = "frame") -> list[str]:
         v = s[label]
         lines.append(f"| {label} | {v['rows']} | {v['precision']:.0%} | {v['recall']:.0%} | "
                      f"{v['at_90'][1]}/{v['at_90'][0]} | {v['at_10'][1]}/{v['at_10'][0]} | {v['band']} |")
-    lines += ["", f"Precision and recall are of *{ {'frame': 'frame', 'plain': 'good example', 'guessable': 'guessable'}[asking] }* against everything else; "
+    lines += ["", f"Precision and recall are of *{ {'frame': 'frame', 'plain': 'good example', 'guessable': 'guessable', 'guessable_score': 'guessable'}[asking] }* against everything else; "
               "the two calibration columns say, of the rows the judge was sure "
               "about, how many the label agreed with; the band is the rows it "
               "was not sure about, which is the number a person would still read.", "",
@@ -680,7 +694,7 @@ def main() -> None:
         if not rows or "rule" not in rows[0]:
             raise SystemExit("run `measure` first: the arms are scored against the judged file")
         extra = sys.argv[3:]
-        asking = next((a for a in ("plain", "guessable") if a in extra), "frame")
+        asking = next((a for a in ("plain", "guessable_score", "guessable") if a in extra), "frame")
         limit = next((int(x) for x in extra if x.isdigit()), None)
         run_arm(name, rows, limit, asking)
         write_report(rows, _last_effect())

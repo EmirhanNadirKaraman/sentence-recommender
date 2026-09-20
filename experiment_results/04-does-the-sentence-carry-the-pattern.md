@@ -268,6 +268,43 @@ Precision and recall are of *guessable* against everything else; the two calibra
 | `nichts, nix` | 0.73→frame, 0.60→frame |
 
 
+## Arm: jev (jev-1.13.0), question: guessable as a rubric — nothing / a hint / gives it away, expected level scaled to 0–1
+
+100 rows, 32s, 61,296 input tokens.
+
+| view | rows | precision@0.5 | recall@0.5 | p ≥ 0.9: right/n | p ≤ 0.1: right/n | 0.3–0.7 band |
+|---|---|---|---|---|---|---|
+| all | 100 | 86% | 90% | 3/3 | 0/0 | 40 |
+| residue | 100 | 86% | 90% | 3/3 | 0/0 | 40 |
+
+Precision and recall are of *guessable* against everything else; the two calibration columns say, of the rows the judge was sure about, how many the label agreed with; the band is the rows it was not sure about, which is the number a person would still read.
+
+| pattern (panel) | p per row → label |
+|---|---|
+| `all, alle` | 0.81→frame, 0.76→frame |
+| `das Beispiel` | 0.86→frame |
+| `das Land` | 0.94→frame |
+| `das Problem` | 0.73→frame |
+| `der Herr` | 0.74→frame, 0.40→frame |
+| `der Mensch` | 0.71→frame |
+| `der Tag` | 0.69→frame, 0.69→frame |
+| `die Leute` | 0.52→frame, 0.71→frame |
+| `die Partei` | 0.77→frame |
+| `etw. (Akk) bekommen` | 0.73→frame |
+| `etw. (Akk) machen` | 0.47→frame, 0.48→frame |
+| `etw. (Akk) tun` | 0.10→frame |
+| `etw./jdn. (Akk) brauchen` | 0.93→frame |
+| `etw./jdn. (Akk) kennen` | 0.65→frame |
+| `etw./jdn. (Akk) nehmen` | 0.89→frame |
+| `etw./jdn. (Akk) sehen` | 0.83→frame |
+| `gern, gerne` | 0.75→frame, 0.73→frame |
+| `jdm. (Dat) etw. (Akk) zeigen` | 0.89→frame |
+| `jdm. (Dat) helfen` | 0.85→frame, 0.77→frame |
+| `lange, lang` | 0.91→frame |
+| `mit jdm. / über etw./jdn. sprechen` | 0.76→frame |
+| `nichts, nix` | 0.80→frame, 0.77→frame |
+
+
 ## Arm: local (unsloth/Qwen3.5-9B-GGUF), question: frame — does the sentence realise the blueprint
 
 450 rows, 1304s.
@@ -331,6 +368,7 @@ Precision and recall are of *frame* against everything else; the two calibration
 | `nach etw. aussehen` | 0.38→other, 0.42→other, 0.45→other |
 | `nichts, nix` | 0.95→frame, 0.59→const, 0.25→frame |
 | `selbst, selber` | 0.48→frame, 0.82→frame, 0.38→frame |
+
 
 
 

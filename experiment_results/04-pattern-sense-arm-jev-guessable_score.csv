@@ -1,0 +1,101 @@
+n,p,model,input_tokens,seconds,verdict,label,rule,stratum,pattern
+2,0.855,jev-1.13.0,599,0.7,frame,yes,,uniform,die Straße
+3,0.58,jev-1.13.0,610,0.31,frame,yes,,uniform,die Kraft
+5,0.82,jev-1.13.0,614,0.36,frame,yes,,uniform,die Beziehung
+6,0.675,jev-1.13.0,609,0.38,frame,yes,,uniform,das Zeichen
+13,0.805,jev-1.13.0,618,0.27,frame,yes,,uniform,etw./jdn. (Akk) haben
+18,0.805,jev-1.13.0,638,0.25,frame,no,,uniform,zu etw. / etw. (Akk) zählen
+20,0.845,jev-1.13.0,612,0.33,frame,yes,,uniform,jdm. (Dat) etw. (Akk) sagen
+21,0.57,jev-1.13.0,606,0.36,frame,yes,,uniform,die Million
+22,0.43,jev-1.13.0,600,0.35,frame,yes,,uniform,das Beispiel
+26,0.815,jev-1.13.0,625,0.33,frame,yes,,uniform,das Prozent
+30,0.635,jev-1.13.0,604,0.36,frame,yes,,uniform,etw./jdn. (Akk) vergessen
+32,0.875,jev-1.13.0,613,0.36,frame,yes,,uniform,jdm. (Dat) etw. (Akk) zeigen
+33,0.51,jev-1.13.0,620,0.33,frame,no,,uniform,jdn./etw. (Akk) mitnehmen
+37,0.52,jev-1.13.0,608,0.36,frame,yes,,uniform,das Jahr
+40,0.685,jev-1.13.0,599,0.36,frame,yes,,uniform,etw./jdn. (Akk) haben
+45,0.595,jev-1.13.0,609,0.33,frame,yes,,uniform,die Veränderung
+46,0.62,jev-1.13.0,630,0.36,frame,yes,,uniform,der Geschäftsführer
+52,0.835,jev-1.13.0,618,0.36,frame,yes,,uniform,jdm. (Dat) etw. (Akk) erzählen
+53,0.705,jev-1.13.0,616,0.27,frame,yes,,uniform,die Frau
+56,0.705,jev-1.13.0,602,0.25,frame,yes,,uniform,die Macht
+57,0.845,jev-1.13.0,629,0.27,frame,yes,,uniform,etw./jdn. (Akk) haben
+58,0.63,jev-1.13.0,614,0.26,frame,yes,,uniform,etw./jdn. (Akk) halten
+62,0.725,jev-1.13.0,631,0.25,frame,yes,,uniform,die Verhandlung
+69,0.435,jev-1.13.0,616,0.32,frame,no,,uniform,der Bundestag
+74,0.62,jev-1.13.0,593,0.27,frame,yes,,uniform,das Bild
+81,0.835,jev-1.13.0,618,0.27,frame,yes,,uniform,jdn. (Akk) + Name (Akk) nennen
+82,0.65,jev-1.13.0,621,0.28,frame,yes,,uniform,die Lösung
+88,0.87,jev-1.13.0,626,0.3,frame,yes,,uniform,gegen jdn./etw. sich wehren
+90,0.82,jev-1.13.0,609,0.29,frame,yes,,uniform,die Kosten
+95,0.38,jev-1.13.0,601,0.28,frame,yes,,uniform,die Nation
+96,0.74,jev-1.13.0,640,0.36,frame,yes,,uniform,jdn./etw. (Akk) / sich (Dat) etw. (Akk) anschauen
+99,0.515,jev-1.13.0,599,0.27,frame,no,,uniform,der Freund
+100,0.85,jev-1.13.0,628,0.3,frame,yes,,uniform,"all, alle"
+103,0.59,jev-1.13.0,606,0.24,frame,yes,,uniform,etw. (Akk) machen
+113,0.795,jev-1.13.0,604,0.33,frame,yes,,uniform,der Mensch
+119,0.63,jev-1.13.0,593,0.3,frame,yes,,uniform,die Wohnung
+132,0.84,jev-1.13.0,629,0.28,frame,no,,uniform,"allein, alleine"
+141,0.385,jev-1.13.0,621,0.28,frame,yes,,uniform,etw./jdn. (Akk) haben
+142,0.73,jev-1.13.0,606,0.32,frame,no,,uniform,der Tod
+143,0.685,jev-1.13.0,616,0.33,frame,yes,,uniform,die Entscheidung
+145,0.7,jev-1.13.0,616,0.25,frame,yes,,uniform,jdn. (Akk) zu etw. einladen
+148,0.75,jev-1.13.0,624,0.58,frame,yes,,uniform,der Ausdruck
+159,0.785,jev-1.13.0,592,0.36,frame,yes,,uniform,das Kind
+172,0.845,jev-1.13.0,604,0.22,frame,yes,,uniform,etw. (Akk) verdienen
+184,0.6,jev-1.13.0,594,0.3,frame,yes,,uniform,die Mama
+195,0.51,jev-1.13.0,596,0.36,frame,no,,uniform,die Partie
+204,0.77,jev-1.13.0,627,0.33,frame,yes,,uniform,die Polizei
+207,0.845,jev-1.13.0,627,0.36,frame,yes,,uniform,etw./jdn. (Akk) verändern
+211,0.545,jev-1.13.0,623,0.36,frame,yes,,uniform,das Thema
+212,0.585,jev-1.13.0,617,0.33,frame,no,,uniform,"eben, ebend"
+214,0.74,jev-1.13.0,627,0.36,frame,yes,,uniform,etw. (Akk) benutzen
+221,0.85,jev-1.13.0,617,0.36,frame,yes,,uniform,der Job
+222,0.385,jev-1.13.0,623,0.33,frame,yes,,uniform,das Wort
+231,0.615,jev-1.13.0,596,0.36,frame,yes,,uniform,der Herr
+237,0.645,jev-1.13.0,602,0.36,frame,no,,uniform,der Mund
+239,0.85,jev-1.13.0,642,0.27,frame,yes,,uniform,etw./jdn. (Akk) erreichen
+245,0.495,jev-1.13.0,615,0.31,frame,no,,uniform,das Geschäft
+246,0.32,jev-1.13.0,614,0.25,frame,no,,uniform,der Bundestag
+255,0.86,jev-1.13.0,621,0.3,frame,yes,,uniform,der Hafen
+256,0.72,jev-1.13.0,631,0.31,frame,no,,uniform,das Bild
+262,0.715,jev-1.13.0,595,0.28,frame,yes,,uniform,die Mama
+267,0.475,jev-1.13.0,640,0.25,frame,no,,uniform,jdm. (Dat) etw. (Akk) / etw. (Akk) abziehen
+269,0.725,jev-1.13.0,607,0.28,frame,yes,,uniform,die Frage
+270,0.695,jev-1.13.0,596,0.37,frame,yes,,uniform,die Million
+274,0.85,jev-1.13.0,613,0.33,frame,yes,,uniform,die Leute
+275,0.675,jev-1.13.0,600,0.3,frame,yes,,uniform,die Bewertung
+277,0.625,jev-1.13.0,615,0.28,frame,no,,uniform,die Geschichte
+281,0.74,jev-1.13.0,621,0.3,frame,yes,,uniform,jdn./etw. (Akk) kontrollieren
+291,0.82,jev-1.13.0,603,0.27,frame,yes,,uniform,"all, alle"
+299,0.73,jev-1.13.0,604,0.28,frame,yes,,uniform,der Soldat
+314,0.475,jev-1.13.0,610,0.34,frame,yes,,panel,etw. (Akk) machen
+315,0.485,jev-1.13.0,612,0.24,frame,yes,,panel,etw. (Akk) machen
+316,0.81,jev-1.13.0,618,0.31,frame,yes,,panel,"all, alle"
+317,0.76,jev-1.13.0,622,0.35,frame,yes,,panel,"all, alle"
+324,0.83,jev-1.13.0,609,0.25,frame,yes,,panel,etw./jdn. (Akk) sehen
+333,0.715,jev-1.13.0,616,0.23,frame,yes,,panel,der Mensch
+340,0.105,jev-1.13.0,602,0.27,frame,yes,,panel,etw. (Akk) tun
+346,0.755,jev-1.13.0,620,0.23,frame,yes,,panel,mit jdm. / über etw./jdn. sprechen
+350,0.865,jev-1.13.0,607,0.34,frame,yes,,panel,das Beispiel
+360,0.935,jev-1.13.0,616,0.41,frame,yes,,panel,das Land
+363,0.73,jev-1.13.0,620,0.25,frame,yes,,panel,etw. (Akk) bekommen
+366,0.93,jev-1.13.0,628,0.27,frame,yes,,panel,etw./jdn. (Akk) brauchen
+370,0.75,jev-1.13.0,621,0.25,frame,yes,,panel,"gern, gerne"
+372,0.73,jev-1.13.0,594,0.27,frame,yes,,panel,"gern, gerne"
+373,0.795,jev-1.13.0,598,0.36,frame,yes,,panel,"nichts, nix"
+375,0.765,jev-1.13.0,596,0.33,frame,no,,panel,"nichts, nix"
+379,0.695,jev-1.13.0,620,0.36,frame,yes,,panel,der Tag
+380,0.695,jev-1.13.0,596,0.33,frame,yes,,panel,der Tag
+403,0.515,jev-1.13.0,598,0.36,frame,no,,panel,die Leute
+405,0.715,jev-1.13.0,619,0.36,frame,yes,,panel,die Leute
+408,0.77,jev-1.13.0,616,0.33,frame,yes,,panel,die Partei
+409,0.885,jev-1.13.0,618,0.36,frame,yes,,panel,jdm. (Dat) etw. (Akk) zeigen
+420,0.885,jev-1.13.0,622,0.36,frame,yes,,panel,etw./jdn. (Akk) nehmen
+426,0.735,jev-1.13.0,614,0.33,frame,yes,,panel,das Problem
+431,0.745,jev-1.13.0,602,0.31,frame,yes,,panel,der Herr
+432,0.4,jev-1.13.0,597,0.25,frame,yes,,panel,der Herr
+440,0.645,jev-1.13.0,627,0.3,frame,yes,,panel,etw./jdn. (Akk) kennen
+445,0.855,jev-1.13.0,620,0.39,frame,yes,,panel,jdm. (Dat) helfen
+447,0.765,jev-1.13.0,608,0.34,frame,yes,,panel,jdm. (Dat) helfen
+450,0.905,jev-1.13.0,598,0.28,frame,yes,,panel,"lange, lang"
