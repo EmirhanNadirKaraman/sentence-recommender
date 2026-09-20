@@ -91,6 +91,19 @@ class RoadmapBuilderTest(unittest.TestCase):
         plan = RoadmapBuilder(index, priority, priority_weight=3.0).build()
         self.assertEqual(plan[0].unit, Unit.lemma("common"))
 
+    def test_the_judge_chooses_the_teaching_sentence(self) -> None:
+        """A walk with a judge: the sentence the judge doubts is not the one
+        the step teaches with, and the walk runs at all — the first version
+        of this named a variable its method never received."""
+        from corpus.answers import Judged                   # noqa: PLC0415
+        sentences = [sentence("Ich habe nicht kam mir das.", "ich", "haben"),
+                     sentence("Ich habe einen Gast.", "ich", "haben")]
+        index = CorpusIndex(sentences, KnownSet({Unit.lemma("ich")}))
+        judged = Judged({"Ich habe nicht kam mir das.": 0.1}, {})
+        plan = RoadmapBuilder(index, UnitPriority.build(()), judged=judged).build()
+        self.assertEqual(plan[0].unit, Unit.lemma("haben"))
+        self.assertEqual(plan[0].sentence.text, "Ich habe einen Gast.")
+
     def test_stops_when_nothing_is_i_plus_one(self) -> None:
         sentences = [sentence("hard", "a", "b", "c")]
         index = CorpusIndex(sentences, KnownSet())

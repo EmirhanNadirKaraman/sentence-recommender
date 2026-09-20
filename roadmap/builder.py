@@ -147,7 +147,7 @@ class RoadmapBuilder:
         return RoadmapStep(
             position=position,
             unit=unit,
-            sentence=self._example(sentences),
+            sentence=self._example(unit, sentences),
             gain=gain,
             score=score,
             now_readable=len(sentences),
@@ -229,7 +229,7 @@ class RoadmapBuilder:
         if best is None:
             return None
         unit, positions, gain, score = best
-        sentence = self._example(positions)
+        sentence = self._example(unit, positions)
         # The other unknown in that sentence — what learning `unit` alone
         # would have left behind, and the reason this sentence was out of
         # reach.
@@ -257,7 +257,7 @@ class RoadmapBuilder:
             score += GOAL_BONUS
         return gain, score
 
-    def _example(self, positions: set[int]) -> Sentence:
+    def _example(self, unit: Unit, positions: set[int]) -> Sentence:
         """The best sentence teaching this unit.
 
         It used to take the fewest units and then the shortest text, which
