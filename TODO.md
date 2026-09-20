@@ -1934,6 +1934,42 @@ marks it used to leave are gone. `judge_model` is pinned to `jev-1.13.0`,
 the version calibrated, so `jev-latest` moving cannot silently change
 what is read back.
 
+**Run, 2026-09-21, on the beginner plan.** The account held $4.80, so
+the pass met a budget rather than the corpus: one plan's candidates
+(`--plan beginner` — the sentences its 3,902 steps had stored, 44,667 of
+them subtitle) and every question but `guessable` (`--skip guessable`,
+the one that ranked weakest). 44,326 sentences after the 500-sentence
+trial, 0 failed, 73.1M input tokens, **$3.07**, 66,600 sentences an hour
+at six in flight — 1,664 tokens a sentence against 2,022 with
+`guessable`. What the answers say about sentences that cards show today:
+`complete` .95 median, `well_formed` .83, `standard` .86, `stands_alone`
+.67 — the judge doubts that a quarter of card-shown sentences stand alone
+— and the quality product's median is .38, since four probabilities
+multiplied compress. `level`: A1 20 · A2 109 · B1 286 · B2 81 · C1 4 of
+the first 500; a video's mean already orders *Easy German Podcast* (.35)
+below *Barbarossa* (.55). Two things the run found before it was over:
+
+  * `die meisten` credited with `der Meister`, 730 times — the parser tags
+    `meisten` as a pronoun with lemma `meister`, the fuzzy fallback scores
+    identical letters 1.00, and the trust gate accepted a perfect score.
+    `plain` put `der Meister` at .10 in `Zunächst lebten die meisten
+    Deutschen als Bauern auf dem Land.` The same door let `leid` reach `das
+    Leid`, `mal` `das Mal`, `pass auf` `der Pass`, `klasse` `die Klasse`:
+    about 1,650 rows. Fixed in `562de90` — an article-noun entry needs a
+    noun-tagged token in the match — and rebuilt.
+  * An unjudged sentence scored 1.0, the best. The walk picks a card's
+    candidates with `rank` from every sentence that says the word, and the
+    pass judges only the candidates it finds stored; at 1.0 the unjudged
+    thousands would have won every pick and the answers would have ordered
+    nothing. Unjudged now scores the median of the judged (`9703374`) —
+    good stays in, bad drops out, what replaces it is judged next run.
+
+And the deck is eight (`d3de42b`), down from twenty-four: that depth was
+what it took to find three good sentences by characters alone, and with
+the judge in the pick the deck is the eight best the word has. Six is the
+floor (three shown, spares for `spread`); eight leaves the reading page
+something past the card. Half the judging cost of twenty-four per plan.
+
 **What this does not settle.** The list writes `stehen<TAB>jdm. (Dat)
 stehen` and means the verb; the frame came from the dictionary. Once rows
 are judged, the goal `jdm. (Dat) stehen` would teach *to suit someone* from
