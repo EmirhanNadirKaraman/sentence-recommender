@@ -325,10 +325,13 @@ class UnitAnalyzer:
             # was split off (TODO #26).
             if phrase["match_type"] == "exact (expletive)":
                 for i in phrase["indices"]:
-                    if doc[i].pos_ in ("VERB", "AUX"):
-                        verb = Unit.exact(self._verb_lemma(doc[i]))
-                        units.discard(verb)
-                        surfaces.pop(verb, None)
+                    # The verb, and the expletive itself: `es` here is not
+                    # the pronoun, and `’s` split off `gibt’s` is not a word.
+                    if doc[i].pos_ in ("VERB", "AUX") \
+                            or doc[i].text.lower() in ("es", "'s", "’s"):
+                        gone = Unit.exact(self._verb_lemma(doc[i]))
+                        units.discard(gone)
+                        surfaces.pop(gone, None)
         return frozenset(units), tuple(surfaces.items())
 
     @staticmethod

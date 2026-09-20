@@ -109,6 +109,14 @@ class ConstructionConsumesItsVerbTest(unittest.TestCase):
         self.assertNotIn("lemma:geben", found)
         self.assertNotIn("pattern:jdm. (Dat) etw. (Akk) geben", found)
 
+    def test_the_expletive_leaves_no_stray_unit(self) -> None:
+        """`es` is not the pronoun here, and `’s` split off `gibt’s` is
+        not a word — neither may stand in front of the sentence."""
+        found = self.units("Da gibt’s den Kanal.")
+        self.assertIn("pattern:es gibt", found)
+        self.assertNotIn("lemma:’s", found)
+        self.assertNotIn("lemma:es", self.units("Es gibt ein Problem."))
+
     def test_giving_still_carries_geben(self) -> None:
         found = self.units("Ich gebe dir das Buch.")
         self.assertIn("lemma:geben", found)
