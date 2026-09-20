@@ -54,7 +54,7 @@ def _once(surface: str) -> str:
     return " ".join(words)
 
 
-def state_and_questions(sentence, level: bool = True):
+def state_and_questions(sentence, skip: frozenset[str] = frozenset()):
     """One request: the state and the questions, from a corpus sentence."""
     from corpus import questions                          # noqa: PLC0415
     units: dict[str, dict] = {}
@@ -67,7 +67,7 @@ def state_and_questions(sentence, level: bool = True):
         units[ident] = {"spoken": spoken(unit.key), "canonical": unit.key,
                         "surface": _once(surfaces.get(unit, ""))}
     return (questions.state_for(sentence.text, units),
-            questions.questions_for(units, level=level), which)
+            questions.questions_for(units, skip=skip), which)
 
 
 def read(response, asked) -> dict[str, tuple[float, dict | None]]:
@@ -94,7 +94,14 @@ def read(response, asked) -> dict[str, tuple[float, dict | None]]:
 
 class AskSentencesCommand:
     def run(self, app, limit: int | None = None, workers: int | None = None,
-            dry_run: bool = False, log: Path = Path("out/ask.log")) -> None:
+            dry_run: bool = False, log: Path = Path("out/ask.log"),
+            plan: str | None = None, skip: tuple[str, ...] = ()) -> None:
+        """`plan` restricts the run to one stored plan's candidates — the
+        sentences that plan's cards show or could show — and `skip` names
+        questions to leave out. Both are how a budget is met: the vendor
+        charges per question per request, so the only savings are fewer
+        sentences and fewer questions, and a sentence no card of the plan
+        you use can show is the first not to ask about."""
         import os                                            # noqa: PLC0415
         from config import load_dotenv                       # noqa: PLC0415
         from corpus import questions                         # noqa: PLC0415
@@ -107,25 +114,37 @@ class AskSentencesCommand:
         if not os.environ.get("TYPESAFE_API_KEY") and not dry_run:
             raise SystemExit("TYPESAFE_API_KEY is not set in .env")
 
+        skipped = frozenset(skip)
+        unknown = skipped - set(questions.NAMES)
+        if unknown:
+            raise SystemExit(f"no such question: {', '.join(sorted(unknown))}"
+                             f" — the questions are {', '.join(questions.NAMES)}")
         sentences = app.corpus("subtitle")
         have = app.answers.answered(model, questions.VERSION)
+        # Every stored plan, or the one whose label matches `plan`.
+        like = f"%{plan}%" if plan else "%"
         with open_state(settings.state_path) as conn:
             shown = {t for (t,) in conn.execute(
-                "SELECT sentence FROM roadmap"
-                " UNION SELECT text FROM roadmap_example WHERE n < 3")}
+                "SELECT sentence FROM roadmap WHERE source LIKE ?"
+                " UNION SELECT text FROM roadmap_example WHERE source LIKE ? AND n < 3",
+                (like, like))}
             weighed = {t for (t,) in conn.execute(
-                "SELECT DISTINCT text FROM roadmap_example")}
+                "SELECT DISTINCT text FROM roadmap_example WHERE source LIKE ?", (like,))}
 
         def tier(s) -> int:
             return 0 if s.text in shown else 1 if s.text in weighed else 2
 
         todo = sorted((s for s in sentences if s.text not in have), key=tier)
+        if plan:
+            todo = [s for s in todo if tier(s) < 2]
         tiers = Counter(tier(s) for s in todo)
         print(f"{len(sentences):,} teachable subtitle sentences · "
               f"{len(have):,} answered by {model} at version {questions.VERSION} · "
-              f"{len(todo):,} to ask", flush=True)
+              f"{len(todo):,} to ask" + (f" for the plan matching {plan!r}" if plan else ""),
+              flush=True)
         print(f"  in order: {tiers[0]:,} shown on a card · {tiers[1]:,} the walk "
-              f"weighed · {tiers[2]:,} more", flush=True)
+              f"weighed" + ("" if plan else f" · {tiers[2]:,} more")
+              + (f" · without {', '.join(sorted(skipped))}" if skipped else ""), flush=True)
         if limit:
             todo = todo[:limit]
             print(f"  asking about the first {len(todo):,}", flush=True)
@@ -134,7 +153,7 @@ class AskSentencesCommand:
             return
 
         if dry_run:
-            state, asked, _ = state_and_questions(todo[0])
+            state, asked, _ = state_and_questions(todo[0], skipped)
             print("\nstate:")
             print(json.dumps(state, ensure_ascii=False, indent=1))
             print("\nquestions:")
@@ -155,7 +174,7 @@ class AskSentencesCommand:
         def ask(sentence):
             if trouble["streak"] >= GIVE_UP:
                 return sentence, None, None, None
-            state, asked, which = state_and_questions(sentence)
+            state, asked, which = state_and_questions(sentence, skipped)
             try:
                 response = client.system_one(state, asked)
             except Exception as error:                        # noqa: BLE001 — logged

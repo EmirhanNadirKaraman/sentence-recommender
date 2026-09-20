@@ -40,15 +40,16 @@ class StoreTest(unittest.TestCase):
         self.assertAlmostEqual(judged.sentence(GIVE), 0.45)
         self.assertAlmostEqual(judged.unit(GIVE, GEBEN), 0.8)
 
-    def test_guessable_scales_but_never_gates(self) -> None:
-        """A sentence the judge is sure is the word keeps at least half its
-        worth however little it explains."""
+    def test_guessable_is_kept_but_not_read(self) -> None:
+        """Asked of some sentences and not others, a factor would order the
+        judged below the unjudged; the raw answer stays for later."""
         tmp, answers = store()
         with tmp:
             answers.save(GIVE, "jev", 1, {"plain:u1": (1.0, None),
                                           "guessable:u1": (0.0, None)}, units={"u1": GEBEN})
             judged = answers.load("jev", 1)
-        self.assertAlmostEqual(judged.unit(GIVE, GEBEN), 0.5)
+            self.assertEqual(answers.counts()["guessable"], 1)
+        self.assertEqual(judged.unit(GIVE, GEBEN), 1.0)
 
     def test_unjudged_is_the_best(self) -> None:
         tmp, answers = store()

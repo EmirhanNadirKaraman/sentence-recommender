@@ -393,6 +393,13 @@ def _parser() -> argparse.ArgumentParser:
                      help="print the first request and send nothing")
     ask.add_argument("--log", type=Path, default=Path("out/ask.log"),
                      help="every sentence and its answers, appended as they land")
+    ask.add_argument("--plan", default=None,
+                     help="only the sentences one stored plan's cards show or "
+                          "could show, matched against the plan's label "
+                          "(e.g. beginner)")
+    ask.add_argument("--skip", nargs="*", default=(),
+                     help="questions to leave out, to meet a budget "
+                          "(e.g. guessable)")
 
     sub.add_parser("mcp-serve",
                    help="serve the roadmap and the reviews as MCP tools over "
@@ -758,7 +765,7 @@ def main() -> int:
         ServeCommand().run(app, args.port, not args.no_browser, args.host)
     elif args.command == "ask-sentences":
         AskSentencesCommand().run(app, args.limit, args.workers, args.dry_run,
-                                  args.log)
+                                  args.log, args.plan, tuple(args.skip))
     elif args.command == "mcp-serve":
         McpServeCommand().run(app)
     elif args.command == "build-study-list":

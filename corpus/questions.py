@@ -166,18 +166,31 @@ def state_for(text: str, units: dict[str, dict]) -> dict:
     return {"sentence": text, "units": units, "notation": NOTATION}
 
 
-def questions_for(units: dict[str, dict], level: bool = True) -> dict:
-    """Every question for one sentence, as the vendor's question objects."""
+# Every question the pass can ask, by name, for `questions_for(skip=...)`.
+NAMES = (*SENTENCE, "level", "plain", "guessable")
+
+
+def questions_for(units: dict[str, dict], skip: frozenset[str] = frozenset()) -> dict:
+    """Every question for one sentence, as the vendor's question objects.
+
+    `skip` names questions to leave out. A question is charged per request
+    whether or not its answer is read, so a budget is spent by asking fewer
+    questions, not by ignoring answers — `guessable` first, the one that
+    ranked weakest in its calibration.
+    """
     from typesafe_sdk import Choice, Noul, Score          # noqa: PLC0415 — optional client
 
     asked: dict = {key: Noul(instructions=q["instructions"], criteria=q["criteria"])
-                   for key, q in SENTENCE.items()}
-    if level:
+                   for key, q in SENTENCE.items() if key not in skip}
+    if "level" not in skip:
         asked["level"] = Choice(instructions=LEVEL["instructions"], criteria=LEVEL["criteria"])
     for unit_id in units:
-        asked[f"plain:{unit_id}"] = Noul(
-            instructions=PLAIN["instructions"].format(id=unit_id), criteria=PLAIN["criteria"])
-        asked[f"guessable:{unit_id}"] = Score(
-            instructions=GUESSABLE["instructions"].format(id=unit_id),
-            criteria=GUESSABLE["criteria"])
+        if "plain" not in skip:
+            asked[f"plain:{unit_id}"] = Noul(
+                instructions=PLAIN["instructions"].format(id=unit_id),
+                criteria=PLAIN["criteria"])
+        if "guessable" not in skip:
+            asked[f"guessable:{unit_id}"] = Score(
+                instructions=GUESSABLE["instructions"].format(id=unit_id),
+                criteria=GUESSABLE["criteria"])
     return asked

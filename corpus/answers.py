@@ -69,14 +69,15 @@ class Judged:
         return self._quality.get(text, 1.0)
 
     def unit(self, text: str, unit: Unit) -> float:
-        """How well the sentence serves as an example of `unit`.
+        """How well the sentence serves as an example of `unit`: `plain` —
+        the word itself, not a fixed expression or a look-alike. A refused
+        gloss is a pair the model would not read as the word, and counts
+        as `plain` 0.
 
-        `plain` first — the word itself, not a fixed expression or a
-        look-alike — scaled by how much the sentence gives the word away,
-        which ranks but never gates: a sentence the judge is sure is the
-        word keeps at least half its worth however little it explains. A
-        refused gloss is a pair the model would not read as the word, and
-        counts as `plain` 0.
+        `guessable` is stored where it was asked and read nowhere. It
+        ranked weakly in its calibration and was the first question left
+        out to meet a budget, and a factor that only some sentences carry
+        would order the judged below the unjudged.
         """
         found = self._fit.get(text)
         if not found:
@@ -151,7 +152,6 @@ class AnswerStore:
         """
         quality: dict[str, float] = {}
         plain: dict[str, dict[tuple[str, str], float]] = defaultdict(dict)
-        guess: dict[str, dict[tuple[str, str], float]] = defaultdict(dict)
         with open_state(self._path) as conn:
             for text, kind, key, question, value in conn.execute(
                     "SELECT text, kind, key, question, value FROM sentence_answer"
@@ -161,12 +161,6 @@ class AnswerStore:
                     quality[text] = quality.get(text, 1.0) * value
                 elif question == "plain":
                     plain[text][(kind, key)] = value
-                elif question == "guessable":
-                    guess[text][(kind, key)] = value
                 elif question == REFUSED:
                     plain[text][(kind, key)] = 0.0
-        fit: dict[str, dict[tuple[str, str], float]] = {}
-        for text, units in plain.items():
-            fit[text] = {unit: p * (0.5 + 0.5 * guess.get(text, {}).get(unit, 1.0))
-                         for unit, p in units.items()}
-        return Judged(quality, fit)
+        return Judged(quality, dict(plain))

@@ -33,6 +33,13 @@ class RequestTest(unittest.TestCase):
         self.assertEqual(set(asked), {"stands_alone", "complete", "standard", "well_formed",
                                       "expression", "level", "plain:u1", "guessable:u1"})
 
+    def test_a_skipped_question_is_not_asked(self) -> None:
+        """Charged per question per request, so a budget is met by not asking."""
+        _, asked, _ = state_and_questions(self.sentence(), frozenset({"guessable", "level"}))
+        self.assertNotIn("guessable:u1", asked)
+        self.assertNotIn("level", asked)
+        self.assertIn("plain:u1", asked)
+
 
 class ReadTest(unittest.TestCase):
     def test_each_kind_becomes_a_number_in_the_unit_interval(self) -> None:
