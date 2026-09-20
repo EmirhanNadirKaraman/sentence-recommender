@@ -1850,6 +1850,17 @@ quality of the sentences." Six survive:
     goes to the local model for "which one", and what comes back a hundred
     times is a candidate unit. The only path to `und zwar` and `na ja`,
     which hang on no pattern unit.
+  * `guessable`, one per pattern unit — *could a learner who knows every
+    other word work out what this one means from the sentence alone?*
+    Added when asked what else was worth asking. `plain` says the sentence
+    is the word; this says the sentence teaches it, which is the premise
+    of the walk — an i+1 sentence is one whose unknown can be inferred —
+    and the ranker has approximated it with length and variety until now.
+    Ranks a card's examples beside `plain`.
+
+Declined from the same list: `translation` (is the local model's English
+faithful? — 254k unverified lines, every card shows one; left for later)
+and `unpleasant` (vulgar or graphic — the hide button does it by hand).
 
 Dropped: `register` (a Choice over conversation / explanation /
 specialist / meta — taste, which lives at the channel level and in the
@@ -1859,7 +1870,7 @@ Jev — a Choice per cue boundary, code joins the runs, about a dollar —
 was asked about and declined: the merging logic stays as it is.
 
 State per request: `sentence`, `tokens`, `units` with spoken form,
-canonical and token indices, `notation`. Seven hundred to nine hundred
+canonical and token indices, `notation`. Eight hundred to a thousand
 input tokens a sentence; the 262k teachable subtitle sentences come to
 roughly $8–11 and four hours at the rate limit, once. Before it: `plain`
 on the 450 rows, and the four quality questions on a slice of three
