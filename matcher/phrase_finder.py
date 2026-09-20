@@ -263,6 +263,40 @@ def get_object_token(child):
         return "jdn." if is_person else "etw."
     return "etw."
 
+
+def carries_another_verb(token) -> bool:
+    """Is this `haben`, `sein`, `werden` or a modal standing in front of
+    another verb — an auxiliary, not the verb the dictionary describes?
+
+    `Ich habe nicht bestanden` is not `etw./jdn. (Akk) haben`, and `Ich kann
+    jetzt machen, was ich möchte` is not `etw. (Akk) können`. The verb branch
+    below meant to skip these with `dep_ != "aux"`, and never did: TIGER's
+    German parse makes the auxiliary the head and hangs the participle or
+    infinitive under it as `oc`, so the auxiliary is `ROOT` and the guard
+    passes. Measured over the subtitle corpus, `etw./jdn. (Akk) haben` was
+    the most frequent pattern of all at 46,871 sentences and about seven in
+    twelve of them were the perfect tense; `etw. (Akk) können` was second at
+    23,785 and twelve of twelve sampled were the modal.
+
+    The test is the parse's own: an auxiliary or modal tag (`VA*`, `VM*`)
+    with a verb hanging under it as its clausal object. `Ich kann Deutsch`
+    and `Ich habe Muckis` have no such child and keep their pattern; `Das
+    ist gut` is a copula with a `pd`, not an `oc`, and keeps `sein`. A full
+    verb (`VV*`) is never one of these — `Ich glaube, ich habe …` carries a
+    clause under `glauben`, which is exactly what `glauben` does.
+
+    Skipped outright rather than falling through: the catch-all branch at
+    the bottom looks the lemma up too, and would hand `haben` its blueprint
+    back.
+    """
+    if token.dep_ == "aux":
+        return True
+    if not token.tag_.startswith(("VA", "VM")):
+        return False
+    return any(child.dep_ == "oc" and child.tag_.startswith("V")
+               for child in token.children)
+
+
 def extract_german_logic(doc, overrides=None):
     """
     Extract phrases from a pre-computed spaCy doc.
@@ -280,9 +314,11 @@ def extract_german_logic(doc, overrides=None):
     for token in doc:
         if token.i in consumed:
             continue
+        if token.pos_ in ["VERB", "AUX"] and carries_another_verb(token):
+            continue
 
         # --- VERB MAPPING LOGIC ---
-        if token.pos_ in ["VERB", "AUX"] and token.dep_ != "aux":
+        if token.pos_ in ["VERB", "AUX"]:
             indices = [token.i]
             verb_lemma = token.lemma_.lower()
             

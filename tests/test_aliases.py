@@ -141,14 +141,24 @@ class UnitRuleTest(unittest.TestCase):
         for word in ("technologie", "quatsch", "Verkehr"):
             self.assertIsNotNone(resolve(Unit.exact(word)), word)
 
-    def test_list_only_still_drops(self) -> None:
-        """Unchanged: it keeps only what the list names, unknowns included —
-        which is what makes it the looser reading of the two."""
+    def test_list_only_still_drops_a_stranger(self) -> None:
+        """It keeps only what the list names, unknowns included — which is
+        what makes it the looser reading of the two."""
         goal = Unit.pattern("die Technologie")
         resolve = rule(goal, strict=False, list_only=True)
         self.assertEqual(resolve(goal), goal)
-        self.assertIsNone(resolve(Unit.exact("technologie")))
         self.assertIsNone(resolve(Unit.exact("quatsch")))
+
+    def test_list_only_renames_before_it_drops(self) -> None:
+        """A verb the list teaches as a pattern arrives as a bare lemma
+        wherever the matcher declines the pattern — the perfect tense, since
+        it stopped crediting `haben` to `hat gelesen`. Dropping the lemma for
+        not being a goal would call that sentence readable to someone who has
+        never learned `haben`."""
+        goal = Unit.pattern("etw./jdn. (Akk) haben")
+        resolve = rule(goal, strict=False, list_only=True)
+        self.assertEqual(resolve(Unit.exact("haben")), goal)
+        self.assertIsNone(resolve(Unit.exact("technologie")))
 
     def test_nothing_to_do_costs_nothing(self) -> None:
         self.assertIsNone(rule(strict=False, list_only=False))
