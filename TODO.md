@@ -1917,6 +1917,23 @@ hundred against what the rules already say — each with a go.
 The questions live in `corpus/questions.py`, as data, with a version the
 answers will be stored beside; the calibration and the pass read one file.
 
+**The pass is built (`0c76d4b`), unrun.** `ask-sentences`: one request
+per teachable subtitle sentence — 214,431 of them, 17,688 shown on a
+card first, then 75,021 the walk weighed, then the rest — carrying all
+eight questions; answers raw in `sentence_answer`
+(`corpus/answers.py`), keyed by text, unit, question, version and model;
+resumable; `--dry-run` prints the first request and sends nothing;
+`--limit 500` is the trial that says what a sentence really costs.
+`Application.judged` loads one model's answers and `rank` multiplies
+them into the verdict term — worth showing at all (the four quality
+answers) times worth showing for this word (`plain`, scaled by
+`guessable` but never gated by it) — so the walk, the pages and the
+stored decks order alike, and an empty store orders as today. The
+gloss's refusal is a pair-keyed answer now, and the 166 sentence-wide
+marks it used to leave are gone. `judge_model` is pinned to `jev-1.13.0`,
+the version calibrated, so `jev-latest` moving cannot silently change
+what is read back.
+
 **What this does not settle.** The list writes `stehen<TAB>jdm. (Dat)
 stehen` and means the verb; the frame came from the dictionary. Once rows
 are judged, the goal `jdm. (Dat) stehen` would teach *to suit someone* from
