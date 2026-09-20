@@ -29,9 +29,10 @@ class _Doc(list):
     pass
 
 
-def trustworthy(match_type: str, *tags: str) -> bool:
+def trustworthy(match_type: str, *tags: str, entry: str = "etw. (Akk) haben") -> bool:
     doc = _Doc(_Token(t) for t in tags)
-    phrase = {"match_type": match_type, "indices": list(range(len(tags)))}
+    phrase = {"match_type": match_type, "indices": list(range(len(tags))),
+              "dictionary_entry": entry}
     return UnitAnalyzer._trustworthy(phrase, doc)
 
 
@@ -61,6 +62,17 @@ class PatternSideTest(unittest.TestCase):
 
     def test_a_weak_fuzzy_match_is_still_refused(self) -> None:
         self.assertFalse(trustworthy("fuzzy (0.10)", "NN"))
+
+    def test_an_article_noun_entry_needs_a_noun(self) -> None:
+        """`meisten` is a pronoun whose lemma spells `Meister`; the fuzzy
+        fallback matched it to `der Meister` at 1.00, 730 times."""
+        self.assertFalse(trustworthy("fuzzy (1.00): der Meister", "PIS", entry="der Meister"))
+        self.assertFalse(trustworthy("exact (with article)", "ADV", entry="das Mal"))
+        self.assertTrue(trustworthy("exact (with article)", "ART", "NN", entry="das Jahr"))
+        self.assertTrue(trustworthy("fuzzy (1.00): der Meister", "NN", entry="der Meister"))
+
+    def test_a_verb_entry_asks_nothing_of_the_tags(self) -> None:
+        self.assertTrue(trustworthy("exact", "VVFIN", entry="etw. (Akk) machen"))
 
 
 if __name__ == "__main__":

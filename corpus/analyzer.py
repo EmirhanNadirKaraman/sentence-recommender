@@ -37,6 +37,9 @@ _LEMMA_FIXES = (Path(__file__).resolve().parents[1] / "data"
                 / "lemma_fixes.txt")
 
 VERB_TAGS = ("VV", "VA", "VM")
+# What a noun is tagged as, for the gate below: a common noun, or a name
+# used as one.
+NOUN_TAGS = frozenset({"NN", "NE"})
 
 # The matcher falls back to trigram similarity when nothing matches outright,
 # and reports the score in `match_type`. Measured over the subtitle corpus,
@@ -346,7 +349,22 @@ class UnitAnalyzer:
         if score and float(score.group(1)) < MIN_FUZZY:
             return False
         tags = {doc[i].tag_ for i in phrase["indices"] if i < len(doc)}
-        return not (tags and tags <= FREE_TAGS)
+        if tags and tags <= FREE_TAGS:
+            return False
+        # An article-noun entry needs a noun. `meisten` is a pronoun the
+        # parser lemmatises to `meister`, and the fuzzy fallback matched that
+        # to `der Meister` at a perfect 1.00 — the same letters, a different
+        # word — in 730 subtitle sentences; `leid` reached `das Leid`, `mal`
+        # `das Mal`, `pass auf` `der Pass`, `klasse` `die Klasse` the same
+        # way, 1,650 rows in all, found by the corpus pass's `plain`
+        # question putting `der Meister` at .10 in `die meisten Deutschen`.
+        # A noun in the sentence carries a noun tag; a match with none is
+        # matching the spelling.
+        entry = phrase["dictionary_entry"]
+        if entry.split(" ", 1)[0].lower() in ("der", "die", "das") \
+                and tags and not tags & NOUN_TAGS:
+            return False
+        return True
 
     def _verb_lemma(self, token) -> str:
         """`token`'s lemma, with an inflected verb folded into its infinitive.
