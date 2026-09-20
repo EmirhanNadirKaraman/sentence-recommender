@@ -3,8 +3,8 @@
 Two states and an absence, and the absence is the point: neutral is not a
 third opinion, it is the lack of one. Setting aside demotes and never hides —
 a channel you would rather not watch can still hold the one video that
-teaches the word you need, and `video_blacklist` is what removes something,
-a video at a time and deliberately.
+teaches the word you need. Removing is a separate decision, kept in its
+own list and undone from the settings page.
 """
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from vocab.channel_taste import DOWN, UP, ChannelTaste
+from vocab.channel_taste import DOWN, UP, ChannelBlacklist, ChannelTaste
 from watchability import SET_ASIDE, SUBSCRIBED, taste_weight
 
 
@@ -115,3 +115,83 @@ class OrderTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BlacklistStoreTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self._dir = tempfile.TemporaryDirectory()
+        self.store = ChannelBlacklist(Path(self._dir.name) / "state.sqlite3")
+
+    def tearDown(self) -> None:
+        self._dir.cleanup()
+
+    def test_nothing_removed_to_begin_with(self) -> None:
+        self.assertEqual(self.store.all(), {})
+
+    def test_removing_and_restoring(self) -> None:
+        self.store.add("UC1")
+        self.store.add("UC2")
+        self.assertEqual(list(self.store.all()), ["UC1", "UC2"])
+        self.store.remove("UC1")
+        self.assertEqual(list(self.store.all()), ["UC2"])
+
+    def test_removing_twice_keeps_the_first_date(self) -> None:
+        self.store.add("UC1")
+        when = self.store.all()["UC1"]
+        self.store.add("UC1")
+        self.assertEqual(self.store.all()["UC1"], when)
+
+    def test_a_missing_channel_is_ignored(self) -> None:
+        self.store.add("")
+        self.store.remove("")
+        self.assertEqual(self.store.all(), {})
+
+    def test_the_version_moves_on_every_change_and_only_then(self) -> None:
+        start = self.store.version()
+        self.store.add("UC1")
+        self.store.add("UC1")          # already there: no change
+        self.store.remove("UC1")
+        self.store.remove("UC1")       # already gone: no change
+        self.assertEqual(self.store.version(), start + 2)
+
+
+class RemovalTest(unittest.TestCase):
+    """A removed channel's sentences are dropped where every sentence
+    passes on its way to a page -- the same gate a hidden sentence meets."""
+
+    def setUp(self) -> None:
+        from alignment.timing import Timing
+        from config import Settings
+        from context import Application
+        from corpus.sentence import Sentence
+        self._dir = tempfile.TemporaryDirectory()
+        self.app = Application(Settings(
+            state_path=Path(self._dir.name) / "state.sqlite3"))
+        self.said = [
+            Sentence("Aus dem einen Kanal.", timing=Timing("v1", 0.0, 1.0)),
+            Sentence("Aus dem anderen.", timing=Timing("v2", 0.0, 1.0)),
+            Sentence("Ohne Video."),
+        ]
+
+    def tearDown(self) -> None:
+        self._dir.cleanup()
+
+    def _ban(self, *videos: str) -> None:
+        """Stand in for the catalogue's channel-to-video map."""
+        self.app.blacklist.add("UC1")
+        self.app._banned = (self.app.blacklist.version(), frozenset(videos))
+
+    def test_nothing_removed_changes_nothing(self) -> None:
+        self.assertEqual(self.app.apply_overrides(self.said), self.said)
+
+    def test_the_channels_videos_are_dropped_and_the_rest_kept(self) -> None:
+        self._ban("v1")
+        self.assertEqual([s.text for s in self.app.apply_overrides(self.said)],
+                         ["Aus dem anderen.", "Ohne Video."])
+
+    def test_restoring_brings_them_back_without_a_restart(self) -> None:
+        self._ban("v1")
+        self.app.blacklist.remove("UC1")
+        # The version moved, so the cached set is not trusted; with no
+        # channel left there is nothing to look up and nothing is banned.
+        self.assertEqual(self.app.apply_overrides(self.said), self.said)

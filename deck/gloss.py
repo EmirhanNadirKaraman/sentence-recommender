@@ -21,16 +21,26 @@ Kept in the state database rather than recomputed, because the run is long
 and a sentence often teaches more than one word. What is stored is keyed by
 the thing itself -- a unit, a sentence -- not by the plan, so rebuilding a
 roadmap or aiming at a different list reuses everything already paid for.
+
+The English of a sentence is also asked for **without** a word, by
+`translate-sentences`, which walks the whole corpus twenty sentences at a
+time. Those land in the same table under `source = 'translate'`, and the
+distinction is kept rather than flattened: a card's gloss call is the one that
+also asks what the word means, so a sentence the bulk pass has translated has
+still never been put to the gloss -- see `missing` and `GlossStore.asked`.
+A gloss answer replaces a bulk one, never the other way round.
 """
 from __future__ import annotations
 
 import json
 import re
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
 from typing import Callable, Iterable
 
+from corpus.sentence import Sentence
 from deck import Card
 from state import open_state
 
@@ -54,6 +64,11 @@ from state import open_state
 #    which is one sense worded three ways.
 GLOSS_VERSION = 4
 
+# The bulk translation prompt has its own version, so a change to how the
+# gloss is asked does not throw away three hundred thousand sentences that
+# were never asked that way.
+TRANSLATE_VERSION = 1
+
 SCHEMA = """
 -- The word's sense *in one sentence*, so the same word can be glossed two
 -- ways where it is used two ways. Keyed by both, which is the whole point.
@@ -70,12 +85,16 @@ CREATE TABLE IF NOT EXISTS unit_sense (
 -- Superseded by unit_sense before it ever held anything worth keeping: it
 -- stored one gloss per word, which had to hedge across the sentences.
 DROP TABLE IF EXISTS unit_gloss;
+-- Which prompt produced the row: 'gloss', asked beside a word and its
+-- sense, or 'translate', asked of the sentence alone. `version` is that
+-- prompt's version.
 CREATE TABLE IF NOT EXISTS sentence_english (
     text    TEXT PRIMARY KEY,
     english TEXT NOT NULL,
     version INTEGER NOT NULL DEFAULT 0,
     model   TEXT NOT NULL DEFAULT '',
-    made_at TEXT NOT NULL DEFAULT ''
+    made_at TEXT NOT NULL DEFAULT '',
+    source  TEXT NOT NULL DEFAULT 'gloss'
 );
 """
 
@@ -199,6 +218,12 @@ class GlossStore:
                 conn.execute(
                     f"ALTER TABLE {table} ADD COLUMN version INTEGER NOT NULL"
                     " DEFAULT 0")
+        have = {row[1] for row in conn.execute("PRAGMA table_info(sentence_english)")}
+        if "source" not in have:
+            # Every row written before the column existed came from the
+            # gloss, which was the only thing writing here.
+            conn.execute("ALTER TABLE sentence_english ADD COLUMN source"
+                         " TEXT NOT NULL DEFAULT 'gloss'")
         conn.commit()
 
     def senses(self, model: str = "") -> dict[tuple[str, str, str], str]:
@@ -221,14 +246,78 @@ class GlossStore:
                         " WHERE version = ? AND (? = '' OR model = ?)",
                         (GLOSS_VERSION, model, model))}
 
+    # A row the current prompts and this model produced. Either prompt will
+    # do: a gloss answer and a bulk one are both the English of the sentence,
+    # and each is current at its own version.
+    _CURRENT = ("(? = '' OR model = ?)"
+                " AND ((source = 'gloss' AND version = ?)"
+                "   OR (source = 'translate' AND version = ?))")
+
+    @staticmethod
+    def _current(model: str) -> tuple:
+        return (model, model, GLOSS_VERSION, TRANSLATE_VERSION)
+
     def sentences(self, model: str = "") -> dict[str, str]:
-        """Sentence translations, from this prompt and this model. See
+        """Sentence translations, from a current prompt and this model. See
         `senses` for why the model is part of the question."""
         with open_state(self._path) as conn:
             return dict(conn.execute(
                 "SELECT text, english FROM sentence_english"
-                " WHERE version = ? AND (? = '' OR model = ?)",
-                (GLOSS_VERSION, model, model)))
+                f" WHERE {self._CURRENT}", self._current(model)))
+
+    def english_for(self, texts: Iterable[str], model: str = "") -> dict[str, str]:
+        """The English of just these sentences, looked up now.
+
+        For a page, which shows a few dozen sentences and is asked for while
+        `translate-sentences` is still writing: `sentences` reads the whole
+        table, hundreds of thousands of rows by the end, and a copy held
+        across requests would miss everything that landed since. Point
+        lookups by key cost nothing and are never stale. Rows the model
+        declined -- stored empty -- are left out, so a caller can say
+        `english.get(text) or fallback` without a second test.
+        """
+        wanted = list(dict.fromkeys(texts))
+        out: dict[str, str] = {}
+        with open_state(self._path) as conn:
+            # Chunked to stay under SQLite's bound-parameter limit.
+            for at in range(0, len(wanted), 500):
+                chunk = wanted[at:at + 500]
+                marks = ",".join("?" * len(chunk))
+                out.update(conn.execute(
+                    "SELECT text, english FROM sentence_english"
+                    f" WHERE text IN ({marks}) AND english <> ''"
+                    f" AND {self._CURRENT}",
+                    (*chunk, *self._current(model))))
+        return out
+
+    def translated(self, sentences: Iterable[Sentence],
+                   model: str = "") -> list[Sentence]:
+        """The same sentences, carrying the model's English where it has any.
+
+        The model's answer over what the corpus shipped, as `deck.cards_from`
+        already chooses, so a sentence reads the same on a card and on a
+        page. Copies: the sentences handed in are usually a cached corpus,
+        and the English is a fact about this moment, not about the cache.
+        """
+        sentences = list(sentences)
+        english = self.english_for((s.text for s in sentences), model)
+        return [replace(s, translation=english[s.text])
+                if s.text in english else s for s in sentences]
+
+    def asked(self, model: str = "") -> set[str]:
+        """The sentences that have been put to the *gloss*, whatever it said.
+
+        Not the keys of `sentences`, and the difference is the point: the bulk
+        pass translates a sentence without asking what any word means in it,
+        so a card whose sentence it has covered is still owed a gloss call.
+        This is what `missing` wants for `asked`.
+        """
+        with open_state(self._path) as conn:
+            return {text for (text,) in conn.execute(
+                "SELECT text FROM sentence_english"
+                " WHERE source = 'gloss' AND version = ?"
+                " AND (? = '' OR model = ?)",
+                (GLOSS_VERSION, model, model))}
 
     def save(self, kind: str, key: str,
              rows: Iterable[tuple[str, str, str]], model: str) -> None:
@@ -243,7 +332,8 @@ class GlossStore:
         with open_state(self._path) as conn:
             conn.executemany(
                 "INSERT OR REPLACE INTO sentence_english"
-                " (text, english, version, model, made_at) VALUES (?,?,?,?,?)",
+                " (text, english, version, model, made_at, source)"
+                " VALUES (?,?,?,?,?,'gloss')",
                 [(text, english, GLOSS_VERSION, model, now)
                  for text, english, _ in rows])
             conn.executemany(
@@ -252,6 +342,32 @@ class GlossStore:
                 " VALUES (?,?,?,?,?,?,?)",
                 [(kind, key, text, means, GLOSS_VERSION, model, now)
                  for text, _, means in rows if means])
+            conn.commit()
+
+    def save_translations(self, english: dict[str, str], model: str) -> None:
+        """One batch of the bulk pass -- sentence to English, no word asked.
+
+        Never over a current gloss answer. The two passes may run at once,
+        and the gloss saw the sentence beside the word it teaches where this
+        saw it alone; the gloss's is the better English for the card, and
+        `save` above replaces this unconditionally, so between them the
+        gloss wins whichever lands second. Anything else -- an older prompt,
+        another model, an earlier bulk answer -- is replaced.
+        """
+        now = datetime.now().isoformat(timespec="seconds")
+        with open_state(self._path) as conn:
+            conn.executemany(
+                "INSERT INTO sentence_english"
+                " (text, english, version, model, made_at, source)"
+                " VALUES (?,?,?,?,?,'translate')"
+                " ON CONFLICT(text) DO UPDATE SET"
+                " english = excluded.english, version = excluded.version,"
+                " model = excluded.model, made_at = excluded.made_at,"
+                " source = excluded.source"
+                " WHERE NOT (source = 'gloss' AND version = ?"
+                "            AND model = excluded.model)",
+                [(text, said, TRANSLATE_VERSION, model, now, GLOSS_VERSION)
+                 for text, said in english.items()])
             conn.commit()
 
 
@@ -343,8 +459,10 @@ def missing(cards: Iterable[Card], asked: Iterable[str] = ()) -> list[Card]:
     declined. The first is worth asking; the second is the case this docstring
     was written about, and is still left alone.
 
-    Pass the keys of `GlossStore.sentences()`. Given nothing, this behaves as
-    it did before.
+    Pass `GlossStore.asked()` -- the sentences the gloss has seen, not every
+    sentence with English against it, because `translate-sentences` writes
+    English for the whole corpus without ever asking what a word means. Given
+    nothing, this behaves as it did before.
     """
     asked = frozenset(asked or ())
     return [card for card in cards

@@ -7,24 +7,37 @@ from roadmap import RoadmapStore
 
 
 class StatusCommand:
-    def run(self, app) -> None:
+    def gather(self, app) -> dict:
+        """The report as data: which builds and roadmaps exist and how big
+        they are, the card counts, and whether the vocabulary files are
+        there. `run` prints it; the MCP server returns it as it is."""
         settings = app.settings
-        builds = app.corpus_store.builds()
+        total, due = app.card_store.counts(datetime.now())
+        return {
+            "corpus": dict(app.corpus_store.builds()),
+            "roadmaps": dict(RoadmapStore(settings.state_path).sources()),
+            "cards": {"scheduled": total, "due": due},
+            "vocab": {path.name: path.exists()
+                      for path in (settings.known_words,
+                                   settings.function_words)},
+        }
+
+    def run(self, app) -> None:
+        report = self.gather(app)
         print("corpus builds:")
-        for name, count in sorted(builds.items()):
+        for name, count in sorted(report["corpus"].items()):
             print(f"  {name:<12} {count:>7} sentences")
-        if not builds:
+        if not report["corpus"]:
             print("  (none — run `build-corpus subtitle`)")
 
-        roadmaps = RoadmapStore(settings.state_path).sources()
-        total, due = app.card_store.counts(datetime.now())
         print("roadmaps:")
-        for name, count in sorted(roadmaps.items()):
+        for name, count in sorted(report["roadmaps"].items()):
             print(f"  {name:<12} {count:>7} steps")
-        if not roadmaps:
+        if not report["roadmaps"]:
             print("  (none — run `build-roadmap`)")
-        print(f"cards:   {total} scheduled, {due} due now")
+        cards = report["cards"]
+        print(f"cards:   {cards['scheduled']} scheduled, {cards['due']} due now")
 
-        for path in (settings.known_words, settings.function_words):
-            mark = "ok" if path.exists() else "MISSING"
-            print(f"vocab:   {path.name:<22} {mark}")
+        for name, present in report["vocab"].items():
+            mark = "ok" if present else "MISSING"
+            print(f"vocab:   {name:<22} {mark}")

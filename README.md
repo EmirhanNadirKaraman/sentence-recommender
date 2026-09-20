@@ -65,8 +65,11 @@ python main.py build-corpus subtitle --min-words 7       raise the length floor
 python main.py build-roadmap --steps 200  run the greedy walk
 python main.py build-roadmap --source subtitle          study video subtitles only
 python main.py fill-gaps                  generate the examples the corpus lacks
+python main.py translate-sentences        an English line for every roadmap sentence
+python main.py translate-sentences --all  …and for the rest of the corpus
 python main.py export-subtitles --source subtitle:llm   corrected subtitles as WebVTT
 python main.py review                     terminal SRS session
+python main.py mcp-serve                  the roadmap and the reviews as MCP tools
 python -m unittest discover -s tests -t .  run the tests
 ```
 
@@ -360,6 +363,49 @@ not be exposed beyond this machine.
 The first page load takes about fifteen seconds: it reads the whole cached
 corpus and loads spaCy to resolve the vocabulary files. Everything after that
 is instant.
+
+## Using it from Claude
+
+`python main.py mcp-serve` is the project as an MCP server: the same
+questions the viewer answers, published as tools an agent can call. A client
+that speaks MCP — Claude Code, Claude Desktop — launches the command itself,
+reads the tool list, and from then on can run a tutoring session against
+your own roadmap without any code written on its side.
+
+| tool | what it does |
+|---|---|
+| `next_up` | the next i+1 step: the sentence, the unit it teaches, its deck |
+| `mark_known` | *I know this* — or `pass` to set it aside, `undo` to take it back |
+| `due_cards` / `grade` | the review queue, and SM-2 rescheduling after an answer |
+| `check_word` | why a word on the study list is or is not being taught |
+| `status` | what is built and what is due |
+
+Beside the tools, `roadmap://<label>` reads a whole stored plan as a
+resource, and the `tutor` prompt starts a reading session (in Claude Code,
+`/mcp__sentence-recommender__tutor`).
+
+`.mcp.json` at the root registers it for Claude Code, under `.venv`'s
+interpreter for the reason above; the first `claude` run in this folder asks
+you to approve it, and `claude mcp list` shows it connected from then on.
+To reach it from any other folder, or from Claude Desktop, register it by
+absolute path instead:
+
+```
+claude mcp add sentence-recommender -s user -- \
+    "$PWD/.venv/bin/python" "$PWD/main.py" mcp-serve
+```
+
+To poke at the tools without a model in the loop:
+
+```
+npx @modelcontextprotocol/inspector .venv/bin/python main.py mcp-serve
+```
+
+The transport is stdio: the client owns the process and there is no port,
+so nothing is exposed. `next_up` answers from the stored plan when one
+matches the rules in force and walks the corpus otherwise, which is the
+same fifteen seconds the first page load pays. The server keeps that index
+for as long as the client keeps it running.
 
 ## Layout
 

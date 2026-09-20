@@ -100,6 +100,30 @@ class LLMClient:
         body = response.json()
         return sorted(str(m.get("id", "")) for m in body.get("data", []))
 
+    def slots(self) -> int | None:
+        """How many requests the server answers at once, if it will say.
+
+        llama.cpp reports it as `total_slots` on `/props`, which sits beside
+        `/v1` rather than under it. Anything else -- vLLM, Ollama, a server
+        that hides the endpoint -- answers with something that is not that,
+        and gets None: the caller then falls back to a fixed count rather
+        than to a guess dressed up as a measurement.
+
+        Worth asking because the answer sets the ceiling. A request past the
+        slot count queues, and a pool sized to the queue rather than the
+        server was measured slower, not merely no faster.
+        """
+        root = self._base_url[:-3] if self._base_url.endswith("/v1") \
+            else self._base_url
+        try:
+            response = requests.get(f"{root}/props", headers=self._headers(),
+                                    timeout=self._timeout)
+            response.raise_for_status()
+            slots = int(response.json()["total_slots"])
+        except (requests.RequestException, ValueError, KeyError, TypeError):
+            return None
+        return slots if slots > 0 else None
+
     def embed(self, texts: list[str]) -> list[list[float]]:
         """Vectors for a batch of sentences, in the order they were given.
 

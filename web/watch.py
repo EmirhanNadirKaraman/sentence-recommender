@@ -161,5 +161,5 @@ def stage(video_id: str, start: float) -> str:
         f"src='https://www.youtube-nocookie.com/embed/{escape(video_id)}"
         f"?start={max(int(start - LEAD_IN), 0)}"
         "&rel=0&modestbranding=1&enablejsapi=1&playsinline=1'></iframe></div>"
-        "<p class='de' id='caption'></p></div>"
+        "<p class='de' id='caption'></p><p class='en' id='caption-en'></p></div>"
     )

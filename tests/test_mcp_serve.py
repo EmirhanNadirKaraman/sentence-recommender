@@ -1,0 +1,255 @@
+"""The MCP server: the tools as data, and the wire around them.
+
+Two layers, tested apart. `Tools` is plain methods over an `Application`,
+and most of what can go wrong is there: a step served twice because marking
+it known changed nothing the next call reads, a `pass` that did not set the
+word aside, a grade that did not move the due date. Those run against a
+stub app on a temporary state file — no corpus, no database, no spaCy.
+
+The SDK layer is one in-process client: that every tool, the resource and
+the prompt are actually published, that a dict comes back as structured
+content, and that a bad argument reaches the model as a readable error and
+not as `Error executing tool`. The SDK is only installed in `.venv`, so
+those cases are skipped rather than failed where it is missing.
+"""
+from __future__ import annotations
+
+import io
+import tempfile
+import unittest
+from contextlib import redirect_stdout
+from datetime import datetime, timedelta
+from pathlib import Path
+from types import SimpleNamespace
+
+from commands.mcp_serve import Tools, tutor
+from config import Settings
+from corpus.sentence import Sentence
+from roadmap.known_set import KnownSet
+from roadmap.step import RoadmapStep
+from roadmap.store import RoadmapStore, current_stamp
+from srs import CardStore, SM2Scheduler
+from vocab.entry import Unit
+from vocab.known_store import KnownStore
+from vocab.snooze_store import SnoozeStore
+
+try:
+    from mcp import Client
+    from commands.mcp_serve import build
+except ImportError:                        # pragma: no cover — system python
+    Client = None
+
+LABEL = "subtitle:strict:goals"
+NOW = datetime(2026, 1, 1, 12, 0)
+
+
+def sentence(text: str, unit: Unit, surface: str, *others: Unit) -> Sentence:
+    return Sentence(text=text, translation=f"({text})").with_units(
+        frozenset({unit, *others}), ((unit, surface),))
+
+
+def step(position: int, key: str, text: str, surface: str) -> RoadmapStep:
+    unit = Unit.lemma(key)
+    taught = sentence(text, unit, surface)
+    return RoadmapStep(position=position, unit=unit, sentence=taught,
+                       gain=1, score=1.0, now_readable=1,
+                       examples=(taught,), readable=position, occurrences=2)
+
+
+STEPS = [
+    step(1, "merken", "Merk dir das.", "Merk"),
+    step(2, "anders", "Das ist anders.", "anders"),
+    step(3, "sogar", "Sogar du.", "Sogar"),
+]
+
+
+def stub_app(tmp: Path) -> SimpleNamespace:
+    """Enough of an `Application` for the server: the stores it writes,
+    on a state file of their own, and the two corpus questions stubbed."""
+    state = tmp / "state.sqlite3"
+    settings = SimpleNamespace(
+        state_path=state,
+        # The same stem as the default list, so the plan's label carries no
+        # list name and `LABEL` above is the one the viewer looks for.
+        goal_words=Settings().goal_words,
+        known_words=tmp / "known.txt", function_words=tmp / "function.txt",
+        snooze_words=20,
+    )
+    app = SimpleNamespace(
+        settings=settings,
+        card_store=CardStore(state),
+        scheduler=SM2Scheduler(),
+        snoozes=SnoozeStore(state),
+        marked_known=KnownStore(state),
+        corpus_store=SimpleNamespace(
+            builds=lambda teachable_only=False: {"subtitle": 3}),
+        apply_overrides=lambda deck, resolve=None: deck,
+    )
+    app.known_set = lambda: KnownSet(app.marked_known.units())
+    RoadmapStore(state).save(STEPS, LABEL, stamp=current_stamp(), total=3)
+    return app
+
+
+class ToolsTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self._tmp = tempfile.TemporaryDirectory()
+        self.app = stub_app(Path(self._tmp.name))
+        self.tools = Tools(self.app)
+
+    def tearDown(self) -> None:
+        self._tmp.cleanup()
+
+    def test_status_is_data(self) -> None:
+        report = self.tools.status()
+        self.assertEqual(report["corpus"], {"subtitle": 3})
+        self.assertEqual(report["roadmaps"], {LABEL: 3})
+        self.assertEqual(report["cards"], {"scheduled": 0, "due": 0})
+        self.assertEqual(report["vocab"],
+                         {"known.txt": False, "function.txt": False})
+
+    def test_next_up_is_the_first_stored_step(self) -> None:
+        got = self.tools.next_up(source="subtitle")
+        self.assertEqual(got["unit"], {"kind": "lemma", "key": "merken"})
+        self.assertEqual(got["sentence"]["text"], "Merk dir das.")
+        self.assertEqual(got["sentence"]["surface"], "Merk")
+        self.assertEqual(got["sentence"]["translation"], "(Merk dir das.)")
+        self.assertEqual([e["text"] for e in got["examples"]],
+                         ["Merk dir das."])
+        self.assertEqual((got["readable"], got["total"]), (1, 3))
+        self.assertIsNone(got["beside"])
+
+    def test_marking_known_moves_the_plan_on(self) -> None:
+        """The sequence, not the calls: a long-lived server that kept
+        serving the word just learned would pass every single-call test."""
+        self.assertEqual(self.tools.next_up("subtitle")["unit"]["key"], "merken")
+        self.tools.mark_known("merken")
+        self.assertEqual(self.tools.next_up("subtitle")["unit"]["key"], "anders")
+        self.assertIn(Unit.lemma("merken"), self.app.marked_known.units())
+
+    def test_pass_sets_a_word_aside_without_learning_it(self) -> None:
+        self.tools.mark_known("merken", action="pass")
+        self.assertEqual(self.tools.next_up("subtitle")["unit"]["key"], "anders")
+        self.assertNotIn(Unit.lemma("merken"), self.app.marked_known.units())
+
+    def test_undo_takes_a_word_back(self) -> None:
+        self.tools.mark_known("merken")
+        self.tools.mark_known("merken", action="undo")
+        self.assertNotIn(Unit.lemma("merken"), self.app.marked_known.units())
+
+    def test_nothing_left_says_so_with_the_counts(self) -> None:
+        # A plan that has run out falls back to the live walk, as the page
+        # does, and that needs the corpus. What is checked here is the
+        # answer's shape once the walk has nothing either.
+        self.tools.viewer.next_step = lambda query, source, only: (None, [], 5, 0, 9)
+        got = self.tools.next_up("subtitle")
+        self.assertEqual(got, {"empty": True, "source": "subtitle",
+                               "readable": 5, "total": 9})
+
+    def test_bad_arguments_are_refused_by_name(self) -> None:
+        with self.assertRaisesRegex(ValueError, "kind"):
+            self.tools.mark_known("merken", kind="verb")
+        with self.assertRaisesRegex(ValueError, "action"):
+            self.tools.mark_known("merken", action="learnt")
+        with self.assertRaisesRegex(ValueError, "empty"):
+            self.tools.mark_known("  ")
+        with self.assertRaisesRegex(ValueError, "no card"):
+            self.tools.grade("merken", correct=True)
+
+    def test_grading_reschedules_the_card(self) -> None:
+        store = self.app.card_store
+        store.add(self.app.scheduler.new_card(Unit.lemma("merken"), NOW))
+        self.assertEqual([c["unit"]["key"] for c in self.tools.due_cards()],
+                         ["merken"])
+        before = datetime.now()
+        got = self.tools.grade("merken", correct=True)
+        self.assertEqual(got["repetitions"], 1)
+        self.assertGreater(datetime.fromisoformat(got["due"]),
+                           before + timedelta(days=2))
+        self.assertEqual(self.tools.due_cards(), [])
+        self.assertEqual(store.get(Unit.lemma("merken")).repetitions, 1)
+
+    def test_marking_known_drops_the_card(self) -> None:
+        self.app.card_store.add(
+            self.app.scheduler.new_card(Unit.lemma("merken"), NOW))
+        self.tools.mark_known("merken")
+        self.assertIsNone(self.app.card_store.get(Unit.lemma("merken")))
+
+    def test_the_roadmap_resource_is_one_line_a_step(self) -> None:
+        lines = self.tools.roadmap(LABEL).splitlines()
+        self.assertEqual(len(lines), 3)
+        self.assertRegex(lines[0], r"^\s+1\. lemma\s+merken\s+Merk dir das\.$")
+        self.assertIn("no stored roadmap", self.tools.roadmap("nope"))
+
+    def test_a_stale_plan_says_it_is_not_what_next_up_follows(self) -> None:
+        # The stored plans on a real machine outlive the rules that built
+        # them, and `next_up` then walks the corpus. The resource still
+        # reads — but must say so, or the two contradict each other.
+        RoadmapStore(self.app.settings.state_path).save(
+            STEPS, LABEL, stamp="older|rules", total=3)
+        lines = self.tools.roadmap(LABEL).splitlines()
+        self.assertEqual(len(lines), 4)
+        self.assertIn("earlier rules", lines[0])
+        self.assertIn("next_up", lines[0])
+
+    def test_a_printing_command_is_returned_not_printed(self) -> None:
+        class Says:
+            def run(self, app, word):
+                print(f"about {word}")
+
+        outside = io.StringIO()
+        with redirect_stdout(outside):
+            got = self.tools._captured(Says(), "merken")
+        self.assertEqual(got, "about merken\n")
+        self.assertEqual(outside.getvalue(), "")
+
+    def test_the_tutor_prompt_names_the_tools_it_needs(self) -> None:
+        for name in ("next_up", "mark_known"):
+            self.assertIn(f"`{name}`", tutor())
+
+
+@unittest.skipIf(Client is None, "the mcp package is only in .venv")
+class WireTest(unittest.IsolatedAsyncioTestCase):
+    """The SDK layer, over an in-process client."""
+
+    def setUp(self) -> None:
+        self._tmp = tempfile.TemporaryDirectory()
+        self.server = build(Tools(stub_app(Path(self._tmp.name))))
+
+    def tearDown(self) -> None:
+        self._tmp.cleanup()
+
+    async def test_everything_is_published(self) -> None:
+        async with Client(self.server) as client:
+            tools = {t.name: t for t in (await client.list_tools()).tools}
+            self.assertEqual(
+                set(tools),
+                {"status", "check_word", "next_up", "due_cards",
+                 "mark_known", "grade"})
+            # The schema comes from the signature, through the error wrapper.
+            self.assertEqual(tools["grade"].input_schema["required"],
+                             ["key", "correct"])
+            self.assertTrue(tools["next_up"].annotations.read_only_hint)
+            self.assertIsNone(tools["mark_known"].annotations)
+            templates = await client.list_resource_templates()
+            self.assertEqual([t.uri_template for t in templates.resource_templates],
+                             ["roadmap://{label}"])
+            prompts = await client.list_prompts()
+            self.assertEqual([p.name for p in prompts.prompts], ["tutor"])
+
+    async def test_a_dict_comes_back_structured(self) -> None:
+        async with Client(self.server) as client:
+            result = await client.call_tool("next_up", {"source": "subtitle"})
+            self.assertFalse(result.is_error)
+            self.assertEqual(result.structured_content["unit"]["key"], "merken")
+            read = await client.read_resource(f"roadmap://{LABEL}")
+            self.assertIn("merken", read.contents[0].text)
+
+    async def test_a_bad_argument_reaches_the_model(self) -> None:
+        async with Client(self.server) as client:
+            result = await client.call_tool("grade", {"key": "x", "correct": True})
+            self.assertTrue(result.is_error)
+            self.assertIn("no card for lemma:x", result.content[0].text)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -79,6 +79,18 @@ class CardStore:
             conn.execute("DELETE FROM cards WHERE kind = ? AND key = ?",
                          (unit.kind, unit.key))
 
+    def get(self, unit: Unit) -> Card | None:
+        """One unit's card, or None when it has none — a word marked known
+        has had its card removed, and a word the roadmap never reached never
+        had one."""
+        with open_state(self._path) as conn:
+            row = conn.execute(
+                "SELECT card_id, kind, key, due_date, interval_days, ease_factor,"
+                " repetitions, last_review FROM cards WHERE kind = ? AND key = ?",
+                (unit.kind, unit.key),
+            ).fetchone()
+        return self._from_row(row) if row else None
+
     def due(self, now: datetime, limit: int = 20) -> list[Card]:
         with open_state(self._path) as conn:
             rows = conn.execute(

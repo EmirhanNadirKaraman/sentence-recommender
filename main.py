@@ -20,9 +20,9 @@ from commands import (
     GlossDeckCommand,
     ExportSubtitlesCommand,
     FillGapsCommand, SpeakDeckCommand,
-    HuntVideosCommand, ReviewCommand, ServeCommand, StatusCommand,
+    HuntVideosCommand, McpServeCommand, ReviewCommand, ServeCommand, StatusCommand,
     SyncCatalogueCommand, OutOfReachCommand,
-    BackfillChannelsCommand,
+    BackfillChannelsCommand, TranslateSentencesCommand,
 )
 from config import Settings
 from context import Application
@@ -220,6 +220,23 @@ def _parser() -> argparse.ArgumentParser:
     polish.add_argument("--all", action="store_true", dest="everything",
                         help="every candidate the walk weighed, not just\n                             the sentences a card shows")
 
+    translate = sub.add_parser(
+        "translate-sentences",
+        help="an English line for every roadmap sentence, from the local model",
+    )
+    translate.add_argument("--all", action="store_true", dest="everything",
+                           help="the whole corpus, not just the roadmap and "
+                                "the candidates the walk weighed for it")
+    translate.add_argument("--limit", type=int, default=None,
+                           help="stop after this many sentences")
+    translate.add_argument("--batch", type=int, default=20)
+    translate.add_argument("--workers", type=int, default=None,
+                           help="requests in flight (default: one per server "
+                                "slot, or 2 if the server will not say)")
+    translate.add_argument("--log", type=Path, default=Path("out/translate.log"),
+                           help="every sentence and its English, appended as "
+                                "they land")
+
     progress = sub.add_parser(
         "progress",
         help="how much of the deck is translated, recorded and merged",
@@ -362,6 +379,10 @@ def _parser() -> argparse.ArgumentParser:
                             "only on a network you trust")
     serve.add_argument("--no-browser", action="store_true",
                        help="do not open a browser window")
+
+    sub.add_parser("mcp-serve",
+                   help="serve the roadmap and the reviews as MCP tools over "
+                        "stdio, for Claude Code or any MCP client to launch")
 
     blockers = sub.add_parser(
         "blockers", help="what stands between the roadmap and the rest of the "
@@ -684,6 +705,10 @@ def main() -> int:
         PolishSentencesCommand().run(app, args.label, args.limit,
                                      args.batch, args.workers,
                                      args.everything)
+    elif args.command == "translate-sentences":
+        TranslateSentencesCommand().run(app, args.limit, args.batch,
+                                        args.workers, args.log,
+                                        args.everything)
     elif args.command == "progress":
         ProgressCommand().run(app, args.label)
     elif args.command == "check-model":
@@ -717,6 +742,8 @@ def main() -> int:
         ReviewCommand().run(app, args.limit, tuple(args.source))
     elif args.command == "serve":
         ServeCommand().run(app, args.port, not args.no_browser, args.host)
+    elif args.command == "mcp-serve":
+        McpServeCommand().run(app)
     elif args.command == "build-study-list":
         BuildStudyListCommand().run(app)
     elif args.command == "sync-catalogue":

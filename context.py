@@ -29,6 +29,8 @@ class Application:
 
     def __init__(self, settings: Settings | None = None) -> None:
         self.settings = settings or Settings()
+        # (blacklist version, the videos it removes) -- see `banned_videos`.
+        self._banned: tuple[int, frozenset[str]] | None = None
 
     # --- storage ---------------------------------------------------------
 
@@ -76,6 +78,60 @@ class Application:
     @cached_property
     def overrides(self) -> SentenceOverrides:
         return SentenceOverrides(self.settings.state_path)
+
+    @cached_property
+    def blacklist(self):
+        """The channels the reader has removed. See `vocab.channel_taste`."""
+        from vocab.channel_taste import ChannelBlacklist   # noqa: PLC0415
+        return ChannelBlacklist(self.settings.state_path)
+
+    def banned_videos(self) -> frozenset[str]:
+        """Every video of a removed channel -- what the blacklist means in
+        the terms the corpus speaks.
+
+        Derived once per change rather than per call: the channel-to-video
+        map is a catalogue query, and this is asked on every corpus load.
+        The blacklist's version says whether the last answer still stands,
+        so a page never carries a channel the reader has just restored.
+        """
+        version = self.blacklist.version()
+        if self._banned is None or self._banned[0] != version:
+            channels = list(self.blacklist.all())
+            videos: frozenset[str] = frozenset()
+            if channels:
+                with Database(self.settings.own) as db:
+                    videos = frozenset(video for (video,) in db.rows(
+                        "SELECT v.video_id FROM video v"
+                        " JOIN channel c ON c.id = v.channel_id"
+                        " WHERE c.youtube_channel_id = ANY(%s)", (channels,)))
+            self._banned = (version, videos)
+        return self._banned[1]
+
+    @cached_property
+    def glosses(self):
+        """What the model has said in English about sentences and words."""
+        from deck.gloss import GlossStore                   # noqa: PLC0415
+        return GlossStore(self.settings.state_path)
+
+    @property
+    def llm_model(self) -> str:
+        """The configured model's name, which keys everything it has said."""
+        import os                                           # noqa: PLC0415
+        return os.environ.get("LLM_MODEL", "")
+
+    def with_english(self, sentences) -> list:
+        """Sentences as a reader should see them: with the model's English.
+
+        Every screen that shows a sentence goes through here, so a
+        translation that exists anywhere is shown everywhere -- the
+        roadmap, a unit's examples, the reading deck, a video's transcript,
+        the terminal review -- and not only on the cards the deck commands
+        assemble.
+        """
+        found = self.glosses.translated(
+            [s for s in sentences if s is not None], self.llm_model)
+        it = iter(found)
+        return [None if s is None else next(it) for s in sentences]
 
     def corpus(self, *builds: str, teachable_only: bool = True,
                list_only: bool = False, strict: bool = False,
@@ -290,11 +346,18 @@ class Application:
         """
         hidden = self.overrides.hidden()
         corrected = self.overrides.corrected()
-        if not hidden and not corrected:
+        # A removed channel is applied here too, and for the same reason: a
+        # stored deck predates the decision as much as it predates a hidden
+        # sentence, and every live load passes this way as well.
+        banned = self.banned_videos()
+        if not hidden and not corrected and not banned:
             return sentences
         out = []
         for sentence in sentences:
             if sentence.text in hidden:
+                continue
+            if banned and sentence.timing \
+                    and sentence.timing.video_id in banned:
                 continue
             fix = corrected.get(sentence.text)
             if fix is not None:
@@ -320,7 +383,8 @@ class Application:
 
     def prompts(self, *builds: str) -> PromptBuilder:
         return PromptBuilder(
-            self.example_index(*builds), self.settings.examples_per_card
+            self.example_index(*builds), self.settings.examples_per_card,
+            translate=self.with_english,
         )
 
     # --- vocabulary ------------------------------------------------------

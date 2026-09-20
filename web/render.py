@@ -42,7 +42,7 @@ def stamped(name: str) -> str:
 
 NAV = (("/", "Next"), ("/reels", "Reels"), ("/roadmap", "Roadmap"),
        ("/quiz", "Quiz"), ("/blocked", "Blocked"), ("/lists", "Lists"),
-       ("/subtitles", "Videos"))
+       ("/subtitles", "Videos"), ("/settings", "Settings"))
 
 
 def layout(title: str, body: str, here: str = "/", source: str = "",

@@ -63,8 +63,9 @@ class GlossDeckCommand:
         # What has been *asked*, not what came back with something. A sentence
         # the model declined has a row with nothing against it and is left
         # alone; one that was never put to it has no row at all and is the
-        # whole point of this pass.
-        todo = missing(cards, glosses.sentences(model).keys())
+        # whole point of this pass. Asked *here*: `translate-sentences` gives
+        # a sentence English without ever asking what the word means in it.
+        todo = missing(cards, glosses.asked(model))
         print(f"{len(cards):,} cards · {len(cards) - len(todo):,} already "
               f"done · {len(todo):,} to ask\n  {client.describe()}", flush=True)
         if not todo:

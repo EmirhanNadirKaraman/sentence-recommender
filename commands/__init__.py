@@ -22,6 +22,7 @@ from .export_subtitles import ExportSubtitlesCommand
 from .fill_gaps import FillGapsCommand
 from .unblock import UnblockCommand
 from .hunt_videos import HuntVideosCommand
+from .mcp_serve import McpServeCommand
 from .quiz import QuizCommand
 from .review import ReviewCommand
 from .blockers import BlockersCommand
@@ -29,6 +30,7 @@ from .serve import ServeCommand
 from .out_of_reach import OutOfReachCommand
 from .status import StatusCommand
 from .sync_catalogue import SyncCatalogueCommand
+from .translate_sentences import TranslateSentencesCommand
 
 __all__ = [
     "AddVideoCommand", "BackfillChannelsCommand", "AddVideosCommand", "BuildCorpusCommand", "BuildRoadmapCommand",
@@ -43,6 +45,7 @@ __all__ = [
     "ExportDeckCommand", "GlossDeckCommand", "ExportSubtitlesCommand",
     "SpeakDeckCommand", "UnblockCommand",
     "FillGapsCommand",
-    "HuntVideosCommand", "QuizCommand", "ReviewCommand", "ServeCommand", "BlockersCommand",
+    "HuntVideosCommand", "McpServeCommand", "QuizCommand", "ReviewCommand", "ServeCommand", "BlockersCommand",
     "OutOfReachCommand", "StatusCommand", "SyncCatalogueCommand",
+    "TranslateSentencesCommand",
 ]

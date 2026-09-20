@@ -1,5 +1,9 @@
 """`progress` — how much of the deck is done, and how much is left.
 
+And of the corpus: `translate-sentences` runs for days, and the same
+question -- how far, from what is stored rather than from what a log said --
+is answered here for it too.
+
 Written because the question kept being asked and kept being answered badly.
 A long run's own log says where it has got to, which is not the same thing:
 `gloss-deck` prints the position of the card it is glossing, so watching it
@@ -50,11 +54,22 @@ class ProgressCommand:
 
         shown = [e.text for card in plain for e in card.examples]
         done = [t for t in shown if english.get(t, "").strip()]
-        owed = missing(plain, english.keys())
+        owed = missing(plain, glosses.asked(model))
         print("translations")
         print(f"  {len(done):>7,} of {len(shown):,} sentences "
               f"({len(done) / max(len(shown), 1):.1%})")
         print(f"  {len(owed):>7,} cards still to ask")
+
+        # The whole corpus, not the deck: what `translate-sentences` walks.
+        # Counted against the sentences that arrived without English, since
+        # the ones that came with it are not anyone's work to do.
+        wanted = app.corpus_store.untranslated()
+        have = sum(1 for text, _ in wanted if english.get(text, "").strip())
+        asked = sum(1 for text, _ in wanted if text in english)
+        print("\ncorpus translations")
+        print(f"  {have:>7,} of {len(wanted):,} sentences "
+              f"({have / max(len(wanted), 1):.1%})")
+        print(f"  {len(wanted) - asked:>7,} still to ask")
 
         # Only cards with a gloss are recorded, so the denominator matches
         # what `speak-deck` will actually try to say.

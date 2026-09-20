@@ -58,12 +58,18 @@ class ReviewPrompt:
 
 
 class PromptBuilder:
-    def __init__(self, examples, count: int = 3) -> None:
+    def __init__(self, examples, count: int = 3, translate=None) -> None:
+        """`translate` maps sentences to the same sentences carrying whatever
+        English exists for them -- `Application.with_english`. Without it a
+        card shows only what the corpus shipped."""
         self._examples = examples
         self._count = count
+        self._translate = translate
 
     def build(self, card: Card, known: frozenset[Unit]) -> ReviewPrompt:
         found = tuple(self._examples.examples(card.unit, known, self._count))
+        if self._translate is not None:
+            found = tuple(self._translate(found))
         if card.unit.is_pattern:
             return ReviewPrompt(
                 card=card,

@@ -147,7 +147,7 @@ function cueAt(cues, now) {
   var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var player = null, ready = false, busy = false;
   var cues = [], marking = -1, video = null;
-  var deck, slides, at, stage, line, showing = 0;
+  var deck, slides, at, stage, line, lineEn, showing = 0;
 
   function bind() {
     deck = document.getElementById('deck');
@@ -156,6 +156,7 @@ function cueAt(cues, now) {
     at = document.getElementById('at');
     stage = document.getElementById('stage');
     line = document.getElementById('caption');
+    lineEn = document.getElementById('caption-en');
     showing = 0;
     var p = document.getElementById('prev'), n = document.getElementById('next');
     if (p) p.onclick = function () { show(showing - 1); };
@@ -204,13 +205,21 @@ function cueAt(cues, now) {
     marking = i;
     if (all[i]) { all[i].classList.add('now'); keepInView(all[i]); }
     if (line) line.textContent = cues[i].text;
+    if (lineEn) lineEn.textContent = cues[i].en || '';
   }
 
   function play(i) {
     var el = slides[i];
     if (!el) return;
     var id = el.dataset.video;
-    if (!id) { if (stage) stage.hidden = true; return; }
+    if (!id) {
+      // Hidden is not stopped: the stage is display:none and the iframe
+      // inside it plays on, so a transcript sentence after a video one
+      // arrived with the last clip still talking underneath it.
+      if (stage) stage.hidden = true;
+      if (ready && player.pauseVideo) player.pauseVideo();
+      return;
+    }
     if (stage) stage.hidden = false;
     var start = Math.max(parseFloat(el.dataset.at) - 0.4, 0);
     if (!ready) return;
@@ -226,6 +235,7 @@ function cueAt(cues, now) {
     slides[showing].hidden = false;
     if (at) at.textContent = showing + 1;
     if (line) line.textContent = '';
+    if (lineEn) lineEn.textContent = '';
     play(showing);
   }
 
@@ -373,6 +383,7 @@ function cueAt(cues, now) {
   var taste = document.getElementById('reel-taste');
   var counter = document.getElementById('reel-at');
   var caption = document.getElementById('caption');
+  var captionEn = document.getElementById('caption-en');
   var cues = [], marking = -1;
   var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var player = null, ready = false, busy = false;
@@ -385,6 +396,7 @@ function cueAt(cues, now) {
   function showCues(id) {
     marking = -1;
     if (caption) caption.textContent = '';
+    if (captionEn) captionEn.textContent = '';
     loadCues(id).then(function (rows) {
       if (id === s.video) cues = rows;
     });
@@ -399,6 +411,7 @@ function cueAt(cues, now) {
         if (i < 0 || i === marking) return;
         marking = i;
         if (caption) caption.textContent = cues[i].text;
+        if (captionEn) captionEn.textContent = cues[i].en || '';
       }, 250);
     }}});
   };

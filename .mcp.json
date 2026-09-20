@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "sentence-recommender": {
+      "type": "stdio",
+      "command": ".venv/bin/python",
+      "args": [
+        "main.py",
+        "mcp-serve"
+      ],
+      "env": {}
+    }
+  }
+}

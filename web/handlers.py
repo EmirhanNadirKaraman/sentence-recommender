@@ -74,14 +74,12 @@ EXAMPLES = 6
 # 211 buy 11, and 524 buy 24. About twenty words of somebody else's
 # vocabulary per word of your own.
 UNBLOCK_BUDGET = 50
-PREFERRED = ("subtitle", "subtitle:llm", ALL)
-LABELS = {ALL: "everything", "subtitle": "video subtitles",
-          "subtitle:llm": "video subtitles, model-corrected",
-          # Named for what it is rather than for the build that holds it. The
-          # switch is the filter: pick `video subtitles` and no machine
-          # caption is counted, ranked or taught anywhere on the site.
-          "subtitle:auto": "machine captions",
-}
+# Everything first. The pages used to carry a "Studying" switch between the
+# builds; it went, because the plans are built over every build together
+# and a page opened on one build alone was an empty roadmap. `?src=` is
+# still honoured, for a link that names a build, and one build alone is
+# what you get when only one is cached.
+PREFERRED = (ALL, "subtitle", "subtitle:llm")
 
 
 @dataclass
@@ -255,6 +253,9 @@ class Viewer:
             f"<p class='count'>{done:,} checked · {left:,} to go{aside}</p>"
             f"<h2 class='de'>{escape(written)}</h2>"
             f"<p class='quiet'>said {counts[unit]:,} times in this corpus</p>"
+            # German alone, and the one screen that stays that way: the
+            # question is whether you know the word, and an English line
+            # under the example would answer it for you.
             + (f"<div class='example'{more}>{sentence(example, None)}</div>"
                f"{another}"
                if example else "<p class='quiet'>no example sentence</p>")
@@ -276,7 +277,7 @@ class Viewer:
         phone — which is where this gets used, and a terminal is not.
         """
         source = self.source(query)
-        return self._page("Quiz", self.switch(source, "/quiz") +
+        return self._page("Quiz",
                       "<h1>Do you know these?</h1>"
                       "<p class='quiet'>Every word here is one the roadmap "
                       "already counts as known. Swipe right if that is true, "
@@ -670,37 +671,17 @@ class Viewer:
         )
         return f"<div class='switch'><span>Counting</span>{links}</div>"
 
-    def switch(self, source: str, page: str) -> str:
-        counts = self.sources()
-        if len(counts) < 2:
-            return ""
-        links = "".join(
-            f"<a href='{page}?src={quote(name)}' "
-            f"class='{'on' if name == source else ''}'>"
-            f"{escape(LABELS.get(name, name))}</a>"
-            for name in sorted(counts, key=lambda n: (n != ALL, n))
-        )
-        return f"<div class='switch'><span>Studying</span>{links}</div>"
-
     # --- what is next -----------------------------------------------------
 
     def next_up(self, query: dict) -> str:
         source = self.source(query)
         only = query.get("only") or ""
-        switch = (self.list_switch(query, "/") + self.switch(source, "/")
+        switch = (self.list_switch(query, "/")
                   + self.counting_switch(query, "/"))
         picker = self._kind_picker(only, source)
 
-        # Both readings have a stored roadmap now, so the switch picks one
-        # rather than choosing between a stored answer and a slow live walk.
-        planned = self._planned(source, only, self.counting(query),
-                                self.unblocked(query))
-        if planned is not None:
-            step, deck, total = planned
-            readable, occurrences = step.readable, step.occurrences
-        else:
-            step, deck, readable, occurrences, total = self._walked(
-                query, source, only)
+        step, deck, readable, occurrences, total = self.next_step(
+            query, source, only)
 
         if step is None:
             body = (switch + picker + "<h1>Nothing left that is i+1</h1>"
@@ -766,18 +747,8 @@ class Viewer:
         """
         source = self.source(query)
         only = query.get("only") or ""
-        # No gate here. An earlier version of `next_up` only consulted the
-        # stored plan under study-list counting, and copying that condition
-        # across sent every request down the live walk instead — 41s a swipe,
-        # for the endpoint whose entire purpose was to make swiping instant.
-        planned = self._planned(source, only, self.counting(query),
-                                self.unblocked(query))
-        if planned is not None:
-            step, deck, total = planned
-            readable, occurrences = step.readable, step.occurrences
-        else:
-            step, deck, readable, occurrences, total = self._walked(
-                query, source, only)
+        step, deck, readable, occurrences, total = self.next_step(
+            query, source, only)
         if step is None:
             return {"empty": True}
         unit = step.unit
@@ -803,6 +774,28 @@ class Viewer:
             # is no iframe on the page to load it into.
             "video": any(x.timing for x in deck),
         }
+
+    def next_step(self, query: dict, source: str, only: str
+                  ) -> tuple[RoadmapStep | None, list[Sentence], int, int, int]:
+        """The next thing to learn, with its deck and the counts the page
+        states: `(step, deck, readable, occurrences, total)`.
+
+        The stored plan answers where it can be trusted and the live walk
+        where it cannot. Both readings have a stored roadmap, so the counting
+        switch picks one rather than choosing between a stored answer and a
+        slow walk — and the plan is consulted unconditionally. An earlier
+        version of the page only did so under study-list counting, and
+        copying that condition to the JSON route sent every request down the
+        live walk instead: 41s a swipe, for the endpoint whose entire purpose
+        was to make swiping instant. One method now, so the page, the JSON
+        route and the MCP server cannot disagree about what comes next.
+        """
+        planned = self._planned(source, only, self.counting(query),
+                                self.unblocked(query))
+        if planned is not None:
+            step, deck, total = planned
+            return step, deck, step.readable, step.occurrences, total
+        return self._walked(query, source, only)
 
     def _planned(self, source: str, only: str, list_only: bool,
                  unblock: bool = False
@@ -939,8 +932,8 @@ class Viewer:
         """
         return {"cues": [
             {"at": round(c.timing.start, 2), "clock": _clock(c.timing.start),
-             "text": c.text}
-            for c in self._cues(video_id)
+             "text": c.text, "en": c.translation or ""}
+            for c in self.app.with_english(self._cues(video_id))
         ]}
 
     def _deck(self, options: list[Sentence], unit: Unit,
@@ -962,6 +955,7 @@ class Viewer:
         known = self.known
         if not options:
             return ""
+        options = self.app.with_english(options)
         slides = "".join(
             f"<div class='slide'{'' if i == 0 else ' hidden'}"
             + (f" data-video='{escape(s.timing.video_id)}' "
@@ -1056,7 +1050,7 @@ class Viewer:
 
         body = (
             "<h1>What is in this sentence?</h1>"
-            f"<p class='de lead'>{escape(text)}</p>"
+            f"{sentence(text, self.app.glosses.english_for([text], self.app.llm_model).get(text), lead=True)}"
             "<p class='note'>Uncheck anything that is not really here, and add "
             "what is missing. Corrections are kept by sentence text, so "
             "rebuilding the corpus does not lose them.</p>"
@@ -1285,7 +1279,10 @@ class Viewer:
     # --- the rest ---------------------------------------------------------
 
     def roadmap(self, query: dict) -> str:
-        source = self.source(query)
+        # Always the whole corpus. The roadmap is the one plan the reader
+        # follows, and it is built over everything; a switch here only ever
+        # led to an empty page for a build with no plan of its own.
+        source = self.source({})
         label = self._stored_label(source, self.counting(query),
                                    self.unblocked(query))
         steps = self._store.load(label)
@@ -1298,7 +1295,12 @@ class Viewer:
             steps = [s for s in steps if s.unit.is_pattern == (kind == "pattern")]
         known = self.known
         hidden = 0
-        if query.get("hide") == "known":
+        # What is left, unless asked for everything. The page is read to see
+        # what comes next, and a step already learned is not that; the
+        # value is spelled out rather than left blank because a blank query
+        # value is dropped on the way in and could not say "everything".
+        hide = query.get("hide") or "known"
+        if hide == "known":
             before = len(steps)
             steps = [s for s in steps if s.unit not in known]
             hidden = before - len(steps)
@@ -1310,6 +1312,10 @@ class Viewer:
         page = max(int(query.get("page") or 1), 1)
         pages = max((len(steps) + PAGE_SIZE - 1) // PAGE_SIZE, 1)
         window = steps[(page - 1) * PAGE_SIZE: page * PAGE_SIZE]
+        # The stored step carries what the corpus shipped; the English the
+        # model has since written for it is looked up now.
+        shown = self.app.with_english(
+            [self._still_shown(label, s) for s in window])
 
         entries = "".join(
             "<div class='entry'>"
@@ -1319,26 +1325,42 @@ class Viewer:
             f"<div class='unit'><a href='/unit/{s.unit.kind}/"
             f"{quote(s.unit.key, safe='')}?src={quote(source)}'>"
             f"{escape(s.unit.key)}</a></div>"
-            f"{sentence(s.sentence.text, s.sentence.translation, s.sentence.surface_of(s.unit))}"
+            + (sentence(said.text, said.translation, said.surface_of(s.unit))
+               if said is not None else
+               "<p class='also'>Its sentence came from a channel you removed, "
+               "and nothing else in its deck survives.</p>")
             + ("" if s.unit in known
                else self._word_actions(s.unit, source, back))
             + "</div></div>"
-            for s in window
+            for s, said in zip(window, shown)
         )
         listing = (f"<div class='ledger'>{entries}</div>" if window
                    else "<p class='empty'>Nothing here matches that.</p>")
-        body = (self.switch(source, "/roadmap")
-                + self.list_switch(query, "/roadmap")
+        body = (self.list_switch(query, "/roadmap")
                 + self.counting_switch(query, "/roadmap")
                 + "<h1>Roadmap</h1>"
                 f"<p class='note'>{len(steps):,} steps in the order they were "
                 f"planned, saved by the last build of <code>{escape(label)}</code>. The marked word was the only "
                 "unknown one in its sentence at that point — anything you have "
                 "learned since is labelled <em>known</em> in the rail.</p>"
-                f"{self._filters(needle, kind, source, query.get('hide', ''))}"
+                f"{self._filters(needle, kind, source, hide)}"
                 f"{self._hidden_note(hidden)}{listing}"
-                f"{self._pager(page, pages, needle, kind, source, query.get('hide', ''))}")
+                f"{self._pager(page, pages, needle, kind, source, hide)}")
         return self._page("Roadmap", body, "/roadmap", source)
+
+    def _still_shown(self, label: str, step: RoadmapStep) -> Sentence | None:
+        """The step's sentence, unless the reader has since hidden it or
+        removed its channel -- then the first of its deck that survives, or
+        None when nothing does.
+
+        The stored step carries its sentence as text and knows nothing of
+        where it came from; the deck rows do. So the deck is asked, and the
+        step's own sentence is kept whenever it is still in it.
+        """
+        deck = self.app.apply_overrides(self._store.deck(label, step))
+        if any(s.text == step.sentence.text for s in deck):
+            return step.sentence
+        return deck[0] if deck else None
 
     def _stored_label(self, source: str, list_only: bool,
                       unblock: bool = False) -> str:
@@ -1456,6 +1478,12 @@ class Viewer:
         pages = max(1, -(-len(rows) // PAGE_SIZE))
         page = min(max(int(query.get("page") or 0), 0), pages - 1)
         showing = rows[page * PAGE_SIZE:(page + 1) * PAGE_SIZE]
+        shown = [self._shown(r, chosen, at, source, query) for r in showing]
+        # The example travels as text here, so its English is looked up by
+        # the text rather than carried on a Sentence.
+        english = self.app.glosses.english_for(
+            (example.split(chr(0))[0] for _, _, _, example, _ in shown),
+            self.app.llm_model)
 
         entries = "".join(
             "<div class='entry'>"
@@ -1464,7 +1492,9 @@ class Viewer:
             "</div><div class='body'>"
             f"<div class='unit'>{escape(unit.key)}</div>"
             + (f"<p class='de'>{escape(example.split(chr(0))[0])}</p>"
-               f"{example.split(chr(0))[1] if chr(0) in example else ''}"
+               + (f"<p class='en'>{escape(english[example.split(chr(0))[0]])}</p>"
+                  if example.split(chr(0))[0] in english else "")
+               + f"{example.split(chr(0))[1] if chr(0) in example else ''}"
                # `gap` counts this word too; `rest` does not. Printing the one
                # beside the other read as "2 new things: geiselnehmer", a
                # count of two above a list of one, and the obvious reading —
@@ -1499,8 +1529,7 @@ class Viewer:
                   f"{quote(_hunt_term(unit), safe='')}"
                   "/german'>Find it on YouGlish</a>")
             + "</div></div>"
-            for unit, count, gap, example, rest in
-            (self._shown(r, chosen, at, source, query) for r in showing)
+            for unit, count, gap, example, rest in shown
         )
         def turner() -> str:
             """Back and on, with the page's own switches carried along."""
@@ -1524,8 +1553,7 @@ class Viewer:
                              ("near", f"one word away ({near:,})"))
         )
         body = (
-            self.switch(source, "/blocked")
-            + self.list_switch(query, "/blocked")
+            self.list_switch(query, "/blocked")
             + self.counting_switch(query, "/blocked")
             + f"<div class='switch'><span>Showing</span>{picker}</div>"
             "<h1>Where the roadmap stops</h1>"
@@ -1663,9 +1691,9 @@ class Viewer:
         list_only = self.counting(query)
         holding = self.app.corpus(*self._builds(source), list_only=list_only,
                                   strict=not list_only, holding=(kind, key))
-        found = ExampleIndex(holding).examples(
+        found = self.app.with_english(ExampleIndex(holding).examples(
             target, known, limit=25, minutes=self.app.video_minutes,
-            verdicts=self.app.verdicts())
+            verdicts=self.app.verdicts()))
 
         entries = "".join(
             "<div class='entry'>"
@@ -1696,6 +1724,88 @@ class Viewer:
             + listing
         )
         return self._page(key, body, "/roadmap", source)
+
+    # --- settings ---------------------------------------------------------
+
+    def settings(self, query: dict) -> str:
+        """What you have removed, and the means to remove more or relent."""
+        source = self.source(query)
+        names = self._channel_titles()
+        counts = self._channel_video_counts()
+        gone = self.app.blacklist.all()
+
+        def row(channel: str, since: str) -> str:
+            return ("<tr><td>"
+                    f"{escape(names.get(channel) or channel)}</td>"
+                    f"<td class='n'>{counts.get(channel, 0):,}</td>"
+                    f"<td class='n'>{escape(since[:10])}</td>"
+                    "<td><form method='post' action='/blacklist'>"
+                    f"<input type='hidden' name='channel' value='{escape(channel)}'>"
+                    "<input type='hidden' name='action' value='restore'>"
+                    f"<input type='hidden' name='back' value='/settings?src={quote(source)}'>"
+                    "<button type='submit'>Restore</button></form></td></tr>")
+
+        removed = ("<table class='rows'><tr><th>channel</th>"
+                   "<th class='n'>videos</th><th class='n'>removed</th>"
+                   f"<th></th></tr>{''.join(row(c, d) for c, d in gone.items())}"
+                   "</table>" if gone
+                   else "<p class='empty'>No channel is removed.</p>")
+        options = "".join(
+            f"<option value='{escape(channel)}'>"
+            f"{escape(names.get(channel) or channel)} "
+            f"({counts.get(channel, 0):,})</option>"
+            for channel in sorted(counts, key=lambda c: (names.get(c) or c).lower())
+            if channel not in gone and counts.get(channel))
+        body = (
+            "<h1>Settings</h1>"
+            "<h2>Removed channels</h2>"
+            "<p class='note'>A removed channel is gone from every page: its "
+            "sentences leave the roadmap, the decks and the examples, and "
+            "its videos leave the feed and the catalogue. Nothing is "
+            "deleted, so restoring one brings all of it back at once.</p>"
+            + removed
+            + "<h2>Remove a channel</h2>"
+            "<form class='bar' method='post' action='/blacklist'>"
+            f"<select name='channel'>{options}</select>"
+            "<input type='hidden' name='action' value='remove'>"
+            f"<input type='hidden' name='back' value='/settings?src={quote(source)}'>"
+            "<button class='go' type='submit'>Remove channel</button>"
+            "</form>"
+        )
+        return self._page("Settings", body, "/settings", source)
+
+    def set_blacklist(self, form: dict) -> str:
+        """Remove a channel or bring it back, and forget what was built
+        while it was the other way."""
+        channel = (form.get("channel") or "").strip()
+        action = (form.get("action") or "").strip()
+        back = form.get("back") or "/settings"
+        if channel and action in ("remove", "restore"):
+            if action == "remove":
+                self.app.blacklist.add(channel)
+            else:
+                self.app.blacklist.remove(channel)
+            # Everything held in memory was built from the corpus as it was
+            # read, with the channel in it or not. The stored scores are
+            # kept: they describe each video as well as ever, and the feed
+            # filters on the way out.
+            self._corpora.clear()
+            self._scopes.clear()
+            self._stuck.clear()
+            self._videos.clear()
+            self._ranked.clear()
+            self._unit_videos.clear()
+            self._quiz.clear()
+        return back
+
+    def _channel_video_counts(self) -> dict[str, int]:
+        """Channel id -> how many of its videos the catalogue holds."""
+        with Database(self.app.settings.own) as db:
+            return dict(db.rows(
+                "SELECT c.youtube_channel_id, count(v.video_id)"
+                " FROM channel c LEFT JOIN video v ON v.channel_id = c.id"
+                " WHERE c.youtube_channel_id IS NOT NULL"
+                " GROUP BY c.youtube_channel_id"))
 
     # --- reels ------------------------------------------------------------
 
@@ -1739,8 +1849,7 @@ class Viewer:
         state = json.dumps({"at": here, "total": len(ranked),
                             "src": source, "video": row["video"]})
         body = (
-            self.switch(source, "/reels")
-            + f"<h1 id='reel-title'>{escape(row['title'] or row['video'])}</h1>"
+            f"<h1 id='reel-title'>{escape(row['title'] or row['video'])}</h1>"
             + "<p class='note'><span id='reel-at'>" + f"{here + 1}"
             + f"</span> of {len(ranked):,}, ranked by how well it plays with "
               "your hands full. Swipe up and down to move, right to say you "
@@ -1901,8 +2010,12 @@ class Viewer:
         # and the stamp, which exists to say whether a stored score still
         # describes you, does not have to learn about it.
         taste, channel = self._taste.all(), self._channel_of()
+        # Likewise a removed channel: its videos keep their stored score,
+        # which describes them as well as ever, and simply are not offered.
+        banned = self.app.banned_videos()
         return sorted(
-            (r for r in rows if r["lines"] >= floor),
+            (r for r in rows if r["lines"] >= floor
+             and r["video"] not in banned),
             key=lambda r: -r["watch"] * taste_weight(
                 taste.get(channel.get(r["video"]))))
 
@@ -1958,13 +2071,23 @@ class Viewer:
                     f" aria-pressed='{'true' if chosen else 'false'}'>"
                     f"{label}</button>")
 
+        # Removal is its own form rather than a third taste: the taste
+        # buttons toggle and rank, this one takes the channel off every page,
+        # and it is undone in Settings rather than by pressing it again.
         return ("<form class='taste' method='post' action='/taste'>"
                 f"<input type='hidden' name='channel' value='{escape(channel)}'>"
                 f"<input type='hidden' name='back' value='{escape(back)}'>"
                 f"<span class='who'>{escape(name)}</span>"
                 + button("up", "More of this")
                 + button("down", "Less of this")
-                + "</form>")
+                + "</form>"
+                "<form class='taste remove' method='post' action='/blacklist'>"
+                f"<input type='hidden' name='channel' value='{escape(channel)}'>"
+                f"<input type='hidden' name='back' value='{escape(back)}'>"
+                "<input type='hidden' name='action' value='remove'>"
+                "<button type='submit' title='Take every video of this channel "
+                "off every page. Undo it in Settings.'>Remove channel</button>"
+                "</form>")
 
     def set_taste(self, form: dict) -> str:
         """Record what you said about a channel, or take it back."""
@@ -2113,6 +2236,13 @@ class Viewer:
             self._rescore_locked(unit)
 
     def _rescore_locked(self, unit: Unit) -> None:
+        # Nothing ranked in memory means nothing to bring up to date: the
+        # stored rows carry the known-set version in their stamp, so the next
+        # page to read them recomputes. Without this, a process that never
+        # served a video page — the MCP server — resolved the goal list for a
+        # loop that ran zero times.
+        if not self._ranked:
+            return
         known, goals = self.known, frozenset(self.app.goal_units)
         stamp = self._score_stamp()
         for source, rows in list(self._ranked.items()):
@@ -2230,13 +2360,13 @@ class Viewer:
                      minutes=self.app.video_minutes,
                      verdicts=self.app.verdicts()) if s.timing]
         if not clips:
-            return self._page("Watch", self.switch(source, "/") +
+            return self._page("Watch",
                           "<h1>Nothing to watch</h1><p class='empty'>No video "
                           "sentence in this corpus uses that.</p>", "/", source)
 
         i = min(max(int(query.get("i") or 0), 0), len(clips) - 1)
-        clip = clips[i]
-        cues = self._cues(clip.timing.video_id)
+        clip = self.app.with_english([clips[i]])[0]
+        cues = self.app.with_english(self._cues(clip.timing.video_id))
         here = min(range(len(cues)),
                    key=lambda n: abs(cues[n].timing.start - clip.timing.start))
         surface = clip.surface_of(target)
@@ -2536,14 +2666,14 @@ class Viewer:
     # --- bits -------------------------------------------------------------
 
     @staticmethod
-    def _filters(needle: str, kind: str, source: str, hide: str = "") -> str:
+    def _filters(needle: str, kind: str, source: str, hide: str = "known") -> str:
         options = "".join(
             f"<option value='{v}'{' selected' if kind == v else ''}>{label}</option>"
             for v, label in (("", "words and patterns"), ("word", "words only"),
                              ("pattern", "patterns only")))
         shown = "".join(
             f"<option value='{v}'{' selected' if hide == v else ''}>{label}</option>"
-            for v, label in (("", "everything"), ("known", "only what is left")))
+            for v, label in (("known", "only what is left"), ("all", "everything")))
         return ("<form class='bar' method='get' action='/roadmap'>"
                 f"<input type='hidden' name='src' value='{escape(source)}'>"
                 f"<input type='text' name='q' value='{escape(needle)}' "
@@ -2554,7 +2684,7 @@ class Viewer:
 
     @staticmethod
     def _pager(page: int, pages: int, needle: str, kind: str, source: str,
-               hide: str = "") -> str:
+               hide: str = "known") -> str:
         tail = (f"&q={quote(needle)}&kind={quote(kind)}&src={quote(source)}"
                 f"&hide={quote(hide)}")
         back = (f"<a href='/roadmap?page={page - 1}{tail}'>previous</a>"

@@ -251,6 +251,30 @@ class CorpusStore:
 
     # ---- reading ----------------------------------------------------------
 
+    def untranslated(self) -> list[tuple[str, bool]]:
+        """Every distinct sentence no build holds an English line for.
+
+        (text, teachable) pairs, teachable ones first and each group in the
+        order the corpus was written. One sentence can sit in several builds
+        -- the same caption in `subtitle` and `transcript`, say -- and it
+        counts as translated if any of them has it, since what is asked for
+        is the English of the text, not of the row.
+
+        Teachable is likewise any-of. The rows a build keeps only so the
+        overlay has no gaps are the same text as a teachable row often
+        enough that the two would otherwise be asked about twice.
+        """
+        with self._read() as cur:
+            cur.execute(
+                "SELECT text, bool_or(teachable) AS teachable"
+                " FROM corpus_sentence"
+                " WHERE NOT (build = ANY(%s))"
+                " GROUP BY text"
+                " HAVING NOT bool_or(coalesce(translation, '') <> '')"
+                " ORDER BY bool_or(teachable) DESC, min(id)",
+                (sorted(self._ignored),))
+            return [(text, bool(teachable)) for text, teachable in cur]
+
     def unit_counts(self, *builds: str) -> Counter:
         """How often each unit is said.
 
