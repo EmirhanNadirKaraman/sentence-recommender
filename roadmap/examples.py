@@ -53,12 +53,21 @@ def gaps_by_video(sentences, known: frozenset[Unit]) -> dict[str, float]:
 def rank(unit: Unit, known: frozenset[Unit],
            minutes: dict[str, float] | None = None,
            gaps: dict[str, float] | None = None,
-           verdicts: dict[str, float] | None = None):
+           verdicts: dict[str, float] | None = None,
+           judged=None):
     """How example sentences for `unit` are ordered.
 
     Readability first, because an example is only useful if the learner can
     read the rest of it. Then what anyone has said about the sentence — see
-    `verdicts` — and then quality.
+    `verdicts`, and `judged` — and then quality.
+
+    `judged` is what the corpus pass's judge answered (`corpus.answers`):
+    per sentence, whether it stands alone, is complete, standard and well
+    formed; per sentence and unit, whether the word is the word itself and
+    how much the sentence gives it away. It multiplies into the same term
+    as `verdicts`, and for the same reason it sits above quality: `quality`
+    reads characters, and a judge has read the sentence. A sentence nobody
+    has judged scores 1.0 there, so an empty store reorders nothing.
 
     There is no key for whether the corpus shipped a translation. There was
     one, second, above quality, and it was right while a translation was
@@ -106,9 +115,14 @@ def rank(unit: Unit, known: frozenset[Unit],
 
         Absent means unjudged, which scores as 1.0 — the best — so adding
         this reorders nothing that has not been marked. Only a sentence
-        somebody has actually called bad moves, and it moves down.
+        somebody has actually called bad moves, and it moves down. The
+        judge's answers multiply in the same way: worth showing at all,
+        times worth showing for this word.
         """
-        return 1.0 if verdicts is None else verdicts.get(s.text, 1.0)
+        said = 1.0 if verdicts is None else verdicts.get(s.text, 1.0)
+        if judged is not None:
+            said *= judged.sentence(s.text) * judged.unit(s.text, unit)
+        return said
 
     def video_fit(s) -> float:
         # No lengths to hand means no preference, so every sentence ties here
@@ -352,6 +366,7 @@ class ExampleIndex:
         minutes: dict[str, float] | None = None,
         gaps: dict[str, float] | None = None,
         verdicts: dict[str, float] | None = None,
+        judged=None,
     ) -> list[Sentence]:
         """The `limit` most readable sentences using `unit`, by `rank`.
 
@@ -377,5 +392,5 @@ class ExampleIndex:
         """
         candidates = self._by_unit.get(unit, ())
         return spread(sorted(candidates,
-                             key=rank(unit, known, minutes, gaps, verdicts)),
+                             key=rank(unit, known, minutes, gaps, verdicts, judged)),
                       unit, limit)

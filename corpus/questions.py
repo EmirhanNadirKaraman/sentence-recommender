@@ -156,13 +156,14 @@ GUESSABLE = {
 }
 
 
-def state_for(text: str, tokens: list[str], units: dict[str, dict]) -> dict:
-    """The state one request carries: the sentence, its tokens, its units.
+def state_for(text: str, units: dict[str, dict]) -> dict:
+    """The state one request carries: the sentence and its units.
 
-    `units` maps an id to `{"spoken", "canonical", "tokens"}`; the ids are
-    what the per-unit questions name in their instructions.
+    `units` maps an id to `{"spoken", "canonical", "surface"}` — the word as
+    the card names it, as the matcher wrote it, and as the sentence says
+    it; the ids are what the per-unit questions name in their instructions.
     """
-    return {"sentence": text, "tokens": tokens, "units": units, "notation": NOTATION}
+    return {"sentence": text, "units": units, "notation": NOTATION}
 
 
 def questions_for(units: dict[str, dict], level: bool = True) -> dict:

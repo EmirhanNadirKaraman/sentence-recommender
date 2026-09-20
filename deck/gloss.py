@@ -42,6 +42,7 @@ from typing import Callable, Iterable
 
 from corpus.sentence import Sentence
 from deck import Card
+from vocab.entry import Unit
 from state import open_state
 
 # Bumped when the prompt changes in a way that changes the answers. Stored
@@ -477,7 +478,7 @@ def missing(cards: Iterable[Card], asked: Iterable[str] = ()) -> list[Card]:
 
 
 def run(cards: list[Card], store: GlossStore, client, model: str,
-        verdicts=None,
+        answers=None,
         workers: int = 2, on_progress: Callable[[int, int, int], None] | None = None,
         every: int = 25,
         on_card: Callable[[Card, list | None], None] | None = None,
@@ -494,13 +495,15 @@ def run(cards: list[Card], store: GlossStore, client, model: str,
     server and was in fact this setting. One call needs about 730 tokens all
     told, so the ceiling is the cache rather than the tokens.
 
-    `verdicts`, when given a `SentenceOverrides`, is marked wherever the
-    model declines to gloss a sentence. That refusal is the one quality
-    signal here that no function can compute: `corpus.quality.score` reads
-    length and variety, and `Du hast studiert, also wo die Verlet
-    zurückgetreten ist` is an ordinary length with ordinary variety and a
-    word that is not German. A model asked to say what it means, and
-    declining, has noticed something the characters do not show.
+    `answers`, when given an `AnswerStore`, records a refusal wherever the
+    model declines to gloss a sentence as the card's word. It used to be
+    a `sentence_verdict` on the text alone, on the reading that a refusal
+    meant a broken sentence — `Du hast studiert, also wo die Verlet
+    zurückgetreten ist`. Experiment 04 read the refusals: most were `es
+    gibt` refused as `geben`, a fine sentence that is not that word, and
+    the sentence-wide mark kept it off every card. The refusal is about
+    the pair, and is stored on the pair; brokenness is the corpus pass's
+    `well_formed` question now.
 
     Writing stays on this thread: SQLite connections do not cross threads
     safely, and the saving is not what takes the time. `on_card` is called
@@ -521,10 +524,12 @@ def run(cards: list[Card], store: GlossStore, client, model: str,
                         for example, (english, means)
                         in zip(card.examples, result)]
                 store.save(kind, card.word, rows, model)
-                if verdicts is not None:
+                if answers is not None:
+                    unit = Unit.pattern(card.word) if card.is_pattern \
+                        else Unit.lemma(card.word)
                     for text, _, means in rows:
                         if means is None:
-                            verdicts.mark(text, 0.0, source="model")
+                            answers.refuse(text, unit, model)
                 done += 1
             if on_card is not None:
                 on_card(card, result)

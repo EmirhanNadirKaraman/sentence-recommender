@@ -94,7 +94,8 @@ class BuildRoadmapCommand:
                                  only_goals=strict and not unblock,
                                  relax=relax,
                                  video_minutes=app.video_minutes,
-                                 verdicts=app.verdicts())
+                                 verdicts=app.verdicts(),
+                                 judged=app.judged)
 
         plan = builder.build(max_steps=steps, on_progress=self._report,
                              every=50)

@@ -80,6 +80,22 @@ class Application:
         return SentenceOverrides(self.settings.state_path)
 
     @cached_property
+    def answers(self):
+        """What the corpus pass's judge said about sentences and their words."""
+        from corpus.answers import AnswerStore              # noqa: PLC0415
+        return AnswerStore(self.settings.state_path)
+
+    @cached_property
+    def judged(self):
+        """The judge's answers as `rank` reads them, loaded once per process.
+
+        The same bargain as `verdicts`: passed to every ranking rather than
+        looked up by some, so the walk and the pages order alike.
+        """
+        from corpus.questions import VERSION                # noqa: PLC0415
+        return self.answers.load(self.settings.judge_model, VERSION)
+
+    @cached_property
     def blacklist(self):
         """The channels the reader has removed. See `vocab.channel_taste`."""
         from vocab.channel_taste import ChannelBlacklist   # noqa: PLC0415

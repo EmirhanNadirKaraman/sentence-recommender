@@ -22,7 +22,7 @@ from commands import (
     FillGapsCommand, SpeakDeckCommand,
     HuntVideosCommand, McpServeCommand, ReviewCommand, ServeCommand, StatusCommand,
     SyncCatalogueCommand, OutOfReachCommand,
-    BackfillChannelsCommand, TranslateSentencesCommand,
+    BackfillChannelsCommand, TranslateSentencesCommand, AskSentencesCommand,
 )
 from config import Settings
 from context import Application
@@ -379,6 +379,20 @@ def _parser() -> argparse.ArgumentParser:
                             "only on a network you trust")
     serve.add_argument("--no-browser", action="store_true",
                        help="do not open a browser window")
+
+    ask = sub.add_parser(
+        "ask-sentences",
+        help="every question of the corpus pass, of every subtitle sentence, "
+             "once — the judge's answers the rankings read",
+    )
+    ask.add_argument("--limit", type=int, default=None,
+                     help="stop after this many sentences")
+    ask.add_argument("--workers", type=int, default=None,
+                     help="requests in flight (default: settings.judge_workers)")
+    ask.add_argument("--dry-run", action="store_true",
+                     help="print the first request and send nothing")
+    ask.add_argument("--log", type=Path, default=Path("out/ask.log"),
+                     help="every sentence and its answers, appended as they land")
 
     sub.add_parser("mcp-serve",
                    help="serve the roadmap and the reviews as MCP tools over "
@@ -742,6 +756,9 @@ def main() -> int:
         ReviewCommand().run(app, args.limit, tuple(args.source))
     elif args.command == "serve":
         ServeCommand().run(app, args.port, not args.no_browser, args.host)
+    elif args.command == "ask-sentences":
+        AskSentencesCommand().run(app, args.limit, args.workers, args.dry_run,
+                                  args.log)
     elif args.command == "mcp-serve":
         McpServeCommand().run(app)
     elif args.command == "build-study-list":

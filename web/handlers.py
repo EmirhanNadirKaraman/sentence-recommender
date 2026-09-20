@@ -875,7 +875,8 @@ class Viewer:
         return (step,
                 scope.examples.examples(step.unit, self.known,
                                         limit=DECK_SIZE,
-                                        verdicts=self.app.verdicts()),
+                                        verdicts=self.app.verdicts(),
+                                        judged=self.app.judged),
                 scope.index.readable,
                 scope.examples.count(step.unit),
                 len(scope.sentences))
@@ -1693,7 +1694,7 @@ class Viewer:
                                   strict=not list_only, holding=(kind, key))
         found = self.app.with_english(ExampleIndex(holding).examples(
             target, known, limit=25, minutes=self.app.video_minutes,
-            verdicts=self.app.verdicts()))
+            verdicts=self.app.verdicts(), judged=self.app.judged))
 
         entries = "".join(
             "<div class='entry'>"
@@ -2358,7 +2359,8 @@ class Viewer:
         clips = [s for s in ExampleIndex(holding).examples(
                      target, self.known, limit=60,
                      minutes=self.app.video_minutes,
-                     verdicts=self.app.verdicts()) if s.timing]
+                     verdicts=self.app.verdicts(),
+                     judged=self.app.judged) if s.timing]
         if not clips:
             return self._page("Watch",
                           "<h1>Nothing to watch</h1><p class='empty'>No video "

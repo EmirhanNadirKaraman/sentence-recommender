@@ -171,6 +171,15 @@ class Settings:
     llm_chunk_size: int = 25      # subtitle lines sent per correction call
     llm_timeout: float = 180.0
 
+    # The judge the corpus pass asks (`ask-sentences`) and the answers the
+    # rankings read. TypeSafe's Jev, hosted, keyed by TYPESAFE_API_KEY in
+    # .env; measured against the local model in experiment 04 and chosen
+    # for separating the verbs the local one could not. Pinned to the
+    # version the calibration ran on, so `jev-latest` moving does not
+    # silently change every answer read back.
+    judge_model: str = "jev-1.13.0"
+    judge_workers: int = 4        # requests in flight; the limit is 1,200 a minute
+
     # spaCy worker processes for the one-off corpus analysis.
     analysis_processes: int = 4
 

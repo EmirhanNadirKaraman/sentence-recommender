@@ -31,6 +31,7 @@ from .out_of_reach import OutOfReachCommand
 from .status import StatusCommand
 from .sync_catalogue import SyncCatalogueCommand
 from .translate_sentences import TranslateSentencesCommand
+from .ask_sentences import AskSentencesCommand
 
 __all__ = [
     "AddVideoCommand", "BackfillChannelsCommand", "AddVideosCommand", "BuildCorpusCommand", "BuildRoadmapCommand",
@@ -48,4 +49,5 @@ __all__ = [
     "HuntVideosCommand", "McpServeCommand", "QuizCommand", "ReviewCommand", "ServeCommand", "BlockersCommand",
     "OutOfReachCommand", "StatusCommand", "SyncCatalogueCommand",
     "TranslateSentencesCommand",
+    "AskSentencesCommand",
 ]

@@ -96,7 +96,7 @@ def ask(rows: list[dict], on_progress=None) -> list[dict]:
     out = []
     with TypeSafeClient() as client:
         for i, row in enumerate(rows, 1):
-            state = questions.state_for(row["text"], row["text"].split(), {})
+            state = questions.state_for(row["text"], {})
             started = time.time()
             response = client.system_one(state, asked)
             answer = {key: round(response.answers[key].noul, 3) for key in asked}

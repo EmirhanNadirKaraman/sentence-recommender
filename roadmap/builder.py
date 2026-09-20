@@ -44,9 +44,12 @@ class RoadmapBuilder:
         relax: bool = False,
         video_minutes: dict[str, float] | None = None,
         verdicts: dict[str, float] | None = None,
+        judged=None,
     ) -> None:
         self._index = index
         self._verdicts = verdicts
+        # The corpus pass's judge, read wherever `verdicts` is — see `rank`.
+        self._judged = judged
         self._priority = priority
         self._weight = priority_weight
         self._goals = goals
@@ -191,7 +194,8 @@ class RoadmapBuilder:
             (self._index.sentence(p) for p in found),
             # Verdicts too, or the deck stored with a step would be ranked
             # differently from the one the page rebuilds — see `rank`.
-            key=rank(unit, known, self._minutes, self._gaps, self._verdicts),
+            key=rank(unit, known, self._minutes, self._gaps, self._verdicts,
+                     self._judged),
         ), unit, DECK_SIZE))
 
     def _relaxed_step(self, position: int) -> RoadmapStep | None:
@@ -284,8 +288,14 @@ class RoadmapBuilder:
         that rule, and 184 after.
         """
         verdicts = self._verdicts or {}
+        judged = self._judged
+
+        def said(s) -> float:
+            worth = verdicts.get(s.text, 1.0)
+            if judged is not None:
+                worth *= judged.sentence(s.text) * judged.unit(s.text, unit)
+            return worth
         return max(
             (self._index.sentence(p) for p in positions),
-            key=lambda s: (verdicts.get(s.text, 1.0), quality(s.text),
-                           variety(s.text), s.text),
+            key=lambda s: (said(s), quality(s.text), variety(s.text), s.text),
         )
