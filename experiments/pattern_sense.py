@@ -57,8 +57,8 @@ PANEL_PATTERNS = 50    # the heaviest patterns, three rows each — what the
 PANEL_EACH = 3         # dictionary suffers, pattern by pattern
 
 # What the parse says about a row. `aux` and `modal` are what the matcher
-# now refuses; `es_gibt` is the expletive the parse marks and the matcher
-# does not yet read; blank is the semantic residue.
+# now refuses; `es_gibt` is the expletive it now routes to its own unit;
+# blank is the semantic residue.
 RULES = ("aux", "modal", "es_gibt", "")
 
 
@@ -149,9 +149,7 @@ def rule_for(doc, pattern: str, finder) -> str:
         lemma = token.lemma_.lower()
         if finder.verb_blueprint_map.get(lemma) != pattern:
             continue
-        if lemma == "geben" and any(
-                child.dep_ == "ep" and child.text.lower() in ("es", "'s", "’s")
-                for child in token.children):
+        if finder.expletive_construction(token) is not None:
             return "es_gibt"
         if finder.carries_another_verb(token):
             return "modal" if token.tag_.startswith("VM") else "aux"
@@ -186,6 +184,7 @@ def rule_effect(app, n: int = 10_000) -> dict:
             " ORDER BY random() LIMIT %s", (n,))]
     emitted: Counter[str] = Counter()
     refused: Counter[str] = Counter()
+    rerouted: Counter[str] = Counter()
     by_rule: Counter[str] = Counter()
     for doc in finder.nlp.pipe(texts, batch_size=500,
                                n_process=app.settings.analysis_processes):
@@ -203,18 +202,23 @@ def rule_effect(app, n: int = 10_000) -> dict:
             if finder.carries_another_verb(token):
                 refused[entry] += 1
                 by_rule["modal" if token.tag_.startswith("VM") else "aux"] += 1
+            elif finder.expletive_construction(token) is not None:
+                rerouted[entry] += 1
+                by_rule["es_gibt"] += 1
             else:
                 emitted[entry] += 1
-    total = sum(emitted.values()) + sum(refused.values())
-    detail = [{"pattern": key, "before": emitted[key] + refused[key],
-               "refused": refused[key],
-               "share_refused": round(refused[key] / (emitted[key] + refused[key]), 3)}
-              for key in sorted(set(emitted) | set(refused),
-                                key=lambda k: -(emitted[k] + refused[k]))]
+    total = sum(emitted.values()) + sum(refused.values()) + sum(rerouted.values())
+    keys = set(emitted) | set(refused) | set(rerouted)
+    before = {k: emitted[k] + refused[k] + rerouted[k] for k in keys}
+    detail = [{"pattern": key, "before": before[key],
+               "refused": refused[key], "rerouted": rerouted[key],
+               "share_refused": round(refused[key] / before[key], 3),
+               "share_rerouted": round(rerouted[key] / before[key], 3)}
+              for key in sorted(keys, key=lambda k: -before[k])]
     results.write_detail(RULE, detail)
     return {"sentences": len(texts), "verb_pattern_rows": total,
             "refused": sum(refused.values()), "aux": by_rule["aux"],
-            "modal": by_rule["modal"],
+            "modal": by_rule["modal"], "rerouted": sum(rerouted.values()),
             "share_refused": round(sum(refused.values()) / max(total, 1), 4),
             "detail": detail}
 
@@ -303,16 +307,18 @@ def write_report(rows: list[dict], effect: dict | None) -> None:
                   f"{effect['sentences']:,} sentences, {effect['verb_pattern_rows']:,} "
                   f"verb pattern rows the old matcher would have emitted; the rule "
                   f"refuses {effect['refused']:,} ({effect['share_refused']:.1%}) — "
-                  f"{effect['aux']:,} auxiliaries, {effect['modal']:,} modals.", "",
+                  f"{effect['aux']:,} auxiliaries, {effect['modal']:,} modals — and "
+                  f"routes {effect['rerouted']:,} more to `es gibt`.", "",
                   "An estimate, not the rebuild: the rows are re-derived here by "
                   "looking each verb token's lemma up, which is the matcher's "
                   "exact path but not its fuzzy fallback or its multi-token "
                   "phrase. The number the corpus will actually lose is one query "
                   "after `build-corpus subtitle` — `count(*)` of pattern rows "
                   "against the 603,624 there today.", "",
-                  "| pattern | rows | refused | share |", "|---|---|---|---|"]
+                  "| pattern | rows | refused | rerouted |", "|---|---|---|---|"]
         for d in effect["detail"][:20]:
-            lines.append(f"| `{d['pattern']}` | {d['before']} | {d['refused']} | {d['share_refused']:.0%} |")
+            lines.append(f"| `{d['pattern']}` | {d['before']} | {d['refused']} "
+                         f"({d['share_refused']:.0%}) | {d['rerouted']} ({d['share_rerouted']:.0%}) |")
     lines += ["", "## Constructions the labels named", "",
               "What the sentence carried instead, where the judge named it — "
               "the candidates a discovery pass would have to propose:", ""]

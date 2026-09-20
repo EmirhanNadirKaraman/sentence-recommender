@@ -1670,7 +1670,16 @@ their `es` on a modal (`sollte es … geben`) or write it `'s`. So the pattern
 is five parts in six a construction that exists as a candidate nowhere: not
 in `phrase_table`, not in the dictionary, not on the list. A learner taught
 `jdm. (Dat) etw. (Akk) geben` is credited with it and nothing ever teaches
-it. `stehen` has the same shape three times over: of its 2,816 rows, 360
+it. Built, on this branch, the same day: `phrase_finder.expletive_construction`
+routes `geben` with an `ep` child `es` — or, under a modal or auxiliary,
+with `es` as the carrier's subject, which recovers the five misses — to the
+canonical `es gibt`; migration `b31e7c0d9a42` registers the canonical in
+`phrase_table`, since a pattern the matcher emits is a unit only when that
+table lists it; and the study list carries `es gibt` by hand beside `geben`,
+with the note saying why it is not in `final_result.txt` (the fuzzy index
+would file it under `es` and hand it to every pronoun in the corpus). It
+rides the same rebuild as the auxiliary rule. `stehen` has the same shape
+three times over: of its 2,816 rows, 360
 carry `auf`, 222 `für`, 135 `zu` — `auf etw. stehen`, `für etw. stehen`, `zu
 etw. stehen`, a quarter of the verb between them and none a candidate —
 while a dative pronoun, the one thing the label's *to suit someone* needs,

@@ -297,6 +297,43 @@ def carries_another_verb(token) -> bool:
                for child in token.children)
 
 
+# Constructions the dictionary cannot hold, keyed as it is by the verb's
+# lemma: `es gibt` is not a use of `jdm. (Dat) etw. (Akk) geben`, and it
+# was credited as one in five sentences of six (experiment 04). Not a key in
+# `final_result.txt` either — `_base_words` would index it under `es`, and
+# the fuzzy fallback would then hand `es gibt` to every pronoun in the
+# corpus at a score of 1.00. The canonical has to exist in `phrase_table`
+# to become a unit, which is what the migration `es gibt` added it for.
+EXPLETIVE = {"geben": "es gibt"}
+
+
+def expletive_construction(token):
+    """The construction this verb is the expletive half of, or None.
+
+    Read off the parse: `es` hangs under `gibt` as `ep`, the expletive, in
+    `Es gibt ein Problem` and `Was gibt es zum Essen?`, and never in `Ich
+    gebe dir das Buch`. Measured over sixty `geben` sentences: forty-five
+    of the fifty that were `es gibt` carried the mark and none of the ten
+    that were *give*. The five it missed had put the verb under a modal or
+    an auxiliary — `Es wird immer Probleme geben` — where the `es` is the
+    carrier's subject, so that hop is taken too. The clitic `gibt's` is
+    left alone: the tokeniser does not split it, and where it does, `'s`
+    is the accusative as often as the expletive (`er gibt's mir`).
+    """
+    canonical = EXPLETIVE.get(token.lemma_.lower())
+    if canonical is None:
+        return None
+    for child in token.children:
+        if child.dep_ == "ep" and child.text.lower() == "es":
+            return canonical, child.i
+    head = token.head
+    if token.dep_ == "oc" and head is not token and carries_another_verb(head):
+        for child in head.children:
+            if child.dep_ in ("sb", "ep") and child.text.lower() == "es":
+                return canonical, child.i
+    return None
+
+
 def extract_german_logic(doc, overrides=None):
     """
     Extract phrases from a pre-computed spaCy doc.
@@ -386,7 +423,13 @@ def extract_german_logic(doc, overrides=None):
             # since the constructed blueprint has needed it all along.
             blueprint = None
             match_info = "exact"
-            if "sich" in components:
+            expletive = expletive_construction(token)
+            if expletive is not None:
+                blueprint, es = expletive
+                match_info = "exact (expletive)"
+                indices.append(es)
+                consumed.add(es)
+            elif "sich" in components:
                 blueprint = verb_blueprint_map.get(f"sich {full_verb}")
                 if blueprint is not None:
                     match_info = "exact (reflexive)"

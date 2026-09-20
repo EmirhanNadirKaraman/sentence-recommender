@@ -69,3 +69,54 @@ class AuxiliaryUseTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+@unittest.skipUnless(_PARSER, "de_core_news_md is not installed")
+class ExpletiveTest(unittest.TestCase):
+    """`es gibt` is not `jdm. (Dat) etw. (Akk) geben`.
+
+    Five sentences in six that said `gibt` were *there is*, and every one
+    was credited with *give someone something*. The parse marks the
+    expletive `es` as `ep`, and the construction is its own canonical.
+    """
+
+    GIVE = "jdm. (Dat) etw. (Akk) geben"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        import phrase_finder                              # noqa: PLC0415 — loads spaCy
+        cls.finder = phrase_finder
+
+    def phrases(self, text: str) -> dict[str, list[str]]:
+        doc = self.finder.nlp(text)
+        return {p["dictionary_entry"]: p["sentence_phrase"]
+                for p in self.finder.extract_german_logic(doc)}
+
+    def test_there_is_becomes_its_own_unit(self) -> None:
+        found = self.phrases("Es gibt ein Problem.")
+        self.assertIn("es gibt", found)
+        self.assertNotIn(self.GIVE, found)
+
+    def test_the_expletive_is_part_of_the_phrase(self) -> None:
+        """The `es` is what makes it the construction, so it belongs to it."""
+        self.assertIn("Es", self.phrases("Es gibt ein Problem.")["es gibt"])
+
+    def test_the_question_form_is_the_same_construction(self) -> None:
+        self.assertIn("es gibt", self.phrases("Was gibt es zum Essen?"))
+
+    def test_under_a_modal_or_auxiliary_the_es_is_the_carrier_s(self) -> None:
+        """`Es wird immer Probleme geben` — the miss the sixty-sentence read
+        found: the verb sits under `wird` and `es` is the subject of `wird`."""
+        self.assertIn("es gibt", self.phrases("Es wird immer Probleme geben."))
+        self.assertIn("es gibt", self.phrases("Es kann Ausnahmen geben."))
+
+    def test_giving_it_is_still_giving(self) -> None:
+        """`es` as the accusative object is the thing given, not the expletive."""
+        found = self.phrases("Sie gibt es ihm.")
+        self.assertNotIn("es gibt", found)
+        self.assertIn(self.GIVE, found)
+
+    def test_giving_someone_something_is_untouched(self) -> None:
+        found = self.phrases("Ich gebe dir das Buch.")
+        self.assertIn(self.GIVE, found)
+        self.assertNotIn("es gibt", found)

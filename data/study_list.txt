@@ -70,6 +70,14 @@ das Jahr	das Jahr
 um	um
 durch	durch
 geben	jdm. (Dat) etw. (Akk) geben
+# `es gibt` is not a use of the line above, and five sentences in six that
+# said `gibt` were it (experiment 04, 2026-09-20). Its own unit now: the
+# matcher routes the expletive to this canonical and migration b31e7c0d9a42
+# registers it. Hand-placed beside `geben` rather than added to
+# `final_result.txt`, whose fuzzy index would file it under `es` and hand it
+# to every pronoun in the corpus; `build-study-list` therefore does not
+# know it, and a rebuild of this file has to keep this line.
+es gibt	es gibt
 wie	wie
 das Mal	das Mal
 hier	hier

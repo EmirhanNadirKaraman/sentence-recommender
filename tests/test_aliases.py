@@ -77,6 +77,11 @@ class HeadsTest(unittest.TestCase):
         in for `lassen` would hand a reader the verb on its strength."""
         self.assertEqual(heads("etw. (Akk) / sich lassen scheiden"), set())
 
+    def test_a_construction_names_neither_word(self) -> None:
+        """`es gibt` must not name `es`: under strict counting every pronoun
+        in the corpus would be renamed to the construction's goal."""
+        self.assertEqual(heads("es gibt"), set())
+
 
 class AliasTest(unittest.TestCase):
     def test_a_bare_lemma_becomes_the_goal(self) -> None:

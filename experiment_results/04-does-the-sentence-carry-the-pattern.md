@@ -103,32 +103,32 @@ Residue after the rule: 138 rows, of which 107 carry the frame (78%), 21 another
 
 ## What the rule refuses, over a fresh slice
 
-10,000 sentences, 10,903 verb pattern rows the old matcher would have emitted; the rule refuses 2,122 (19.5%) — 1,099 auxiliaries, 1,023 modals.
+10,000 sentences, 10,903 verb pattern rows the old matcher would have emitted; the rule refuses 2,122 (19.5%) — 1,099 auxiliaries, 1,023 modals — and routes 349 more to `es gibt`.
 
 An estimate, not the rebuild: the rows are re-derived here by looking each verb token's lemma up, which is the matcher's exact path but not its fuzzy fallback or its multi-token phrase. The number the corpus will actually lose is one query after `build-corpus subtitle` — `count(*)` of pattern rows against the 603,624 there today.
 
-| pattern | rows | refused | share |
+| pattern | rows | refused | rerouted |
 |---|---|---|---|
-| `etw./jdn. (Akk) haben` | 1666 | 1098 | 66% |
-| `etw. (Akk) können` | 837 | 783 | 94% |
-| `jdm. (Dat) etw. (Akk) geben` | 432 | 0 | 0% |
-| `etw. (Akk) machen` | 404 | 0 | 0% |
-| `jdm. (Dat) etw. (Akk) sagen` | 392 | 0 | 0% |
-| `etw. (Akk) wollen` | 304 | 235 | 77% |
-| `etw./jdn. (Akk) sehen` | 205 | 0 | 0% |
-| `etw. (Akk) wissen` | 154 | 0 | 0% |
-| `etw./jdn. (Akk) finden` | 134 | 0 | 0% |
-| `etw. (Akk) tun` | 127 | 0 | 0% |
-| `etw. (Akk) bekommen` | 107 | 0 | 0% |
-| `jdm. (Dat) stehen` | 107 | 0 | 0% |
-| `mit jdm. / über etw./jdn. sprechen` | 98 | 0 | 0% |
-| `etw./jdn. (Akk) brauchen` | 90 | 0 | 0% |
-| `jdm. (Dat) etw. (Akk) bedeuten` | 90 | 0 | 0% |
-| `jdm. (Dat) passieren` | 81 | 0 | 0% |
-| `etw./jdn. (Akk) lassen` | 77 | 0 | 0% |
-| `jdm. (Dat) etw. (Akk) bringen` | 74 | 0 | 0% |
-| `nach etw. aussehen` | 70 | 0 | 0% |
-| `jdm. (Dat) / etw. (Akk) glauben` | 66 | 0 | 0% |
+| `etw./jdn. (Akk) haben` | 1666 | 1098 (66%) | 0 (0%) |
+| `etw. (Akk) können` | 837 | 783 (94%) | 0 (0%) |
+| `jdm. (Dat) etw. (Akk) geben` | 432 | 0 (0%) | 349 (81%) |
+| `etw. (Akk) machen` | 404 | 0 (0%) | 0 (0%) |
+| `jdm. (Dat) etw. (Akk) sagen` | 392 | 0 (0%) | 0 (0%) |
+| `etw. (Akk) wollen` | 304 | 235 (77%) | 0 (0%) |
+| `etw./jdn. (Akk) sehen` | 205 | 0 (0%) | 0 (0%) |
+| `etw. (Akk) wissen` | 154 | 0 (0%) | 0 (0%) |
+| `etw./jdn. (Akk) finden` | 134 | 0 (0%) | 0 (0%) |
+| `etw. (Akk) tun` | 127 | 0 (0%) | 0 (0%) |
+| `jdm. (Dat) stehen` | 107 | 0 (0%) | 0 (0%) |
+| `etw. (Akk) bekommen` | 107 | 0 (0%) | 0 (0%) |
+| `mit jdm. / über etw./jdn. sprechen` | 98 | 0 (0%) | 0 (0%) |
+| `jdm. (Dat) etw. (Akk) bedeuten` | 90 | 0 (0%) | 0 (0%) |
+| `etw./jdn. (Akk) brauchen` | 90 | 0 (0%) | 0 (0%) |
+| `jdm. (Dat) passieren` | 81 | 0 (0%) | 0 (0%) |
+| `etw./jdn. (Akk) lassen` | 77 | 0 (0%) | 0 (0%) |
+| `jdm. (Dat) etw. (Akk) bringen` | 74 | 0 (0%) | 0 (0%) |
+| `nach etw. aussehen` | 70 | 0 (0%) | 0 (0%) |
+| `jdm. (Dat) / etw. (Akk) glauben` | 66 | 0 (0%) | 0 (0%) |
 
 ## Constructions the labels named
 
