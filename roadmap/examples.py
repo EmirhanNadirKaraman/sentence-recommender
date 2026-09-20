@@ -19,7 +19,14 @@ from watchability import length_band
 # here rather than beside the page because the walk stores a deck of this size
 # with every step, and a page that showed a different number would be asking
 # for sentences that were never written down.
-DECK_SIZE = 24
+#
+# Twenty-four while the ranking could read nothing but characters: that
+# depth was what it took to find three good sentences among them. Fifteen
+# from 2026-09-21, once the corpus pass's judge sat in the pick — the deck
+# is then the fifteen best the word has, and a reader steps through fewer
+# and better. It is also what the pass asks about per step, so a plan
+# costs a fifth less to judge.
+DECK_SIZE = 15
 
 # How close two videos have to be in difficulty before the ranking stops
 # caring, in unknown words per sentence. Whole words, because that is the unit
