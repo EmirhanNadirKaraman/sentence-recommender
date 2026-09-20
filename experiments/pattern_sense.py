@@ -457,13 +457,30 @@ def arm_local(rows: list[dict], on_progress=None) -> list[dict]:
         body = {"model": client._model, "prompt": prompt, "max_tokens": 1,
                 "temperature": 0, "logprobs": 10, "grammar": _GRAMMAR}
         started = time.time()
-        response = requests.post(f"{client._base_url}/completions",
-                                 headers=client._headers(), json=body, timeout=180)
+        # The endpoint is shared with whatever else is running against it,
+        # and a saturated llama.cpp behind a tunnel answers 5xx rather than
+        # queueing for ever — the same shape `deck.gloss._try` waits out.
+        for attempt in range(4):
+            response = requests.post(f"{client._base_url}/completions",
+                                     headers=client._headers(), json=body, timeout=180)
+            if response.status_code < 500 or attempt == 3:
+                break
+            time.sleep(5.0 * (attempt + 1))
         response.raise_for_status()
         first = response.json()["choices"][0]["logprobs"]["content"][0]
-        top = {t["token"].strip().lower(): t["logprob"] for t in first["top_logprobs"]}
-        floor = min(t["logprob"] for t in first["top_logprobs"])   # unseen: at most this
-        yes = math.exp(top.get("yes", floor)); no = math.exp(top.get("no", floor))
+        # Every spelling of an answer is that answer: `Yes`, `yes`, ` yes`
+        # and `Ja` all count for yes, and their probabilities add. Keeping
+        # one per key let the last spelling reported win, which was ` yes`
+        # at -8.3 while `Yes` sat at -0.6.
+        mass = {"yes": 0.0, "no": 0.0}
+        for t in first["top_logprobs"]:
+            word = t["token"].strip().lower()
+            if word in ("yes", "ja"):
+                mass["yes"] += math.exp(t["logprob"])
+            elif word in ("no", "nein"):
+                mass["no"] += math.exp(t["logprob"])
+        floor = math.exp(min(t["logprob"] for t in first["top_logprobs"]))
+        yes = mass["yes"] or floor; no = mass["no"] or floor    # unseen: at most the floor
         out.append({"n": row["n"], "p": round(yes / (yes + no), 4),
                     "model": client._model, "input_tokens": "",
                     "seconds": round(time.time() - started, 2)})
