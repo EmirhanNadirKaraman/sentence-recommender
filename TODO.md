@@ -1773,6 +1773,53 @@ survives in enough sentences to teach.
     gibt` probe it leaned the right way at 0.7, which is the shape of the
     calibration question.
 
+**Separable verbs, asked about the same evening.** Not a case for a model.
+Over 5,000 subtitle sentences, 432 carry a separated prefix; the parse
+attaches 379 of the 447 prefixes as `svp`, and the matcher has folded those
+into the verb all along — `steht … auf` is `aufstehen`, 197 with a
+blueprint and 182 without one (`zurücknehmen`, `einwilligen`: no pattern,
+rightly). Of the 68 it leaves loose, 62 are the tagger calling an adverb a
+prefix (`alles dabei`, `hin und zurück`) and six are real misses with
+exactly one dictionary candidate (`mitnehmen`, `anfangen`, `weitergehen`)
+— a rule if anything. The defect was on the word side, where nothing had
+looked: `corpus/analyzer._units` read the tokens one at a time and emitted
+the bare stem and the particle as two units, 350 of the 379 times. Under
+strict counting that put `stehen` in front of `aufstehen`, `fangen` (to
+catch) in front of `anfangen`, and `willigen`, which is not a word, in
+front of `einwilligen` for good. Fixed in `8b489ff`: the unit is prefix
+plus stem, the particle yields nothing, the corpus vote still sees the
+bare stem, and a stem it repairs is repaired under its prefixes too.
+Rebuilt: `fangen` 560 → 96 rows and `anfangen` 619 → 1,077, `kommen`
+7,433 → 6,077 and `mitkommen` 41 → 126, `auf` as a unit 17,042 → 15,577;
+19,823 particle-units gone from the subtitle build, pattern rows unchanged.
+
+**Decided: B, the goal is the verb (2026-09-20).** Asked as a choice — A,
+the card keeps the frame's title and the judge picks examples that match
+it; B, the card is the verb, examples are its ordinary uses, and a use a
+learner cannot get from the verb (`es gibt`, `auf jdn. stehen`) is a unit
+of its own with its own line. B, because the list means the verb and the
+frames were an accident of the dictionary. Built so far: `spoken` says the
+verb for a case frame (`632f691`), the gloss version is 5 so the deck asks
+what `stehen` means rather than what `jemandem stehen` does, and a
+construction consumes its words in the analyser — `Es gibt ein Problem`
+no longer carries `geben`, which strict counting had been renaming back
+into the `geben` goal, so the sentence had stayed a `geben` example with
+the pattern row gone. What is left of B is the ranking of examples by a
+judge, and that waits on the design below.
+
+**The corpus pass is one request per sentence, not one per pair — asked
+for, 2026-09-20, before any run.** State is charged once per request and
+every question over it runs in parallel, so the pass that ranks examples
+should carry every question the project will want of a sentence: the
+plain-word Noul per unit (B's question), the grammar Nouls of item 22, the
+standing-alone Nouls of item 3, the standard-German Noul of item 4, and a
+discovery Noul for fixed expressions the units do not name. About a
+thousand tokens a sentence, 262k teachable subtitle sentences, roughly $11
+and three and a half hours at the rate limit, once, stored raw with a
+question version. Each group gets its few-hundred-row measurement first,
+and nothing runs without a go. The B-question re-score on the 450 is
+written (`arm jev plain`) and unrun.
+
 **What this does not settle.** The list writes `stehen<TAB>jdm. (Dat)
 stehen` and means the verb; the frame came from the dictionary. Once rows
 are judged, the goal `jdm. (Dat) stehen` would teach *to suit someone* from

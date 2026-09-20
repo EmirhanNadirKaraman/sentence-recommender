@@ -341,7 +341,8 @@ def write_report(rows: list[dict], effect: dict | None) -> None:
             lines.append(f"| `{d['pattern']}` | {d['before']} | {d['refused']} "
                          f"({d['share_refused']:.0%}) | {d['rerouted']} ({d['share_rerouted']:.0%}) |")
     for name in ARMS:
-        lines += [""] + arm_section(name)
+        for asking in QUESTIONS:
+            lines += [""] + arm_section(name, asking)
     lines += ["", "## Constructions the labels named", "",
               "What the sentence carried instead, where the judge named it — "
               "the candidates a discovery pass would have to propose:", ""]
@@ -389,6 +390,48 @@ CRITERIA = {
               "`etwas ändern`."),
 }
 
+# B's question (TODO #26, decided 2026-09-20): the goal is the word, not
+# the frame, so what a card must keep off its examples is narrower — a
+# fixed expression with a meaning of its own, or a different word wearing
+# the same letters. Any ordinary sense or frame of the word itself, an
+# auxiliary or a modal included, is a fair example of the word.
+QUESTION_PLAIN = (
+    "Are the marked words in `sentence` the word `unit.spoken` itself, in "
+    "any of its ordinary senses or frames? Yes if it is that word used as "
+    "itself — any sense, any preposition or case it takes here, reflexive "
+    "or not, as an auxiliary or a modal — even with a slot left unsaid. No "
+    "if the marked words belong to a fixed multiword expression whose "
+    "meaning is not the word's own, or if they are a different word that "
+    "happens to look the same (a participle of another verb, an adjective, "
+    "a name).")
+
+CRITERIA_PLAIN = {
+    "true": ("The word itself, in one of its usual senses or frames — "
+             "`stehen` meaning stand, be written or have a position are all "
+             "`stehen`; `können` as a modal is `können`."),
+    "false": ("A fixed expression with a meaning of its own — `ums Leben "
+              "kommen` is not `das Leben`, `Bescheid wissen` is not `wissen` "
+              "— or a different word: `gehört` from `hören` is not `gehören`, "
+              "`gelassen` the adjective is not `lassen`."),
+}
+
+QUESTIONS = {"frame": (QUESTION, CRITERIA), "plain": (QUESTION_PLAIN, CRITERIA_PLAIN)}
+
+# What B calls a good example, derived from the frame labels: `frame` and
+# every `other` that is the same word in another sense or frame are good;
+# `construction` and an `other` that is a different word are not.
+_DIFFERENT_WORD = ("lemma error", "adjective", "proper noun")
+
+
+def plain_label(row: dict) -> str | None:
+    if row["verdict"] == "frame":
+        return "good"
+    if row["verdict"] == "construction":
+        return "bad"
+    if row["verdict"] == "other":
+        return "bad" if any(k in row["what"] for k in _DIFFERENT_WORD) else "good"
+    return None
+
 
 def _state(row: dict) -> dict:
     from deck.spoken import spoken                       # noqa: PLC0415
@@ -400,14 +443,15 @@ def _state(row: dict) -> dict:
     }
 
 
-def arm_jev(rows: list[dict], on_progress=None) -> list[dict]:
+def arm_jev(rows: list[dict], on_progress=None, asking: str = "frame") -> list[dict]:
     """One Noul per row against TypeSafe's Jev. Needs `TYPESAFE_API_KEY`."""
     import time                                          # noqa: PLC0415
     from typesafe_sdk import Noul, TypeSafeClient        # noqa: PLC0415
     from config import load_dotenv                       # noqa: PLC0415
     load_dotenv()
     out = []
-    question = {"frame": Noul(instructions=QUESTION, criteria=CRITERIA)}
+    instructions, criteria = QUESTIONS[asking]
+    question = {"frame": Noul(instructions=instructions, criteria=criteria)}
     with TypeSafeClient() as client:
         for i, row in enumerate(rows, 1):
             started = time.time()
@@ -434,16 +478,17 @@ _TEMPLATE = ("<|im_start|>system\n{system}<|im_end|>\n"
 _GRAMMAR = 'root ::= "yes" | "no"'
 
 
-def _local_prompt(row: dict) -> str:
+def _local_prompt(row: dict, asking: str = "frame") -> str:
     import json                                          # noqa: PLC0415
     state = _state(row)
+    question, criteria = QUESTIONS[asking]
     return (f"State:\n{json.dumps(state, ensure_ascii=False, indent=1)}\n\n"
-            f"Question: {QUESTION}\n"
-            f"Yes means: {CRITERIA['true']}\nNo means: {CRITERIA['false']}\n"
+            f"Question: {question}\n"
+            f"Yes means: {criteria['true']}\nNo means: {criteria['false']}\n"
             "Answer with one word, yes or no.")
 
 
-def arm_local(rows: list[dict], on_progress=None) -> list[dict]:
+def arm_local(rows: list[dict], on_progress=None, asking: str = "frame") -> list[dict]:
     import math, time                                    # noqa: PLC0415
     import requests                                      # noqa: PLC0415
     from config import load_dotenv                       # noqa: PLC0415
@@ -453,7 +498,7 @@ def arm_local(rows: list[dict], on_progress=None) -> list[dict]:
     out = []
     for i, row in enumerate(rows, 1):
         prompt = _TEMPLATE.format(system="You judge German word senses. Answer yes or no.",
-                                  user=_local_prompt(row))
+                                  user=_local_prompt(row, asking))
         body = {"model": client._model, "prompt": prompt, "max_tokens": 1,
                 "temperature": 0, "logprobs": 10, "grammar": _GRAMMAR}
         started = time.time()
@@ -492,25 +537,36 @@ def arm_local(rows: list[dict], on_progress=None) -> list[dict]:
 ARMS = {"jev": arm_jev, "local": arm_local}
 
 
-def run_arm(name: str, rows: list[dict], limit: int | None = None) -> None:
+def _arm_file(name: str, asking: str) -> str:
+    return ARM.format(name) + ("" if asking == "frame" else f"-{asking}")
+
+
+def run_arm(name: str, rows: list[dict], limit: int | None = None,
+            asking: str = "frame") -> None:
     rows = rows[:limit] if limit else rows
-    answers = ARMS[name](rows, lambda i, n: print(f"  {name}: {i}/{n}", flush=True))
+    if asking == "plain":
+        rows = [r for r in rows if plain_label(r) is not None]
+    answers = ARMS[name](rows, lambda i, n: print(f"  {name}: {i}/{n}", flush=True),
+                         asking=asking)
     by_n = {r["n"]: r for r in rows}
     for a in answers:
         a["verdict"] = by_n[a["n"]]["verdict"]
+        a["label"] = "frame" if asking == "frame" else plain_label(by_n[a["n"]])
         a["rule"] = by_n[a["n"]].get("rule", "")
         a["stratum"] = by_n[a["n"]]["stratum"]
         a["pattern"] = by_n[a["n"]]["pattern"]
-    results.write_detail(ARM.format(name), answers)
+    results.write_detail(_arm_file(name, asking), answers)
 
 
-def score_arm(name: str) -> dict | None:
+def score_arm(name: str, asking: str = "frame") -> dict | None:
     """Precision and recall at 0.5, calibration at the ends, and the band."""
-    answers = results.read(ARM.format(name))
+    answers = results.read(_arm_file(name, asking))
     if not answers:
         return None
+    positive = (lambda a: a["verdict"] == "frame") if asking == "frame" \
+        else (lambda a: a.get("label") == "good")
     def view(part):
-        p = [(float(a["p"]), a["verdict"] == "frame") for a in part]
+        p = [(float(a["p"]), positive(a)) for a in part]
         yes = [f for prob, f in p if prob >= 0.5]
         frames = [prob for prob, f in p if f]
         sure_yes = [f for prob, f in p if prob >= 0.9]
@@ -533,11 +589,13 @@ def score_arm(name: str) -> dict | None:
             "seconds": round(sum(float(a["seconds"]) for a in answers), 1)}
 
 
-def arm_section(name: str) -> list[str]:
-    s = score_arm(name)
+def arm_section(name: str, asking: str = "frame") -> list[str]:
+    s = score_arm(name, asking)
     if s is None:
         return []
-    lines = [f"## Arm: {name} ({s['model']})", ""]
+    what = ("frame — does the sentence realise the blueprint" if asking == "frame"
+            else "plain — is this the word itself, not a fixed expression or another word")
+    lines = [f"## Arm: {name} ({s['model']}), question: {what}", ""]
     lines += [f"{s['all']['rows']} rows, {s['seconds']:.0f}s"
               + (f", {s['input_tokens']:,} input tokens" if s["input_tokens"] else "") + ".", "",
               "| view | rows | precision@0.5 | recall@0.5 | p ≥ 0.9: right/n | p ≤ 0.1: right/n | 0.3–0.7 band |",
@@ -546,7 +604,7 @@ def arm_section(name: str) -> list[str]:
         v = s[label]
         lines.append(f"| {label} | {v['rows']} | {v['precision']:.0%} | {v['recall']:.0%} | "
                      f"{v['at_90'][1]}/{v['at_90'][0]} | {v['at_10'][1]}/{v['at_10'][0]} | {v['band']} |")
-    lines += ["", "Precision and recall are of *frame* against everything else; "
+    lines += ["", f"Precision and recall are of *{'frame' if asking == 'frame' else 'good example'}* against everything else; "
               "the two calibration columns say, of the rows the judge was sure "
               "about, how many the label agreed with; the band is the rows it "
               "was not sure about, which is the number a person would still read.", "",
@@ -593,11 +651,13 @@ def main() -> None:
         rows = judged()
         if not rows or "rule" not in rows[0]:
             raise SystemExit("run `measure` first: the arms are scored against the judged file")
-        limit = int(sys.argv[3]) if len(sys.argv) > 3 else None
-        run_arm(name, rows, limit)
+        extra = sys.argv[3:]
+        asking = "plain" if "plain" in extra else "frame"
+        limit = next((int(x) for x in extra if x.isdigit()), None)
+        run_arm(name, rows, limit, asking)
         write_report(rows, _last_effect())
     else:
-        raise SystemExit("usage: pattern_sense.py [sample|measure|arm jev|local [limit]]")
+        raise SystemExit("usage: pattern_sense.py [sample|measure|arm jev|local [plain] [limit]]")
 
 
 if __name__ == "__main__":
