@@ -101,7 +101,7 @@ Residue after the rule: 138 rows, of which 107 carry the frame (78%), 21 another
 | `jdm. (Dat) helfen` | 3 | 0 | 0 | 0 |
 | `lange, lang` | 3 | 0 | 0 | 0 |
 
-## Arm: jev (jev-1.13.0)
+## Arm: jev (jev-1.13.0), question: frame — does the sentence realise the blueprint
 
 450 rows, 139s, 302,146 input tokens.
 
@@ -166,7 +166,109 @@ Precision and recall are of *frame* against everything else; the two calibration
 | `selbst, selber` | 0.75→frame, 0.75→frame, 0.66→frame |
 
 
-## Arm: local (unsloth/Qwen3.5-9B-GGUF)
+## Arm: jev (jev-1.13.0), question: plain — is this the word itself, not a fixed expression or another word
+
+448 rows, 139s, 312,019 input tokens.
+
+| view | rows | precision@0.5 | recall@0.5 | p ≥ 0.9: right/n | p ≤ 0.1: right/n | 0.3–0.7 band |
+|---|---|---|---|---|---|---|
+| all | 448 | 95% | 93% | 92/92 | 2/2 | 151 |
+| residue | 406 | 96% | 92% | 74/74 | 2/2 | 145 |
+
+Precision and recall are of *good example* against everything else; the two calibration columns say, of the rows the judge was sure about, how many the label agreed with; the band is the rows it was not sure about, which is the number a person would still read.
+
+| pattern (panel) | p per row → label |
+|---|---|
+| `all, alle` | 0.80→frame, 0.65→frame, 0.82→frame |
+| `das Beispiel` | 0.64→const, 0.65→frame, 0.52→const |
+| `das Geld` | 0.88→frame, 0.96→frame, 0.74→frame |
+| `das Jahr` | 0.63→frame, 0.54→frame, 0.41→frame |
+| `das Kind` | 0.69→frame, 0.58→frame, 0.54→frame |
+| `das Land` | 0.91→frame, 0.89→frame, 0.57→frame |
+| `das Leben` | 0.81→frame, 0.14→const, 0.61→frame |
+| `das Problem` | 0.33→frame, 0.56→frame, 0.49→frame |
+| `das Thema` | 0.81→frame, 0.32→frame, 0.59→frame |
+| `das Video` | 0.92→frame, 0.54→frame, 0.75→frame |
+| `der Fall` | 0.53→frame, 0.24→const, 0.86→frame |
+| `der Herr` | 0.38→frame, 0.36→frame, 0.42→frame |
+| `der Mann` | 0.56→frame, 0.46→frame, 0.95→frame |
+| `der Mensch` | 0.55→frame, 0.50→frame, 0.57→frame |
+| `der Tag` | 0.62→frame, 0.63→frame, 0.42→frame |
+| `die Frage` | 0.93→frame, 0.72→frame, 0.95→frame |
+| `die Frau` | 0.58→frame, 0.72→frame, 0.95→frame |
+| `die Leute` | 0.88→frame, 0.96→frame, 0.60→frame |
+| `die Partei` | 0.91→frame, 0.92→frame, 0.62→frame |
+| `die Zeit` | 0.70→frame, 0.69→frame, 0.70→const |
+| `etw. (Akk) bekommen` | 0.80→frame, 0.60→frame, 0.80→frame |
+| `etw. (Akk) können` | 0.90→other, 0.96→other, 0.97→other |
+| `etw. (Akk) machen` | 0.74→other, 0.72→frame, 0.71→frame |
+| `etw. (Akk) tun` | 0.82→frame, 0.71→frame, 0.77→frame |
+| `etw. (Akk) wissen` | 0.81→frame, 0.65→frame, 0.87→frame |
+| `etw. (Akk) wollen` | 0.86→other, 0.89→other, 0.94→other |
+| `etw./jdn. (Akk) brauchen` | 0.89→frame, 0.93→other, 0.85→frame |
+| `etw./jdn. (Akk) finden` | 0.84→frame, 0.82→frame, 0.81→other |
+| `etw./jdn. (Akk) haben` | 0.90→other, 0.88→other, 0.86→other |
+| `etw./jdn. (Akk) kennen` | 0.85→frame, 0.84→frame, 0.87→frame |
+| `etw./jdn. (Akk) lassen` | 0.06→other, 0.83→frame, 0.73→other |
+| `etw./jdn. (Akk) nehmen` | 0.21→const, 0.30→const, 0.60→frame |
+| `etw./jdn. (Akk) sehen` | 0.90→frame, 0.73→frame, 0.78→frame |
+| `gern, gerne` | 0.79→frame, 0.78→frame, 0.85→frame |
+| `jdm. (Dat) / etw. (Akk) glauben` | 0.87→other, 0.94→other, 0.97→other |
+| `jdm. (Dat) etw. (Akk) bedeuten` | 0.94→other, 0.78→other, 0.91→other |
+| `jdm. (Dat) etw. (Akk) bringen` | 0.62→const, 0.36→const, 0.85→frame |
+| `jdm. (Dat) etw. (Akk) geben` | 0.84→const, 0.78→const, 0.76→const |
+| `jdm. (Dat) etw. (Akk) sagen` | 0.46→frame, 0.65→frame, 0.79→frame |
+| `jdm. (Dat) etw. (Akk) schreiben` | 0.80→frame, 0.80→frame, 0.75→frame |
+| `jdm. (Dat) etw. (Akk) zeigen` | 0.67→frame, 0.78→frame, 0.43→other |
+| `jdm. (Dat) gehören` | 0.07→other, 0.38→other, 0.14→other |
+| `jdm. (Dat) helfen` | 0.77→frame, 0.96→frame, 0.60→frame |
+| `jdm. (Dat) passieren` | 0.80→frame, 0.90→frame, 0.71→frame |
+| `jdm. (Dat) stehen` | 0.88→other, 0.75→other, 0.91→other |
+| `lange, lang` | 0.91→frame, 0.86→frame, 0.92→frame |
+| `mit jdm. / über etw./jdn. sprechen` | 0.73→frame, 0.88→frame, 0.96→frame |
+| `nach etw. aussehen` | 0.60→other, 0.72→other, 0.68→other |
+| `nichts, nix` | 0.95→frame, 0.78→const, 0.89→frame |
+| `selbst, selber` | 0.94→frame, 0.93→frame, 0.92→frame |
+
+
+## Arm: jev (jev-1.13.0), question: guessable — could a reader who had every other word work this one out
+
+100 rows, 32s, 53,596 input tokens.
+
+| view | rows | precision@0.5 | recall@0.5 | p ≥ 0.9: right/n | p ≤ 0.1: right/n | 0.3–0.7 band |
+|---|---|---|---|---|---|---|
+| all | 100 | 87% | 88% | 0/0 | 0/0 | 55 |
+| residue | 100 | 87% | 88% | 0/0 | 0/0 | 55 |
+
+Precision and recall are of *guessable* against everything else; the two calibration columns say, of the rows the judge was sure about, how many the label agreed with; the band is the rows it was not sure about, which is the number a person would still read.
+
+| pattern (panel) | p per row → label |
+|---|---|
+| `all, alle` | 0.79→frame, 0.76→frame |
+| `das Beispiel` | 0.75→frame |
+| `das Land` | 0.88→frame |
+| `das Problem` | 0.65→frame |
+| `der Herr` | 0.63→frame, 0.47→frame |
+| `der Mensch` | 0.65→frame |
+| `der Tag` | 0.76→frame, 0.56→frame |
+| `die Leute` | 0.51→frame, 0.68→frame |
+| `die Partei` | 0.74→frame |
+| `etw. (Akk) bekommen` | 0.70→frame |
+| `etw. (Akk) machen` | 0.49→frame, 0.50→frame |
+| `etw. (Akk) tun` | 0.26→frame |
+| `etw./jdn. (Akk) brauchen` | 0.86→frame |
+| `etw./jdn. (Akk) kennen` | 0.66→frame |
+| `etw./jdn. (Akk) nehmen` | 0.83→frame |
+| `etw./jdn. (Akk) sehen` | 0.73→frame |
+| `gern, gerne` | 0.70→frame, 0.58→frame |
+| `jdm. (Dat) etw. (Akk) zeigen` | 0.70→frame |
+| `jdm. (Dat) helfen` | 0.83→frame, 0.76→frame |
+| `lange, lang` | 0.81→frame |
+| `mit jdm. / über etw./jdn. sprechen` | 0.77→frame |
+| `nichts, nix` | 0.73→frame, 0.60→frame |
+
+
+## Arm: local (unsloth/Qwen3.5-9B-GGUF), question: frame — does the sentence realise the blueprint
 
 450 rows, 1304s.
 
@@ -229,6 +331,8 @@ Precision and recall are of *frame* against everything else; the two calibration
 | `nach etw. aussehen` | 0.38→other, 0.42→other, 0.45→other |
 | `nichts, nix` | 0.95→frame, 0.59→const, 0.25→frame |
 | `selbst, selber` | 0.48→frame, 0.82→frame, 0.38→frame |
+
+
 
 
 ## Constructions the labels named

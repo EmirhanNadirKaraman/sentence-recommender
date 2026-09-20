@@ -1876,6 +1876,47 @@ roughly $8–11 and four hours at the rate limit, once. Before it: `plain`
 on the 450 rows, and the four quality questions on a slice of three
 hundred against what the rules already say — each with a go.
 
+**Calibrated, the same night, each with a go.** Three runs, four cents.
+
+  * `plain` on the 448 labelled rows (400 the word itself, 48 not):
+    precision 95% and recall 93% at 0.5, 92 of 92 rows at p ≥ 0.9 right —
+    but the base rate is 89% and it gives only two rows p ≤ 0.1, so it is a
+    ranking, not a threshold. Half the constructions sit at 0.5–0.8 (`zum
+    Beispiel`, `vielen Dank`, `nach Hause`, `Krieg führen`), below the 92
+    a card would draw from. All seven `es gibt` rows came back as `geben`
+    used as itself, which is moot — those rows are `es gibt` units now.
+  * `guessable` on 100 rows I labelled (84 yes, 16 no): not calibrated.
+    Yes rows sit at a median of .68, no rows at .60, everything within
+    .2–.9; the four lowest are all no (`Bundestag` twice, `die Partie`,
+    the garbled `Nub`), so the ordering carries something and the number
+    does not. Open: re-ask it as a Score — *defines the word / hints at it
+    / says nothing* — or drop it and let `plain` and length rank.
+  * The four sentence questions on a 582-sentence slice built from what
+    the rules flagged, plus a control they passed
+    (`experiments/corpus_pass.py`, `05-are-the-quality-questions-
+    calibrated.md`). The control behaves — `complete` .96, `standard`
+    .91, `well_formed` .88, `stands_alone` .80 median — and every
+    disagreement read was the rule's error, not the judge's. The parser's
+    no-finite-verb flag: 73 of 100 are complete replies (`Vielen Dank für
+    das Hintergrundgespräch.`, `Nein, nur noch 10 Minuten.`), which puts
+    something like 12,000 good sentences at the bottom of the ranker
+    today. `unbound`: 58 of 100 stand alone (`Habt ihr eine Pizza
+    bestellt?`). The dialect marks: 85 of 104 are standard German — the
+    local model called `'ne` and `gibt's` dialect. The refusals split
+    exactly as the survey guessed: `Schein nicht so laut, sonst wächst du
+    Mama.` at .08, `Ich bin mir nicht sicher, ob ich bestanden habe.` at
+    .97. Names taken as given, 43 of 50; the two doubted are garbled. And
+    the control's lowest on `complete` — `Die Frauenärztin Michaela
+    Reichert, die ich zu diesem Thema traf.` at .21 — is a fragment every
+    rule passed. The four stand as written, version 1.
+  * `level` (a Choice over A1–C1, the expected level scaled to 0–1) joined
+    the set when a per-sentence difficulty number was asked for; a video's
+    difficulty is the distribution of its sentences' levels, in code. Not
+    yet calibrated: there is nothing to score it against but a reader.
+
+The questions live in `corpus/questions.py`, as data, with a version the
+answers will be stored beside; the calibration and the pass read one file.
+
 **What this does not settle.** The list writes `stehen<TAB>jdm. (Dat)
 stehen` and means the verb; the frame came from the dictionary. Once rows
 are judged, the goal `jdm. (Dat) stehen` would teach *to suit someone* from

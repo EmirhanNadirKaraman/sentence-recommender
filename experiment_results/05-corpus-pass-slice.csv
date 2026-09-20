@@ -1,0 +1,583 @@
+group,rule,text,n,stands_alone,complete,standard,well_formed,expression,model,input_tokens,seconds
+no_verb,no finite verb,"So welche, die schädliche Giftstoffe in reine Zellulose umwandeln.",1,0.15,0.24,0.48,0.23,0.18,jev-1.13.0,1018,0.69
+no_verb,no finite verb,Ins Service oder sonstige Dinge.,2,0.32,0.47,0.53,0.25,0.13,jev-1.13.0,981,0.35
+no_verb,no finite verb,Sieben Präpositionen und nur drei mögliche Endungen!,3,0.75,0.84,0.94,0.91,0.08,jev-1.13.0,1007,0.26
+no_verb,no finite verb,Mit Folgen auch für die Produktion von Autos.,4,0.24,0.4,0.86,0.73,0.16,jev-1.13.0,995,0.26
+no_verb,no finite verb,"Manche eher negativ, andere eher positiv.",5,0.32,0.77,0.91,0.86,0.12,jev-1.13.0,992,0.25
+no_verb,no finite verb,Deine Glug so we zum verwechseln ähnlich.,6,0.37,0.87,0.18,0.16,0.79,jev-1.13.0,1002,0.3
+no_verb,no finite verb,Selbe Tendenz bisher beim Gendersternchen.,7,0.25,0.75,0.71,0.8,0.27,jev-1.13.0,992,0.32
+no_verb,no finite verb,"Bitte Stanley, für mich alles, aber das nicht.",8,0.33,0.93,0.8,0.8,0.26,jev-1.13.0,999,0.26
+no_verb,no finite verb,"Mit Papa, mit deinem kleinen Bruder.",9,0.43,0.57,0.82,0.69,0.1,jev-1.13.0,988,0.29
+no_verb,no finite verb,"Und die Wohnung einzurichten, aufzuräumen.",10,0.54,0.41,0.81,0.67,0.11,jev-1.13.0,992,0.27
+no_verb,no finite verb,"Vielen Dank, gemeinsame Antwortzeit circa drei Minuten.",11,0.68,0.87,0.69,0.49,0.74,jev-1.13.0,1003,0.28
+no_verb,no finite verb,"Zum anderen aber auch, Russland davon abzuhalten, sich zu eng an China zu binden.",12,0.2,0.39,0.76,0.61,0.66,jev-1.13.0,1038,0.36
+no_verb,no finite verb,"Hallo Yara, das Gleiche wie immer?",13,0.53,0.91,0.9,0.92,0.55,jev-1.13.0,990,0.3
+no_verb,no finite verb,Dazu noch mal ein Zitat von der Hans-Böckler-Stiftung: Und übrigens noch eine Sache zum Schluss.,14,0.29,0.58,0.92,0.78,0.68,jev-1.13.0,1052,0.29
+no_verb,no finite verb,Ja. Komm mal mit jetzt!,15,0.7,0.89,0.83,0.84,0.43,jev-1.13.0,982,0.31
+no_verb,no finite verb,Sofort die Hände über den Kopf.,16,0.83,0.92,0.82,0.82,0.41,jev-1.13.0,990,0.3
+no_verb,no finite verb,"Dieser ständige Tropf verbunden mit der Infusion, dem Thron Gottes.",17,0.27,0.38,0.45,0.19,0.23,jev-1.13.0,1022,0.32
+no_verb,no finite verb,Oder C. 1861 bis 1865.,18,0.33,0.56,0.5,0.37,0.17,jev-1.13.0,996,0.35
+no_verb,no finite verb,Auch einigen Leuten in der CDU.,19,0.16,0.4,0.76,0.6,0.11,jev-1.13.0,989,0.31
+no_verb,no finite verb,"Oder auch Menschen, die sich mit Veränderungen, besonders mit schnellen, schwer tun.",20,0.49,0.56,0.74,0.65,0.52,jev-1.13.0,1030,0.38
+no_verb,no finite verb,Oder auf seinem sozialen Netzwerk Truth Social.,21,0.21,0.35,0.82,0.77,0.2,jev-1.13.0,995,0.24
+no_verb,no finite verb,Und zwar die Hochrechnung des ZDF.,22,0.23,0.71,0.92,0.87,0.96,jev-1.13.0,994,0.37
+no_verb,no finite verb,"Vielleicht sogar Fusionsenergie, falls wir es hinkriegen, das Eis dafür zu nutzen.",23,0.5,0.81,0.87,0.77,0.5,jev-1.13.0,1039,0.28
+no_verb,no finite verb,"Du nicht, aber dein Vater schon.",24,0.37,0.88,0.72,0.77,0.21,jev-1.13.0,988,0.35
+no_verb,no finite verb,"Also egal, wie viel man verdient.",25,0.64,0.83,0.63,0.78,0.65,jev-1.13.0,986,0.34
+no_verb,no finite verb,Noch mal die Richtung wechseln. letzten 30 Sekunden.,26,0.58,0.56,0.81,0.68,0.4,jev-1.13.0,1007,0.36
+no_verb,no finite verb,Nur wenn sie dem Staat was bringen.,27,0.28,0.35,0.55,0.55,0.23,jev-1.13.0,989,0.33
+no_verb,no finite verb,"Genau, mein Mann und ich, zu zweit, 28 Tage unterwegs.",28,0.72,0.89,0.87,0.88,0.46,jev-1.13.0,1018,0.36
+no_verb,no finite verb,Also erst einmal herzlichen Glückwunsch zur Schwangerschaft!,29,0.91,0.95,0.88,0.9,0.84,jev-1.13.0,1009,0.36
+no_verb,no finite verb,Für mich die Spaghetti Bolognese!,30,0.85,0.94,0.82,0.84,0.38,jev-1.13.0,991,0.33
+no_verb,no finite verb,Wirtschaftlich auch ein großes Thema.,31,0.48,0.77,0.85,0.84,0.16,jev-1.13.0,989,0.36
+no_verb,no finite verb,Zum Beispiel den eines Deutschen.,32,0.13,0.35,0.82,0.59,0.57,jev-1.13.0,983,0.36
+no_verb,no finite verb,Oder aber eine Minderheitsregierung der AfD mit deutlich mehr Sitzen.,33,0.47,0.49,0.78,0.67,0.44,jev-1.13.0,1021,0.27
+no_verb,no finite verb,"Direkt mit dem Ziel Irans, vom Libanon aus gegen Israel kämpfen zu können.",34,0.38,0.32,0.78,0.57,0.24,jev-1.13.0,1032,0.28
+no_verb,no finite verb,Übrigens auch mit der Partei Die Linke.,35,0.16,0.64,0.89,0.81,0.37,jev-1.13.0,995,0.28
+no_verb,no finite verb,"Geburtstage, Urlaube, Weihnachten und ganz viele Momente, die damals wahrscheinlich vollkommen unwichtig gewirkt haben.",36,0.58,0.49,0.9,0.81,0.16,jev-1.13.0,1059,0.27
+no_verb,no finite verb,Extrem steigende Bodenpreise und weniger Sozialwohnungen zum Beispiel.,37,0.6,0.5,0.83,0.71,0.6,jev-1.13.0,1016,0.26
+no_verb,no finite verb,"Okay, vielleicht bisschen Sparty, oder Kunze?",38,0.25,0.75,0.69,0.58,0.26,jev-1.13.0,995,0.3
+no_verb,no finite verb,"Hinter mir Bayern in Deutschland, vor mir Tirol, Österreich.",39,0.82,0.88,0.83,0.79,0.09,jev-1.13.0,1013,0.29
+no_verb,no finite verb,Letztes Mal bei Like Germans Hallo!,40,0.28,0.56,0.3,0.25,0.53,jev-1.13.0,989,0.29
+no_verb,no finite verb,Was für ein Moment mit Symbolkraft.,41,0.54,0.88,0.89,0.84,0.25,jev-1.13.0,989,0.39
+no_verb,no finite verb,Hallöchen! 你好 你好 Alles gut bei dir?,42,0.89,0.69,0.41,0.59,0.71,jev-1.13.0,998,0.31
+no_verb,no finite verb,"Eine deutschlandweite Spielklasse, in der Profispieler auf dem Platz stehen.",43,0.79,0.45,0.91,0.73,0.22,jev-1.13.0,1025,0.3
+no_verb,no finite verb,Einen halben Liter für ein Gewehr.,44,0.55,0.68,0.81,0.68,0.08,jev-1.13.0,991,0.28
+no_verb,no finite verb,"Eine letzte Wortmeldung von Frau Lingermann. (Rednerwechsel) Vielen Dank, Frau Vorsitzende.",45,0.7,0.58,0.89,0.86,0.77,jev-1.13.0,1043,0.32
+no_verb,no finite verb,Der beste Fallrückzieher des Tages.,46,0.69,0.79,0.9,0.88,0.19,jev-1.13.0,989,0.35
+no_verb,no finite verb,"Im Iran, aber auch weltweit.",47,0.32,0.55,0.8,0.65,0.13,jev-1.13.0,981,0.29
+no_verb,no finite verb,Hoffentlich auch mehr bezahlbaren Wohnraum.,48,0.67,0.68,0.87,0.83,0.21,jev-1.13.0,992,0.24
+no_verb,no finite verb,"Truppen in der Luft, um bei Aufständen einzugreifen.",49,0.73,0.58,0.84,0.69,0.23,jev-1.13.0,1010,0.33
+no_verb,no finite verb,Keine Mittelstrecken-Raketen aus den USA auf deutschem Boden und keine Bundeswehr in Kriegsgebieten.,50,0.9,0.89,0.93,0.9,0.13,jev-1.13.0,1051,0.3
+no_verb,no finite verb,Dann noch das Fußballspiel beider deutscher Mannschaften.,51,0.27,0.58,0.82,0.7,0.23,jev-1.13.0,1006,0.26
+no_verb,no finite verb,"Soweit in aller Kürze die fünf Punkte, die aus meiner Sicht gegen ein Verbot von Social-Media-Plattformen für unter 16-Jährige sprechen.",52,0.7,0.85,0.93,0.88,0.84,jev-1.13.0,1095,0.31
+no_verb,no finite verb,"Abgesehen von der Kanzlerwahl, von Grundgesetzänderungen oder anderen kleineren Ausnahmen.",53,0.39,0.25,0.86,0.57,0.63,jev-1.13.0,1036,0.36
+no_verb,no finite verb,"Gerade bei nationalistischen Interessen, aber auch viele Gegensätze der außenpolitischen Interessen, die immer mehr zunehmen.",54,0.36,0.31,0.56,0.27,0.4,jev-1.13.0,1066,0.29
+no_verb,no finite verb,"Eine Kontroverse, eine schwierige Sache.",55,0.82,0.83,0.89,0.8,0.15,jev-1.13.0,989,0.26
+no_verb,no finite verb,"Zum Beispiel: der Kapitalismus, der Sozialismus.",56,0.61,0.53,0.87,0.69,0.66,jev-1.13.0,1001,0.27
+no_verb,no finite verb,Noch mal in die Flamme und wieder verdrehen.,57,0.3,0.76,0.74,0.71,0.39,jev-1.13.0,1002,0.36
+no_verb,no finite verb,Genauso wenig wie Demonstrationen gegen die Regierung.,58,0.17,0.46,0.85,0.63,0.54,jev-1.13.0,1002,0.39
+no_verb,no finite verb,"Von denen, die diese Werke nehmen und einfach verbreiten, ohne nachzufragen, ohne dafür etwas zu bezahlen.",59,0.29,0.19,0.8,0.64,0.2,jev-1.13.0,1057,0.32
+no_verb,no finite verb,"Alles klar, bis gleich Julian!",60,0.86,0.94,0.93,0.94,0.82,jev-1.13.0,981,0.37
+no_verb,no finite verb,Die Bilanz: bis zu 100.000 tote Zivilisten.,61,0.68,0.84,0.93,0.93,0.49,jev-1.13.0,1010,0.24
+no_verb,no finite verb,Papala Papap so viel tugend.,62,0.41,0.77,0.15,0.14,0.17,jev-1.13.0,985,0.38
+no_verb,no finite verb,Beispiel für eine Metapher: jemandem das Herz brechen.,63,0.94,0.9,0.95,0.93,0.91,jev-1.13.0,1009,0.26
+no_verb,no finite verb,"Unzufrieden mit ihrer Regierung, unzufrieden mit dem System.",64,0.73,0.6,0.92,0.82,0.14,jev-1.13.0,1010,0.33
+no_verb,no finite verb,Besonders bei muslimischen Jugendlichen aus dem arabischen Raum.,65,0.3,0.27,0.91,0.83,0.18,jev-1.13.0,1004,0.36
+no_verb,no finite verb,Danke schön fürs Zuschauen und bis zum nächsten Mal!,66,0.95,0.96,0.96,0.96,0.67,jev-1.13.0,1012,0.36
+no_verb,no finite verb,"Oh, hey Lisa, alles klar?",67,0.9,0.9,0.84,0.87,0.81,jev-1.13.0,982,0.33
+no_verb,no finite verb,Entweder ganz junger Käse oder ganz altes Fleisch.,68,0.86,0.86,0.88,0.81,0.12,jev-1.13.0,1009,0.36
+no_verb,no finite verb,"Nein, was? (Verzauberte Filmmusik) Wow, echt?",69,0.29,0.56,0.84,0.62,0.45,jev-1.13.0,1008,0.36
+no_verb,no finite verb,"Ja, so schön warm und kuschelig.",70,0.74,0.92,0.93,0.92,0.21,jev-1.13.0,990,0.33
+no_verb,no finite verb,Sehr vernünftig aber leider zu spät.,71,0.73,0.89,0.95,0.91,0.24,jev-1.13.0,993,0.36
+no_verb,no finite verb,"Nein, nur noch 10 Minuten.",72,0.66,0.94,0.95,0.96,0.27,jev-1.13.0,986,0.36
+no_verb,no finite verb,Die Vorherrschaft in der arabischen Welt.,73,0.67,0.33,0.94,0.74,0.11,jev-1.13.0,994,0.26
+no_verb,no finite verb,Eben unter Umständen durch Enthaltung.,74,0.25,0.57,0.66,0.49,0.57,jev-1.13.0,988,0.32
+no_verb,no finite verb,"Okay. -Bitte sehr. -Cool, Okay.",75,0.65,0.25,0.54,0.48,0.92,jev-1.13.0,989,0.34
+no_verb,no finite verb,"Eine ganz außergewöhnliche, ungewöhnliche Persönlichkeit.",76,0.81,0.72,0.84,0.67,0.11,jev-1.13.0,1005,0.45
+no_verb,no finite verb,Vielen Dank für das aufschlussreiche Hintergrundgespräch.,77,0.9,0.97,0.95,0.9,0.56,jev-1.13.0,1007,0.37
+no_verb,no finite verb,"Mareel 24 aus Ulm, ba an der ETH, LM an der LSI und jetzt bei BCG mit Did Schwer.",78,0.47,0.78,0.31,0.34,0.17,jev-1.13.0,1067,0.36
+no_verb,no finite verb,Eine halbe Stunde vor Abflug.,79,0.75,0.62,0.94,0.9,0.15,jev-1.13.0,983,0.3
+no_verb,no finite verb,"Trotz regelmäßiger Schlafzeiten, Mahlzeiten und Aktivitäten.",80,0.27,0.08,0.72,0.31,0.13,jev-1.13.0,1009,0.27
+no_verb,no finite verb,"Praktisch für die Glotze, tolle Elektrik.",81,0.63,0.83,0.71,0.69,0.25,jev-1.13.0,998,0.3
+no_verb,no finite verb,Besonders auch Teile der älteren Bevölkerung.,82,0.33,0.4,0.86,0.74,0.2,jev-1.13.0,992,0.26
+no_verb,no finite verb,Unter anderem durch den Bericht eines Journalisten aus den USA.,83,0.2,0.32,0.92,0.81,0.87,jev-1.13.0,1012,0.3
+no_verb,no finite verb,"Genauso wie z.B. Afghanistan, Somalia oder auch Nordkorea.",84,0.16,0.25,0.8,0.59,0.52,jev-1.13.0,1011,0.28
+no_verb,no finite verb,Was meinst du? Buuh! % # mich!,85,0.21,0.48,0.32,0.14,0.41,jev-1.13.0,997,0.27
+no_verb,no finite verb,Vielleicht auch nur ein Running Gag.,86,0.41,0.76,0.83,0.89,0.61,jev-1.13.0,991,0.26
+no_verb,no finite verb,"Danke für die Unterstützung, Tom.",87,0.94,0.96,0.96,0.96,0.34,jev-1.13.0,986,0.25
+no_verb,no finite verb,"Nicht darüber nachdenken, wer das Essen bezahlt.",88,0.82,0.92,0.89,0.83,0.26,jev-1.13.0,998,0.23
+no_verb,no finite verb,Du mit den Augen nicht mit ganzen schon gut.,89,0.21,0.59,0.15,0.08,0.4,jev-1.13.0,1001,0.25
+no_verb,no finite verb,Aber auch so Dinge wie das deutsche Steuerrecht.,90,0.21,0.37,0.72,0.61,0.36,jev-1.13.0,1002,0.29
+no_verb,no finite verb,"Hey!"" Aber warum sich nur auf eine Wellenlänge konzentrieren?",91,0.64,0.73,0.83,0.74,0.64,jev-1.13.0,1015,0.26
+no_verb,no finite verb,Und nicht in der 2. Liga.,92,0.2,0.61,0.88,0.82,0.11,jev-1.13.0,986,0.28
+no_verb,no finite verb,"Oh, hey Schatz, alles klar?",93,0.87,0.89,0.83,0.89,0.7,jev-1.13.0,984,0.27
+no_verb,no finite verb,Das dann dafür ganz schön lang.,94,0.21,0.72,0.6,0.58,0.42,jev-1.13.0,987,0.3
+no_verb,no finite verb,"Hey, alles klar bei dir?",95,0.93,0.95,0.93,0.95,0.76,jev-1.13.0,980,0.35
+no_verb,no finite verb,Hoffentlich Hawaii mit viel Käse.,96,0.64,0.65,0.59,0.45,0.16,jev-1.13.0,989,0.23
+no_verb,no finite verb,Genau wie ein lebender Organismus.,97,0.48,0.64,0.94,0.9,0.39,jev-1.13.0,988,0.3
+no_verb,no finite verb,Neben mir das schon erwähnte Video zu Flucht und Vertreibung.,98,0.22,0.53,0.8,0.78,0.22,jev-1.13.0,1017,0.34
+no_verb,no finite verb,Noch einmal der Völkerrechtler Thielbörger.,99,0.36,0.68,0.83,0.78,0.4,jev-1.13.0,997,0.35
+no_verb,no finite verb,Also weniger Verbote vom Staat.,100,0.54,0.71,0.75,0.73,0.24,jev-1.13.0,982,0.36
+dialect,dialect,Ich hab übrigens zu hinsichtlich auch schon mal ein eigenes Video gemacht.,101,0.31,0.89,0.42,0.12,0.59,jev-1.13.0,1022,0.33
+dialect,dialect,Ich finde Schule wichtiger als Ich bleibe dieses Jahr nicht sitzen.,102,0.62,0.66,0.61,0.33,0.6,jev-1.13.0,1016,0.37
+dialect,dialect,Du hast dich am Telefon sehr nervös angehört.,103,0.93,0.97,0.92,0.88,0.26,jev-1.13.0,1006,0.35
+dialect,dialect,"Wir sind in % #ing Waffen, die wir verkauft haben.",104,0.21,0.66,0.23,0.1,0.25,jev-1.13.0,1010,0.33
+dialect,dialect,Sie wurden über Jahrzehnte immer wieder vermehrt und retteten so unzählige Leben.,105,0.28,0.96,0.91,0.8,0.51,jev-1.13.0,1037,0.36
+dialect,dialect,Und die gucken immer: Was muss man anpassen?,106,0.32,0.83,0.61,0.79,0.19,jev-1.13.0,1003,0.36
+dialect,dialect,Und man konnte auf gar nicht so viele Personen zurückgreifen.,107,0.69,0.94,0.86,0.77,0.57,jev-1.13.0,1015,0.33
+dialect,dialect,Jetzt kommt man wieder in 'ne kleinere Stadt rein.,108,0.79,0.95,0.87,0.92,0.21,jev-1.13.0,1004,0.36
+dialect,dialect,"Ja man, wir haben gar keine Hübsche in der Klasse.",109,0.87,0.95,0.6,0.59,0.47,jev-1.13.0,1013,0.36
+dialect,dialect,In Frankreich hat er es mehrere Anschläge auf De gegeben.,110,0.2,0.84,0.28,0.15,0.5,jev-1.13.0,1015,0.33
+dialect,dialect,"Wir gucken uns einfach mal eine Station an, ob hier eine ist.",111,0.58,0.86,0.83,0.8,0.47,jev-1.13.0,1019,0.34
+dialect,dialect,Dieses Argument zieht vor allem bei Empfehlungen oder Entscheidungen.,112,0.43,0.94,0.84,0.65,0.74,jev-1.13.0,1004,0.28
+dialect,dialect,Man guckt so weit in die Ferne und ist nicht konzentriert.,113,0.9,0.96,0.85,0.83,0.33,jev-1.13.0,1017,0.24
+dialect,dialect,"Die größte Zahl dieser Anlagen steht in Deutschland, circa 9000 Anlagen.",114,0.49,0.95,0.87,0.74,0.17,jev-1.13.0,1029,0.38
+dialect,dialect,"Ich hab dich nur aufgezogen, ich bin gar nicht schwanger.",115,0.85,0.95,0.89,0.9,0.74,jev-1.13.0,1013,0.29
+dialect,dialect,"Ich hab was in der Werkstatt, damit kommen wir da rein.",116,0.37,0.9,0.82,0.81,0.32,jev-1.13.0,1013,0.26
+dialect,dialect,Inwieweit die Einfluss auf unser alltägliches Leben haben oder nicht.,117,0.14,0.15,0.37,0.11,0.48,jev-1.13.0,1017,0.29
+dialect,dialect,"Wenn sind das Leute, die mit ihm auf einer Linie sind.",118,0.3,0.79,0.53,0.27,0.71,jev-1.13.0,1016,0.26
+dialect,dialect,"Also, wenn man was sagt, dann Kündigung.",119,0.36,0.83,0.62,0.58,0.48,jev-1.13.0,1002,0.32
+dialect,dialect,Sondern es gibt ein Gleichgewicht aus Kaiser und Kanzler.,120,0.61,0.91,0.84,0.7,0.22,jev-1.13.0,1014,0.27
+dialect,dialect,"Ein Flugzeug, das den Maschinen der Gegner tatsächlich weit voraus ist.",121,0.64,0.46,0.88,0.7,0.5,jev-1.13.0,1025,0.41
+dialect,dialect,"In ungefähr 12 Stunden kriegt ihr ein bisschen Bewegung, Jungs.",122,0.82,0.96,0.82,0.84,0.28,jev-1.13.0,1021,0.27
+dialect,dialect,"Du musst Druck auf die Wunde machen, ansonsten komme ich nicht weiter.",123,0.79,0.96,0.88,0.83,0.49,jev-1.13.0,1024,0.26
+dialect,dialect,"Kosten würde Bayern auch, dass die Bahn durchs eigene Land fährt.",124,0.62,0.91,0.67,0.52,0.34,jev-1.13.0,1020,0.25
+dialect,dialect,"Zum Beispiel kann man in Königsindisch reinkommen, wenn beide Seiten das wollen.",125,0.65,0.96,0.82,0.71,0.49,jev-1.13.0,1035,0.27
+dialect,dialect,"Die Vertreter der Republik China, die vorher existiert hat, verlieren.",126,0.55,0.95,0.76,0.55,0.11,jev-1.13.0,1016,0.29
+dialect,dialect,Sie zerstört unsere wirtschaftliche Leistungsfähigkeit und sie zerstört unsere Kultur.,127,0.38,0.95,0.94,0.91,0.09,jev-1.13.0,1041,0.33
+dialect,dialect,"Ich schwimme zum Schiff, aber finde keinen Weg hinein.",128,0.92,0.95,0.94,0.91,0.11,jev-1.13.0,1008,0.29
+dialect,dialect,"Hab ich schon gehört, ein Mann hat den Präsidenten erschossen.",129,0.85,0.92,0.86,0.86,0.32,jev-1.13.0,1019,0.28
+dialect,dialect,"Wir reißen die Schule ab, Alter.",130,0.68,0.95,0.6,0.68,0.57,jev-1.13.0,990,0.38
+dialect,dialect,"Damit auch, wie Trump seine Politik zumindest indirekt fortsetzen kann.",131,0.14,0.3,0.53,0.28,0.37,jev-1.13.0,1020,0.3
+dialect,dialect,"Da ist man äußerst kreativ, und sieht gar nicht so schlecht aus.",132,0.47,0.94,0.83,0.86,0.51,jev-1.13.0,1022,0.29
+dialect,dialect,"Andere Theorien sprechen davon, dass Finkelstein und Orbán sich schon 2008 auf Vermittlung des israelischen Ministerpräsidenten haben sollen.",133,0.48,0.95,0.88,0.67,0.61,jev-1.13.0,1095,0.25
+dialect,dialect,Weil da war mir klar: Du musst durchziehen.,134,0.57,0.86,0.72,0.75,0.71,jev-1.13.0,1004,0.25
+dialect,dialect,"Ich hab noch kein Schloss, weil es eng ist hinten.",135,0.57,0.95,0.76,0.57,0.12,jev-1.13.0,1007,0.25
+dialect,dialect,"Darunter findet ihr ein Video zum Wiener Kongress, auch wichtig in dem Zusammenhang.",136,0.3,0.95,0.89,0.91,0.36,jev-1.13.0,1034,0.39
+dialect,dialect,Auch die Neue Deutsche Welle hat man in Bundesrepublik und DDR.,137,0.55,0.74,0.47,0.24,0.25,jev-1.13.0,1023,0.36
+dialect,dialect,Ich mach mal was in die Ecken hier rein.,138,0.42,0.91,0.88,0.89,0.3,jev-1.13.0,1000,0.33
+dialect,dialect,"Da hatte dann die ""Bild"" in ihrer Zeitung die Anträge.",139,0.33,0.94,0.84,0.69,0.19,jev-1.13.0,1018,0.36
+dialect,dialect,"Nor, die haben dich ja extra für uns aufgezogen.",140,0.47,0.87,0.39,0.46,0.41,jev-1.13.0,1005,0.36
+dialect,dialect,"Ein Apfel ist, sag ich mal, ein klassisches deutsches Produkt.",141,0.91,0.96,0.88,0.8,0.76,jev-1.13.0,1017,0.33
+dialect,dialect,"Alter, nur weil ich ein paar polnische Verwandte hab.",142,0.41,0.67,0.63,0.66,0.28,jev-1.13.0,1009,0.36
+dialect,dialect,Dieser Typ von Verfassungsschutz war heute bei mir ist ein ganz gründlicher oder?,143,0.53,0.69,0.53,0.32,0.24,jev-1.13.0,1034,0.36
+dialect,dialect,"Obwohl Jesus in Johannes 10 sagt, dass du seine Stimme kennst.",144,0.4,0.13,0.8,0.4,0.24,jev-1.13.0,1025,0.33
+dialect,dialect,Nach dem Motto: Wir kriegen hier reichlich.,145,0.6,0.51,0.78,0.79,0.7,jev-1.13.0,999,0.36
+dialect,dialect,Hat normal die Schule durchgezogen und dann angefangen zu studieren.,146,0.49,0.92,0.68,0.48,0.5,jev-1.13.0,1017,0.36
+dialect,dialect,Was war noch mein Einkommen vor 'nem Jahr?,147,0.77,0.95,0.91,0.86,0.13,jev-1.13.0,1002,0.33
+dialect,dialect,"Mein Gott, wir das schon furcht dort kann ja keiner lesen.",148,0.33,0.72,0.18,0.08,0.73,jev-1.13.0,1019,0.36
+dialect,dialect,Also für die Nummer hier habe ich einen bei dir gutom.,149,0.29,0.8,0.21,0.07,0.41,jev-1.13.0,1013,0.36
+dialect,dialect,"Han he Alter, weißt du nicht so auf blond.",150,0.34,0.73,0.29,0.21,0.53,jev-1.13.0,1003,0.27
+dialect,dialect,"Der ist noch jung, aber ich jetzt hier den dann wird das mal ein richtiger Rock.",151,0.38,0.66,0.29,0.19,0.4,jev-1.13.0,1040,0.25
+dialect,dialect,An der Station wollen andere Leute was von ihm.,152,0.57,0.94,0.75,0.73,0.3,jev-1.13.0,1002,0.25
+dialect,dialect,"Wir kriegen die Fusion zwar hin, stecken aktuell aber mehr Energie in die Experimente als wir daraus gewinnen.",153,0.8,0.96,0.9,0.9,0.8,jev-1.13.0,1065,0.28
+dialect,dialect,"Nehmen wir mal dieses Beispiel: “Papa, ich sonn’ meine Eier.",154,0.6,0.73,0.44,0.18,0.53,jev-1.13.0,1021,0.32
+dialect,dialect,"Da müsste viel passieren, dass man gezielt irgendwas beeinflussen kann.",155,0.58,0.94,0.83,0.81,0.21,jev-1.13.0,1022,0.25
+dialect,dialect,"Alter, du musst einen Zahn zulegen.",156,0.71,0.95,0.65,0.79,0.82,jev-1.13.0,992,0.25
+dialect,dialect,"Mal gucken, ob man das alles ein bisschen spannen kann.",157,0.31,0.9,0.64,0.6,0.4,jev-1.13.0,1013,0.26
+dialect,dialect,"Damit zur Frage, wer darf sich laut AfD als deutsch bezeichnen?",158,0.5,0.47,0.65,0.31,0.44,jev-1.13.0,1025,0.25
+dialect,dialect,"Und diese, ich sag mal, Persönlichkeit jeder Frau in dem Fall irgendwie nach außen kommt.",159,0.26,0.72,0.79,0.6,0.55,jev-1.13.0,1044,0.28
+dialect,dialect,Was du siehst an Rang ist für den Rang 100%.,160,0.4,0.88,0.4,0.19,0.23,jev-1.13.0,1012,0.27
+dialect,dialect,Hang hatte mal die ne oder?,161,0.23,0.84,0.74,0.57,0.45,jev-1.13.0,984,0.29
+dialect,dialect,Das waren weitaus nicht alle und schon gar keine Frauen.,162,0.26,0.96,0.91,0.87,0.67,jev-1.13.0,1010,0.46
+dialect,dialect,Hes an den sich ihre Töchter sicherlich erinnern werden.,163,0.32,0.8,0.54,0.29,0.27,jev-1.13.0,1010,0.27
+dialect,dialect,"Ob da eine gute Integration möglich wäre, damit das dann auch, sag ich mal, aus unserer pädagogischen Sicht, Hand in Hand laufen kann.",164,0.24,0.46,0.8,0.71,0.85,jev-1.13.0,1096,0.31
+dialect,dialect,"Sei vorsichtig, du hast noch keine großen Fall verloren.",165,0.71,0.92,0.62,0.31,0.21,jev-1.13.0,1012,0.26
+dialect,dialect,Und das ist im Grunde genommen auch was Platon ausbilden will.,166,0.22,0.95,0.87,0.68,0.85,jev-1.13.0,1015,0.29
+dialect,dialect,Ist wieder fröhlich auf die kleinen Kinder los.,167,0.33,0.62,0.57,0.43,0.82,jev-1.13.0,999,0.25
+dialect,dialect,"Ich hau einfach ab, sobald Mama mich abgesetzt hat.",168,0.83,0.96,0.71,0.88,0.71,jev-1.13.0,1009,0.31
+dialect,dialect,"Sind pro Monat immer zwei, drei, vier Euro, aber immerhin.",169,0.38,0.77,0.66,0.68,0.6,jev-1.13.0,1016,0.28
+dialect,dialect,"Die Dinge sieht aus wie ein Apfel, aber schmeckt wie die Himmel.",170,0.67,0.91,0.2,0.1,0.31,jev-1.13.0,1025,0.29
+dialect,dialect,"Wir entdecken auch die Stadt, verschiedene Museen, sprechen über Kunst.",171,0.85,0.87,0.85,0.72,0.08,jev-1.13.0,1017,0.37
+dialect,dialect,Bin da bloß ein Maler.,172,0.75,0.94,0.34,0.65,0.24,jev-1.13.0,982,0.25
+dialect,dialect,"Die Zeit überstehen, fast einen ganzen Tag lang warten.",173,0.74,0.65,0.82,0.61,0.58,jev-1.13.0,1009,0.27
+dialect,dialect,Fast alle erstellt von dem örtlichen Pfarrer.,174,0.29,0.53,0.65,0.5,0.14,jev-1.13.0,997,0.28
+dialect,dialect,"Sind ja immer auch ein Spiegel der Zeit, Spiegel von Kultur.",175,0.28,0.58,0.59,0.44,0.5,jev-1.13.0,1016,0.26
+dialect,dialect,Was ist von dieser Leistungsfähigkeit politisch sinnvoll?,176,0.26,0.96,0.9,0.74,0.18,jev-1.13.0,1009,0.51
+dialect,dialect,Vallah so eine Party lass ich mir doch nicht entgehen.,177,0.88,0.96,0.39,0.76,0.78,jev-1.13.0,1009,0.24
+dialect,dialect,Das Klang es hätte etwas gegen mich in der Hand.,178,0.35,0.87,0.31,0.12,0.65,jev-1.13.0,1008,0.29
+dialect,dialect,Also muss ich mit einem Mädchen ausgehen und mit demselben Mädchen abhängen?,179,0.68,0.9,0.72,0.72,0.42,jev-1.13.0,1034,0.33
+dialect,dialect,"Vor allem vergeben im arabischen, israelischen und indischen Raum.",180,0.21,0.53,0.75,0.6,0.75,jev-1.13.0,1014,0.36
+dialect,dialect,"Oder man geht zum Nachbarn, sofern der eines hat.",181,0.55,0.88,0.71,0.63,0.17,jev-1.13.0,1008,0.36
+dialect,dialect,"Etwa 2000 sind nötig, um eine Zeitung vernünftig lesen zu können.",182,0.72,0.96,0.87,0.74,0.17,jev-1.13.0,1032,0.33
+dialect,dialect,"Ich hab mir nie träumen lassen, dass ich 'nen Job im Hafen hab.",183,0.93,0.96,0.82,0.87,0.72,jev-1.13.0,1028,0.36
+dialect,dialect,Die PNB ist zunächst mal nur eine winzige Partei mit 'n paar Dutzend Mitgliedern.,184,0.64,0.96,0.88,0.87,0.66,jev-1.13.0,1043,0.36
+dialect,dialect,Außerdem heimischen Produkten Vorteile gegenüber ausländischen Waren einräumen.,185,0.49,0.46,0.65,0.33,0.38,jev-1.13.0,1021,0.33
+dialect,dialect,"Da muss man erst mal träumen, damit einem wieder was einfällt.",186,0.66,0.96,0.86,0.88,0.53,jev-1.13.0,1023,0.36
+dialect,dialect,"Zumal, wenn wir dann auch die Student Fee's für die Internationalen zahlen müssen, ist es um einiges mehr.",187,0.42,0.88,0.53,0.44,0.63,jev-1.13.0,1062,0.36
+dialect,dialect,Damit eben alles möglichst objektiv bewertet werden kann.,188,0.45,0.64,0.91,0.88,0.3,jev-1.13.0,1005,0.33
+dialect,dialect,"Dass das nix ist, was wir uns aussuchen oder was ich pädagogisch gut fände, ist klar.",189,0.32,0.96,0.64,0.81,0.32,jev-1.13.0,1053,0.36
+dialect,dialect,Bin eine Zeit lang mit einem LKW dorthin gefahren.,190,0.43,0.86,0.74,0.79,0.43,jev-1.13.0,1007,0.36
+dialect,dialect,Bei Männern bessere motorische Fähigkeiten und räumliches Denken.,191,0.66,0.54,0.64,0.48,0.11,jev-1.13.0,1014,0.3
+dialect,dialect,Sodass die möglichst viele Stimmen für die Union holt.,192,0.22,0.24,0.69,0.35,0.36,jev-1.13.0,1009,0.28
+dialect,dialect,"Ja, es gibt zwei Teile, die sind Gleichgewicht.",193,0.54,0.91,0.41,0.21,0.15,jev-1.13.0,1008,0.26
+dialect,dialect,"Ich finde echt, dass ich eine bessere Option bin.",194,0.72,0.97,0.91,0.83,0.18,jev-1.13.0,1005,0.34
+dialect,dialect,"Ich würde vorschlagen, wir suchen uns einen Museum aus.",195,0.91,0.96,0.69,0.54,0.47,jev-1.13.0,1009,0.39
+dialect,dialect,Man hat von hier aus 'ne schöne Sicht auf die Müritz.,196,0.88,0.97,0.92,0.94,0.45,jev-1.13.0,1017,0.24
+dialect,dialect,Eine zentrale Frage würde sein: Wer gilt denn eigentlich als bayrischer Staatsbürger?,197,0.89,0.93,0.88,0.85,0.31,jev-1.13.0,1036,0.28
+dialect,dialect,"Schaut da rein, da gibt's viele weitere spannende Inhalte dazu.",198,0.41,0.96,0.93,0.93,0.42,jev-1.13.0,1015,0.26
+dialect,dialect,"Tja, ich weiß nicht recht, aber ist echt gut.",199,0.58,0.84,0.76,0.7,0.75,jev-1.13.0,1005,0.27
+dialect,dialect,"Sagen Sie, der Bürgermeister deine Geliebte.",200,0.43,0.63,0.23,0.1,0.21,jev-1.13.0,996,0.31
+dialect,dialect,So einige Aspekte der Gottes Nahrung gehen mir viel zu weit.,201,0.66,0.95,0.69,0.49,0.65,jev-1.13.0,1015,0.25
+dialect,dialect,Ich habe meiner 20 Mark hat er mir bezahlt.,202,0.46,0.46,0.11,0.05,0.1,jev-1.13.0,1004,0.3
+dialect,dialect,Die hier sagt: Können Sie mir nicht etwas entgegenkommen?,203,0.47,0.91,0.75,0.63,0.59,jev-1.13.0,1012,0.29
+dialect,dialect,"Wir kamen da rein, da lief ein bisschen Musik im Hintergrund.",204,0.78,0.91,0.88,0.92,0.3,jev-1.13.0,1017,0.25
+refused,gloss refused,"""Tränen lachen"" bedeutet: so viel lachen, dass man weinen muss.",205,0.94,0.97,0.86,0.75,0.95,jev-1.13.0,1025,0.29
+refused,gloss refused,Weil du sonst in deiner Gesellschaft nicht akzeptiert wirst.,206,0.4,0.39,0.89,0.81,0.17,jev-1.13.0,1010,0.31
+refused,gloss refused,"Mit ""zufolge"" kann ich sagen, woher ich eine Information habe.",207,0.88,0.97,0.79,0.57,0.34,jev-1.13.0,1016,0.31
+refused,gloss refused,So zu tun hat sich der Luca noch am Leben.,208,0.47,0.87,0.31,0.21,0.75,jev-1.13.0,1006,0.32
+refused,gloss refused,Wir stellen uns in zwei Reihen auf und los.,209,0.88,0.93,0.9,0.9,0.67,jev-1.13.0,1000,0.32
+refused,gloss refused,"Wer Vitamin B hat, der kennt Menschen, die ihm Vorteile verschaffen können.",210,0.57,0.96,0.73,0.53,0.32,jev-1.13.0,1028,0.25
+refused,gloss refused,"Was wäre da los, wenn die schnelles Netz hätten?",211,0.47,0.9,0.35,0.17,0.77,jev-1.13.0,1008,0.3
+refused,gloss refused,"Also so macht man das mit der Masse, eine Straße.",212,0.17,0.67,0.56,0.28,0.4,jev-1.13.0,1007,0.44
+refused,gloss refused,"Männer, dann werde ich dir mal auf die Sprünge helfen.",213,0.66,0.94,0.66,0.57,0.91,jev-1.13.0,1016,0.4
+refused,gloss refused,Das Rad wird von uns sichergestellt.,214,0.81,0.97,0.88,0.75,0.13,jev-1.13.0,991,0.39
+refused,gloss refused,"Ihr merkt schon, es geht sehr viel ums Geld.",215,0.82,0.94,0.8,0.89,0.54,jev-1.13.0,1005,0.35
+refused,gloss refused,"Ok, um was für einen Gefallen geht es denn?",216,0.57,0.92,0.88,0.9,0.61,jev-1.13.0,1004,0.34
+refused,gloss refused,In dem Satz oben mit der Polizei passt “klären” nicht.,217,0.15,0.94,0.89,0.79,0.24,jev-1.13.0,1013,0.36
+refused,gloss refused,Im Prinzip hat Stresemann die Kuh doch längst vom Eis geholt.,218,0.4,0.96,0.84,0.8,0.91,jev-1.13.0,1021,0.33
+refused,gloss refused,Vor fünf Jahren ist sie in die Schweiz zurückgegangen.,219,0.62,0.97,0.9,0.91,0.17,jev-1.13.0,1013,0.36
+refused,gloss refused,Nur du kannst sie daraus erwecken.,220,0.35,0.96,0.91,0.86,0.25,jev-1.13.0,991,0.36
+refused,gloss refused,Man sieht ein bisschen deine Persönlichkeit.,221,0.75,0.96,0.83,0.74,0.14,jev-1.13.0,991,0.33
+refused,gloss refused,Vielleicht bin ich manchmal zu isoliert.,222,0.94,0.96,0.96,0.95,0.09,jev-1.13.0,993,0.36
+refused,gloss refused,"Wir wollen ja Wirtschaft beweisen, also geht's auch um Geld dabei.",223,0.6,0.95,0.84,0.55,0.49,jev-1.13.0,1021,0.36
+refused,gloss refused,Wir gehen gerade ein bisschen Wand abgeben Kommt ihr mit?,224,0.56,0.68,0.3,0.15,0.59,jev-1.13.0,1014,0.33
+refused,gloss refused,Statt “Sie ist verwundert” kann man auch sagen “Sie wundert sich”.,225,0.95,0.97,0.95,0.94,0.39,jev-1.13.0,1023,0.36
+refused,gloss refused,"Wir haben kein Geld, wenn das meine Eltern erfahren.",226,0.5,0.76,0.82,0.68,0.14,jev-1.13.0,1005,0.36
+refused,gloss refused,Wir ziehen dich aus dem Staub.,227,0.72,0.97,0.82,0.68,0.75,jev-1.13.0,986,0.31
+refused,gloss refused,"Lass uns nach Hause gehen, hier werden wir nichts finden.",228,0.91,0.96,0.93,0.94,0.22,jev-1.13.0,1010,0.25
+refused,gloss refused,"Ich wusste, dass es sich lohnt über meinen Schatten zu springen.",229,0.86,0.97,0.9,0.82,0.92,jev-1.13.0,1022,0.26
+refused,gloss refused,Du musst nur fahren und bremsen und nicht gegen einen Baum fahren.,230,0.88,0.96,0.89,0.8,0.11,jev-1.13.0,1020,0.29
+refused,gloss refused,"Die Menschen sind gereizt, haben Angst vor der Zukunft.",231,0.94,0.94,0.95,0.89,0.46,jev-1.13.0,1009,0.26
+refused,gloss refused,"Tja, ich schätze, wir sollten langsam mal wieder zurückgehen.",232,0.8,0.96,0.87,0.94,0.51,jev-1.13.0,1020,0.29
+refused,gloss refused,"Nur, dass Ihr Mann einen neuen Anwalt engagiert hat.",233,0.35,0.62,0.78,0.73,0.35,jev-1.13.0,1011,0.27
+refused,gloss refused,Dass benutzt man sehr oft für ein negatives Ereignis.,234,0.18,0.94,0.74,0.45,0.12,jev-1.13.0,1006,0.31
+refused,gloss refused,"Oder stößt du andere von dir, um dich selbst du schützen?",235,0.82,0.8,0.47,0.15,0.39,jev-1.13.0,1021,0.28
+refused,gloss refused,Ein Abkommen mit Israel vereinbart das Land dementsprechend nicht.,236,0.38,0.92,0.67,0.36,0.18,jev-1.13.0,1014,0.29
+refused,gloss refused,"Ist ein guter Moment, ihn um den Gefallen zu bitten.",237,0.43,0.79,0.67,0.46,0.56,jev-1.13.0,1010,0.26
+refused,gloss refused,"Allerdings ist “einander” ein Wort, das etwas gehoben klingt.",238,0.89,0.97,0.94,0.94,0.21,jev-1.13.0,1015,0.3
+refused,gloss refused,"Sobald wir die Lara haben, bohre ich die Flüge.",239,0.42,0.95,0.47,0.31,0.48,jev-1.13.0,1011,0.33
+refused,gloss refused,"Ja, ich habe nur leider überhaupt keine Erfahrung im Retten.",240,0.93,0.96,0.91,0.83,0.32,jev-1.13.0,1016,0.27
+refused,gloss refused,Unterhalten und gesichert wird das Objekt von der Stasi.,241,0.46,0.97,0.9,0.78,0.13,jev-1.13.0,1008,0.29
+refused,gloss refused,Also wie hoch setze ich mir da meine Ziele?,242,0.5,0.94,0.77,0.88,0.4,jev-1.13.0,1002,0.26
+refused,gloss refused,"Meistens macht man das nicht mit Absicht, sondern aus Versehen.",243,0.4,0.97,0.96,0.94,0.56,jev-1.13.0,1014,0.27
+refused,gloss refused,Sie haben uns mal Schwein serviert.,244,0.7,0.96,0.77,0.69,0.65,jev-1.13.0,987,0.22
+refused,gloss refused,"Im Gegenteil, ich werde noch mal antreten und ich werde gewinnen.",245,0.73,0.96,0.92,0.86,0.9,jev-1.13.0,1020,0.27
+refused,gloss refused,Dazu kann die AfD im Osten auch finanziell einiges ausrichten.,246,0.48,0.96,0.91,0.83,0.59,jev-1.13.0,1019,0.28
+refused,gloss refused,"Was die Arbeit betrifft, läuft es gerade sehr gut bei mir.",247,0.91,0.97,0.92,0.9,0.72,jev-1.13.0,1016,0.34
+refused,gloss refused,"Außerdem haben wir unabhängige Ge- richte, die dagegen vorgehen können.",248,0.5,0.95,0.83,0.59,0.49,jev-1.13.0,1031,0.3
+refused,gloss refused,"Ich frage mich, was sich wirklich hinter diesem Angebot verbirgt.",249,0.68,0.97,0.97,0.97,0.51,jev-1.13.0,1016,0.23
+refused,gloss refused,Ich will über den blöden Armen nicht mehr reden.,250,0.55,0.96,0.84,0.63,0.27,jev-1.13.0,1003,0.31
+refused,gloss refused,Ich sehe meine Chance und stoße ihn schnell ins Meer.,251,0.67,0.96,0.88,0.8,0.28,jev-1.13.0,1011,0.36
+refused,gloss refused,"Jetzt kommen wir zu den interessanten übertragenen Bedeutungen von ""verschließen"".",252,0.67,0.96,0.95,0.94,0.44,jev-1.13.0,1031,0.34
+refused,gloss refused,"Man kann nicht aufhören zu lachen, weil etwas sehr lustig war.",253,0.91,0.95,0.87,0.74,0.23,jev-1.13.0,1023,0.45
+refused,gloss refused,"Er hat ihr gesagt, wir sollen den Plan ""keine Ketten"" einleiten.",254,0.67,0.96,0.88,0.81,0.36,jev-1.13.0,1025,0.29
+refused,gloss refused,"Wir sehen uns in 14 Tagen wieder bei ""Echt"" .",255,0.75,0.97,0.93,0.93,0.61,jev-1.13.0,1011,0.26
+refused,gloss refused,"Ich meinte, dass du und ich morgen Abend zusammen ausgehen.",256,0.91,0.96,0.92,0.84,0.22,jev-1.13.0,1017,0.31
+refused,gloss refused,Wir gehen in dem Video in zwei Schritten vor.,257,0.8,0.96,0.83,0.7,0.38,jev-1.13.0,1001,0.36
+refused,gloss refused,Wissenschaftlich ist bisher leider nichts belegt und deswegen auch not approved.,258,0.47,0.95,0.47,0.37,0.28,jev-1.13.0,1024,0.36
+refused,gloss refused,"Darüber kann man streiten, aber das Argument geht am Thema vorbei.",259,0.5,0.97,0.96,0.96,0.83,jev-1.13.0,1019,0.33
+refused,gloss refused,Man gehört im wahrsten Sinne des Wortes zur Familie.,260,0.78,0.97,0.9,0.77,0.91,jev-1.13.0,1010,0.36
+refused,gloss refused,In dieser Bedeutung wird “Ansicht” im Alltag nicht so häufig benutzt.,261,0.26,0.97,0.95,0.93,0.27,jev-1.13.0,1024,0.36
+refused,gloss refused,Die Tiere her sind Freunde des Menschen gebraten.,262,0.52,0.88,0.23,0.1,0.15,jev-1.13.0,1001,0.33
+refused,gloss refused,"Würdest du mir die große Ehre erweisen, mich zu heiraten?",263,0.95,0.97,0.9,0.8,0.7,jev-1.13.0,1020,0.36
+refused,gloss refused,"Auch dass Trump selbst noch einmal antritt, könnte schwierig werden.",264,0.73,0.96,0.88,0.84,0.28,jev-1.13.0,1016,0.36
+refused,gloss refused,"Ich würde mir gerne anhören, was du so machst.",265,0.76,0.96,0.88,0.79,0.25,jev-1.13.0,1009,0.33
+refused,gloss refused,„Wir sind mit dem Schiff übergesetzt” ist also auch möglich.,266,0.45,0.95,0.83,0.87,0.33,jev-1.13.0,1017,0.36
+refused,gloss refused,"Ich muss jetzt bitten zu gehen, Gabriel, bitte lass das.",267,0.46,0.83,0.48,0.29,0.53,jev-1.13.0,1012,0.36
+refused,gloss refused,"Aber das hilft, dieses Reflektieren, was kann ich schon, was kann ich noch nicht?",268,0.54,0.72,0.81,0.66,0.2,jev-1.13.0,1040,0.29
+refused,gloss refused,"Wir werden viel zu erzählen haben, wenn wir uns sehen.",269,0.93,0.97,0.95,0.92,0.23,jev-1.13.0,1007,0.26
+refused,gloss refused,Die Unterstützung der Bevölkerung organisiert sich der Kaiser anders.,270,0.49,0.92,0.52,0.33,0.14,jev-1.13.0,1011,0.35
+refused,gloss refused,In diesem Beispiel sage ich: Er war nicht wirklich überrascht.,271,0.67,0.95,0.94,0.9,0.19,jev-1.13.0,1016,0.25
+refused,gloss refused,Unsere Soldaten versehen ihren Dienst und kämpfen in Afghanistan.,272,0.95,0.97,0.94,0.9,0.49,jev-1.13.0,1010,0.29
+refused,gloss refused,"Warte, ich frage meinen Vater mal, ob er noch was hat.",273,0.64,0.9,0.9,0.93,0.39,jev-1.13.0,1016,0.32
+refused,gloss refused,Du würdest mit mir viel leiden und viel lachen.,274,0.89,0.96,0.92,0.87,0.12,jev-1.13.0,1005,0.34
+refused,gloss refused,"Bitte lass dein Handy an, damit ich dich erreichen kann.",275,0.95,0.97,0.94,0.92,0.36,jev-1.13.0,1012,0.27
+refused,gloss refused,"Und zwar noch nicht einmal mit einem ""hab ich gemessen, ist so"".",276,0.17,0.57,0.82,0.86,0.96,jev-1.13.0,1022,0.31
+refused,gloss refused,"Nachdem was im Krankenhaus passiert ist, wissen sie das, was nicht stimmt.",277,0.44,0.94,0.61,0.45,0.19,jev-1.13.0,1026,0.29
+refused,gloss refused,Wie verarbeiten wir bestimmte Spiele oder Medien eigentlich?,278,0.76,0.94,0.93,0.89,0.14,jev-1.13.0,1003,0.26
+refused,gloss refused,"Unter anderem, wenn es darum geht, einen Haushalt zu verabschieden.",279,0.21,0.28,0.78,0.53,0.88,jev-1.13.0,1018,0.27
+refused,gloss refused,In diesen Sätzen könnten wir auch einfach “weiter” statt “weiterhin” sagen.,280,0.65,0.97,0.95,0.94,0.22,jev-1.13.0,1027,0.26
+refused,gloss refused,"Aber als ich angekommen bin, war sie schon weg.",281,0.77,0.95,0.95,0.96,0.17,jev-1.13.0,1005,0.26
+refused,gloss refused,In unserem Geschäft können wir uns keine Fehler erlauben.,282,0.92,0.97,0.96,0.95,0.45,jev-1.13.0,1011,0.26
+refused,gloss refused,"Seit dem Jahr 2017 ist es Frauen erlaubt, Auto zu fahren.",283,0.83,0.97,0.78,0.69,0.28,jev-1.13.0,1023,0.27
+refused,gloss refused,"Eine Antwort darauf könnte sein: “Ja, das trifft zu.” Also: Ja, das stimmt.",284,0.42,0.64,0.94,0.89,0.81,jev-1.13.0,1035,0.28
+refused,gloss refused,"Zurück zu unserem Beispielsatz: Hier steckt das ge- in ""gelobt"".",285,0.31,0.9,0.91,0.86,0.41,jev-1.13.0,1026,0.27
+refused,gloss refused,"Ich bin mir nicht sicher, ob ich bestanden habe.",286,0.85,0.97,0.97,0.97,0.65,jev-1.13.0,1004,0.24
+refused,gloss refused,"Ich freue mich darüber, mit dir hier zu sein.",287,0.88,0.98,0.97,0.95,0.52,jev-1.13.0,1004,0.26
+refused,gloss refused,"Nein, ich muss mich im Grund und Boden schämen.",288,0.84,0.96,0.69,0.61,0.9,jev-1.13.0,1009,0.25
+refused,gloss refused,Nach dem Reißen ist er nur auf Platz vier.,289,0.42,0.96,0.86,0.73,0.31,jev-1.13.0,1004,0.24
+refused,gloss refused,In dieser Bedeutung verwendet man “Mut” eigentlich nur in diesem Ausdruck.,290,0.21,0.96,0.94,0.9,0.33,jev-1.13.0,1023,0.36
+refused,gloss refused,"Ihre Aufgabe ist es, die Sachen in Sicherheit zu bewahren.",291,0.83,0.97,0.92,0.85,0.57,jev-1.13.0,1013,0.26
+refused,gloss refused,Das macht Fliegen schon mal viel günstiger als vieles andere.,292,0.25,0.96,0.92,0.9,0.57,jev-1.13.0,1016,0.34
+refused,gloss refused,"Seit ich hier eingezogen bin, hältst du mich doch unter Verschluss.",293,0.7,0.96,0.82,0.74,0.85,jev-1.13.0,1027,0.28
+refused,gloss refused,"Glaubst du wirklich, Lea will nur wegen Hinter nach Palästina?",294,0.36,0.84,0.48,0.14,0.18,jev-1.13.0,1018,0.33
+refused,gloss refused,Aber die Bedeutung “etwas verkaufen können” sieht man sehr häufig.,295,0.49,0.95,0.91,0.85,0.21,jev-1.13.0,1023,0.36
+refused,gloss refused,"Aber Wunden hat das trotzdem hinterlassen, bis heute.",296,0.41,0.93,0.86,0.86,0.44,jev-1.13.0,1006,0.36
+refused,gloss refused,"Dann haben wir noch den Ausdruck “es gilt, etwas zu tun”.",297,0.68,0.9,0.93,0.9,0.89,jev-1.13.0,1016,0.33
+refused,gloss refused,Dann sagst du mir ganz entspannt: Route wird neu berechnet.,298,0.74,0.92,0.88,0.83,0.34,jev-1.13.0,1018,0.36
+refused,gloss refused,In diesem Satz beschreiben wir mit “aussetzen” ein sehr schlechtes Verhalten.,299,0.74,0.97,0.91,0.79,0.24,jev-1.13.0,1030,0.36
+refused,gloss refused,Den Beruf bringt er aber nicht nur seinem Sohn näher.,300,0.44,0.68,0.9,0.82,0.39,jev-1.13.0,1009,0.33
+refused,gloss refused,Dein Bruder und Deine Mutter Samuel und Mama sind hier?,301,0.74,0.91,0.58,0.41,0.09,jev-1.13.0,1011,0.36
+refused,gloss refused,"Ich weiß nicht, wie ich es am besten sagen soll.",302,0.84,0.94,0.97,0.97,0.28,jev-1.13.0,1008,0.36
+refused,gloss refused,Du meintest ihr Auto war von der Straße abgekommen.,303,0.76,0.96,0.76,0.72,0.52,jev-1.13.0,1010,0.33
+refused,gloss refused,"So, alles gehört dazu und ähm gehört zum zum puren Leben so dazu.",304,0.57,0.69,0.8,0.74,0.46,jev-1.13.0,1031,0.36
+refused,gloss refused,Ich musste mich in der Nacht zwei Mal übergeben.,305,0.95,0.97,0.96,0.95,0.26,jev-1.13.0,1006,0.36
+refused,gloss refused,"Ja, einfach durch das Internet passiert halt immer, immer wesentlich mehr.",306,0.33,0.78,0.79,0.72,0.35,jev-1.13.0,1016,0.33
+refused,gloss refused,"Ich kann nie ein Wort gleich aussprechen, das kann man messen.",307,0.72,0.91,0.76,0.54,0.17,jev-1.13.0,1018,0.27
+refused,gloss refused,In dieser Bedeutung steht “aufbrechen” immer mit einem Objekt.,308,0.4,0.96,0.93,0.86,0.22,jev-1.13.0,1013,0.32
+refused,gloss refused,Jetzt haben wir zwei Stunden Pause gemacht.“ Beide lachen laut.,309,0.76,0.65,0.82,0.72,0.28,jev-1.13.0,1011,0.25
+refused,gloss refused,Ich würde hier auch einfach “ankommen” sagen: Das Paket wird morgen ankommen.,310,0.78,0.92,0.88,0.84,0.2,jev-1.13.0,1035,0.3
+refused,gloss refused,"Und im Perfekt kommt ein o ins Spiel: Er, sie, es hat gegolten.",311,0.5,0.93,0.8,0.61,0.82,jev-1.13.0,1030,0.31
+refused,gloss refused,Alles k jetzt hängst du auch noch warmes Bier.,312,0.39,0.77,0.3,0.11,0.55,jev-1.13.0,1008,0.31
+refused,gloss refused,"""Hände verraten nichts über einen Menschen"", sagt Walter Schels.",313,0.92,0.96,0.94,0.91,0.44,jev-1.13.0,1014,0.34
+refused,gloss refused,"Ich bin mir sicher, dass du bestanden hast Rudi.",314,0.85,0.94,0.6,0.57,0.65,jev-1.13.0,1007,0.33
+refused,gloss refused,"Schein nicht so laut, sonst wächst du Mama.",315,0.4,0.79,0.2,0.08,0.24,jev-1.13.0,1001,0.38
+refused,gloss refused,Und wie sagt man das Lied Liga auf Deutsch?,316,0.61,0.94,0.78,0.48,0.26,jev-1.13.0,1000,0.29
+refused,gloss refused,"Wir sagen dazu, dass jemand die Schultern hängen lässt.",317,0.76,0.97,0.91,0.84,0.95,jev-1.13.0,1016,0.25
+refused,gloss refused,Man sagt dann “Ich passe” oder “Ich muss passen”.,318,0.74,0.94,0.81,0.78,0.72,jev-1.13.0,1010,0.22
+refused,gloss refused,Im schlimmsten Fall kommt er nicht mehr zum Bremsen.,319,0.68,0.96,0.94,0.9,0.67,jev-1.13.0,1008,0.28
+refused,gloss refused,"Aber Tommy, was du das Beste ist von allem.",320,0.56,0.57,0.25,0.12,0.34,jev-1.13.0,1004,0.23
+refused,gloss refused,"Das sind Wörter wie “da”, “wo”, “dort” oder “hier”.",321,0.72,0.96,0.95,0.93,0.08,jev-1.13.0,1017,0.3
+refused,gloss refused,"Ich würde sagen, wir machen das wie in der Türkei.",322,0.35,0.96,0.93,0.95,0.42,jev-1.13.0,1010,0.26
+refused,gloss refused,Du brauchst nicht so gereizt reagieren.,323,0.92,0.97,0.93,0.89,0.16,jev-1.13.0,993,0.28
+refused,gloss refused,Ohne dich hätte Markus den Test nicht bestanden!,324,0.91,0.97,0.93,0.94,0.2,jev-1.13.0,1001,0.23
+refused,gloss refused,"Ich habe Angst davor, ihn als Freund zu verlieren.",325,0.76,0.97,0.97,0.96,0.56,jev-1.13.0,1007,0.3
+refused,gloss refused,"Der Präsident des Nordens, Ali Abdullah Salih, wurde Präsident des gesamten Landes.",326,0.75,0.97,0.92,0.82,0.09,jev-1.13.0,1031,0.23
+refused,gloss refused,"Warte mal, warum bist du schon zu Hause, Lisa?",327,0.83,0.95,0.93,0.94,0.7,jev-1.13.0,1008,0.27
+refused,gloss refused,Dabei ist das beste Werkzeug manchmal am eigenen Körper angebracht.,328,0.68,0.96,0.89,0.82,0.28,jev-1.13.0,1015,0.28
+refused,gloss refused,Das ist ein Sport für deutsche Kartoffeln.,329,0.38,0.95,0.71,0.33,0.12,jev-1.13.0,994,0.33
+refused,gloss refused,"Davon wird zwar auch nicht fröhlich, aber wir sollten es trotzdem.",330,0.23,0.9,0.69,0.48,0.41,jev-1.13.0,1022,0.23
+refused,gloss refused,"Jetzt schwingen, warte, ich helfe dir beim Ersten.",331,0.4,0.83,0.6,0.38,0.3,jev-1.13.0,1007,0.33
+refused,gloss refused,"Der Grund, warum etwas passiert, muss bei “infolge” immer in der Vergangenheit liegen.",332,0.87,0.96,0.87,0.82,0.33,jev-1.13.0,1034,0.4
+strange_name,strange name,"Ich hoffe immer noch, dass der Herr Reispräsident Jakin neuen Kanzler nennt.",333,0.68,0.96,0.71,0.56,0.39,jev-1.13.0,1032,0.25
+strange_name,strange name,"Jemeljan Pugatschow behauptet, er sei Zar Peter, Katharinas Ehemann und habe heimlich vor dem angeblichen Mordanschlag fliehen können.",334,0.72,0.97,0.88,0.77,0.24,jev-1.13.0,1092,0.3
+strange_name,strange name,"Nachdem die erforderliche Truppenstärke und das Material versammelt war, warteten Zukov und Stalin auf den passenden Zeitpunkt, um ihren Plan umzusetzen.",335,0.8,0.98,0.95,0.91,0.34,jev-1.13.0,1100,0.31
+strange_name,strange name,Kipp mich um und gieße mich über den Krebs aus.,336,0.38,0.91,0.51,0.24,0.42,jev-1.13.0,1011,0.36
+strange_name,strange name,Dann kann ich Momos Grab immer besuchen und mich an die schöne Zeit mit ihm erinnern .,337,0.78,0.97,0.9,0.88,0.46,jev-1.13.0,1046,0.36
+strange_name,strange name,Realpolitisch sieht das 1740 dann so aus: Friedrich will Big Player in Europa werden.,338,0.58,0.95,0.84,0.79,0.65,jev-1.13.0,1044,0.33
+strange_name,strange name,"Und für alle Witzbolde, die jetzt sagen: “Höhö, wer braucht schon die Niederlande?!” Auch Emden, Bremen, halb Hamburg und weitere Städte wären unter Wasser.",339,0.66,0.93,0.89,0.87,0.61,jev-1.13.0,1118,0.36
+strange_name,strange name,"Sehr geehrte Frau Abgeordnete Gambir, es ist schon eine große Zahl an GIZ-Ortskräften nach Deutschland gekommen, und wir sind hier unserer Verantwortung nachgekommen.",340,0.69,0.96,0.92,0.83,0.68,jev-1.13.0,1120,0.36
+strange_name,strange name,"Uh, seht euch das an. Slen, komm hier rüber.",341,0.46,0.76,0.83,0.82,0.68,jev-1.13.0,1013,0.33
+strange_name,strange name,Das Team um Deborah Barsky experimentiert mit dem Zerkleinern und Mörsern verschiedener Pflanzen.,342,0.91,0.97,0.92,0.76,0.17,jev-1.13.0,1044,0.36
+strange_name,strange name,"Yahya regiert über 30 Jahre lang und ist Teil jener Zaiditen-Dynastie, die das Gebiet seit mehr als 1.000 Jahren dominiert.",343,0.73,0.97,0.88,0.88,0.37,jev-1.13.0,1093,0.36
+strange_name,strange name,Europapolitisch kooperiert er eng mit Bundeskanzler Helmut Kohl.,344,0.47,0.97,0.92,0.86,0.18,jev-1.13.0,1016,0.33
+strange_name,strange name,Schoigu soll sogar einer der besten Freunde Putins sein.,345,0.79,0.96,0.86,0.69,0.24,jev-1.13.0,1009,0.36
+strange_name,strange name,"Inshallah, mein Freund, so Gott will.",346,0.86,0.9,0.52,0.76,0.87,jev-1.13.0,993,0.36
+strange_name,strange name,"Darf ich vorstellen: Shia, Autorin, Bloggerin und eine Zero-Waste-Queen.",347,0.86,0.92,0.87,0.82,0.73,jev-1.13.0,1026,0.29
+strange_name,strange name,"Dass man mit Bällen spielt, ist eigentlich kein Wunder, denn was wäre der Sport ohne die Kugelform?",348,0.91,0.97,0.91,0.83,0.46,jev-1.13.0,1059,0.24
+strange_name,strange name,"Geosh, vergiss alles, was ich dir gestern gesagt habe.",349,0.82,0.96,0.6,0.65,0.23,jev-1.13.0,1009,0.32
+strange_name,strange name,"Inshallah, wir sehen uns morgen.",350,0.92,0.96,0.68,0.9,0.68,jev-1.13.0,986,0.32
+strange_name,strange name,Ich nehme 25 Prozent Vacherin Fribourgeois und 25 Prozent eines anderen Käses aus der Region.,351,0.82,0.96,0.87,0.85,0.09,jev-1.13.0,1055,0.27
+strange_name,strange name,Ghimeda sind alle perfekt oder vielleicht auch nicht.,352,0.47,0.88,0.45,0.43,0.22,jev-1.13.0,1001,0.34
+strange_name,strange name,"Als nach dem Sturz Saddams der Iran an Einfluss gewinnt, unterstützt Saudi-Arabien später sunnitische Aufständische.",353,0.86,0.96,0.93,0.86,0.34,jev-1.13.0,1063,0.32
+strange_name,strange name,"Und denkt dran, es heißt ""Leviosa"" und nicht ""Levio-sa"".",354,0.8,0.95,0.86,0.89,0.64,jev-1.13.0,1015,0.31
+strange_name,strange name,"Das hier sind Alexa, Kerstin und Kira, unser Online-Team.",355,0.82,0.97,0.93,0.91,0.15,jev-1.13.0,1015,0.28
+strange_name,strange name,"Aus ""Fett"" wurde ""Feist"", aus ""Ufer"" wurde ""Gestade"".",356,0.76,0.95,0.84,0.73,0.15,jev-1.13.0,1017,0.25
+strange_name,strange name,Bis wir etwas wirklich Unteilbares fanden: Elementarteilchen.,357,0.51,0.61,0.8,0.62,0.14,jev-1.13.0,1005,0.29
+strange_name,strange name,Aber wohltuende Erlebnisse von Einzelpersonen sind kein Wirksamkeitsbeleg.,358,0.89,0.96,0.93,0.88,0.18,jev-1.13.0,1026,0.31
+strange_name,strange name,"Dieses schöpferische Individuum, das nennen sie ""Originalgenie"".",359,0.69,0.85,0.56,0.38,0.26,jev-1.13.0,1010,0.26
+strange_name,strange name,"Schulleiter Arnst wünscht sich v.a. das Fach ""Medienbildung"", das es in Brandenburg bislang nicht gibt.",360,0.92,0.97,0.91,0.9,0.49,jev-1.13.0,1058,0.25
+strange_name,strange name,"Galerius erkennt, dass diese Politik gescheitert ist.",361,0.5,0.97,0.95,0.94,0.14,jev-1.13.0,1005,0.26
+strange_name,strange name,"Natürlich muss man auch mit Dingen rechnen wie gefälschte Impfzertifikate, passiert ja jetzt auch schon bei Testzertifikaten.",362,0.83,0.93,0.91,0.88,0.62,jev-1.13.0,1075,0.3
+strange_name,strange name,"Ja. Paco, die war dadrin.",363,0.22,0.87,0.76,0.71,0.18,jev-1.13.0,988,0.36
+strange_name,strange name,"Jahre von Noahs Leben."" Die Wassermassen können die fruchtbare Ackerkrume leicht mit sich reißen.",364,0.33,0.3,0.78,0.44,0.36,jev-1.13.0,1052,0.28
+strange_name,strange name,Diese traditionellen Gemeinde Gerichte tragen den Namen Gacaca.,365,0.83,0.97,0.84,0.74,0.19,jev-1.13.0,1004,0.24
+strange_name,strange name,Am 21. November 2024 hat der Internationale Strafgerichtshof in Den Haag Haftbefehl gegen den israelischen Premierminister Netanjahu und Ex-Verteidigungsminister Joaw Galant erlassen.,366,0.93,0.98,0.94,0.89,0.36,jev-1.13.0,1132,0.29
+strange_name,strange name,"Unsere tatarische Umasch, oder so ähnlich, ja. Na ja, sie heißt Rivels.",367,0.43,0.75,0.68,0.5,0.94,jev-1.13.0,1038,0.33
+strange_name,strange name,"Man bräuchte gar keine VR-Brillen mehr, sondern würde Direktprojektionen ins Gehirn bekommen und würde das vor seinem inneren Auge sehen.",368,0.89,0.96,0.88,0.79,0.63,jev-1.13.0,1092,0.25
+strange_name,strange name,Karla Hinrichs ist Pressesprecherin beim Aufstand der letzten Generation.,369,0.85,0.97,0.91,0.79,0.31,jev-1.13.0,1016,0.33
+strange_name,strange name,"Die Infektionszahlen steigen langsam, tausende demonstrieren gegen Corona-Maßnahmen, Urlaubsrückkehrer bringen frisches Virus mit nach Hause, das unbemerkt, nachdem es in Bayern die große Testpanne gab.",370,0.62,0.82,0.81,0.37,0.43,jev-1.13.0,1143,0.4
+strange_name,strange name,"Mirco, ist den historischen Galliern Mobbing zuzutrauen?",371,0.76,0.95,0.75,0.67,0.47,jev-1.13.0,1006,0.26
+strange_name,strange name,"Luftkämpfe, wie man sie also äh wie man sie sich vorstellt, Jaachpflieger gegen Jaachflieger waren mit der 163 nicht möglich.",372,0.38,0.84,0.55,0.16,0.41,jev-1.13.0,1093,0.52
+strange_name,strange name,Zu dem Zeitpunkt hatte Kutcher schon viele Millionen Euro in das damals sechs Jahre alte Start-up aus Schweden investiert und ihm damit zu Wachstum verholfen.,373,0.57,0.97,0.9,0.82,0.63,jev-1.13.0,1107,0.3
+strange_name,strange name,"Je nach Umfrage kommt man bei Studenten auf 5-20%, die schon mal zu Hirndoping gegriffen haben, um effektiver oder konzentrierter lernen zu können.",374,0.87,0.97,0.92,0.87,0.68,jev-1.13.0,1105,0.23
+strange_name,strange name,"Also beschließt er, das von Dobrynin übermittelte Angebot anzunehmen.",375,0.51,0.97,0.91,0.89,0.17,jev-1.13.0,1022,0.33
+strange_name,strange name,"Seine Biografen, eine Biografin, Sonia Purnell, spricht sogar von ""manischer Selbstinszenierung"".",376,0.31,0.96,0.87,0.64,0.44,jev-1.13.0,1045,0.36
+strange_name,strange name,"Und doch ist die dritte Generation jetzt ohne Führung: Grams ist tot, Hogefeld verhaftet.",377,0.43,0.96,0.94,0.91,0.46,jev-1.13.0,1044,0.36
+strange_name,strange name,"In Düsseldorf gibt es sogar noch einen großen Asia Supermarkt, der “Hanaro Markt” heißt.",378,0.95,0.97,0.93,0.91,0.23,jev-1.13.0,1046,0.33
+strange_name,strange name,Anredungsform ist mir jetzt erst mal egal.,379,0.9,0.95,0.86,0.87,0.7,jev-1.13.0,995,0.36
+strange_name,strange name,"Bei dieser Festnahme soll er noch ""Allahu Akbar"" gerufen haben, ""Gott ist groß"" auf Arabisch.",380,0.7,0.96,0.92,0.89,0.47,jev-1.13.0,1057,0.36
+strange_name,strange name,"Ja. Shiti, Bruder, Bruder, wie geht es dir?",381,0.77,0.8,0.36,0.39,0.57,jev-1.13.0,1005,0.33
+strange_name,strange name,Die hängen sich das Judentum doch sowieso nur als Deckmantel um. Das sind in Wahrheit Terroristen und Vaterlandsverräter.,382,0.51,0.91,0.8,0.78,0.68,jev-1.13.0,1082,0.36
+unbound,unbound pronoun,Auch wenn es so was in anderen europäischen Ländern durchaus gibt.,383,0.37,0.25,0.78,0.66,0.52,jev-1.13.0,1019,0.36
+unbound,unbound pronoun,Sie sind völlig getrennte Wege gegangen.,384,0.77,0.97,0.84,0.72,0.85,jev-1.13.0,994,0.33
+unbound,unbound pronoun,Also letztlich ist es ein relativ autoritäres System.,385,0.49,0.95,0.84,0.79,0.5,jev-1.13.0,1002,0.36
+unbound,unbound pronoun,Aber wir schaffen das noch.,386,0.71,0.95,0.93,0.94,0.37,jev-1.13.0,981,0.36
+unbound,unbound pronoun,Was hat er für seine eigene Bestattung geplant?,387,0.59,0.96,0.92,0.88,0.14,jev-1.13.0,1000,0.24
+unbound,unbound pronoun,"Ich komme zu Ihnen, sobald wir mehr wissen.",388,0.83,0.97,0.96,0.95,0.14,jev-1.13.0,1000,0.35
+unbound,unbound pronoun,"Auch wenn es illegal werden sollte, braucht er Leute, die zu ihm stehen.",389,0.61,0.96,0.91,0.88,0.64,jev-1.13.0,1030,0.28
+unbound,unbound pronoun,"Warum hörst du nicht auf das, was ich sage?",390,0.84,0.97,0.9,0.77,0.51,jev-1.13.0,1007,0.27
+unbound,unbound pronoun,Immer wieder gibt es Vorwürfe wegen Gewalt gegen Minderheiten.,391,0.9,0.97,0.96,0.93,0.68,jev-1.13.0,1015,0.25
+unbound,unbound pronoun,"Wenn das nicht klappen sollte, dann nur 5 Minuten.",392,0.34,0.69,0.79,0.57,0.24,jev-1.13.0,1007,0.26
+unbound,unbound pronoun,Und ihnen letztlich freie Hand lässt.,393,0.16,0.17,0.74,0.52,0.8,jev-1.13.0,988,0.24
+unbound,unbound pronoun,"Soll das so weitergehen, dass du dir jede Nacht um die Ohren schlägst?",394,0.56,0.96,0.77,0.65,0.83,jev-1.13.0,1034,0.26
+unbound,unbound pronoun,"Deshalb können wir unmöglich wissen, wie es drin wirklich aussieht.",395,0.34,0.97,0.92,0.92,0.38,jev-1.13.0,1020,0.27
+unbound,unbound pronoun,Wann können wir sie ernten?,396,0.3,0.96,0.94,0.89,0.07,jev-1.13.0,984,0.32
+unbound,unbound pronoun,"Dann schauen wir wo es der andere stehen hat und wenn er es rechts stehen hat, muss er ausweichen.",397,0.3,0.92,0.38,0.24,0.33,jev-1.13.0,1060,0.23
+unbound,unbound pronoun,Covid-19 wird es auch genannt.,398,0.46,0.95,0.81,0.67,0.43,jev-1.13.0,986,0.28
+unbound,unbound pronoun,Viele von ihnen gibt es schon viele Mrd Jahre länger als die Erde.,399,0.29,0.94,0.66,0.48,0.24,jev-1.13.0,1030,0.23
+unbound,unbound pronoun,"Das ist auch kein perfekt abgerundeter Bogen, sondern hat auch abgerundete Ecken wenn man das so nennen kann.",400,0.35,0.95,0.9,0.75,0.32,jev-1.13.0,1066,0.28
+unbound,unbound pronoun,Sie hatte einst im Verkehrsministerium den Geldsegen für die Deutsche Bahn mit durchgesetzt.,401,0.68,0.97,0.87,0.77,0.71,jev-1.13.0,1044,0.25
+unbound,unbound pronoun,"Das ist, denke ich, das Problem.",402,0.35,0.95,0.94,0.93,0.3,jev-1.13.0,988,0.25
+unbound,unbound pronoun,Die es bestimmt auch viel besser machen würde.,403,0.23,0.78,0.75,0.62,0.17,jev-1.13.0,997,0.28
+unbound,unbound pronoun,Oder sie werden nach der Reise sehr viel über ihr Leben nachdenken im Futur.,404,0.77,0.91,0.62,0.41,0.2,jev-1.13.0,1035,0.35
+unbound,unbound pronoun,"Schau es dir jetzt unbedingt auch noch an, damit du das Thema wirklich verstanden hast.",405,0.66,0.96,0.91,0.88,0.49,jev-1.13.0,1041,0.35
+unbound,unbound pronoun,Er hat nichts falsch gemacht!,406,0.88,0.97,0.96,0.95,0.31,jev-1.13.0,982,0.25
+unbound,unbound pronoun,Und es würde ihm um Informationen über fremde Kulturen gehen.,407,0.39,0.94,0.87,0.79,0.58,jev-1.13.0,1016,0.28
+unbound,unbound pronoun,Sie ist noch auf der Tanzfläche.,408,0.77,0.96,0.96,0.97,0.09,jev-1.13.0,990,0.29
+unbound,unbound pronoun,Das kann man also nicht so wirklich als Vergleichswert heranziehen.,409,0.24,0.96,0.92,0.9,0.65,jev-1.13.0,1019,0.24
+unbound,unbound pronoun,"Soweit bekannt ist, wird keiner von ihnen jemals wirklich als Jagdflieger eingesetzt.",410,0.48,0.97,0.93,0.92,0.77,jev-1.13.0,1036,0.28
+unbound,unbound pronoun,"Es fühlt sich an, als würdest du durch Honig waten.",411,0.83,0.97,0.94,0.89,0.68,jev-1.13.0,1016,0.35
+unbound,unbound pronoun,"Oh nein, das hört sich nicht gut an. Ich werde ins Krankenhaus fahren.",412,0.57,0.88,0.94,0.91,0.63,jev-1.13.0,1030,0.39
+unbound,unbound pronoun,"Ich gebe Ihnen so viel Geld, wie Sie möchten!",413,0.93,0.97,0.94,0.91,0.2,jev-1.13.0,1006,0.33
+unbound,unbound pronoun,Die würde man dann noch hinter die Minuten schreiben.,414,0.17,0.91,0.75,0.6,0.17,jev-1.13.0,1005,0.36
+unbound,unbound pronoun,"Gibt es nichts in Ihrem Leben, wofür Sie sterben würden?",415,0.93,0.97,0.91,0.86,0.35,jev-1.13.0,1019,0.36
+unbound,unbound pronoun,Ja das können wir für Sie veranlassen.,416,0.54,0.97,0.92,0.95,0.41,jev-1.13.0,994,0.33
+unbound,unbound pronoun,Er schuf es als Reaktion auf die Zerstörung der Stadt Guernica im Spanischen Bürgerkrieg.,417,0.25,0.94,0.88,0.82,0.57,jev-1.13.0,1052,0.36
+unbound,unbound pronoun,"Ja, er ist nicht wohlhabend.",418,0.9,0.97,0.93,0.93,0.14,jev-1.13.0,986,0.36
+unbound,unbound pronoun,"Das hoffe ich für dich, Stinkerton.",419,0.35,0.96,0.9,0.9,0.22,jev-1.13.0,993,0.33
+unbound,unbound pronoun,Wir hätten das nicht tun sollen.,420,0.71,0.97,0.96,0.95,0.14,jev-1.13.0,986,0.36
+unbound,unbound pronoun,Sie heißt Haithabu und liegt zwischen Flensburg und Kiel.,421,0.8,0.97,0.96,0.94,0.08,jev-1.13.0,1008,0.36
+unbound,unbound pronoun,"Naja, wenn du unbedingt möchtest können wir das schon machen.",422,0.5,0.96,0.89,0.84,0.9,jev-1.13.0,1015,0.33
+unbound,unbound pronoun,"Das hat mir gut gefallen, mit der Steinfensterbank.",423,0.44,0.93,0.86,0.77,0.35,jev-1.13.0,1005,0.36
+unbound,unbound pronoun,Es war nur ein Darlehen.,424,0.78,0.97,0.97,0.97,0.1,jev-1.13.0,982,0.36
+unbound,unbound pronoun,Wofür er Ensembles Studios bewährte Genie-Engine nutzen wollte.,425,0.35,0.2,0.57,0.29,0.14,jev-1.13.0,1020,0.28
+unbound,unbound pronoun,"Er hat gesagt, dass sein Privatleben mich nichts angeht.",426,0.92,0.97,0.95,0.92,0.66,jev-1.13.0,1012,0.29
+unbound,unbound pronoun,"Um ehrlich zu sein war es kein er, sondern eine sie.",427,0.76,0.96,0.84,0.77,0.87,jev-1.13.0,1013,0.3
+unbound,unbound pronoun,Wollen Sie ein großes Handy oder ein kleines Handy?,428,0.95,0.97,0.95,0.93,0.06,jev-1.13.0,1005,0.26
+unbound,unbound pronoun,Sie hat ihre Erinnerung verloren.,429,0.92,0.97,0.95,0.91,0.51,jev-1.13.0,984,0.28
+unbound,unbound pronoun,Hier ist er. Hä? Es ist doch Herze.,430,0.32,0.7,0.73,0.52,0.42,jev-1.13.0,1000,0.22
+unbound,unbound pronoun,"Das wird schon wieder, Herr Kunze.",431,0.32,0.95,0.86,0.8,0.62,jev-1.13.0,990,0.26
+unbound,unbound pronoun,Gibt es dafür einen wissenschaftlichen Grund?,432,0.21,0.96,0.97,0.96,0.17,jev-1.13.0,995,0.34
+unbound,unbound pronoun,Markus hat schon viel von Ihnen erzählt.,433,0.59,0.97,0.94,0.94,0.16,jev-1.13.0,995,0.26
+unbound,unbound pronoun,"D. h., wenn ihr schon etwas länger mit der App unterwegs seid, dann könntet ihr auch betroffen sein.",434,0.44,0.82,0.71,0.57,0.63,jev-1.13.0,1065,0.28
+unbound,unbound pronoun,"Das ist jetzt nur ein ganz kleines Detail, aber wieder ein Steinchen im Mosaik eurer schönen Gestaltung beim Blockflöte spielen.",435,0.6,0.96,0.9,0.78,0.75,jev-1.13.0,1080,0.27
+unbound,unbound pronoun,Deshalb kannst du sie streichen.,436,0.27,0.96,0.93,0.9,0.26,jev-1.13.0,984,0.32
+unbound,unbound pronoun,Das müsst ihr unbedingt wiederholen.,437,0.43,0.97,0.95,0.95,0.24,jev-1.13.0,989,0.31
+unbound,unbound pronoun,"Wenn ihr das Video noch nicht geschaut habt, macht das gern.",438,0.68,0.97,0.91,0.9,0.24,jev-1.13.0,1015,0.26
+unbound,unbound pronoun,Er hat ein wenig Schnupfen und Husten.,439,0.95,0.97,0.95,0.92,0.12,jev-1.13.0,996,0.26
+unbound,unbound pronoun,"Ihr seht, es ist wahnsinnig kompliziert.",440,0.83,0.95,0.9,0.91,0.37,jev-1.13.0,999,0.28
+unbound,unbound pronoun,Können Sie die Tür öffnen?,441,0.96,0.96,0.98,0.98,0.09,jev-1.13.0,985,0.29
+unbound,unbound pronoun,"Wenn es nur ein bisschen deutlicher wä, dann könnte man erkennen, in welchem Hafen die Schiffe da registriert sind.",442,0.54,0.9,0.6,0.21,0.26,jev-1.13.0,1074,0.27
+unbound,unbound pronoun,"Nein, ich weiß nicht, was mit ihm los ist.",443,0.62,0.97,0.96,0.96,0.84,jev-1.13.0,1005,0.24
+unbound,unbound pronoun,"Er baut eine zentrale Verwaltung auf, gründet eine nationale Armee und fördert Industrie und Infrastruktur.",444,0.84,0.97,0.96,0.94,0.38,jev-1.13.0,1056,0.28
+unbound,unbound pronoun,"Das macht nur etwas mit uns, das heißt dass die Reservate der Stille irgendwie kleiner werden, dass sie schwinden.",445,0.23,0.93,0.88,0.79,0.49,jev-1.13.0,1068,0.29
+unbound,unbound pronoun,Du hast es selbst gesagt es existiert nicht.,446,0.67,0.95,0.87,0.81,0.18,jev-1.13.0,1000,0.28
+unbound,unbound pronoun,"Das ist lustig, dass du das sagst.",447,0.53,0.97,0.95,0.93,0.25,jev-1.13.0,996,0.23
+unbound,unbound pronoun,"Die hat dazu heute gesagt, wir müssen das erst einmal analysieren.",448,0.27,0.95,0.8,0.74,0.51,jev-1.13.0,1020,0.3
+unbound,unbound pronoun,Aber sie sind echt schlecht.,449,0.36,0.95,0.93,0.94,0.09,jev-1.13.0,983,0.28
+unbound,unbound pronoun,Hier gibt es nur was für Touristen.,450,0.85,0.96,0.85,0.91,0.26,jev-1.13.0,993,0.25
+unbound,unbound pronoun,Sie war nirgendwo in dem Haus und alles brennt.,451,0.79,0.94,0.85,0.74,0.1,jev-1.13.0,1006,0.68
+unbound,unbound pronoun,"Und daran konnte ich erkennen, dass sie ihn nicht mag.",452,0.4,0.96,0.94,0.92,0.25,jev-1.13.0,1012,0.32
+unbound,unbound pronoun,"Das weicht meistens so um 0,3 %, 0,4 %, 0,5 % ab, in der Regel.",453,0.32,0.91,0.89,0.82,0.64,jev-1.13.0,1050,0.37
+unbound,unbound pronoun,"Äh, wo ist der eigentlich?",454,0.19,0.87,0.83,0.76,0.27,jev-1.13.0,984,0.36
+unbound,unbound pronoun,"Nein, es soll ein Junge sein.",455,0.7,0.96,0.92,0.91,0.21,jev-1.13.0,990,0.29
+unbound,unbound pronoun,"Und das war wirklich sehr, sehr wichtig und deswegen wünsche ich dir, dass du immer die erste Person bist, die an dich glaubt.",456,0.65,0.96,0.93,0.9,0.39,jev-1.13.0,1088,0.41
+unbound,unbound pronoun,"Und die werden hier in den Boden gekloppt, dass die Löcher nachher übereinstimmen.",457,0.3,0.91,0.75,0.75,0.27,jev-1.13.0,1041,0.35
+unbound,unbound pronoun,Sie war wirklich sehr nett.,458,0.74,0.97,0.97,0.96,0.08,jev-1.13.0,980,0.29
+unbound,unbound pronoun,Es klappt sogar mit dem Pürierstab.,459,0.45,0.95,0.94,0.94,0.29,jev-1.13.0,992,0.4
+unbound,unbound pronoun,Warum hast du es so eilig?,460,0.87,0.96,0.96,0.96,0.47,jev-1.13.0,988,0.25
+unbound,unbound pronoun,Ich will es nicht wissen.,461,0.88,0.97,0.95,0.93,0.3,jev-1.13.0,978,0.32
+unbound,unbound pronoun,"Du hast es nur erlegen können, weil die Prinzessin da war.",462,0.47,0.96,0.69,0.5,0.27,jev-1.13.0,1019,0.3
+unbound,unbound pronoun,"Also, es war eine spirituelle Sache für dich.",463,0.69,0.95,0.91,0.89,0.26,jev-1.13.0,1001,0.33
+unbound,unbound pronoun,"Es ist längst nicht mehr so vorhersehbar, wie in der Vergangenheit.",464,0.48,0.96,0.95,0.93,0.63,jev-1.13.0,1021,0.36
+unbound,unbound pronoun,Wieso ist die schon wieder schwanger?,465,0.28,0.96,0.86,0.84,0.13,jev-1.13.0,990,0.36
+unbound,unbound pronoun,Aber wo sind sie jetzt?,466,0.27,0.95,0.96,0.97,0.08,jev-1.13.0,982,0.32
+unbound,unbound pronoun,"Es sind nur zwei Vergleiche, die zeigen: Nazi-Analogien treffen nicht zu, das passt einfach nicht.",467,0.67,0.93,0.9,0.79,0.7,jev-1.13.0,1051,0.3
+unbound,unbound pronoun,"„Systeme neigen ja dazu, dass es immer schlimmer wird.",468,0.82,0.92,0.8,0.8,0.49,jev-1.13.0,1015,0.26
+unbound,unbound pronoun,"Ich bin überrascht, ihn hier zu sehen, aber ich bin froh.",469,0.82,0.97,0.96,0.94,0.17,jev-1.13.0,1020,0.25
+unbound,unbound pronoun,Er ist ehrenlos und hässlich.,470,0.89,0.97,0.93,0.85,0.05,jev-1.13.0,988,0.3
+unbound,unbound pronoun,Er war sehr traurig und verzweifelt.,471,0.84,0.97,0.97,0.96,0.07,jev-1.13.0,993,0.24
+unbound,unbound pronoun,"Wie ist es denn, also natürlich alles erst, wenn es legal ist.",472,0.42,0.75,0.69,0.52,0.39,jev-1.13.0,1020,0.33
+unbound,unbound pronoun,Habt ihr eine Pizza bestellt?,473,0.93,0.97,0.94,0.96,0.09,jev-1.13.0,982,0.34
+unbound,unbound pronoun,Keiner hat das geahnt und keiner war natürlich darauf vorbereitet.,474,0.56,0.97,0.94,0.92,0.41,jev-1.13.0,1015,0.3
+unbound,unbound pronoun,Es ist die Strategie von Landeschef Rene Springer auf dem Weg zur Regierungsmacht.,475,0.61,0.94,0.89,0.83,0.43,jev-1.13.0,1036,0.26
+unbound,unbound pronoun,Es ist also ein recht lockerer Zusammenschluss.,476,0.47,0.96,0.96,0.95,0.21,jev-1.13.0,1000,0.29
+unbound,unbound pronoun,"Es ist immer gut, wenn man neben der gesetzlichen Rente, eine Betriebsrente hat oder private Altersvorsorge möglich ist.",477,0.93,0.97,0.92,0.82,0.25,jev-1.13.0,1067,0.28
+unbound,unbound pronoun,Hier geht es um Dinge wie Absatzmärkte oder den Zugriff auf Rohstoffe.,478,0.68,0.96,0.95,0.95,0.61,jev-1.13.0,1027,0.24
+unbound,unbound pronoun,Sie bilden neues Land und lassen die Insel bis heute wachsen.,479,0.44,0.96,0.92,0.84,0.19,jev-1.13.0,1014,0.22
+unbound,unbound pronoun,Sie dürfen jetzt in Ihre Pause gehen.,480,0.93,0.97,0.93,0.87,0.41,jev-1.13.0,992,0.26
+unbound,unbound pronoun,"Das heißt, wenn ich euch sehen will.",481,0.32,0.53,0.87,0.74,0.56,jev-1.13.0,992,0.28
+unbound,unbound pronoun,Die meisten von uns werden im Krankenhaus sterben.,482,0.94,0.97,0.94,0.92,0.1,jev-1.13.0,999,0.28
+control,passed every rule,Ich wollte mich unbedingt an dir rächen.,483,0.92,0.97,0.95,0.93,0.57,jev-1.13.0,997,0.3
+control,passed every rule,Wenn der Enkel doch Kaiser geworden wäre?,484,0.66,0.9,0.87,0.85,0.27,jev-1.13.0,995,0.26
+control,passed every rule,"Jetzt wollen wir mal sehen, was haben wir denn hier?",485,0.69,0.87,0.9,0.87,0.6,jev-1.13.0,1007,0.29
+control,passed every rule,Mittlerweile wächst der Ausstoß klimaschädlicher Gase auch in Schwellen- und Entwicklungsländern rasant.,486,0.92,0.97,0.96,0.94,0.2,jev-1.13.0,1056,0.28
+control,passed every rule,"Mach schnell, ich hab Seil nicht.",487,0.62,0.89,0.72,0.43,0.16,jev-1.13.0,989,0.24
+control,passed every rule,Und dieser Wendepunkt wird sich in den kommenden Monaten herausstellen.,488,0.35,0.96,0.9,0.79,0.45,jev-1.13.0,1020,0.37
+control,passed every rule,"Ich dachte, ich bekomme eine Überraschung.",489,0.9,0.96,0.95,0.92,0.14,jev-1.13.0,997,0.28
+control,passed every rule,Die Templer haben Niederlassungen in ganz Mittel- und Westeuropa.,490,0.9,0.97,0.93,0.85,0.11,jev-1.13.0,1015,0.28
+control,passed every rule,"Ihr Anführer ist Paul Kagame, ein Tutsi, der 1959 mit seiner Familie nach Uganda geflohen ist.",491,0.46,0.97,0.93,0.9,0.12,jev-1.13.0,1065,0.26
+control,passed every rule,Am Wochenende darfst du keine Videospiele mehr spielen!,492,0.92,0.97,0.94,0.93,0.21,jev-1.13.0,1005,0.31
+control,passed every rule,Das Wohnzimmer ist wirklich toll!,493,0.92,0.97,0.97,0.97,0.08,jev-1.13.0,983,0.36
+control,passed every rule,"Aber lass mich dir das sagen: Was von Gott kommt, muss zurück zum ursprünglichen Plan.",494,0.81,0.95,0.89,0.86,0.69,jev-1.13.0,1048,0.36
+control,passed every rule,Ich denke nur an Datteln und dann Reis und dann alles andere.,495,0.78,0.84,0.81,0.62,0.14,jev-1.13.0,1022,0.39
+control,passed every rule,"Nein, mal im Ernst, welches Bild gefällt dir am besten?",496,0.35,0.96,0.93,0.92,0.89,jev-1.13.0,1014,0.3
+control,passed every rule,"Und zwar mit Technologien, die eine motivierte, nur etwas weiterentwickelte Menschheit erreichen könnte, wenn sie ins All expandieren will.",497,0.26,0.51,0.88,0.79,0.96,jev-1.13.0,1081,0.36
+control,passed every rule,"Die Wirklichkeit liegt hier also zwischen ""Vitamin-D-Mangel ist ein Mythos"" und ""Wir haben alle Vitamin-D-Mangel"".",498,0.84,0.96,0.93,0.9,0.4,jev-1.13.0,1060,0.33
+control,passed every rule,"Aber ein wichtiger Punkt auch dazu, beachte bitte, dass Chat TPT und irgendein anderes Sprachmodell einen Text immer neu erfasst.",499,0.6,0.93,0.83,0.67,0.45,jev-1.13.0,1080,0.36
+control,passed every rule,Darf ich meine Mama mitbringen?,500,0.89,0.96,0.95,0.96,0.11,jev-1.13.0,986,0.36
+control,passed every rule,Dann bleibt alles gut nachvollziehbar.,501,0.55,0.97,0.93,0.91,0.24,jev-1.13.0,985,0.33
+control,passed every rule,Ich habe gerade mit meiner Mutter gesprochen.,502,0.96,0.97,0.97,0.97,0.13,jev-1.13.0,994,0.36
+control,passed every rule,Im Supermarkt lese ich deutsche Wörter.,503,0.94,0.97,0.91,0.85,0.07,jev-1.13.0,992,0.36
+control,passed every rule,Eine generelle Bewertung von Minderheitsregierungen auf Bundesebene ist das nicht.,504,0.27,0.94,0.91,0.83,0.19,jev-1.13.0,1023,0.27
+control,passed every rule,Diese Hochzeit ist Ich bin echt sauer.,505,0.55,0.32,0.33,0.13,0.48,jev-1.13.0,995,0.31
+control,passed every rule,"Ja, ich wollte nicht, dass hier jemand unangemeldet reinkommt.",506,0.9,0.96,0.92,0.91,0.14,jev-1.13.0,1019,0.3
+control,passed every rule,"Trump selbst steht dabei im Mittelpunkt und ist derjenige, auf den sich alles konzentriert.",507,0.62,0.97,0.93,0.93,0.63,jev-1.13.0,1039,0.29
+control,passed every rule,"""verschlimmbessern"" ist eine Zusammensetzung der beiden Verben ""verbessern"" und ""verschlimmern"".",508,0.96,0.97,0.92,0.88,0.17,jev-1.13.0,1046,0.27
+control,passed every rule,"Ich finde, aber- Florian, hat er recht?",509,0.33,0.59,0.71,0.56,0.52,jev-1.13.0,996,0.24
+control,passed every rule,"Noch nicht, kann man sagen.",510,0.6,0.87,0.77,0.76,0.42,jev-1.13.0,984,0.28
+control,passed every rule,Die neue Gemeinschaft nimmt Kontakt mit wichtigen Männern der katholischen Kirche auf.,511,0.83,0.97,0.95,0.92,0.8,jev-1.13.0,1032,0.29
+control,passed every rule,"Mann, du schuldest mir was.",512,0.68,0.95,0.8,0.9,0.52,jev-1.13.0,986,0.27
+control,passed every rule,In der Videobeschreibung findest du einen Link der dich zur Seite von italki bringt.,513,0.85,0.97,0.94,0.89,0.16,jev-1.13.0,1042,0.26
+control,passed every rule,"Gravierende Folgen: Das Rennen zu den Sternen Sind wir wirklich einfach nur früh dran, werden uns andere früher oder später einholen.",514,0.67,0.58,0.76,0.5,0.64,jev-1.13.0,1085,0.26
+control,passed every rule,Aber meinen Eltern habe ich noch nichts davon erzählt.,515,0.55,0.95,0.9,0.91,0.19,jev-1.13.0,1007,0.26
+control,passed every rule,Alles was schon passiert ist zum Beispiel.,516,0.39,0.59,0.7,0.52,0.7,jev-1.13.0,992,0.28
+control,passed every rule,"Ich glaub, du hast meine Rippen gebrochen.",517,0.92,0.96,0.87,0.9,0.12,jev-1.13.0,999,0.31
+control,passed every rule,Wie kann man so schön sein?,518,0.83,0.96,0.92,0.9,0.13,jev-1.13.0,985,0.33
+control,passed every rule,Klingt als hättest du damit nicht gerechnet.,519,0.58,0.92,0.89,0.88,0.62,jev-1.13.0,1003,0.31
+control,passed every rule,Ich habe zufälligerweise zuhause beide Typen von Mirin.,520,0.9,0.97,0.9,0.86,0.13,jev-1.13.0,1010,0.27
+control,passed every rule,"Die iranische Führung scheint zu hoffen, dass man mit Gewalt die Demonstrationen unterdrücken kann.",521,0.86,0.97,0.95,0.94,0.25,jev-1.13.0,1049,0.26
+control,passed every rule,Europäer haben ein Talent für Krieg.,522,0.92,0.97,0.89,0.83,0.2,jev-1.13.0,991,0.27
+control,passed every rule,"Kannst du mir zeigen, wie Busuu funktioniert?",523,0.91,0.97,0.96,0.96,0.12,jev-1.13.0,996,0.33
+control,passed every rule,"Mehr zur Literatur der Aufklärung erfahrt ihr, wenn ihr hier klickt.",524,0.72,0.97,0.9,0.92,0.26,jev-1.13.0,1026,0.24
+control,passed every rule,"Dieses Video ist besonders für Leute gedacht, die sich noch nie mit dem Thema beschäftigt haben.",525,0.93,0.97,0.96,0.94,0.34,jev-1.13.0,1044,0.26
+control,passed every rule,"Durch Reisende wurde das Virus in die ganze Welt getragen, ist inzwischen auch in Europa angekommen.",526,0.77,0.92,0.81,0.6,0.24,jev-1.13.0,1047,0.27
+control,passed every rule,"Ich will, dass du gar nichts sagst.",527,0.95,0.97,0.96,0.96,0.22,jev-1.13.0,995,0.25
+control,passed every rule,"Sonstige Infos waren gleich: Mann mit Frau und Kind, angestellt, berufstätig.",528,0.6,0.92,0.85,0.73,0.18,jev-1.13.0,1030,0.4
+control,passed every rule,"Und haben hässliche U-Bahn-Stationen, unansehnliche öffentliche Gebäude und weitläufige Einkaufszentren errichtet.",529,0.24,0.41,0.84,0.7,0.09,jev-1.13.0,1057,0.3
+control,passed every rule,Bin ich hier der Bösewicht?,530,0.79,0.96,0.95,0.95,0.12,jev-1.13.0,984,0.27
+control,passed every rule,Die Maschine gilt als unbezwingbar.,531,0.88,0.97,0.95,0.91,0.49,jev-1.13.0,986,0.42
+control,passed every rule,"Je näher sich etwas an Lichtgeschwindigkeit bewegt, umso langsamer vergeht die Zeit dafür, in Relation zum Universum.",532,0.94,0.97,0.92,0.82,0.45,jev-1.13.0,1073,0.36
+control,passed every rule,"Und was mir bei Oracle auch gefällt, das sieht man natürlich im Menü nicht: Ich habe eine ganz hohe Möglichkeit, das zu automatisieren.",533,0.57,0.91,0.86,0.8,0.4,jev-1.13.0,1091,0.33
+control,passed every rule,"Ich habe doch gesagt, der Asia-Automat wird mich nicht enttäuschen.",534,0.82,0.96,0.88,0.83,0.3,jev-1.13.0,1021,0.36
+control,passed every rule,"Im Gegensatz zu ""der Schrei"" wurde ""das Geschreie"" sächlich eingeordnet, um die Tätigkeit zu benennen.",535,0.8,0.97,0.82,0.68,0.55,jev-1.13.0,1069,0.36
+control,passed every rule,"Wenn dir meine Arbeit hier bei YouTube gefällt und hilft, dann würde ich mich freuen, wenn du mich als Mitglied unterstützt.",536,0.92,0.97,0.95,0.91,0.35,jev-1.13.0,1082,0.33
+control,passed every rule,Es gibt noch etwas sehr Praktisches: die Mars-Monde!,537,0.55,0.93,0.9,0.76,0.25,jev-1.13.0,1006,0.36
+control,passed every rule,"Die Frauenärztin Michaela Reichert, die ich zu diesem Thema traf.",538,0.3,0.21,0.77,0.43,0.21,jev-1.13.0,1020,0.36
+control,passed every rule,Aber zumindest in letzter Zeit war der Grund tatsächlich dieser grausame Angriffskrieg auf die Ukraine.,539,0.42,0.95,0.93,0.9,0.38,jev-1.13.0,1051,0.33
+control,passed every rule,Aber die strenge Geheimhaltung öffnet dem Misstrauen Tür und Tor.,540,0.87,0.96,0.91,0.88,0.89,jev-1.13.0,1020,0.36
+control,passed every rule,"Niemand wird merken, dass das Essen verschwunden ist.",541,0.89,0.97,0.95,0.95,0.1,jev-1.13.0,1005,0.36
+control,passed every rule,"Renate, schön, dass du da bist und deine Geschichte heute mit uns teilst.",542,0.91,0.96,0.92,0.91,0.45,jev-1.13.0,1033,0.33
+control,passed every rule,Der Widerstand breitet sich schnell aus.,543,0.8,0.97,0.97,0.96,0.36,jev-1.13.0,992,0.39
+control,passed every rule,Yara und ich sind keine Freunde mehr.,544,0.94,0.97,0.95,0.95,0.35,jev-1.13.0,993,0.33
+control,passed every rule,"Da musste man auf einen neuen Standard umstellen, weil irgendwann fast alle IP-Adressen belegt waren.",545,0.74,0.97,0.92,0.92,0.37,jev-1.13.0,1045,0.25
+control,passed every rule,Aber die Frage ist natürlich für was steht die Linke denn eigentlich grundsätzlich.,546,0.76,0.85,0.84,0.79,0.41,jev-1.13.0,1033,0.28
+control,passed every rule,"Ich sehe die Menschen also nicht ganz deutlich, sondern nur ganz klein in weiter Entfernung.",547,0.92,0.96,0.91,0.85,0.24,jev-1.13.0,1040,0.37
+control,passed every rule,Was wenn du auch klare Regeln für Gespräche hättest?,548,0.78,0.89,0.83,0.83,0.23,jev-1.13.0,1012,0.28
+control,passed every rule,Die Frage ist: Brauchen wir mehr Resozialisierungsprojekte und einen offeneren Vollzug?,549,0.93,0.95,0.96,0.96,0.2,jev-1.13.0,1033,0.39
+control,passed every rule,"In Deutschland bist du erst mal „nichts“, bis du das richtige deutsche Papier mit dem richtigen deutschen Stempel hast.",550,0.84,0.97,0.87,0.87,0.67,jev-1.13.0,1070,0.28
+control,passed every rule,Die oberste aller Ideen ist die Idee des Guten.,551,0.9,0.98,0.94,0.91,0.1,jev-1.13.0,1003,0.28
+control,passed every rule,Später kehren auch die Osmanen zurück.,552,0.6,0.96,0.93,0.91,0.14,jev-1.13.0,995,0.25
+control,passed every rule,"Vereinfacht gesagt, wenn die Eltern nicht studiert haben, dann ist die Wahrscheinlichkeit, dass man selbst studiert eher gering.",553,0.92,0.97,0.94,0.88,0.72,jev-1.13.0,1079,0.29
+control,passed every rule,Postet eure Ideen gerne in die Kommentare.,554,0.93,0.97,0.95,0.95,0.2,jev-1.13.0,995,0.25
+control,passed every rule,"Gerio, stell dich zum Kampf.",555,0.84,0.95,0.82,0.8,0.52,jev-1.13.0,984,0.28
+control,passed every rule,"Nicht nur, weil hier mal Koryphäen wie Albert Einstein gelebt und gearbeitet haben, sondern auch heute, in der Gegenwart!",556,0.42,0.53,0.78,0.53,0.6,jev-1.13.0,1075,0.35
+control,passed every rule,Aber wohin soll man sich noch ausbreiten?,557,0.58,0.94,0.89,0.81,0.18,jev-1.13.0,998,0.25
+control,passed every rule,Eigentlich ist das Gesetz allgemein gehalten und wurde nicht speziell für Corona entwickelt.,558,0.7,0.97,0.96,0.95,0.4,jev-1.13.0,1032,0.28
+control,passed every rule,"Zweitens: Wir müssen darüber nachdenken, wo das “zu” steht.",559,0.47,0.93,0.94,0.92,0.4,jev-1.13.0,1019,0.28
+control,passed every rule,Woher kennst du meinen Fortnite-Namen?,560,0.84,0.97,0.92,0.94,0.1,jev-1.13.0,988,0.35
+control,passed every rule,"Genau, unsere Familie hat dich so lange großgezogen, du musst auch mal etwas zurückgeben.",561,0.81,0.95,0.92,0.9,0.65,jev-1.13.0,1049,0.29
+control,passed every rule,"Also, diese Wiederaufnahme des Serotonins dient zur Regelung dieses ""Gesprächs"" zwischen den Zellen.",562,0.53,0.96,0.89,0.87,0.39,jev-1.13.0,1051,0.27
+control,passed every rule,"Ja und weißt du, was das Schlimmste ist?",563,0.38,0.71,0.91,0.92,0.39,jev-1.13.0,1003,0.3
+control,passed every rule,"Deshalb beschäftigen wir uns in diesem Video ganz direkt mit Lügen über den Holocaust, über die Ermordung von Millionen europäischer Juden.",564,0.74,0.96,0.96,0.95,0.55,jev-1.13.0,1089,0.28
+control,passed every rule,"Ich dachte, die Leute hier sind normal.",565,0.9,0.96,0.96,0.95,0.07,jev-1.13.0,993,0.22
+control,passed every rule,"Viele werden nie gefunden, weil das Meer sie mit sich reißt.",566,0.58,0.97,0.93,0.87,0.43,jev-1.13.0,1017,0.37
+control,passed every rule,Shopsche Palace heißt das Kackkraft aber den oder bitte sag doch was.,567,0.35,0.61,0.22,0.12,0.5,jev-1.13.0,1027,0.28
+control,passed every rule,"Ihr müsst also an die Position 2 denken, wenn ihr einen Satz auf Deutsch baut.",568,0.84,0.96,0.91,0.87,0.24,jev-1.13.0,1041,0.39
+control,passed every rule,"Schaut gerne rein, ist oben auf dem ""I"".",569,0.28,0.77,0.71,0.61,0.51,jev-1.13.0,999,0.39
+control,passed every rule,Du warst die beste Schwester der Welt!,570,0.93,0.97,0.91,0.92,0.36,jev-1.13.0,993,0.27
+control,passed every rule,Zumindest im Selbstversuch von uns zeigt sich da eine Tendenz.,571,0.3,0.95,0.82,0.77,0.51,jev-1.13.0,1020,0.37
+control,passed every rule,"Ich fühle, dass ich mich zum ersten Mal in meinem Leben ausruhe.",572,0.94,0.97,0.91,0.85,0.23,jev-1.13.0,1026,0.27
+control,passed every rule,"Stattdessen dominieren zwei große Blöcke, die Demokratische und die Republikanische Partei.",573,0.76,0.97,0.94,0.88,0.19,jev-1.13.0,1039,0.5
+control,passed every rule,"Wenn ich etwas zur Kenntnis nehme, dann empfange ich eine Information und verstehe die Information.",574,0.95,0.97,0.93,0.76,0.86,jev-1.13.0,1043,0.25
+control,passed every rule,"Oh, fast hätte ich das Wichtigste vergessen, die Äpfel!",575,0.81,0.93,0.86,0.88,0.47,jev-1.13.0,1015,0.28
+control,passed every rule,Was meinst du mit hier?,576,0.28,0.96,0.93,0.94,0.32,jev-1.13.0,980,0.33
+control,passed every rule,Am Nachmittag übergibt dann Angela Merkel offiziell ihr Amt an Olaf Scholz.,577,0.85,0.97,0.93,0.81,0.29,jev-1.13.0,1034,0.36
+control,passed every rule,"Die Zeichen verdichten sich, dass heute vormittag nach zem Ringen der beteiligten Kreise der Abschluss einer Regierungskoalition gelungen ist.",578,0.81,0.96,0.39,0.09,0.82,jev-1.13.0,1083,0.36
+control,passed every rule,"Der Stein der schwangeren Frau hätte nicht nur transportiert, sondern angehoben werden müssen.",579,0.77,0.96,0.81,0.62,0.24,jev-1.13.0,1039,0.33
+control,passed every rule,"Nämlich dann, wenn irgendeine andere unabhängige Behörde diese Daten geprüft und in ihrem Bericht ausreichend detailliert wiedergibt und veröffentlicht.",580,0.18,0.52,0.87,0.81,0.51,jev-1.13.0,1096,0.36
+control,passed every rule,"Oh, du bist ja sozial.",581,0.77,0.94,0.88,0.85,0.27,jev-1.13.0,982,0.36
+control,passed every rule,"Ich will damit sagen: Es könnte sein, dass ""Die Partei"" an der Regierung einiges umstellen und auf den Weg bringen wird.",582,0.58,0.96,0.92,0.82,0.75,jev-1.13.0,1082,0.25

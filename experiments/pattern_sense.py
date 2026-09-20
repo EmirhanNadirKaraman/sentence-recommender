@@ -415,12 +415,33 @@ CRITERIA_PLAIN = {
               "`gelassen` the adjective is not `lassen`."),
 }
 
-QUESTIONS = {"frame": (QUESTION, CRITERIA), "plain": (QUESTION_PLAIN, CRITERIA_PLAIN)}
+# Q9 of the corpus pass: the sentence teaches the word. `plain` says the
+# sentence is the word; this says a reader who had every other word could
+# work this one out. Labelled on 100 of the frame rows: 84 yes, 16 no.
+QUESTION_GUESSABLE = (
+    "Could a learner who knows every other word in `sentence` work out what "
+    "`unit.spoken` means from this sentence alone?")
+CRITERIA_GUESSABLE = {
+    "true": ("The sentence gives the meaning away: `Ich brauche unbedingt eine "
+             "gute Note.` for `brauchen`."),
+    "false": ("The word could mean almost anything here: `Ich weiß nicht.` for "
+              "`wissen`, `Das tun wir.` for `tun`."),
+}
+
+QUESTIONS = {"frame": (QUESTION, CRITERIA), "plain": (QUESTION_PLAIN, CRITERIA_PLAIN),
+             "guessable": (QUESTION_GUESSABLE, CRITERIA_GUESSABLE)}
+GUESSABLE_LABELS = "04-pattern-sense-guessable-labels"
+
+
+def guessable_labels() -> dict[str, str]:
+    return {r["n"]: r["guessable"] for r in results.read(GUESSABLE_LABELS)}
 
 # What B calls a good example, derived from the frame labels: `frame` and
 # every `other` that is the same word in another sense or frame are good;
 # `construction` and an `other` that is a different word are not.
-_DIFFERENT_WORD = ("lemma error", "adjective", "proper noun")
+# `(adjective` with the bracket: the note `klingen + adjective (sound)` names
+# the verb's complement, and `gelassen (adjective, calm)` names the word.
+_DIFFERENT_WORD = ("lemma error", "(adjective", "proper noun")
 
 
 def plain_label(row: dict) -> str | None:
@@ -546,12 +567,17 @@ def run_arm(name: str, rows: list[dict], limit: int | None = None,
     rows = rows[:limit] if limit else rows
     if asking == "plain":
         rows = [r for r in rows if plain_label(r) is not None]
+    elif asking == "guessable":
+        labels = guessable_labels()
+        rows = [r for r in rows if r["n"] in labels]
     answers = ARMS[name](rows, lambda i, n: print(f"  {name}: {i}/{n}", flush=True),
                          asking=asking)
     by_n = {r["n"]: r for r in rows}
     for a in answers:
         a["verdict"] = by_n[a["n"]]["verdict"]
-        a["label"] = "frame" if asking == "frame" else plain_label(by_n[a["n"]])
+        a["label"] = ("frame" if asking == "frame"
+                      else plain_label(by_n[a["n"]]) if asking == "plain"
+                      else guessable_labels()[a["n"]])
         a["rule"] = by_n[a["n"]].get("rule", "")
         a["stratum"] = by_n[a["n"]]["stratum"]
         a["pattern"] = by_n[a["n"]]["pattern"]
@@ -563,8 +589,9 @@ def score_arm(name: str, asking: str = "frame") -> dict | None:
     answers = results.read(_arm_file(name, asking))
     if not answers:
         return None
-    positive = (lambda a: a["verdict"] == "frame") if asking == "frame" \
-        else (lambda a: a.get("label") == "good")
+    positive = {"frame": lambda a: a["verdict"] == "frame",
+                "plain": lambda a: a.get("label") == "good",
+                "guessable": lambda a: a.get("label") == "yes"}[asking]
     def view(part):
         p = [(float(a["p"]), positive(a)) for a in part]
         yes = [f for prob, f in p if prob >= 0.5]
@@ -593,8 +620,9 @@ def arm_section(name: str, asking: str = "frame") -> list[str]:
     s = score_arm(name, asking)
     if s is None:
         return []
-    what = ("frame — does the sentence realise the blueprint" if asking == "frame"
-            else "plain — is this the word itself, not a fixed expression or another word")
+    what = {"frame": "frame — does the sentence realise the blueprint",
+            "plain": "plain — is this the word itself, not a fixed expression or another word",
+            "guessable": "guessable — could a reader who had every other word work this one out"}[asking]
     lines = [f"## Arm: {name} ({s['model']}), question: {what}", ""]
     lines += [f"{s['all']['rows']} rows, {s['seconds']:.0f}s"
               + (f", {s['input_tokens']:,} input tokens" if s["input_tokens"] else "") + ".", "",
@@ -604,7 +632,7 @@ def arm_section(name: str, asking: str = "frame") -> list[str]:
         v = s[label]
         lines.append(f"| {label} | {v['rows']} | {v['precision']:.0%} | {v['recall']:.0%} | "
                      f"{v['at_90'][1]}/{v['at_90'][0]} | {v['at_10'][1]}/{v['at_10'][0]} | {v['band']} |")
-    lines += ["", f"Precision and recall are of *{'frame' if asking == 'frame' else 'good example'}* against everything else; "
+    lines += ["", f"Precision and recall are of *{ {'frame': 'frame', 'plain': 'good example', 'guessable': 'guessable'}[asking] }* against everything else; "
               "the two calibration columns say, of the rows the judge was sure "
               "about, how many the label agreed with; the band is the rows it "
               "was not sure about, which is the number a person would still read.", "",
@@ -652,7 +680,7 @@ def main() -> None:
         if not rows or "rule" not in rows[0]:
             raise SystemExit("run `measure` first: the arms are scored against the judged file")
         extra = sys.argv[3:]
-        asking = "plain" if "plain" in extra else "frame"
+        asking = next((a for a in ("plain", "guessable") if a in extra), "frame")
         limit = next((int(x) for x in extra if x.isdigit()), None)
         run_arm(name, rows, limit, asking)
         write_report(rows, _last_effect())

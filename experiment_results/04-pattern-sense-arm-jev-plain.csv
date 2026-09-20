@@ -1,0 +1,449 @@
+n,p,model,input_tokens,seconds,verdict,label,rule,stratum,pattern
+1,0.73,jev-1.13.0,687,0.7,frame,good,,uniform,etw. (Akk) versuchen
+2,0.59,jev-1.13.0,682,0.28,frame,good,,uniform,die Straße
+3,0.43,jev-1.13.0,693,0.27,frame,good,,uniform,die Kraft
+4,0.54,jev-1.13.0,705,0.32,other,good,,uniform,jdm. (Dat) etw. (Akk) sagen
+5,0.96,jev-1.13.0,697,0.26,frame,good,,uniform,die Beziehung
+6,0.82,jev-1.13.0,692,0.29,frame,good,,uniform,das Zeichen
+7,0.81,jev-1.13.0,700,0.31,frame,good,,uniform,etw. (Akk) zerstören
+9,0.44,jev-1.13.0,692,0.37,construction,bad,,uniform,der Stand
+10,0.61,jev-1.13.0,707,0.27,frame,good,,uniform,mit jdm. / über etw./jdn. sprechen
+11,0.4,jev-1.13.0,692,0.25,construction,bad,,uniform,etw. (Akk) spielen
+12,0.93,jev-1.13.0,690,0.3,frame,good,,uniform,die Gesellschaft
+13,0.81,jev-1.13.0,701,0.27,frame,good,,uniform,etw./jdn. (Akk) haben
+14,0.59,jev-1.13.0,682,0.27,frame,good,,uniform,die Bombe
+15,0.78,jev-1.13.0,706,0.23,other,good,,uniform,an etw. (Dat) sterben
+16,0.8,jev-1.13.0,718,0.5,construction,bad,es_gibt,uniform,jdm. (Dat) etw. (Akk) geben
+17,0.4,jev-1.13.0,695,0.28,other,bad,,uniform,der Arm
+18,0.71,jev-1.13.0,721,0.26,frame,good,,uniform,zu etw. / etw. (Akk) zählen
+19,0.91,jev-1.13.0,723,0.32,other,good,aux,uniform,etw./jdn. (Akk) haben
+20,0.9,jev-1.13.0,695,0.36,frame,good,,uniform,jdm. (Dat) etw. (Akk) sagen
+21,0.65,jev-1.13.0,689,0.36,frame,good,,uniform,die Million
+22,0.87,jev-1.13.0,683,0.33,frame,good,,uniform,das Beispiel
+23,0.96,jev-1.13.0,708,0.36,frame,good,,uniform,etw./jdn. (Akk) hören
+24,0.91,jev-1.13.0,695,0.36,frame,good,,uniform,das Labor
+25,0.7,jev-1.13.0,681,0.33,frame,good,,uniform,die Bevölkerung
+26,0.51,jev-1.13.0,708,0.36,frame,good,,uniform,das Prozent
+27,0.26,jev-1.13.0,712,0.36,construction,bad,,uniform,jdn./etw. (Akk) vor etw. (Dat) bewahren
+28,0.74,jev-1.13.0,735,0.33,frame,good,,uniform,jdm. (Dat) etw. (Akk) schicken
+29,0.95,jev-1.13.0,700,0.36,frame,good,,uniform,über etw. (Akk) entscheiden
+30,0.89,jev-1.13.0,687,0.36,frame,good,,uniform,etw./jdn. (Akk) vergessen
+31,0.93,jev-1.13.0,682,0.32,frame,good,,uniform,"nichts, nix"
+32,0.87,jev-1.13.0,696,0.33,frame,good,,uniform,jdm. (Dat) etw. (Akk) zeigen
+33,0.64,jev-1.13.0,703,0.28,frame,good,,uniform,jdn./etw. (Akk) mitnehmen
+34,0.88,jev-1.13.0,686,0.31,frame,good,,uniform,der Freund
+35,0.66,jev-1.13.0,692,0.32,other,good,aux,uniform,etw./jdn. (Akk) haben
+36,0.86,jev-1.13.0,694,0.28,frame,good,,uniform,die Wand
+37,0.69,jev-1.13.0,691,0.28,frame,good,,uniform,das Jahr
+38,0.28,jev-1.13.0,678,0.28,construction,bad,,uniform,der Gott
+39,0.91,jev-1.13.0,689,0.23,frame,good,,uniform,etw. (Akk) vermeiden
+40,0.81,jev-1.13.0,682,0.26,frame,good,,uniform,etw./jdn. (Akk) haben
+41,0.69,jev-1.13.0,701,0.28,frame,good,,uniform,etw. (Akk) errichten
+42,0.87,jev-1.13.0,690,0.33,other,good,,uniform,für/gegen jdn./etw. stimmen
+43,0.41,jev-1.13.0,695,0.23,other,bad,,uniform,das Ensemble
+44,0.67,jev-1.13.0,731,0.34,frame,good,,uniform,jdm. (Dat) etw. (Akk) aufschreiben
+45,0.77,jev-1.13.0,692,0.3,frame,good,,uniform,die Veränderung
+46,0.87,jev-1.13.0,713,0.34,frame,good,,uniform,der Geschäftsführer
+47,0.95,jev-1.13.0,712,0.24,frame,good,,uniform,jdm. (Dat) etw. (Akk) sagen
+48,0.83,jev-1.13.0,701,0.28,frame,good,,uniform,etw. (Akk) wissen
+49,0.87,jev-1.13.0,700,0.28,other,good,,uniform,vor jdm./etw. (Dat) fliehen
+50,0.51,jev-1.13.0,683,0.25,frame,good,,uniform,das Jahr
+51,0.82,jev-1.13.0,685,0.28,frame,good,,uniform,mit jdm. / über etw. reden
+52,0.87,jev-1.13.0,701,0.37,frame,good,,uniform,jdm. (Dat) etw. (Akk) erzählen
+53,0.52,jev-1.13.0,699,0.39,frame,good,,uniform,die Frau
+54,0.69,jev-1.13.0,707,0.35,frame,good,,uniform,der Bundestag
+55,0.82,jev-1.13.0,709,0.34,frame,good,,uniform,jdm. (Dat) vertrauen
+56,0.95,jev-1.13.0,685,0.36,frame,good,,uniform,die Macht
+57,0.54,jev-1.13.0,712,0.31,frame,good,,uniform,etw./jdn. (Akk) haben
+58,0.27,jev-1.13.0,697,0.38,frame,good,,uniform,etw./jdn. (Akk) halten
+59,0.86,jev-1.13.0,713,0.36,other,good,,uniform,auf etw. / an etw. ankommen
+60,0.89,jev-1.13.0,698,0.28,other,good,modal,uniform,etw. (Akk) können
+61,0.94,jev-1.13.0,705,0.25,other,good,aux,uniform,etw./jdn. (Akk) haben
+62,0.68,jev-1.13.0,714,0.32,frame,good,,uniform,die Verhandlung
+63,0.78,jev-1.13.0,690,0.36,frame,good,,uniform,etw. (Akk) machen
+64,0.82,jev-1.13.0,698,0.36,frame,good,,uniform,etw./jdn. (Akk) halten
+65,0.53,jev-1.13.0,710,0.33,construction,bad,,uniform,jdm. (Dat) etw. (Akk) sagen
+66,0.57,jev-1.13.0,695,0.36,frame,good,,uniform,der Junge
+67,0.55,jev-1.13.0,707,0.39,construction,bad,es_gibt,uniform,jdm. (Dat) etw. (Akk) geben
+68,0.82,jev-1.13.0,702,0.69,frame,good,,uniform,etw. (Akk) / jdm. (Dat) etw. (Akk) brechen
+69,0.73,jev-1.13.0,699,0.33,frame,good,,uniform,der Bundestag
+70,0.32,jev-1.13.0,708,0.26,construction,bad,,uniform,etw. (Akk) wissen
+71,0.95,jev-1.13.0,698,0.31,frame,good,,uniform,der König
+72,0.92,jev-1.13.0,688,0.25,other,good,,uniform,auf jdn./etw. wirken
+73,0.7,jev-1.13.0,704,0.29,frame,good,,uniform,jdn. (Akk) um etw. bitten
+74,0.95,jev-1.13.0,676,0.25,frame,good,,uniform,das Bild
+75,0.69,jev-1.13.0,689,0.3,other,good,aux,uniform,etw./jdn. (Akk) haben
+76,0.94,jev-1.13.0,693,0.25,frame,good,,uniform,etw. (Akk) mitmachen
+77,0.75,jev-1.13.0,682,0.25,frame,good,,uniform,der Vater
+78,0.67,jev-1.13.0,716,0.23,other,good,aux,uniform,etw./jdn. (Akk) haben
+79,0.82,jev-1.13.0,733,0.33,frame,good,,uniform,jdm. (Dat) / etw. (Dat) zustimmen
+80,0.81,jev-1.13.0,703,0.29,other,good,,uniform,mit etw. / etw. (Akk) beginnen
+81,0.68,jev-1.13.0,701,0.25,frame,good,,uniform,jdn. (Akk) + Name (Akk) nennen
+82,0.91,jev-1.13.0,704,0.25,frame,good,,uniform,die Lösung
+83,0.56,jev-1.13.0,709,0.25,frame,good,,uniform,auf etw./jdn. schauen
+84,0.7,jev-1.13.0,702,0.26,frame,good,,uniform,etw. (Akk) umsetzen
+85,0.44,jev-1.13.0,724,0.3,construction,bad,,uniform,mit etw. / von etw. handeln
+87,0.53,jev-1.13.0,690,0.24,construction,bad,,uniform,die Menge
+88,0.79,jev-1.13.0,709,0.33,frame,good,,uniform,gegen jdn./etw. sich wehren
+89,0.81,jev-1.13.0,695,0.34,frame,good,,uniform,das Mitglied
+90,0.93,jev-1.13.0,692,0.29,frame,good,,uniform,die Kosten
+91,0.59,jev-1.13.0,680,0.26,frame,good,,uniform,der Wunsch
+92,0.32,jev-1.13.0,715,0.28,frame,good,,uniform,die Information
+93,0.62,jev-1.13.0,681,0.36,frame,good,,uniform,das Blut
+94,0.49,jev-1.13.0,683,0.38,frame,good,,uniform,das Gesetz
+95,0.13,jev-1.13.0,684,0.26,frame,good,,uniform,die Nation
+96,0.64,jev-1.13.0,723,0.43,frame,good,,uniform,jdn./etw. (Akk) / sich (Dat) etw. (Akk) anschauen
+97,0.97,jev-1.13.0,688,0.36,other,good,,uniform,an etw. (Dat) sterben
+98,0.59,jev-1.13.0,696,0.27,construction,bad,,uniform,jdm. (Dat) etw. (Akk) schreiben
+99,0.7,jev-1.13.0,682,0.26,frame,good,,uniform,der Freund
+100,0.85,jev-1.13.0,711,0.33,frame,good,,uniform,"all, alle"
+101,0.68,jev-1.13.0,735,0.36,other,good,aux,uniform,etw./jdn. (Akk) haben
+102,0.24,jev-1.13.0,708,0.36,construction,bad,,uniform,der Fall
+103,0.72,jev-1.13.0,689,0.34,frame,good,,uniform,etw. (Akk) machen
+104,0.64,jev-1.13.0,722,0.36,frame,good,,uniform,jdm. (Dat) etw. (Akk) / sich (Dat) beschaffen
+105,0.84,jev-1.13.0,684,0.36,frame,good,,uniform,die Politik
+106,0.76,jev-1.13.0,691,0.33,frame,good,,uniform,der Zeitraum
+107,0.9,jev-1.13.0,685,0.36,frame,good,,uniform,der Krieg
+108,0.8,jev-1.13.0,683,0.36,frame,good,,uniform,die Region
+109,0.73,jev-1.13.0,694,0.27,frame,good,,uniform,jdm. (Dat) vorkommen
+110,0.57,jev-1.13.0,691,0.28,frame,good,,uniform,der Punkt
+111,0.75,jev-1.13.0,697,0.23,other,good,,uniform,etw. (Akk) ziehen
+112,0.87,jev-1.13.0,678,0.3,frame,good,,uniform,der Vater
+113,0.69,jev-1.13.0,687,0.24,frame,good,,uniform,der Mensch
+114,0.64,jev-1.13.0,694,0.29,frame,good,,uniform,die Periode
+115,0.44,jev-1.13.0,688,0.25,frame,good,,uniform,der Mann
+116,0.63,jev-1.13.0,704,0.24,frame,good,,uniform,der Betrieb
+117,0.67,jev-1.13.0,687,0.31,frame,good,,uniform,die Politik
+118,0.52,jev-1.13.0,696,0.27,frame,good,,uniform,das Auge
+119,0.96,jev-1.13.0,676,0.24,frame,good,,uniform,die Wohnung
+120,0.68,jev-1.13.0,707,0.25,frame,good,,uniform,der Zeitpunkt
+121,0.46,jev-1.13.0,693,0.28,frame,good,,uniform,das Gefühl
+122,0.7,jev-1.13.0,720,0.32,frame,good,,uniform,auf etw. (Akk) / für etw. plädieren
+123,0.66,jev-1.13.0,685,0.28,frame,good,,uniform,das Kind
+124,0.82,jev-1.13.0,707,0.27,other,good,modal,uniform,etw. (Akk) wollen
+125,0.61,jev-1.13.0,681,0.29,construction,bad,,uniform,das Gegenteil
+126,0.91,jev-1.13.0,702,0.23,frame,good,,uniform,jdm. (Dat) etw. (Akk) erzählen
+127,0.55,jev-1.13.0,715,0.4,other,good,,uniform,etw. (Akk) ausdrücken
+128,0.84,jev-1.13.0,698,0.28,frame,good,,uniform,die Bundesrepublik
+129,0.65,jev-1.13.0,691,0.25,frame,good,,uniform,die Seite
+130,0.81,jev-1.13.0,687,0.29,frame,good,,uniform,der Arzt
+131,0.79,jev-1.13.0,711,0.26,other,good,aux,uniform,etw./jdn. (Akk) haben
+132,0.93,jev-1.13.0,712,0.29,frame,good,,uniform,"allein, alleine"
+133,0.23,jev-1.13.0,690,0.36,construction,bad,,uniform,"all, alle"
+134,0.58,jev-1.13.0,682,0.36,construction,bad,,uniform,das Haus
+135,0.85,jev-1.13.0,687,0.34,frame,good,,uniform,der Krieg
+136,0.71,jev-1.13.0,701,0.35,other,good,,uniform,jdn. (Akk) führen
+137,0.55,jev-1.13.0,704,0.35,frame,good,,uniform,die Information
+138,0.97,jev-1.13.0,716,0.33,frame,good,,uniform,etw. (Akk) befürchten
+139,0.91,jev-1.13.0,675,0.36,frame,good,,uniform,der Künstler
+140,0.96,jev-1.13.0,690,0.36,frame,good,,uniform,mit etw. aufhören
+141,0.74,jev-1.13.0,704,0.33,frame,good,,uniform,etw./jdn. (Akk) haben
+142,0.69,jev-1.13.0,689,0.36,frame,good,,uniform,der Tod
+143,0.95,jev-1.13.0,699,0.36,frame,good,,uniform,die Entscheidung
+144,0.94,jev-1.13.0,691,0.33,other,good,modal,uniform,etw. (Akk) können
+145,0.68,jev-1.13.0,699,0.36,frame,good,,uniform,jdn. (Akk) zu etw. einladen
+146,0.84,jev-1.13.0,693,0.36,frame,good,,uniform,etw. (Akk) benutzen
+147,0.76,jev-1.13.0,714,0.33,frame,good,,uniform,etw. (Akk) erzeugen
+148,0.87,jev-1.13.0,707,0.26,frame,good,,uniform,der Ausdruck
+149,0.91,jev-1.13.0,678,0.32,frame,good,,uniform,die Mutter
+150,0.94,jev-1.13.0,678,0.29,frame,good,,uniform,die Schule
+151,0.5,jev-1.13.0,684,0.37,frame,good,,uniform,die Frage
+152,0.19,jev-1.13.0,677,0.25,construction,bad,,uniform,der Fall
+153,0.86,jev-1.13.0,684,0.28,other,good,,uniform,nach etw. klingen
+154,0.86,jev-1.13.0,701,0.27,frame,good,,uniform,etw./jdn. (Akk) haben
+155,0.74,jev-1.13.0,697,0.25,frame,good,,uniform,etw. (Akk) verbreiten
+156,0.24,jev-1.13.0,698,0.26,construction,bad,,uniform,"all, alle"
+157,0.97,jev-1.13.0,686,0.26,other,good,modal,uniform,etw. (Akk) wollen
+158,0.95,jev-1.13.0,687,0.3,frame,good,,uniform,die Erde
+159,0.63,jev-1.13.0,675,0.25,frame,good,,uniform,das Kind
+160,0.52,jev-1.13.0,711,0.27,frame,good,,uniform,der Hersteller
+161,0.95,jev-1.13.0,682,0.25,frame,good,,uniform,"vorne, vorn"
+162,0.89,jev-1.13.0,694,0.23,frame,good,,uniform,etw. (Akk) lernen
+163,0.46,jev-1.13.0,684,0.28,other,good,,uniform,etw. (Akk) ändern
+164,0.94,jev-1.13.0,688,0.28,other,good,modal,uniform,etw. (Akk) können
+165,0.8,jev-1.13.0,692,0.27,frame,good,,uniform,die Sprache
+166,0.62,jev-1.13.0,715,0.27,frame,good,,uniform,etw. (Akk) einnehmen
+167,0.95,jev-1.13.0,685,0.27,other,good,aux,uniform,etw./jdn. (Akk) haben
+168,0.46,jev-1.13.0,703,0.33,construction,bad,,uniform,die Rücksicht
+169,0.84,jev-1.13.0,704,0.3,other,good,,uniform,jdm. (Dat) etw. (Akk) bedeuten
+170,0.8,jev-1.13.0,678,0.37,frame,good,,uniform,die Schwester
+171,0.46,jev-1.13.0,689,0.31,construction,bad,,uniform,etw. (Akk) machen
+172,0.78,jev-1.13.0,687,0.4,frame,good,,uniform,etw. (Akk) verdienen
+173,0.95,jev-1.13.0,684,0.34,frame,good,,uniform,etw. (Akk) wissen
+174,0.76,jev-1.13.0,676,0.31,frame,good,,uniform,der Held
+175,0.88,jev-1.13.0,690,0.38,other,good,,uniform,etw. (Akk) an jdn. zahlen
+176,0.91,jev-1.13.0,688,0.36,other,good,aux,uniform,etw./jdn. (Akk) haben
+177,0.75,jev-1.13.0,675,0.26,frame,good,,uniform,"all, alle"
+178,0.66,jev-1.13.0,711,0.28,frame,good,,uniform,die Bank
+179,0.83,jev-1.13.0,690,0.31,frame,good,,uniform,etw. (Akk) benutzen
+180,0.36,jev-1.13.0,686,0.43,frame,good,,uniform,der Tag
+181,0.79,jev-1.13.0,708,0.29,construction,bad,,uniform,jdn. (Akk) führen
+182,0.95,jev-1.13.0,704,0.33,frame,good,,uniform,jdm. (Dat) etw. (Akk) sagen
+183,0.97,jev-1.13.0,691,0.36,other,good,modal,uniform,etw. (Akk) wollen
+184,0.86,jev-1.13.0,677,0.36,frame,good,,uniform,die Mama
+185,0.82,jev-1.13.0,728,0.35,other,good,,uniform,etw. (Akk) mit etw. kombinieren
+186,0.55,jev-1.13.0,697,0.34,other,good,,uniform,jdm. (Dat) etw. (Akk) sichern
+187,0.4,jev-1.13.0,704,0.25,frame,good,,uniform,ein paar
+188,0.76,jev-1.13.0,711,0.36,frame,good,,uniform,etw. (Akk) für etw. ausgeben
+189,0.92,jev-1.13.0,696,0.28,frame,good,,uniform,der Schutz
+190,0.86,jev-1.13.0,689,0.27,other,good,,uniform,jdn. (Akk) beruhigen
+191,0.96,jev-1.13.0,687,0.28,other,good,,uniform,etw./jdn. (Akk) lassen
+192,0.68,jev-1.13.0,693,0.29,frame,good,,uniform,etw. (Akk) tun
+193,0.57,jev-1.13.0,734,0.26,frame,good,,uniform,jdn./etw. (Akk) / sich (Dat) etw. (Akk) anschauen
+194,0.43,jev-1.13.0,687,0.25,frame,good,,uniform,die Folge
+195,0.96,jev-1.13.0,679,0.37,frame,good,,uniform,die Partie
+196,0.59,jev-1.13.0,701,0.38,construction,bad,es_gibt,uniform,jdm. (Dat) etw. (Akk) geben
+197,0.44,jev-1.13.0,689,0.37,construction,bad,,uniform,der Gott
+198,0.93,jev-1.13.0,699,0.27,frame,good,,uniform,der Krieg
+199,0.95,jev-1.13.0,695,0.29,frame,good,,uniform,die Sicherheit
+200,0.91,jev-1.13.0,694,0.28,other,good,aux,uniform,etw./jdn. (Akk) haben
+201,0.8,jev-1.13.0,700,0.26,frame,good,,uniform,das Auge
+202,0.64,jev-1.13.0,705,0.28,frame,good,,uniform,etw. (Akk) organisieren
+203,0.8,jev-1.13.0,692,0.35,frame,good,,uniform,etw./jdn. (Akk) kennen
+204,0.82,jev-1.13.0,710,0.26,frame,good,,uniform,die Polizei
+205,0.93,jev-1.13.0,718,0.26,other,good,aux,uniform,etw./jdn. (Akk) haben
+206,0.23,jev-1.13.0,723,0.24,construction,bad,,uniform,etw. (Akk) machen
+207,0.84,jev-1.13.0,710,0.28,frame,good,,uniform,etw./jdn. (Akk) verändern
+208,0.52,jev-1.13.0,712,0.25,frame,good,,uniform,das Ende
+209,0.71,jev-1.13.0,702,0.27,frame,good,,uniform,die Insel
+210,0.91,jev-1.13.0,698,0.52,frame,good,,uniform,etw./jdn. (Akk) finden
+211,0.63,jev-1.13.0,706,0.35,frame,good,,uniform,das Thema
+212,0.84,jev-1.13.0,700,0.34,frame,good,,uniform,"eben, ebend"
+213,0.52,jev-1.13.0,677,0.36,construction,bad,,uniform,der Dank
+214,0.89,jev-1.13.0,710,0.25,frame,good,,uniform,etw. (Akk) benutzen
+215,0.75,jev-1.13.0,700,0.28,frame,good,,uniform,der Bundestag
+216,0.71,jev-1.13.0,721,0.32,other,good,,uniform,etw./jdn. (Akk) lassen
+217,0.9,jev-1.13.0,706,0.36,frame,good,,uniform,das Militär
+218,0.79,jev-1.13.0,686,0.36,frame,good,,uniform,der Nachbar
+219,0.63,jev-1.13.0,694,0.52,frame,good,,uniform,jdm. (Dat) etw. (Akk) sagen
+220,0.69,jev-1.13.0,678,0.31,frame,good,,uniform,der Tag
+221,0.87,jev-1.13.0,700,0.24,frame,good,,uniform,der Job
+222,0.51,jev-1.13.0,706,0.33,frame,good,,uniform,das Wort
+223,0.83,jev-1.13.0,695,0.34,frame,good,,uniform,die Wohnung
+224,0.88,jev-1.13.0,690,0.36,other,good,aux,uniform,etw./jdn. (Akk) haben
+225,0.77,jev-1.13.0,679,0.28,frame,good,,uniform,der Mensch
+226,0.9,jev-1.13.0,727,0.29,other,good,,uniform,jdm. (Dat) erscheinen
+227,0.9,jev-1.13.0,692,0.27,frame,good,,uniform,die Handlung
+228,0.83,jev-1.13.0,691,0.32,frame,good,,uniform,die Antwort
+229,0.6,jev-1.13.0,703,0.32,frame,good,,uniform,der Student
+230,0.92,jev-1.13.0,688,0.28,frame,good,,uniform,das Parlament
+231,0.4,jev-1.13.0,679,0.34,frame,good,,uniform,der Herr
+232,0.6,jev-1.13.0,683,0.31,frame,good,,uniform,"der Teil, das Teil"
+233,0.82,jev-1.13.0,713,0.32,frame,good,,uniform,etw./jdn. (Akk) halten
+234,0.84,jev-1.13.0,693,0.28,frame,good,,uniform,etw./jdn. (Akk) finden
+235,0.92,jev-1.13.0,696,0.26,frame,good,,uniform,die Produktion
+236,0.78,jev-1.13.0,703,0.31,frame,good,,uniform,jdn. (Akk) erschießen
+237,0.87,jev-1.13.0,685,0.37,frame,good,,uniform,der Mund
+238,0.76,jev-1.13.0,691,0.26,frame,good,,uniform,die Quelle
+239,0.82,jev-1.13.0,725,0.3,frame,good,,uniform,etw./jdn. (Akk) erreichen
+240,0.22,jev-1.13.0,709,0.28,construction,bad,,uniform,"all, alle"
+241,0.83,jev-1.13.0,711,0.29,frame,good,,uniform,jdn./etw. (Akk) wählen
+242,0.87,jev-1.13.0,683,0.3,other,good,,uniform,jdm. (Dat) gehören
+243,0.39,jev-1.13.0,708,0.26,construction,bad,,uniform,etw. (Akk) spielen
+244,0.34,jev-1.13.0,686,0.24,construction,bad,,uniform,etw. (Akk) tun
+245,0.84,jev-1.13.0,698,0.25,frame,good,,uniform,das Geschäft
+246,0.84,jev-1.13.0,697,0.24,frame,good,,uniform,der Bundestag
+247,0.82,jev-1.13.0,687,0.29,frame,good,,uniform,"gern, gerne"
+248,0.89,jev-1.13.0,708,0.3,other,good,aux,uniform,etw./jdn. (Akk) haben
+249,0.84,jev-1.13.0,705,0.39,frame,good,,uniform,etw. (Akk) verwenden
+250,0.95,jev-1.13.0,709,0.52,other,good,,uniform,mit jdm. / über etw./jdn. sprechen
+251,0.75,jev-1.13.0,708,0.25,frame,good,,uniform,jdm. (Dat) etw. (Akk) schreiben
+252,0.96,jev-1.13.0,709,0.27,other,good,,uniform,jdm. (Dat) etw. (Akk) bedeuten
+253,0.65,jev-1.13.0,718,0.33,construction,bad,,uniform,etw. (Akk) einschlagen
+254,0.51,jev-1.13.0,678,0.36,frame,good,,uniform,der Herr
+255,0.87,jev-1.13.0,704,0.36,frame,good,,uniform,der Hafen
+256,0.36,jev-1.13.0,714,0.33,frame,good,,uniform,das Bild
+257,0.87,jev-1.13.0,690,0.36,other,good,aux,uniform,etw./jdn. (Akk) haben
+258,0.34,jev-1.13.0,694,0.36,other,good,,uniform,etw./jdn. (Akk) haben
+259,0.85,jev-1.13.0,691,0.33,frame,good,,uniform,das Gefühl
+260,0.59,jev-1.13.0,690,0.36,frame,good,,uniform,der Staat
+261,0.77,jev-1.13.0,683,0.36,frame,good,,uniform,etw. (Akk) meinen
+262,0.6,jev-1.13.0,678,0.34,frame,good,,uniform,die Mama
+263,0.61,jev-1.13.0,683,0.36,frame,good,,uniform,die Frucht
+264,0.73,jev-1.13.0,707,0.36,frame,good,,uniform,etw. (Akk) verarbeiten
+265,0.74,jev-1.13.0,705,0.28,frame,good,,uniform,mit jdm. / über etw./jdn. sprechen
+266,0.85,jev-1.13.0,685,0.29,other,good,aux,uniform,etw./jdn. (Akk) haben
+267,0.64,jev-1.13.0,723,0.25,frame,good,,uniform,jdm. (Dat) etw. (Akk) / etw. (Akk) abziehen
+268,0.58,jev-1.13.0,701,0.25,frame,good,,uniform,etw. (Akk) machen
+269,0.63,jev-1.13.0,690,0.26,frame,good,,uniform,die Frage
+270,0.48,jev-1.13.0,679,0.25,frame,good,,uniform,die Million
+271,0.43,jev-1.13.0,702,0.29,frame,good,,uniform,das Thema
+272,0.89,jev-1.13.0,689,0.26,other,good,,uniform,jdm. (Dat) etw. (Akk) reichen
+273,0.9,jev-1.13.0,682,0.28,other,good,modal,uniform,etw. (Akk) wollen
+274,0.74,jev-1.13.0,696,0.28,frame,good,,uniform,die Leute
+275,0.59,jev-1.13.0,683,0.23,frame,good,,uniform,die Bewertung
+276,0.84,jev-1.13.0,695,0.28,other,good,modal,uniform,etw. (Akk) können
+277,0.24,jev-1.13.0,698,0.27,frame,good,,uniform,die Geschichte
+278,0.77,jev-1.13.0,700,0.24,construction,bad,es_gibt,uniform,jdm. (Dat) etw. (Akk) geben
+279,0.96,jev-1.13.0,683,0.27,other,good,modal,uniform,etw. (Akk) können
+280,0.73,jev-1.13.0,686,0.29,other,good,,uniform,von etw. ausgehen
+281,0.74,jev-1.13.0,704,0.28,frame,good,,uniform,jdn./etw. (Akk) kontrollieren
+282,0.65,jev-1.13.0,687,0.28,other,good,,uniform,etw./jdn. (Akk) lassen
+283,0.93,jev-1.13.0,714,0.28,frame,good,,uniform,auf jdn./etw. (Akk) zutreffen
+284,0.86,jev-1.13.0,694,0.33,frame,good,,uniform,etw./jdn. (Akk) finden
+285,0.59,jev-1.13.0,695,0.32,frame,good,,uniform,die Datei
+286,0.72,jev-1.13.0,682,0.25,construction,bad,,uniform,die Straße
+287,0.58,jev-1.13.0,680,0.27,frame,good,,uniform,der Freund
+288,0.98,jev-1.13.0,688,0.28,other,good,modal,uniform,etw. (Akk) können
+289,0.54,jev-1.13.0,711,0.55,frame,good,,uniform,der Euro
+290,0.94,jev-1.13.0,678,0.38,frame,good,,uniform,das Krankenhaus
+291,0.89,jev-1.13.0,686,0.26,frame,good,,uniform,"all, alle"
+292,0.83,jev-1.13.0,699,0.32,frame,good,,uniform,etw. (Akk) gewinnen
+293,0.61,jev-1.13.0,697,0.47,frame,good,,uniform,die Sekunde
+294,0.78,jev-1.13.0,704,0.24,frame,good,,uniform,etw. (Akk) akzeptieren
+295,0.65,jev-1.13.0,683,0.29,frame,good,,uniform,der Mensch
+296,0.8,jev-1.13.0,697,0.36,other,good,modal,uniform,etw. (Akk) können
+297,0.91,jev-1.13.0,683,0.33,frame,good,,uniform,"eben, ebend"
+298,0.93,jev-1.13.0,712,0.36,frame,good,,uniform,die Unsicherheit
+299,0.65,jev-1.13.0,687,0.36,frame,good,,uniform,der Soldat
+300,0.83,jev-1.13.0,718,0.33,frame,good,,uniform,etw. (Akk) bei jdm. abgeben
+301,0.9,jev-1.13.0,694,0.36,other,good,aux,panel,etw./jdn. (Akk) haben
+302,0.88,jev-1.13.0,689,0.36,other,good,aux,panel,etw./jdn. (Akk) haben
+303,0.86,jev-1.13.0,712,0.26,other,good,aux,panel,etw./jdn. (Akk) haben
+304,0.9,jev-1.13.0,684,0.27,other,good,modal,panel,etw. (Akk) können
+305,0.96,jev-1.13.0,708,0.31,other,good,modal,panel,etw. (Akk) können
+306,0.97,jev-1.13.0,687,0.28,other,good,modal,panel,etw. (Akk) können
+307,0.84,jev-1.13.0,690,0.29,construction,bad,es_gibt,panel,jdm. (Dat) etw. (Akk) geben
+308,0.78,jev-1.13.0,708,0.27,construction,bad,es_gibt,panel,jdm. (Dat) etw. (Akk) geben
+309,0.76,jev-1.13.0,713,0.25,construction,bad,es_gibt,panel,jdm. (Dat) etw. (Akk) geben
+310,0.46,jev-1.13.0,704,0.25,frame,good,,panel,jdm. (Dat) etw. (Akk) sagen
+311,0.65,jev-1.13.0,710,0.27,frame,good,,panel,jdm. (Dat) etw. (Akk) sagen
+312,0.79,jev-1.13.0,696,0.23,frame,good,,panel,jdm. (Dat) etw. (Akk) sagen
+313,0.74,jev-1.13.0,692,0.23,other,good,,panel,etw. (Akk) machen
+314,0.72,jev-1.13.0,693,0.26,frame,good,,panel,etw. (Akk) machen
+315,0.71,jev-1.13.0,695,0.25,frame,good,,panel,etw. (Akk) machen
+316,0.8,jev-1.13.0,701,0.34,frame,good,,panel,"all, alle"
+317,0.65,jev-1.13.0,705,0.28,frame,good,,panel,"all, alle"
+318,0.82,jev-1.13.0,683,0.29,frame,good,,panel,"all, alle"
+319,0.86,jev-1.13.0,697,0.24,other,good,modal,panel,etw. (Akk) wollen
+320,0.89,jev-1.13.0,704,0.23,other,good,modal,panel,etw. (Akk) wollen
+321,0.94,jev-1.13.0,696,0.31,other,good,modal,panel,etw. (Akk) wollen
+322,0.9,jev-1.13.0,683,0.24,frame,good,,panel,etw./jdn. (Akk) sehen
+323,0.73,jev-1.13.0,711,0.24,frame,good,,panel,etw./jdn. (Akk) sehen
+324,0.78,jev-1.13.0,692,0.33,frame,good,,panel,etw./jdn. (Akk) sehen
+325,0.63,jev-1.13.0,697,0.36,frame,good,,panel,das Jahr
+326,0.54,jev-1.13.0,722,0.29,frame,good,,panel,das Jahr
+327,0.41,jev-1.13.0,730,0.37,frame,good,,panel,das Jahr
+328,0.81,jev-1.13.0,713,0.38,frame,good,,panel,etw. (Akk) wissen
+329,0.65,jev-1.13.0,706,0.33,frame,good,,panel,etw. (Akk) wissen
+330,0.87,jev-1.13.0,680,0.36,frame,good,,panel,etw. (Akk) wissen
+331,0.55,jev-1.13.0,695,0.36,frame,good,,panel,der Mensch
+332,0.5,jev-1.13.0,685,0.34,frame,good,,panel,der Mensch
+333,0.57,jev-1.13.0,699,0.35,frame,good,,panel,der Mensch
+334,0.84,jev-1.13.0,693,0.36,frame,good,,panel,etw./jdn. (Akk) finden
+335,0.82,jev-1.13.0,707,0.33,frame,good,,panel,etw./jdn. (Akk) finden
+336,0.81,jev-1.13.0,715,0.36,other,good,,panel,etw./jdn. (Akk) finden
+337,0.92,jev-1.13.0,676,0.36,frame,good,,panel,das Video
+338,0.54,jev-1.13.0,695,0.33,frame,good,,panel,das Video
+339,0.75,jev-1.13.0,679,0.36,frame,good,,panel,das Video
+340,0.82,jev-1.13.0,685,0.36,frame,good,,panel,etw. (Akk) tun
+341,0.71,jev-1.13.0,700,0.33,frame,good,,panel,etw. (Akk) tun
+342,0.77,jev-1.13.0,701,0.36,frame,good,,panel,etw. (Akk) tun
+343,0.88,jev-1.13.0,689,0.36,other,good,,panel,jdm. (Dat) stehen
+344,0.75,jev-1.13.0,694,0.25,other,good,,panel,jdm. (Dat) stehen
+345,0.91,jev-1.13.0,703,0.28,other,good,,panel,jdm. (Dat) stehen
+346,0.73,jev-1.13.0,703,0.25,frame,good,,panel,mit jdm. / über etw./jdn. sprechen
+347,0.88,jev-1.13.0,699,0.28,frame,good,,panel,mit jdm. / über etw./jdn. sprechen
+348,0.96,jev-1.13.0,725,0.25,frame,good,,panel,mit jdm. / über etw./jdn. sprechen
+349,0.64,jev-1.13.0,706,0.26,construction,bad,,panel,das Beispiel
+350,0.65,jev-1.13.0,690,0.28,frame,good,,panel,das Beispiel
+351,0.52,jev-1.13.0,717,0.77,construction,bad,,panel,das Beispiel
+352,0.94,jev-1.13.0,688,0.28,frame,good,,panel,"selbst, selber"
+353,0.93,jev-1.13.0,681,0.3,frame,good,,panel,"selbst, selber"
+354,0.92,jev-1.13.0,692,0.24,frame,good,,panel,"selbst, selber"
+355,0.7,jev-1.13.0,678,0.28,frame,good,,panel,die Zeit
+356,0.69,jev-1.13.0,691,0.29,frame,good,,panel,die Zeit
+357,0.7,jev-1.13.0,676,0.29,construction,bad,,panel,die Zeit
+358,0.91,jev-1.13.0,684,0.28,frame,good,,panel,das Land
+359,0.89,jev-1.13.0,681,0.27,frame,good,,panel,das Land
+360,0.57,jev-1.13.0,699,0.25,frame,good,,panel,das Land
+361,0.8,jev-1.13.0,694,0.27,frame,good,,panel,etw. (Akk) bekommen
+362,0.6,jev-1.13.0,689,0.28,frame,good,,panel,etw. (Akk) bekommen
+363,0.8,jev-1.13.0,703,0.23,frame,good,,panel,etw. (Akk) bekommen
+364,0.89,jev-1.13.0,689,0.28,frame,good,,panel,etw./jdn. (Akk) brauchen
+365,0.93,jev-1.13.0,704,0.36,other,good,,panel,etw./jdn. (Akk) brauchen
+366,0.85,jev-1.13.0,711,0.29,frame,good,,panel,etw./jdn. (Akk) brauchen
+367,0.94,jev-1.13.0,715,0.29,other,good,,panel,jdm. (Dat) etw. (Akk) bedeuten
+368,0.78,jev-1.13.0,701,0.38,other,good,,panel,jdm. (Dat) etw. (Akk) bedeuten
+369,0.91,jev-1.13.0,706,0.36,other,good,,panel,jdm. (Dat) etw. (Akk) bedeuten
+370,0.79,jev-1.13.0,704,0.25,frame,good,,panel,"gern, gerne"
+371,0.78,jev-1.13.0,680,0.45,frame,good,,panel,"gern, gerne"
+372,0.85,jev-1.13.0,677,0.35,frame,good,,panel,"gern, gerne"
+373,0.95,jev-1.13.0,681,0.24,frame,good,,panel,"nichts, nix"
+374,0.78,jev-1.13.0,695,0.29,construction,bad,,panel,"nichts, nix"
+375,0.89,jev-1.13.0,679,0.33,frame,good,,panel,"nichts, nix"
+376,0.8,jev-1.13.0,686,0.36,frame,good,,panel,jdm. (Dat) passieren
+377,0.9,jev-1.13.0,710,0.36,frame,good,,panel,jdm. (Dat) passieren
+378,0.71,jev-1.13.0,696,0.42,frame,good,,panel,jdm. (Dat) passieren
+379,0.62,jev-1.13.0,703,0.27,frame,good,,panel,der Tag
+380,0.63,jev-1.13.0,679,0.36,frame,good,,panel,der Tag
+381,0.42,jev-1.13.0,681,0.32,frame,good,,panel,der Tag
+382,0.93,jev-1.13.0,707,0.28,frame,good,,panel,die Frage
+383,0.72,jev-1.13.0,681,0.27,frame,good,,panel,die Frage
+384,0.95,jev-1.13.0,691,0.25,frame,good,,panel,die Frage
+385,0.56,jev-1.13.0,692,0.26,frame,good,,panel,der Mann
+386,0.46,jev-1.13.0,692,0.29,frame,good,,panel,der Mann
+387,0.95,jev-1.13.0,683,0.25,frame,good,,panel,der Mann
+388,0.87,jev-1.13.0,693,0.33,other,good,,panel,jdm. (Dat) / etw. (Akk) glauben
+389,0.94,jev-1.13.0,704,0.38,other,good,,panel,jdm. (Dat) / etw. (Akk) glauben
+390,0.97,jev-1.13.0,694,0.24,other,good,,panel,jdm. (Dat) / etw. (Akk) glauben
+391,0.58,jev-1.13.0,687,0.31,frame,good,,panel,die Frau
+392,0.72,jev-1.13.0,698,0.29,frame,good,,panel,die Frau
+393,0.95,jev-1.13.0,693,0.32,frame,good,,panel,die Frau
+394,0.06,jev-1.13.0,693,0.26,other,bad,,panel,etw./jdn. (Akk) lassen
+395,0.83,jev-1.13.0,689,0.25,frame,good,,panel,etw./jdn. (Akk) lassen
+396,0.73,jev-1.13.0,705,0.24,other,good,,panel,etw./jdn. (Akk) lassen
+397,0.8,jev-1.13.0,716,0.24,frame,good,,panel,jdm. (Dat) etw. (Akk) schreiben
+398,0.8,jev-1.13.0,721,0.23,frame,good,,panel,jdm. (Dat) etw. (Akk) schreiben
+399,0.75,jev-1.13.0,689,0.25,frame,good,,panel,jdm. (Dat) etw. (Akk) schreiben
+400,0.6,jev-1.13.0,690,0.29,other,good,,panel,nach etw. aussehen
+401,0.72,jev-1.13.0,733,0.3,other,good,,panel,nach etw. aussehen
+402,0.68,jev-1.13.0,695,0.25,other,good,,panel,nach etw. aussehen
+403,0.88,jev-1.13.0,681,0.29,frame,good,,panel,die Leute
+404,0.96,jev-1.13.0,679,0.24,frame,good,,panel,die Leute
+405,0.6,jev-1.13.0,702,0.33,frame,good,,panel,die Leute
+406,0.91,jev-1.13.0,701,0.38,frame,good,,panel,die Partei
+407,0.92,jev-1.13.0,696,0.29,frame,good,,panel,die Partei
+408,0.62,jev-1.13.0,699,0.4,frame,good,,panel,die Partei
+409,0.67,jev-1.13.0,701,0.36,frame,good,,panel,jdm. (Dat) etw. (Akk) zeigen
+410,0.78,jev-1.13.0,698,0.34,frame,good,,panel,jdm. (Dat) etw. (Akk) zeigen
+411,0.43,jev-1.13.0,705,0.35,other,good,,panel,jdm. (Dat) etw. (Akk) zeigen
+412,0.81,jev-1.13.0,683,0.37,frame,good,,panel,das Leben
+413,0.14,jev-1.13.0,709,0.32,construction,bad,,panel,das Leben
+414,0.61,jev-1.13.0,703,0.36,frame,good,,panel,das Leben
+415,0.69,jev-1.13.0,691,0.36,frame,good,,panel,das Kind
+416,0.58,jev-1.13.0,725,0.35,frame,good,,panel,das Kind
+417,0.54,jev-1.13.0,690,0.34,frame,good,,panel,das Kind
+418,0.21,jev-1.13.0,690,0.36,construction,bad,,panel,etw./jdn. (Akk) nehmen
+419,0.3,jev-1.13.0,686,0.33,construction,bad,,panel,etw./jdn. (Akk) nehmen
+420,0.6,jev-1.13.0,705,0.36,frame,good,,panel,etw./jdn. (Akk) nehmen
+421,0.62,jev-1.13.0,710,0.36,construction,bad,,panel,jdm. (Dat) etw. (Akk) bringen
+422,0.36,jev-1.13.0,713,0.36,construction,bad,,panel,jdm. (Dat) etw. (Akk) bringen
+423,0.85,jev-1.13.0,697,0.31,frame,good,,panel,jdm. (Dat) etw. (Akk) bringen
+424,0.33,jev-1.13.0,690,0.28,frame,good,,panel,das Problem
+425,0.56,jev-1.13.0,697,0.25,frame,good,,panel,das Problem
+426,0.49,jev-1.13.0,697,0.25,frame,good,,panel,das Problem
+427,0.53,jev-1.13.0,693,0.28,frame,good,,panel,der Fall
+428,0.24,jev-1.13.0,681,0.27,construction,bad,,panel,der Fall
+429,0.86,jev-1.13.0,686,0.28,frame,good,,panel,der Fall
+430,0.38,jev-1.13.0,678,0.23,frame,good,,panel,der Herr
+431,0.36,jev-1.13.0,685,0.29,frame,good,,panel,der Herr
+432,0.42,jev-1.13.0,680,0.34,frame,good,,panel,der Herr
+433,0.81,jev-1.13.0,679,0.25,frame,good,,panel,das Thema
+434,0.32,jev-1.13.0,685,0.28,frame,good,,panel,das Thema
+435,0.59,jev-1.13.0,700,0.28,frame,good,,panel,das Thema
+436,0.07,jev-1.13.0,685,0.27,other,bad,,panel,jdm. (Dat) gehören
+437,0.38,jev-1.13.0,699,0.23,other,good,,panel,jdm. (Dat) gehören
+438,0.14,jev-1.13.0,683,0.32,other,bad,,panel,jdm. (Dat) gehören
+439,0.85,jev-1.13.0,690,0.29,frame,good,,panel,etw./jdn. (Akk) kennen
+440,0.84,jev-1.13.0,710,0.37,frame,good,,panel,etw./jdn. (Akk) kennen
+441,0.87,jev-1.13.0,708,0.23,frame,good,,panel,etw./jdn. (Akk) kennen
+442,0.88,jev-1.13.0,708,0.3,frame,good,,panel,das Geld
+443,0.96,jev-1.13.0,687,0.35,frame,good,,panel,das Geld
+444,0.74,jev-1.13.0,680,0.3,frame,good,,panel,das Geld
+445,0.77,jev-1.13.0,703,0.35,frame,good,,panel,jdm. (Dat) helfen
+446,0.96,jev-1.13.0,689,0.37,frame,good,,panel,jdm. (Dat) helfen
+447,0.6,jev-1.13.0,691,0.33,frame,good,,panel,jdm. (Dat) helfen
+448,0.91,jev-1.13.0,686,0.36,frame,good,,panel,"lange, lang"
+449,0.86,jev-1.13.0,692,0.35,frame,good,,panel,"lange, lang"
+450,0.92,jev-1.13.0,681,0.33,frame,good,,panel,"lange, lang"
