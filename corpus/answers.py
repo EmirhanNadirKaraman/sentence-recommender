@@ -53,20 +53,31 @@ REFUSED = "gloss_refused"
 class Judged:
     """The answers of one model at one version, ready to rank with.
 
-    Absent means unjudged and scores 1.0 — the best — so a store with no
-    rows reorders nothing, exactly as `verdicts` behaves. Only a sentence
-    the judge has actually doubted moves, and it moves down.
+    Absent means unjudged, and unjudged scores as a *typical* judged
+    sentence — the median of what the judge has said — not as a perfect
+    one. `verdicts` can default to 1.0 because a reader marks only what is
+    bad; the judge answers for everything it is asked, so a sentence with
+    no answer is one nobody has asked about yet. The walk picks a card's
+    candidates with this key from every sentence that says the word, and
+    the pass judges only the candidates it finds stored: at 1.0 the
+    unjudged thousands would win every pick and the answers would order
+    nothing. At the median, a sentence the judge called good stays in, one
+    it called bad drops out, and what replaces it is judged next run. With
+    nothing judged at all the median is 1.0, and nothing moves.
     """
 
     def __init__(self, quality: dict[str, float],
-                 fit: dict[str, dict[tuple[str, str], float]]) -> None:
+                 fit: dict[str, dict[tuple[str, str], float]],
+                 typical_quality: float = 1.0, typical_fit: float = 1.0) -> None:
         self._quality = quality
         self._fit = fit
+        self._typical_quality = typical_quality
+        self._typical_fit = typical_fit
 
     def sentence(self, text: str) -> float:
         """How much the judge thinks the sentence is worth showing at all:
         the four quality answers multiplied, each a probability."""
-        return self._quality.get(text, 1.0)
+        return self._quality.get(text, self._typical_quality)
 
     def unit(self, text: str, unit: Unit) -> float:
         """How well the sentence serves as an example of `unit`: `plain` —
@@ -81,8 +92,8 @@ class Judged:
         """
         found = self._fit.get(text)
         if not found:
-            return 1.0
-        return found.get((unit.kind, unit.key), 1.0)
+            return self._typical_fit
+        return found.get((unit.kind, unit.key), self._typical_fit)
 
     def __len__(self) -> int:
         return len(self._quality)
@@ -163,4 +174,13 @@ class AnswerStore:
                     plain[text][(kind, key)] = value
                 elif question == REFUSED:
                     plain[text][(kind, key)] = 0.0
-        return Judged(quality, dict(plain))
+        return Judged(quality, dict(plain),
+                      _median(quality.values()),
+                      _median(v for units in plain.values() for v in units.values()
+                              if v > 0.0))          # refusals are not answers
+
+
+def _median(values) -> float:
+    """The middle of what the judge said, or 1.0 when it said nothing."""
+    found = sorted(values)
+    return found[len(found) // 2] if found else 1.0

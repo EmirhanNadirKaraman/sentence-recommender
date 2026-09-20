@@ -51,12 +51,28 @@ class StoreTest(unittest.TestCase):
             self.assertEqual(answers.counts()["guessable"], 1)
         self.assertEqual(judged.unit(GIVE, GEBEN), 1.0)
 
-    def test_unjudged_is_the_best(self) -> None:
+    def test_with_nothing_judged_nothing_moves(self) -> None:
         tmp, answers = store()
         with tmp:
             judged = answers.load("jev", 1)
         self.assertEqual(judged.sentence(GIVE), 1.0)
         self.assertEqual(judged.unit(GIVE, GEBEN), 1.0)
+
+    def test_unjudged_scores_as_a_typical_judged_sentence(self) -> None:
+        """Not as a perfect one: the walk picks candidates from every
+        sentence saying the word, and at 1.0 the unjudged would win every
+        pick. At the median, judged-good stays, judged-bad drops out."""
+        tmp, answers = store()
+        with tmp:
+            for text, quality in ((GIVE, 0.9), (BROKEN, 0.1), (THERE, 0.4)):
+                answers.save(text, "jev", 1, {"complete": (quality, None)})
+            answers.save(GIVE, "jev", 1, {"plain:u1": (0.8, None)}, units={"u1": GEBEN})
+            judged = answers.load("jev", 1)
+        unjudged = "Kannst du mir das Salz geben?"
+        self.assertEqual(judged.sentence(unjudged), 0.4)          # the median
+        self.assertGreater(judged.sentence(GIVE), judged.sentence(unjudged))
+        self.assertLess(judged.sentence(BROKEN), judged.sentence(unjudged))
+        self.assertEqual(judged.unit(unjudged, GEBEN), 0.8)       # the one plain answer
 
     def test_another_version_or_model_is_not_read(self) -> None:
         tmp, answers = store()

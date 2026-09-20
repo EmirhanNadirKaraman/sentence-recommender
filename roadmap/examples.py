@@ -67,7 +67,9 @@ def rank(unit: Unit, known: frozenset[Unit],
     how much the sentence gives it away. It multiplies into the same term
     as `verdicts`, and for the same reason it sits above quality: `quality`
     reads characters, and a judge has read the sentence. A sentence nobody
-    has judged scores 1.0 there, so an empty store reorders nothing.
+    has judged scores as a typical judged one — see `corpus.answers.Judged`
+    for why not 1.0 — and with nothing judged at all that is 1.0, so an
+    empty store reorders nothing.
 
     There is no key for whether the corpus shipped a translation. There was
     one, second, above quality, and it was right while a translation was
