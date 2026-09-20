@@ -14,6 +14,8 @@ import unittest
 from collections import Counter
 
 from corpus.analyzer import Evidence, UnitAnalyzer
+from corpus.sentence import Sentence
+from vocab.entry import Unit
 
 try:
     import spacy
@@ -121,3 +123,26 @@ class ConstructionConsumesItsVerbTest(unittest.TestCase):
         found = self.units("Ich gebe dir das Buch.")
         self.assertIn("lemma:geben", found)
         self.assertIn("pattern:jdm. (Dat) etw. (Akk) geben", found)
+
+
+class IdentityRemapTest(unittest.TestCase):
+    """The corpus vote's correction applies only to a surface the model left
+    unlemmatised — not to every unit that happens to share the key."""
+
+    def test_only_an_identity_failure_is_remapped(self) -> None:
+        from corpus.analyzer import UnitAnalyzer
+        unfixed = Sentence(text="Willst du das?").with_units(
+            frozenset({Unit.exact("willst")}), ((Unit.exact("willst"), "Willst"),))
+        pleased = Sentence(text="Das gefällt mir.").with_units(
+            frozenset({Unit.exact("fällen")}), ((Unit.exact("fällen"), "gefällt"),))
+        out = UnitAnalyzer._normalise([unfixed, pleased], frozenset(),
+                                      {"willst": "wollen", "fällen": "fall"})
+        self.assertEqual({u.key for u in out[0].units}, {"wollen"})
+        self.assertEqual({u.key for u in out[1].units}, {"fällen"})
+
+    def test_a_separated_failure_still_counts_as_identity(self) -> None:
+        from corpus.analyzer import UnitAnalyzer
+        s = Sentence(text="Kommst du mit?").with_units(
+            frozenset({Unit.exact("mitkommst")}), ((Unit.exact("mitkommst"), "Kommst mit"),))
+        out = UnitAnalyzer._normalise([s], frozenset(), {"mitkommst": "mitkommen"})
+        self.assertEqual({u.key for u in out[0].units}, {"mitkommen"})

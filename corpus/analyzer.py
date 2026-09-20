@@ -543,10 +543,24 @@ class UnitAnalyzer:
             if not (sentence.units & dropped or sentence.units & remap.keys()):
                 out.append(sentence)
                 continue
-            units = {remap.get(u, u) for u in sentence.units if u not in dropped}
+            # A correction is for a surface the model left unlemmatised, and
+            # it applies only where that is what happened. `Fällen`, the
+            # noun's plural, lowercases to the verb `fällen`, so the vote
+            # said the surface `fällen` means `fall` — and the remap then
+            # rewrote every unit keyed `fällen`, including the verb the
+            # parser had given `gefällt`: 157 sentences of *to please*
+            # became `der Fall`. Now only a unit whose surface *is* its key
+            # is touched; a lemma the parser actually produced stays,
+            # right or wrong, as a lemma.
+            said = dict(sentence.surfaces)
+
+            def fix(u: Unit) -> Unit:
+                if u not in remap or not _is_identity(u, said.get(u, "")):
+                    return u
+                return remap[u]
+            units = {fix(u) for u in sentence.units if u not in dropped}
             surfaces = tuple(
-                (remap.get(u, u), text)
-                for u, text in sentence.surfaces if u not in dropped
+                (fix(u), text) for u, text in sentence.surfaces if u not in dropped
             )
             out.append(sentence.with_units(frozenset(units), surfaces))
         return out
@@ -564,6 +578,20 @@ class UnitAnalyzer:
         if token.tag_ in PUNCTUATION_TAGS or token.tag_ in FREE_TAGS:
             return False
         return bool(token.lemma_.strip()) and token.lemma_ != "--"
+
+
+def _is_identity(unit: Unit, surface: str) -> bool:
+    """Is this unit the model's failure to lemmatise its surface at all?
+
+    `willst` left as `willst` is; `gefällt` given `fällen` is not, however
+    wrong. A separated verb's surface is written `kommst mit` and its unit
+    `mitkommst`, so the particle is folded to the front before comparing.
+    """
+    words = surface.lower().split()
+    if not words:
+        return False
+    folded = words[-1] + words[0] if len(words) == 2 else words[0]
+    return unit.key == words[0] or unit.key == folded
 
 
 class _LemmaLookup:

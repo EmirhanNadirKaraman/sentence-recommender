@@ -183,11 +183,29 @@ class CorpusStore:
         self._stamp(build)
 
     def save(self, sentences: list[Sentence], build: str) -> None:
+        # What a detector said survives the rebuild. `language` is filled by
+        # `detect-language` after a build, and a rebuild that reinserts the
+        # rows forgot it: four rebuilds on 2026-09-20 wiped 12,649 English
+        # marks, and the next walk put `Why did I stand in the pillory?` on
+        # a card. Kept by text, which is what the detector read.
+        with self._read() as cur:
+            cur.execute("SELECT text, language FROM corpus_sentence"
+                        " WHERE build = %s AND language IS NOT NULL", (build,))
+            said = dict(cur.fetchall())
         with self._write_txn() as cur:
             # The foreign key cascades, so the units go with their sentences
             # and there is no second DELETE to get wrong.
             cur.execute("DELETE FROM corpus_sentence WHERE build = %s", (build,))
         self._write(sentences, build)
+        kept = [(build, s.text, said[s.text]) for s in sentences if s.text in said]
+        if kept:
+            with self._write_txn() as cur:
+                execute_values(
+                    cur,
+                    "UPDATE corpus_sentence AS s SET language = v.language"
+                    " FROM (VALUES %s) AS v (build, text, language)"
+                    " WHERE s.build = v.build AND s.text = v.text",
+                    kept, template="(%s, %s, %s)", page_size=5000)
         self._stamp(build)
 
     def _write(self, sentences: list[Sentence], build: str) -> None:
