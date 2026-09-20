@@ -1,0 +1,129 @@
+n,gram,yes_sentences,no_sentences,lift
+2,jeden fall,101,0,1133.2
+3,auf jeden fall,101,0,1133.2
+2,und zwar,99,0,1110.7
+2,tut mir,62,0,695.6
+2,eine rolle,61,0,684.4
+2,auf jeden,101,1,377.7
+2,mir leid,51,0,572.2
+3,tut mir leid,51,0,572.2
+2,zur verfügung,30,0,336.6
+2,keinen fall,29,0,325.4
+2,wie gesagt,28,0,314.1
+2,rolle spielen,26,0,291.7
+2,keine ahnung,25,0,280.5
+2,ins spiel,24,0,269.3
+2,es tut,22,0,246.8
+2,auf keinen,21,0,235.6
+3,auf keinen fall,21,0,235.6
+3,es tut mir,20,0,224.4
+2,große rolle,19,0,213.2
+2,rolle spielt,18,0,202.0
+3,auf den weg,18,0,202.0
+2,keine sorge,17,0,190.7
+2,leid ich,16,0,179.5
+3,mir leid ich,16,0,179.5
+4,tut mir leid ich,16,0,179.5
+4,es tut mir leid,16,0,179.5
+2,im gegenteil,15,0,168.3
+2,keine rolle,15,0,168.3
+2,zum anderen,14,0,157.1
+2,zum glück,14,0,157.1
+2,wichtige rolle,14,0,157.1
+2,ersten blick,14,0,157.1
+3,den ersten blick,14,0,157.1
+3,auf den ersten,14,0,157.1
+3,eine rolle spielen,14,0,157.1
+4,auf den ersten blick,14,0,157.1
+2,den griff,13,0,145.9
+2,auf sich,13,0,145.9
+2,im laufe,13,0,145.9
+2,nun ja,13,0,145.9
+2,klar ist,13,0,145.9
+2,zentrale rolle,13,0,145.9
+3,eine große rolle,13,0,145.9
+3,in den griff,13,0,145.9
+3,eine wichtige rolle,13,0,145.9
+3,ist auf jeden,13,0,145.9
+4,ist auf jeden fall,13,0,145.9
+2,laufe der,12,0,134.6
+2,in kauf,12,0,134.6
+2,kein wunder,12,0,134.6
+2,dem motto,12,0,134.6
+3,im laufe der,12,0,134.6
+3,eine zentrale rolle,12,0,134.6
+2,kurz gesagt,11,0,123.4
+2,keine sorgen,11,0,123.4
+2,leid dass,11,0,123.4
+3,nach dem motto,11,0,123.4
+2,den ausdruck,19,1,71.1
+2,es auf,18,1,67.3
+2,einen blick,10,0,112.2
+2,jede menge,10,0,112.2
+2,mein gott,10,0,112.2
+2,davon ausgehen,10,0,112.2
+2,kein problem,10,0,112.2
+2,wunder dass,10,0,112.2
+2,im griff,10,0,112.2
+2,na ja,10,0,112.2
+2,zum teufel,10,0,112.2
+3,kein wunder dass,10,0,112.2
+2,sorgen machen,9,0,101.0
+2,anderen blatt,9,0,101.0
+2,die tat,9,0,101.0
+2,es handelt,9,0,101.0
+2,handelt sich,9,0,101.0
+2,zum einen,9,0,101.0
+2,darauf an,9,0,101.0
+2,davon aus,9,0,101.0
+3,in die tat,9,0,101.0
+3,muss man sagen,9,0,101.0
+3,das sagen hat,9,0,101.0
+3,es handelt sich,9,0,101.0
+2,das heißt,15,1,56.1
+2,spielt eine,8,0,89.8
+2,dafür dass,8,0,89.8
+2,im blick,8,0,89.8
+2,ausgehen dass,8,0,89.8
+2,lohnt sich,8,0,89.8
+2,die nerven,8,0,89.8
+2,setzt sich,8,0,89.8
+3,gar keinen fall,8,0,89.8
+3,auf gar keinen,8,0,89.8
+3,noch den ausdruck,8,0,89.8
+3,leid dass ich,8,0,89.8
+3,mir leid dass,8,0,89.8
+3,laufe der zeit,8,0,89.8
+3,in der kritik,8,0,89.8
+3,einem anderen blatt,8,0,89.8
+3,auf einem anderen,8,0,89.8
+3,es auf jeden,8,0,89.8
+3,davon ausgehen dass,8,0,89.8
+3,wenn man so,8,0,89.8
+4,auf gar keinen fall,8,0,89.8
+4,tut mir leid dass,8,0,89.8
+4,im laufe der zeit,8,0,89.8
+4,auf einem anderen blatt,8,0,89.8
+4,es auf jeden fall,8,0,89.8
+2,den ersten,17,2,38.1
+2,das steht,12,1,44.9
+2,man sagen,16,3,25.6
+2,das sagen,13,2,29.2
+2,sagen hat,10,1,37.4
+2,es macht,10,1,37.4
+2,sich um,10,1,37.4
+2,der zeit,14,3,22.4
+2,eine wichtige,14,3,22.4
+2,dabei eine,9,1,33.7
+2,meiner meinung,9,1,33.7
+2,meinung nach,9,1,33.7
+2,keinen sinn,9,1,33.7
+3,meiner meinung nach,9,1,33.7
+2,auf gar,8,1,29.9
+2,fall ist,8,1,29.9
+2,der kritik,8,1,29.9
+2,das klingt,8,1,29.9
+2,die rede,10,2,22.4
+2,das geht,10,2,22.4
+2,gar keinen,9,2,20.2
+2,ausdruck ist,9,2,20.2

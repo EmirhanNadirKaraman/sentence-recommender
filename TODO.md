@@ -2002,6 +2002,22 @@ decks of 24, unjudged) and the running `serve`, which started before any
 of this and needs restarting to see it. The gloss version is 5, so
 `gloss-deck` will re-ask the cards' meanings about the verb.
 
+**The discovery pass, first draft, for nothing.** `expression` said yes
+(p ≥ .8) to 2,988 of the 46,032 judged sentences, and word n-grams
+weighed against the no-set (p < .3) name what is in them without asking
+the local model at all: `auf jeden Fall` in 101 sentences at 1,133 times
+the no-set's rate, `und zwar` 99, `es tut mir leid` 51, `eine Rolle
+spielen` about 60, `zur Verfügung stehen` 30, `auf keinen Fall` 29, `wie
+gesagt` 28, `keine Ahnung` 25, `ins Spiel kommen` 24, then `auf den
+ersten Blick`, `in den Griff bekommen`, `keine Sorge`, `im Laufe der`,
+`nach dem Motto`, `kein Wunder, dass`, `muss man sagen` at 9–18 each.
+Every one hangs on no pattern unit today. `05-expressions-by-lift.csv`
+holds the list; the counts are from the judged plan and the corpus is
+five times that. What they need is one matcher for fixed expressions —
+a table of lemma sequences, a `phrase_table` row and a list line each,
+the words consumed as `es gibt`'s are — rather than a rule per
+expression.
+
 **What this does not settle.** The list writes `stehen<TAB>jdm. (Dat)
 stehen` and means the verb; the frame came from the dictionary. Once rows
 are judged, the goal `jdm. (Dat) stehen` would teach *to suit someone* from
