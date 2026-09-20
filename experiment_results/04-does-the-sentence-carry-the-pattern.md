@@ -101,34 +101,71 @@ Residue after the rule: 138 rows, of which 107 carry the frame (78%), 21 another
 | `jdm. (Dat) helfen` | 3 | 0 | 0 | 0 |
 | `lange, lang` | 3 | 0 | 0 | 0 |
 
-## What the rule refuses, over a fresh slice
+## Arm: jev (jev-1.13.0)
 
-10,000 sentences, 10,903 verb pattern rows the old matcher would have emitted; the rule refuses 2,122 (19.5%) — 1,099 auxiliaries, 1,023 modals — and routes 349 more to `es gibt`.
+450 rows, 139s, 302,146 input tokens.
 
-An estimate, not the rebuild: the rows are re-derived here by looking each verb token's lemma up, which is the matcher's exact path but not its fuzzy fallback or its multi-token phrase. The number the corpus will actually lose is one query after `build-corpus subtitle` — `count(*)` of pattern rows against the 603,624 there today.
+| view | rows | precision@0.5 | recall@0.5 | p ≥ 0.9: right/n | p ≤ 0.1: right/n | 0.3–0.7 band |
+|---|---|---|---|---|---|---|
+| all | 450 | 91% | 90% | 32/32 | 30/30 | 153 |
+| residue | 408 | 92% | 90% | 32/32 | 9/9 | 148 |
 
-| pattern | rows | refused | rerouted |
-|---|---|---|---|
-| `etw./jdn. (Akk) haben` | 1666 | 1098 (66%) | 0 (0%) |
-| `etw. (Akk) können` | 837 | 783 (94%) | 0 (0%) |
-| `jdm. (Dat) etw. (Akk) geben` | 432 | 0 (0%) | 349 (81%) |
-| `etw. (Akk) machen` | 404 | 0 (0%) | 0 (0%) |
-| `jdm. (Dat) etw. (Akk) sagen` | 392 | 0 (0%) | 0 (0%) |
-| `etw. (Akk) wollen` | 304 | 235 (77%) | 0 (0%) |
-| `etw./jdn. (Akk) sehen` | 205 | 0 (0%) | 0 (0%) |
-| `etw. (Akk) wissen` | 154 | 0 (0%) | 0 (0%) |
-| `etw./jdn. (Akk) finden` | 134 | 0 (0%) | 0 (0%) |
-| `etw. (Akk) tun` | 127 | 0 (0%) | 0 (0%) |
-| `jdm. (Dat) stehen` | 107 | 0 (0%) | 0 (0%) |
-| `etw. (Akk) bekommen` | 107 | 0 (0%) | 0 (0%) |
-| `mit jdm. / über etw./jdn. sprechen` | 98 | 0 (0%) | 0 (0%) |
-| `jdm. (Dat) etw. (Akk) bedeuten` | 90 | 0 (0%) | 0 (0%) |
-| `etw./jdn. (Akk) brauchen` | 90 | 0 (0%) | 0 (0%) |
-| `jdm. (Dat) passieren` | 81 | 0 (0%) | 0 (0%) |
-| `etw./jdn. (Akk) lassen` | 77 | 0 (0%) | 0 (0%) |
-| `jdm. (Dat) etw. (Akk) bringen` | 74 | 0 (0%) | 0 (0%) |
-| `nach etw. aussehen` | 70 | 0 (0%) | 0 (0%) |
-| `jdm. (Dat) / etw. (Akk) glauben` | 66 | 0 (0%) | 0 (0%) |
+Precision and recall are of *frame* against everything else; the two calibration columns say, of the rows the judge was sure about, how many the label agreed with; the band is the rows it was not sure about, which is the number a person would still read.
+
+| pattern (panel) | p per row → label |
+|---|---|
+| `all, alle` | 0.69→frame, 0.55→frame, 0.67→frame |
+| `das Beispiel` | 0.51→const, 0.65→frame, 0.36→const |
+| `das Geld` | 0.85→frame, 0.90→frame, 0.87→frame |
+| `das Jahr` | 0.68→frame, 0.76→frame, 0.72→frame |
+| `das Kind` | 0.80→frame, 0.67→frame, 0.69→frame |
+| `das Land` | 0.87→frame, 0.91→frame, 0.78→frame |
+| `das Leben` | 0.73→frame, 0.56→const, 0.59→frame |
+| `das Problem` | 0.46→frame, 0.78→frame, 0.86→frame |
+| `das Thema` | 0.81→frame, 0.60→frame, 0.71→frame |
+| `das Video` | 0.93→frame, 0.77→frame, 0.87→frame |
+| `der Fall` | 0.66→frame, 0.35→const, 0.67→frame |
+| `der Herr` | 0.49→frame, 0.38→frame, 0.51→frame |
+| `der Mann` | 0.60→frame, 0.69→frame, 0.96→frame |
+| `der Mensch` | 0.76→frame, 0.67→frame, 0.54→frame |
+| `der Tag` | 0.75→frame, 0.81→frame, 0.53→frame |
+| `die Frage` | 0.88→frame, 0.77→frame, 0.89→frame |
+| `die Frau` | 0.54→frame, 0.72→frame, 0.89→frame |
+| `die Leute` | 0.59→frame, 0.92→frame, 0.80→frame |
+| `die Partei` | 0.91→frame, 0.90→frame, 0.77→frame |
+| `die Zeit` | 0.87→frame, 0.81→frame, 0.57→const |
+| `etw. (Akk) bekommen` | 0.75→frame, 0.62→frame, 0.70→frame |
+| `etw. (Akk) können` | 0.09→other, 0.08→other, 0.10→other |
+| `etw. (Akk) machen` | 0.44→other, 0.68→frame, 0.42→frame |
+| `etw. (Akk) tun` | 0.77→frame, 0.71→frame, 0.69→frame |
+| `etw. (Akk) wissen` | 0.59→frame, 0.19→frame, 0.53→frame |
+| `etw. (Akk) wollen` | 0.15→other, 0.23→other, 0.12→other |
+| `etw./jdn. (Akk) brauchen` | 0.95→frame, 0.14→other, 0.92→frame |
+| `etw./jdn. (Akk) finden` | 0.83→frame, 0.85→frame, 0.79→other |
+| `etw./jdn. (Akk) haben` | 0.13→other, 0.05→other, 0.21→other |
+| `etw./jdn. (Akk) kennen` | 0.84→frame, 0.72→frame, 0.66→frame |
+| `etw./jdn. (Akk) lassen` | 0.13→other, 0.64→frame, 0.60→other |
+| `etw./jdn. (Akk) nehmen` | 0.21→const, 0.16→const, 0.45→frame |
+| `etw./jdn. (Akk) sehen` | 0.90→frame, 0.73→frame, 0.13→frame |
+| `gern, gerne` | 0.69→frame, 0.79→frame, 0.78→frame |
+| `jdm. (Dat) / etw. (Akk) glauben` | 0.12→other, 0.47→other, 0.12→other |
+| `jdm. (Dat) etw. (Akk) bedeuten` | 0.13→other, 0.51→other, 0.14→other |
+| `jdm. (Dat) etw. (Akk) bringen` | 0.13→const, 0.14→const, 0.47→frame |
+| `jdm. (Dat) etw. (Akk) geben` | 0.66→const, 0.21→const, 0.09→const |
+| `jdm. (Dat) etw. (Akk) sagen` | 0.24→frame, 0.65→frame, 0.78→frame |
+| `jdm. (Dat) etw. (Akk) schreiben` | 0.70→frame, 0.64→frame, 0.56→frame |
+| `jdm. (Dat) etw. (Akk) zeigen` | 0.86→frame, 0.35→frame, 0.12→other |
+| `jdm. (Dat) gehören` | 0.09→other, 0.14→other, 0.07→other |
+| `jdm. (Dat) helfen` | 0.90→frame, 0.70→frame, 0.92→frame |
+| `jdm. (Dat) passieren` | 0.26→frame, 0.61→frame, 0.63→frame |
+| `jdm. (Dat) stehen` | 0.24→other, 0.40→other, 0.06→other |
+| `lange, lang` | 0.81→frame, 0.79→frame, 0.69→frame |
+| `mit jdm. / über etw./jdn. sprechen` | 0.30→frame, 0.12→frame, 0.23→frame |
+| `nach etw. aussehen` | 0.39→other, 0.69→other, 0.68→other |
+| `nichts, nix` | 0.87→frame, 0.62→const, 0.72→frame |
+| `selbst, selber` | 0.75→frame, 0.75→frame, 0.66→frame |
+
+
 
 ## Constructions the labels named
 

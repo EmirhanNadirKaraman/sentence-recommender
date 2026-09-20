@@ -47,6 +47,8 @@ from experiments import results                             # noqa: E402
 SAMPLE = "04-pattern-sense-sample"
 JUDGED = "04-pattern-sense-judged"
 RULE = "04-pattern-sense-rule"
+HISTORY = "04-pattern-sense"             # one row per `measure`, as the others keep
+ARM = "04-pattern-sense-arm-{}"          # one file per judge: jev, local
 REPORT = "04-does-the-sentence-carry-the-pattern.md"
 
 # Reproducible: the judged file is keyed on `n`, and a redraw that shuffled
@@ -251,6 +253,25 @@ def summarise(rows: list[dict]) -> dict:
     return out
 
 
+def _last_effect() -> dict | None:
+    """The rule's effect as the last `measure` left it, for a report written
+    by an arm run that did not re-parse the corpus."""
+    history = results.read(HISTORY)
+    if not history:
+        return None
+    last = {k: (float(v) if k == "share_refused" else int(v))
+            for k, v in history[-1].items()
+            if k in ("sentences", "verb_pattern_rows", "refused", "aux", "modal",
+                     "rerouted", "share_refused")}
+    detail = results.read(RULE)
+    for d in detail:
+        for k in ("before", "refused", "rerouted"):
+            d[k] = int(d[k])
+        for k in ("share_refused", "share_rerouted"):
+            d[k] = float(d[k])
+    return {**last, "detail": detail}
+
+
 def write_report(rows: list[dict], effect: dict | None) -> None:
     s = summarise(rows)
     lines = ["# Does the sentence carry the pattern?", ""]
@@ -319,6 +340,8 @@ def write_report(rows: list[dict], effect: dict | None) -> None:
         for d in effect["detail"][:20]:
             lines.append(f"| `{d['pattern']}` | {d['before']} | {d['refused']} "
                          f"({d['share_refused']:.0%}) | {d['rerouted']} ({d['share_rerouted']:.0%}) |")
+    for name in ARMS:
+        lines += [""] + arm_section(name)
     lines += ["", "## Constructions the labels named", "",
               "What the sentence carried instead, where the judge named it — "
               "the candidates a discovery pass would have to propose:", ""]
@@ -327,6 +350,195 @@ def write_report(rows: list[dict], effect: dict | None) -> None:
         lines.append(f"- `{what}` × {n}")
     (results.RESULTS / REPORT).write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"  wrote experiment_results/{REPORT}")
+
+
+# --- the arms ---------------------------------------------------------------
+#
+# Two judges asked the labelling rule's own question, one row per request,
+# and scored against the judged file. Neither is told the English of the
+# unit: the deck's gloss would have said `gehört means heard` for
+# `jdm. (Dat) gehören` and `auf jeden Fall means definitely` for `der Fall`,
+# and a judge fed that answers the gloss's question rather than the
+# label's. What both get is the canonical, its spoken form, and the one-line
+# legend for the notation; reading the German is the thing under test.
+
+NOTATION = ("In a canonical, `jdm.`/`jemandem` is a person in the dative and "
+            "`jdn.`/`jemanden` a person in the accusative, `etw.`/`etwas` a "
+            "thing, `(Dat)`/`(Akk)` its case, `sich` a reflexive; a "
+            "preposition written before them belongs to the frame; an article "
+            "with a noun is that noun in its ordinary sense; a comma separates "
+            "two spellings of one word.")
+
+QUESTION = ("Do the marked words in `sentence` use the unit `unit.spoken` "
+            "(canonical `unit.canonical`) in the sense and frame that "
+            "canonical names? Yes if the word is used in that sense, even "
+            "with a slot left unsaid — a recipient or an object the speaker "
+            "omitted. No if the word is an auxiliary or a modal standing in "
+            "front of another verb, is used in another sense or with another "
+            "frame (a different preposition, a reflexive, a clause where the "
+            "frame names a person or a thing), or belongs to a fixed "
+            "multiword expression the unit does not name.")
+
+CRITERIA = {
+    "true": ("The marked words realise the canonical unit's own sense and "
+             "frame here. Inflection and separated parts are allowed, and a "
+             "slot left unsaid still counts."),
+    "false": ("An auxiliary or modal use, another sense or frame of the same "
+              "word, or a fixed expression the canonical does not name — "
+              "`Bescheid wissen` is not `etwas wissen`, `sich ändern` is not "
+              "`etwas ändern`."),
+}
+
+
+def _state(row: dict) -> dict:
+    from deck.spoken import spoken                       # noqa: PLC0415
+    return {
+        "sentence": row["text"],
+        "marked": row["surface"],
+        "unit": {"canonical": row["pattern"], "spoken": spoken(row["pattern"])},
+        "notation": NOTATION,
+    }
+
+
+def arm_jev(rows: list[dict], on_progress=None) -> list[dict]:
+    """One Noul per row against TypeSafe's Jev. Needs `TYPESAFE_API_KEY`."""
+    import time                                          # noqa: PLC0415
+    from typesafe_sdk import Noul, TypeSafeClient        # noqa: PLC0415
+    from config import load_dotenv                       # noqa: PLC0415
+    load_dotenv()
+    out = []
+    question = {"frame": Noul(instructions=QUESTION, criteria=CRITERIA)}
+    with TypeSafeClient() as client:
+        for i, row in enumerate(rows, 1):
+            started = time.time()
+            response = client.system_one(_state(row), question)
+            out.append({"n": row["n"], "p": round(response.answers["frame"].noul, 4),
+                        "model": response.model,
+                        "input_tokens": response.usage.input_tokens,
+                        "seconds": round(time.time() - started, 2)})
+            if on_progress and (i % 50 == 0 or i == len(rows)):
+                on_progress(i, len(rows))
+    return out
+
+
+# The local endpoint's yes/no, as a probability. Probed 2026-09-20:
+# `/v1/chat/completions` refuses `logprobs`; `/v1/completions` returns them
+# and honours llama.cpp's `grammar`, reporting the distribution from before
+# the grammar — which is the one wanted. The chat template is rendered by
+# hand with the thinking block closed, since the model would otherwise spend
+# its first tokens on `<think>`. The sampled text is never read: at
+# temperature 0 it was not the argmax of what the server reported.
+_TEMPLATE = ("<|im_start|>system\n{system}<|im_end|>\n"
+             "<|im_start|>user\n{user}<|im_end|>\n"
+             "<|im_start|>assistant\n<think>\n\n</think>\n\n")
+_GRAMMAR = 'root ::= "yes" | "no"'
+
+
+def _local_prompt(row: dict) -> str:
+    import json                                          # noqa: PLC0415
+    state = _state(row)
+    return (f"State:\n{json.dumps(state, ensure_ascii=False, indent=1)}\n\n"
+            f"Question: {QUESTION}\n"
+            f"Yes means: {CRITERIA['true']}\nNo means: {CRITERIA['false']}\n"
+            "Answer with one word, yes or no.")
+
+
+def arm_local(rows: list[dict], on_progress=None) -> list[dict]:
+    import math, time                                    # noqa: PLC0415
+    import requests                                      # noqa: PLC0415
+    from config import load_dotenv                       # noqa: PLC0415
+    from generation.client import LLMClient              # noqa: PLC0415
+    load_dotenv()
+    client = LLMClient()
+    out = []
+    for i, row in enumerate(rows, 1):
+        prompt = _TEMPLATE.format(system="You judge German word senses. Answer yes or no.",
+                                  user=_local_prompt(row))
+        body = {"model": client._model, "prompt": prompt, "max_tokens": 1,
+                "temperature": 0, "logprobs": 10, "grammar": _GRAMMAR}
+        started = time.time()
+        response = requests.post(f"{client._base_url}/completions",
+                                 headers=client._headers(), json=body, timeout=180)
+        response.raise_for_status()
+        first = response.json()["choices"][0]["logprobs"]["content"][0]
+        top = {t["token"].strip().lower(): t["logprob"] for t in first["top_logprobs"]}
+        floor = min(t["logprob"] for t in first["top_logprobs"])   # unseen: at most this
+        yes = math.exp(top.get("yes", floor)); no = math.exp(top.get("no", floor))
+        out.append({"n": row["n"], "p": round(yes / (yes + no), 4),
+                    "model": client._model, "input_tokens": "",
+                    "seconds": round(time.time() - started, 2)})
+        if on_progress and (i % 50 == 0 or i == len(rows)):
+            on_progress(i, len(rows))
+    return out
+
+
+ARMS = {"jev": arm_jev, "local": arm_local}
+
+
+def run_arm(name: str, rows: list[dict], limit: int | None = None) -> None:
+    rows = rows[:limit] if limit else rows
+    answers = ARMS[name](rows, lambda i, n: print(f"  {name}: {i}/{n}", flush=True))
+    by_n = {r["n"]: r for r in rows}
+    for a in answers:
+        a["verdict"] = by_n[a["n"]]["verdict"]
+        a["rule"] = by_n[a["n"]].get("rule", "")
+        a["stratum"] = by_n[a["n"]]["stratum"]
+        a["pattern"] = by_n[a["n"]]["pattern"]
+    results.write_detail(ARM.format(name), answers)
+
+
+def score_arm(name: str) -> dict | None:
+    """Precision and recall at 0.5, calibration at the ends, and the band."""
+    answers = results.read(ARM.format(name))
+    if not answers:
+        return None
+    def view(part):
+        p = [(float(a["p"]), a["verdict"] == "frame") for a in part]
+        yes = [f for prob, f in p if prob >= 0.5]
+        frames = [prob for prob, f in p if f]
+        sure_yes = [f for prob, f in p if prob >= 0.9]
+        sure_no = [f for prob, f in p if prob <= 0.1]
+        band = [f for prob, f in p if 0.3 < prob < 0.7]
+        return {"rows": len(p),
+                "precision": round(sum(yes) / max(len(yes), 1), 3),
+                "recall": round(sum(1 for prob in frames if prob >= 0.5) / max(len(frames), 1), 3),
+                "at_90": (len(sure_yes), sum(sure_yes)),
+                "at_10": (len(sure_no), sum(1 for f in sure_no if not f)),
+                "band": len(band)}
+    residue = [a for a in answers if not a["rule"]]
+    per_pattern: dict[str, list] = defaultdict(list)
+    for a in answers:
+        if a["stratum"] == "panel":
+            per_pattern[a["pattern"]].append((float(a["p"]), a["verdict"]))
+    tokens = sum(int(a["input_tokens"] or 0) for a in answers)
+    return {"all": view(answers), "residue": view(residue), "per_pattern": per_pattern,
+            "model": answers[0]["model"], "input_tokens": tokens,
+            "seconds": round(sum(float(a["seconds"]) for a in answers), 1)}
+
+
+def arm_section(name: str) -> list[str]:
+    s = score_arm(name)
+    if s is None:
+        return []
+    lines = [f"## Arm: {name} ({s['model']})", ""]
+    lines += [f"{s['all']['rows']} rows, {s['seconds']:.0f}s"
+              + (f", {s['input_tokens']:,} input tokens" if s["input_tokens"] else "") + ".", "",
+              "| view | rows | precision@0.5 | recall@0.5 | p ≥ 0.9: right/n | p ≤ 0.1: right/n | 0.3–0.7 band |",
+              "|---|---|---|---|---|---|---|"]
+    for label in ("all", "residue"):
+        v = s[label]
+        lines.append(f"| {label} | {v['rows']} | {v['precision']:.0%} | {v['recall']:.0%} | "
+                     f"{v['at_90'][1]}/{v['at_90'][0]} | {v['at_10'][1]}/{v['at_10'][0]} | {v['band']} |")
+    lines += ["", "Precision and recall are of *frame* against everything else; "
+              "the two calibration columns say, of the rows the judge was sure "
+              "about, how many the label agreed with; the band is the rows it "
+              "was not sure about, which is the number a person would still read.", "",
+              "| pattern (panel) | p per row → label |", "|---|---|"]
+    for pattern, rows in sorted(s["per_pattern"].items(), key=lambda kv: kv[0]):
+        cells = ", ".join(f"{p:.2f}→{v[:5]}" for p, v in rows)
+        lines.append(f"| `{pattern}` | {cells} |")
+    lines.append("")
+    return lines
 
 
 def main() -> None:
@@ -348,9 +560,27 @@ def main() -> None:
         effect = rule_effect(app)
         print(f"  rule refuses {effect['refused']:,} of {effect['verb_pattern_rows']:,} "
               f"verb pattern rows ({effect['share_refused']:.1%}) over {effect['sentences']:,} sentences")
+        verdicts = Counter(r["verdict"] for r in rows)
+        results.append(HISTORY, {
+            "rows": len(rows), "frame": verdicts["frame"], "other": verdicts["other"],
+            "construction": verdicts["construction"], "unclear": verdicts["unclear"],
+            "rule_tagged": sum(1 for r in rows if r["rule"]),
+            **{k: effect[k] for k in ("sentences", "verb_pattern_rows", "refused",
+                                      "aux", "modal", "rerouted", "share_refused")},
+        })
         write_report(rows, effect)
+    elif what == "arm":
+        name = sys.argv[2] if len(sys.argv) > 2 else ""
+        if name not in ARMS:
+            raise SystemExit("usage: pattern_sense.py arm jev|local [limit]")
+        rows = judged()
+        if not rows or "rule" not in rows[0]:
+            raise SystemExit("run `measure` first: the arms are scored against the judged file")
+        limit = int(sys.argv[3]) if len(sys.argv) > 3 else None
+        run_arm(name, rows, limit)
+        write_report(rows, _last_effect())
     else:
-        raise SystemExit("usage: pattern_sense.py [sample|measure]")
+        raise SystemExit("usage: pattern_sense.py [sample|measure|arm jev|local [limit]]")
 
 
 if __name__ == "__main__":

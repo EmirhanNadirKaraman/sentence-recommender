@@ -1723,6 +1723,29 @@ survives in enough sentences to teach.
     row — *do the marked tokens realise this unit in this sense here,
     inflection and separated parts allowed*. Subtitle rows only, as the
     sample already is.
+  * *Jev — run, 2026-09-20, 450 rows, 302k input tokens, 139 seconds, about
+    a cent.* Precision 91% and recall 90% at 0.5, where the matcher's own
+    label is 71% precise; on the 408-row residue after the rule, 92% and
+    90%, so the gain is on the semantic half. The tails are clean on this
+    sample: every one of the 32 rows given p ≥ 0.9 carries its frame, and
+    every one of the 30 given p ≤ 0.1 does not. The band is the cost — 153
+    rows between 0.3 and 0.7, a third of the file, which is what a person
+    would still read. It separates the verbs the way the labels do: `können`
+    at .09/.08/.10, `haben` .13/.05/.21, `gehören` .09/.14/.07, `stehen`
+    .24/.40/.06, `glauben`, `bedeuten`, `es gibt` .66/.21/.09. Where its
+    German gives out is specific and worth knowing: `darüber sprechen` came
+    back .30/.12/.23, all three wrong — the da-compound was not read as
+    `über etw.` — and plain nouns sit near .5 (`der Herr` as a title .49,
+    .38, .51). One row is the question's fault, not the model's: the
+    criteria named `Bescheid wissen` as an example and row 329's sentence
+    contains it. Neither arm is told the unit's English — the deck's gloss
+    would have said *gehört means heard* for `jdm. (Dat) gehören` — only
+    the canonical, its spoken form and a one-line legend for the notation,
+    so the German is what was tested. What this licenses: *rank* a
+    pattern's sentences by p and build the card from the top, where 32 of
+    32 were right; not yet *drop* a row on p alone, where a third of the
+    file would be a coin toss. `experiments/pattern_sense.py arm jev`,
+    scores in `04-pattern-sense-arm-jev.csv` and the report.
   * *Local.* Probed the same day: `/v1/chat/completions` refuses `logprobs`
     outright; `/v1/completions` returns them, ignores `response_format`
     silently, and honours llama.cpp's `grammar` (`root ::= " yes" | " no"`)
