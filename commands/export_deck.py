@@ -72,7 +72,7 @@ class ExportDeckCommand:
         decks = store.decks(label, steps, limit=examples)
         glosses = GlossStore(app.settings.state_path)
         said = os.environ.get("LLM_MODEL", "")
-        cards = cards_from(steps, decks, glosses.senses(said),
+        cards = cards_from(steps, decks, glosses.senses_for_reading(said),
                            glosses.sentences(said),
                            FixStore(app.settings.state_path).all())
         sentences = sum(len(c.examples) for c in cards)

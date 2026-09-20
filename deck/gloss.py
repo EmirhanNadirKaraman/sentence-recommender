@@ -252,6 +252,25 @@ class GlossStore:
                         " WHERE version = ? AND (? = '' OR model = ?)",
                         (GLOSS_VERSION, model, model))}
 
+    def senses_for_reading(self, model: str = "") -> dict:
+        """What a document shows: the newest meaning there is for each
+        sentence, whatever prompt produced it.
+
+        `senses` is strict, and has to be — it decides what `gloss-deck`
+        asks again, and an old wording read as current would never be
+        replaced. A printed deck is the other way round: an answer from the
+        prompt before this one beats a blank line, and the version bump to
+        5 (asking about the verb rather than its frame) would otherwise
+        have emptied every card until the local model had been round the
+        whole deck again. Newest version wins per sentence.
+        """
+        with open_state(self._path) as conn:
+            return {(kind, key, text): means for kind, key, text, means in
+                    conn.execute(
+                        "SELECT kind, key, text, means FROM unit_sense"
+                        " WHERE means IS NOT NULL AND (? = '' OR model = ?)"
+                        " ORDER BY version", (model, model))}
+
     # A row the current prompts and this model produced. Either prompt will
     # do: a gloss answer and a bulk one are both the English of the sentence,
     # and each is current at its own version.
