@@ -19,9 +19,9 @@ from __future__ import annotations
 
 from heapq import nsmallest
 
-from corpus.quality import score as quality, variety
 from corpus.sentence import Sentence
-from roadmap.examples import DECK_SIZE, gaps_by_video, rank, spread
+from roadmap.examples import (DECK_SIZE, gaps_by_video, rank, spread,
+                              teaching_sentence)
 from roadmap.index import CorpusIndex
 from roadmap.priority import UnitPriority
 from roadmap.step import RoadmapStep
@@ -287,15 +287,5 @@ class RoadmapBuilder:
         promoted fragments: 162 of the plan's steps were taught by one before
         that rule, and 184 after.
         """
-        verdicts = self._verdicts or {}
-        judged = self._judged
-
-        def said(s) -> float:
-            worth = verdicts.get(s.text, 1.0)
-            if judged is not None:
-                worth *= judged.sentence(s.text) * judged.unit(s.text, unit)
-            return worth
-        return max(
-            (self._index.sentence(p) for p in positions),
-            key=lambda s: (said(s), quality(s.text), variety(s.text), s.text),
-        )
+        return teaching_sentence((self._index.sentence(p) for p in positions),
+                                 unit, self._verdicts, self._judged)

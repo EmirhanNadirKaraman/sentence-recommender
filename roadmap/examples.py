@@ -285,6 +285,29 @@ def _head(sentence: Sentence, unit: Unit) -> str:
     return unit.key.lower().split()[-1]
 
 
+def teaching_sentence(candidates, unit: Unit,
+                      verdicts: dict[str, float] | None = None,
+                      judged=None) -> Sentence:
+    """The one sentence a unit is taught with, out of those it alone unlocks.
+
+    What anyone has said about the sentence first — a reader's mark, the
+    judge's answers — then `quality`, then `variety`, then the text so the
+    choice is stable. The walk chooses with this and stores it; the
+    Frontier page shows the same choice live. It used to have its own —
+    `quality` alone — and showed `Du wirst alles sagen Wir möchten, dass
+    Sie es sagen.` for `sagen` after the judge had put that sentence at
+    .28 for being two lines glued together.
+    """
+    said = verdicts or {}
+
+    def worth(s: Sentence) -> float:
+        w = said.get(s.text, 1.0)
+        if judged is not None:
+            w *= judged.sentence(s.text) * judged.unit(s.text, unit)
+        return w
+    return max(candidates, key=lambda s: (worth(s), quality(s.text), variety(s.text), s.text))
+
+
 def spread(ordered: list[Sentence], unit: Unit, limit: int) -> list[Sentence]:
     """The best `limit` examples that are not each other.
 
