@@ -64,6 +64,9 @@ class Evidence:
         self.names: Counter[str] = Counter()
         self.content: Counter[str] = Counter()
         self.by_surface: dict[str, Counter[str]] = defaultdict(Counter)
+        # (prefix, stem lemma) for every separated verb seen, so a stem the
+        # vote corrects can be corrected under its prefix too.
+        self.prefixed: set[tuple[str, str]] = set()
 
 
 class UnitAnalyzer:
@@ -216,10 +219,11 @@ class UnitAnalyzer:
             s.with_units(*self._units(doc, evidence))
             for s, doc in zip(sentences, docs)
         ]
+        corrections = self._lemma_corrections(evidence)
         return self._normalise(
             analysed,
             self._proper_nouns(evidence),
-            self._lemma_corrections(evidence),
+            {**corrections, **self._prefixed_corrections(evidence, corrections)},
         )
 
     def lemmatise_each(self, texts: list[str]) -> list[str]:
@@ -259,8 +263,28 @@ class UnitAnalyzer:
     def _units(self, doc, evidence: Evidence):
         units: set[Unit] = set()
         surfaces: dict[Unit, str] = {}
+        # A separated prefix belongs to its verb. `Er steht auf` is
+        # `aufstehen`, and the parse says so — the particle hangs under the
+        # verb as `svp` — but reading the tokens one at a time made it
+        # `stehen` and `auf`, two units, in every one of the 8.6% of subtitle
+        # sentences with a separated verb. Under strict counting that put
+        # `stehen` in front of `aufstehen`, `fangen` in front of `anfangen`,
+        # and `willigen`, which is not a word, in front of `einwilligen` for
+        # ever. The pattern side has folded the prefix all along; this is the
+        # word side catching up. The evidence still votes with the bare stem,
+        # because the vote is keyed on the surface and `steht` must keep
+        # meaning `stehen` there; see `_prefixed_corrections`.
+        prefix_of: dict[int, object] = {}
+        for token in doc:
+            if token.pos_ in ("VERB", "AUX"):
+                for child in token.children:
+                    if child.dep_ == "svp":
+                        prefix_of[token.i] = child
+        particles = {child.i for child in prefix_of.values()}
         for token in doc:
             if token.tag_ in PUNCTUATION_TAGS or token.is_punct or token.is_space:
+                continue
+            if token.i in particles:
                 continue
             lemma = self._verb_lemma(token)
             if not lemma:
@@ -270,12 +294,18 @@ class UnitAnalyzer:
                 continue
             evidence.content[lemma] += 1
             evidence.by_surface[token.text.lower()][lemma] += 1
+            surface = token.text
+            if token.i in prefix_of:
+                particle = prefix_of[token.i]
+                evidence.prefixed.add((particle.lemma_.lower(), lemma))
+                lemma = particle.lemma_.lower() + lemma
+                surface = f"{token.text} {particle.text}"
             # `exact`: the capital on a noun that shares its lemma with a
             # verb is the only thing telling them apart, and it is this
             # line that used to drop it.
             unit = Unit.exact(lemma)
             units.add(unit)
-            surfaces.setdefault(unit, token.text)
+            surfaces.setdefault(unit, surface)
         for phrase in self.matcher.extract_phrases(doc, self._language):
             entry = phrase["dictionary_entry"]
             if entry not in self._patterns or not self._trustworthy(phrase, doc):
@@ -429,6 +459,20 @@ class UnitAnalyzer:
             if corroborated or count >= failures * CORRECTION_MARGIN:
                 corrections[surface] = best
         return corrections
+
+    @staticmethod
+    def _prefixed_corrections(evidence: Evidence,
+                              corrections: dict[str, str]) -> dict[str, str]:
+        """A stem the vote repaired, repaired under every prefix it wore.
+
+        `Kommst du mit?` opens on its verb, so the model hands back `kommst`
+        unlemmatised, and the fold in `_units` makes that `mitkommst`. The
+        vote knows `kommst` is `kommen` from its hundreds of mid-sentence
+        uses, and says so for the bare unit; this says it for the prefixed
+        one as well, which the remap would otherwise never reach.
+        """
+        return {prefix + stem: prefix + corrections[stem]
+                for prefix, stem in evidence.prefixed if stem in corrections}
 
     @staticmethod
     def _proper_nouns(evidence: Evidence) -> frozenset[str]:
