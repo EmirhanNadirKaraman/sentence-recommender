@@ -266,7 +266,11 @@ function cueAt(cues, now) {
                src: body.get('src')};
     fetch('/known', {method: 'POST', body: body, redirect: 'manual',
                      keepalive: true})
-      .then(function () { return fetch('/api/next' + window.location.search); })
+      // The study page swaps in a video's next word the same way; it names
+      // its route on the region.
+      .then(function () {
+        return fetch((region.dataset.api || '/api/next') + window.location.search);
+      })
       .then(function (r) { return r.json(); })
       .then(function (d) {
         if (d.empty || !d.html) { location.reload(); return; }

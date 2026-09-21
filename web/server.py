@@ -246,8 +246,13 @@ def _make_handler(viewers: "Viewers"):
                 return viewer.quiz(query), 200
             if path == "/watch":
                 return viewer.watch(query), 200
+            if path == "/study":
+                return viewer.study(query), 200
             if path == "/api/next":
                 self._send_json(viewer.next_json(query))
+                return "", 0
+            if path == "/api/study":
+                self._send_json(viewer.study_json(query))
                 return "", 0
             if path == "/api/reels":
                 self._send_json(viewer.reels_json(query))

@@ -1719,20 +1719,7 @@ class Viewer:
         target = Unit(kind, key)
         known = self.known
         video_id = query.get("video") or ""
-        # Asked of the database, not of a corpus in memory. This page wants
-        # a few sentences saying one word and used to load all 115,000 to
-        # find them: forty-six seconds, the slowest thing in the app.
-        list_only = self.counting(query)
-        holding = self.app.corpus(*self._builds(source), list_only=list_only,
-                                  strict=not list_only, holding=(kind, key))
-        found = ExampleIndex(holding).examples(
-            target, known, limit=25, minutes=self.app.video_minutes,
-            verdicts=self.app.verdicts(), judged=self.app.judged)
-        # Stable: within a band of equally readable sentences the rank's
-        # order stands, and the reel's own video moves to the front of it.
-        deck = sorted(found, key=lambda s: (
-            len(s.units - known - {target}),
-            not (video_id and s.timing and s.timing.video_id == video_id)))[:DECK_SIZE]
+        deck, holding = self._word_deck(target, source, video_id, self.counting(query))
         readable = sum(1 for s in deck if not (s.units - known - {target}))
         already = target in known
         watchable = self._has_video(deck)
@@ -1746,7 +1733,7 @@ class Viewer:
             return self._page(key, body, "/roadmap", source)
         body = (
             f"<h1>{escape(key)}</h1>"
-            f"<p class='note'>{len(holding):,} sentences here use it"
+            f"<p class='note'>{holding:,} sentences here use it"
             + (f"; {readable} of these {len(deck)} need only this word"
                if readable else f"; none of these {len(deck)} is one word away yet")
             + ".</p>"
@@ -1762,6 +1749,118 @@ class Viewer:
             + video.merged_script()
         )
         return self._page(key, body, "/roadmap", source)
+
+    def _word_deck(self, target: Unit, source: str, video_id: str = "",
+                   list_only: bool = False) -> tuple[list[Sentence], int]:
+        """The deck for one word — the readable sentences first, and among
+        them the named video's — and how many sentences say the word.
+
+        Asked of the database, not of a corpus in memory: the word page
+        wants a few sentences saying one word and used to load all 115,000
+        to find them, forty-six seconds, the slowest thing in the app.
+        """
+        known = self.known
+        holding = self.app.corpus(*self._builds(source), list_only=list_only,
+                                  strict=not list_only, holding=(target.kind, target.key))
+        found = ExampleIndex(holding).examples(
+            target, known, limit=25, minutes=self.app.video_minutes,
+            verdicts=self.app.verdicts(), judged=self.app.judged)
+        # Stable: within a band of equally readable sentences the rank's
+        # order stands, and the reel's own video moves to the front of it.
+        deck = sorted(found, key=lambda s: (
+            len(s.units - known - {target}),
+            not (video_id and s.timing and s.timing.video_id == video_id)))[:DECK_SIZE]
+        return deck, len(holding)
+
+    # --- studying one video ----------------------------------------------
+
+    def study(self, query: dict) -> str:
+        """One video's words, one at a time: the word that would make the
+        most of it readable, taught with the sentences it unlocks, and on a
+        decision the next such word, without leaving the page.
+
+        The reel says which video you follow best and which words are one
+        step from it; this is the reel's panel turned into a course. The
+        card is the reading page's, so the player, the stepper and the
+        swipes are the same, and a decision swaps in the next word the way
+        the reading page swaps in the next step (`/api/study`).
+        """
+        source = self.source(query)
+        video_id = query.get("video") or ""
+        card = self._study_card(source, video_id)
+        if card is None:
+            return self._page("Study", "<h1>No such video</h1><p class='empty'>"
+                              "Pick one from the <a href='/reels'>reels</a>.</p>",
+                              "/reels", source)
+        body = (
+            f"<div id='reading-top'>{card['top']}</div>"
+            + self._audio_toggle()
+            + "<div class='card' id='card'>"
+            + (card["stage"] if card["video"] else "")
+            + f"<div id='reading' data-api='/api/study'>{card['html']}</div></div>"
+            + ("<h2>Transcript</h2><ol class='transcript' id='transcript'></ol>"
+               if card["video"] else "")
+            + video.merged_script()
+        )
+        return self._page(card["title"], body, "/reels", source)
+
+    def study_json(self, query: dict) -> dict:
+        """The next word of the video, for swapping in without a page load."""
+        card = self._study_card(self.source(query), query.get("video") or "")
+        if card is None or card["empty"]:
+            return {"empty": True}
+        return {"top": card["top"], "html": card["html"], "video": card["video"]}
+
+    def _study_card(self, source: str, video_id: str) -> dict | None:
+        """The card for the video's best next word, or the end of the course.
+
+        The reel row's `next` is the queue — the words one step from the
+        video's sentences, most sentences first — less what has been learned
+        or set aside since; the row is read after every queued decision has
+        been scored in (`_settled`), so the word just learned is never
+        offered again. When the queue is empty the page says so and points
+        at the next video in the reel.
+        """
+        ranked = self._settled(source)
+        here = next((n for n, r in enumerate(ranked) if r["video"] == video_id), None)
+        if here is None:
+            return None
+        row = ranked[here]
+        title = row["title"] or row["video"]
+        known, asleep = self.known, self.app.snoozes.asleep()
+        queue = [Unit(kind, key) for kind, key, _ in row.get("next", [])
+                 if Unit(kind, key) not in known and Unit(kind, key) not in asleep]
+        counts = {Unit(kind, key): n for kind, key, n in row.get("next", [])}
+        heading = (f"<h1>{escape(title)}</h1>"
+                   f"<p class='note'>{row['comprehension']:.0%} of its words you know")
+        if not queue:
+            following = next((r for r in ranked[here + 1:]), None)
+            onward = (f"<p><a class='go' href='/study?video={quote(following['video'], safe='')}"
+                      f"&src={quote(source)}'>Next video: "
+                      f"{escape(following['title'] or following['video'])}</a></p>"
+                      if following else "")
+            return {"empty": True, "title": title, "video": False, "stage": "",
+                    "top": heading + ".</p>",
+                    "html": "<p class='empty'>Nothing here is one word away — every "
+                            "sentence you cannot read needs two or more.</p>" + onward
+                            + f"<p><a class='link' href='/reels?src={quote(source)}"
+                              f"&video={quote(video_id, safe='')}'>Back to the reel</a></p>"}
+        target = queue[0]
+        deck, holding = self._word_deck(target, source, video_id)
+        watchable = self._has_video(deck)
+        back = f"/study?video={quote(video_id, safe='')}"
+        top = (heading + f" · {len(queue)} word{'s' if len(queue) != 1 else ''} one step "
+               f"away · this one: <strong>{escape(target.key)}</strong>, "
+               f"{counts.get(target, 0)} sentence{'s' if counts.get(target, 0) != 1 else ''} "
+               f"of this video</p>")
+        html = (self._deck(deck, target, source)
+                + "<h2>The new thing</h2>"
+                f"<p class='de'>{escape(target.key)}</p>"
+                f"<p class='en'>{'a verb pattern' if target.is_pattern else 'a word'}, "
+                f"in {holding:,} sentences here</p>"
+                + self._actions(target, source, back, watchable=watchable))
+        return {"empty": False, "title": title, "video": watchable,
+                "stage": self._stage(deck), "top": top, "html": html}
 
     # --- the frontier -----------------------------------------------------
 
@@ -2199,6 +2298,8 @@ class Viewer:
                 + (f", taking you from {at:.0%} to {(at + best[1] / total):.0%} "
                    "of its lines" if at is not None else "")
                 + ".</p>"
+                f"<p><a class='go' href='/study?video={quote(row['video'], safe='')}"
+                f"&src={quote(source)}'>Learn them one by one</a></p>"
                 f"<div class='ledger'>{entries}</div>")
 
     def _settled(self, source: str) -> list[dict]:
