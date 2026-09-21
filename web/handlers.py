@@ -1876,6 +1876,35 @@ class Viewer:
         total, due_count = self.app.card_store.counts(now)
         due = self.app.card_store.due(now, limit=1)
         verdict = ""
+        if result and result.get("pending"):
+            # The model's opinion, and the grade is yours: it read `also`
+            # as the English word once and "corrected" a right sentence,
+            # and a wrong grade here can take a word off the known list.
+            unit = result["unit"]
+            thinks = result.get("correct")
+            verdict = (
+                "<div class='note said" + ("" if thinks else " bad") + "'>"
+                f"<p><strong>{escape(result['spoken'])}</strong> — the model thinks "
+                f"{'the word is used right' if thinks else 'it is not quite right'}"
+                f"{': ' + escape(result['note']) if result.get('note') else '.'}</p>"
+                + (f"<p class='de'>{escape(result['german'])}</p>"
+                   f"<p class='en'>{escape(result.get('english', ''))}</p>" if result.get("german") else "")
+                + "<form method='post' action='/review' class='actions'>"
+                f"<input type='hidden' name='src' value='{escape(source)}'>"
+                f"<input type='hidden' name='kind' value='{escape(unit.kind)}'>"
+                f"<input type='hidden' name='key' value='{escape(unit.key)}'>"
+                f"<button name='action' value='good'{' class=go' if thinks else ''}>I used it right</button>"
+                f"<button name='action' value='again'{'' if thinks else ' class=go'}>I missed it</button>"
+                "</form>"
+                + ("<form method='post' action='/mine' class='tools'>"
+                   f"<input type='hidden' name='src' value='{escape(source)}'>"
+                   f"<input type='hidden' name='german' value='{escape(result['german'])}'>"
+                   f"<input type='hidden' name='english' value='{escape(result.get('english', ''))}'>"
+                   "<button name='action' value='keep'>Keep the corrected sentence in Mine</button></form>"
+                   if result.get("german") else "")
+                + "</div>")
+            body = (f"<h1>Review</h1>{verdict}")
+            return self._page("Review", body, "/review", source)
         if result:
             said = {"graduated": "Graduated — five in a row, it is yours for good.",
                     "unmarked": "Two misses in a row: the word is no longer counted as "
@@ -1884,17 +1913,7 @@ class Viewer:
             verdict = (
                 "<div class='note said" + ("" if result.get("correct") else " bad") + "'>"
                 f"<p><strong>{escape(result['spoken'])}</strong> — "
-                f"{'right' if result.get('correct') else 'not quite'}. {escape(result.get('note', ''))}</p>"
-                + (f"<p class='de'>{escape(result['german'])}</p>"
-                   f"<p class='en'>{escape(result.get('english', ''))}</p>" if result.get("german") else "")
-                + f"<p>{escape(said)}</p>"
-                + ("<form method='post' action='/mine' class='tools'>"
-                   f"<input type='hidden' name='src' value='{escape(source)}'>"
-                   f"<input type='hidden' name='german' value='{escape(result['german'])}'>"
-                   f"<input type='hidden' name='english' value='{escape(result.get('english', ''))}'>"
-                   "<button name='action' value='keep'>Keep it in Mine</button></form>"
-                   if result.get("german") and result.get("correct") else "")
-                + "</div>")
+                f"{'right' if result.get('correct') else 'missed'}. {escape(said)}</p></div>")
         if not due:
             body = (f"<h1>Review</h1>{verdict}"
                     f"<p class='empty'>Nothing is due. {total:,} word"
@@ -1944,21 +1963,17 @@ class Viewer:
         card = self.app.card_store.get(unit) if unit.key else None
         if card is None or action == "skip":
             return back
-        result: dict = {"spoken": self.app.mcp_prompt(unit)["spoken"]}
+        result: dict = {"spoken": self.app.mcp_prompt(unit)["spoken"], "unit": unit}
         if action == "check":
             written = (form.get("sentence") or "").strip()
             if not written:
                 return back
-            judged = self._judge(unit, written)
-            if judged is None:
-                return ("page", self.review({"src": source}, {
-                    **result, "correct": False, "german": "", "outcome": "",
-                    "note": "The local model is not answering; grade it yourself below."}))
-            result.update(judged)
-            correct = bool(judged["correct"])
-        else:
-            correct = action == "good"
-            result["correct"] = correct
+            judged = self._judge(unit, written) or {
+                "correct": None, "german": "",
+                "note": "The local model is not answering; say yourself how it went."}
+            return ("page", self.review({"src": source}, {**result, **judged, "pending": True}))
+        correct = action == "good"
+        result["correct"] = correct
         reviewed = self.app.scheduler.review(card, correct, datetime.now())
         outcome = verdict(reviewed)
         if outcome == GRADUATED:
@@ -1979,8 +1994,17 @@ class Viewer:
         client = LLMClient(timeout=60)
         if not client.available:
             return None
+        # The word with its meaning and a sentence that uses it: without
+        # them the model read `also` as the English word and "corrected"
+        # a right sentence to `auch`.
+        asked = self.app.mcp_prompt(unit)
+        about = f"Word: {spoken(unit.key)}"
+        if asked.get("meaning"):
+            about += f" ({asked['meaning']})"
+        for example in asked.get("examples", [])[:1]:
+            about += f"\nExample of its use: {example['text']}"
         try:
-            reply = client.complete(JUDGE, f"Word: {spoken(unit.key)}\nSentence: {written}",
+            reply = client.complete(JUDGE, f"{about}\nSentence: {written}",
                                     temperature=0.1, response_format=JUDGE_FORMAT)
             got = json.loads(reply)
             return {"correct": bool(got.get("correct")),
@@ -3521,8 +3545,10 @@ CHECK = (
     "corrected sentence."
 )
 JUDGE = (
-    "A learner of German was asked to write a sentence using a word, to show "
-    "they know it. Reply with JSON and nothing else: {\"correct\": true or "
+    "A learner of German was asked to write a sentence using a German word, to "
+    "show they know it. The word is given with its meaning and an example of "
+    "its use; it is a German word even where it looks like an English one. "
+    "Reply with JSON and nothing else: {\"correct\": true or "
     "false, \"german\": ..., \"note\": ..., \"english\": ...}. \"correct\" is "
     "whether the WORD is used correctly in an ordinary sense of it — the right "
     "word in the right place, in a form that fits; a slip elsewhere in the "
