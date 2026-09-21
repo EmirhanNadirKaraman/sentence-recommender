@@ -459,6 +459,7 @@ button.w:hover { border-bottom-color: var(--target); border-color: transparent;
    to a dictionary. Fixed above the tab bar like the undo bar. */
 .gloss {
   position: fixed; left: 12px; right: 12px; z-index: 21;
+  max-width: 760px; margin: 0 auto;
   bottom: calc(12px + env(safe-area-inset-bottom));
   padding: 14px 16px; border-radius: 4px;
   background: var(--surface); color: var(--ink);
@@ -510,4 +511,5 @@ form.mine .actions { margin-top: 0; }
 
 /* A word button that is the new word keeps the mark. */
 button.w.target { color: var(--target); border-bottom: 1px solid var(--target); }
+.stepper .count { white-space: nowrap; }
 
