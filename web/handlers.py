@@ -1069,10 +1069,10 @@ class Viewer:
             "</span>"
             "<button type='button' id='next' aria-label='Next sentence'>"
             "&#8594;</button>"
-            # Naming both axes, because the right arrow is no longer a
+            # Naming both axes, because D is no longer a
             # way of looking around: it marks the word known.
-            "<span class='hint'>&uarr;&darr; another sentence &nbsp; "
-            "&rarr; know it &nbsp; &larr; later &nbsp;&nbsp; "
+            "<span class='hint'>W/S another sentence &nbsp; "
+            "D know it &nbsp; A later &nbsp; arrows, space: the video &nbsp;&nbsp; "
             + (f"{readable} of them need only this"
                if readable != 1 else "one of them needs only this")
             + "</span></div>"
@@ -2593,7 +2593,8 @@ class Viewer:
             + "<p class='note'><span id='reel-at'>" + f"{here + 1}"
             + f"</span> of {len(ranked):,}, ranked by how well it plays with "
               "your hands full. Swipe up and down to move, right to say you "
-              "know a word, left to set it aside.</p>"
+              "know a word, left to set it aside — W/S, D and A on a keyboard; "
+              "the arrows and space drive the video.</p>"
             + f"<div id='reel-taste'>"
             + self._taste_control(row["video"], f"/reels?i={here}")
             + "</div>"

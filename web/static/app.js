@@ -176,6 +176,37 @@ window.__sentenceStart = null;
     if (at && p.getCurrentTime)
       at.textContent = clock(p.getCurrentTime()) + ' / ' + clock(p.getDuration());
   }, 500);
+
+  // The keys YouTube's own player answers to, answered here, because the
+  // frame cannot see them: arrows seek five seconds and turn the volume,
+  // space and k play or pause, j and l seek ten, m mutes, f goes full
+  // screen. The pages' own keys -- another sentence, another video, the
+  // decisions -- are WASD, so the two sets never fight.
+  document.addEventListener('keydown', function (e) {
+    var el = document.activeElement;
+    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ||
+               el.tagName === 'SELECT' || el.isContentEditable)) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var p = live();
+    if (!p) return;
+    var key = e.key;
+    if (key === 'ArrowLeft') p.seekTo(Math.max(p.getCurrentTime() - 5, 0), true);
+    else if (key === 'ArrowRight') p.seekTo(p.getCurrentTime() + 5, true);
+    else if (key === 'ArrowUp') p.setVolume(Math.min(p.getVolume() + 5, 100));
+    else if (key === 'ArrowDown') p.setVolume(Math.max(p.getVolume() - 5, 0));
+    else if (key === ' ' || key === 'k') {
+      if (p.getPlayerState() === 1) p.pauseVideo(); else p.playVideo();
+    }
+    else if (key === 'j') p.seekTo(Math.max(p.getCurrentTime() - 10, 0), true);
+    else if (key === 'l') p.seekTo(p.getCurrentTime() + 10, true);
+    else if (key === 'm') { if (p.isMuted()) p.unMute(); else p.mute(); }
+    else if (key === 'f') {
+      var frame = document.getElementById('player');
+      if (frame && frame.requestFullscreen) frame.requestFullscreen();
+    }
+    else return;
+    e.preventDefault();
+  });
 })();
 
 // A subtitle line as words a reader can click. Each word is a button --
@@ -557,14 +588,14 @@ function cueAt(cues, now) {
     if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ||
                el.tagName === 'SELECT' || el.isContentEditable)) return;
     // The same rule as the gestures: vertical is another one of these,
-    // horizontal decides. Worth knowing that this changes what the right
-    // arrow means — it used to step the deck and now marks a word known,
-    // which is a write. The hint under the stepper says both axes for that
-    // reason.
-    if (e.key === 'ArrowDown' || e.key === 'j') { show(showing + 1); e.preventDefault(); }
-    if (e.key === 'ArrowUp' || e.key === 'k') { show(showing - 1); e.preventDefault(); }
-    if (e.key === 'ArrowRight') { decide('known'); e.preventDefault(); }
-    if (e.key === 'ArrowLeft') { decide('pass'); e.preventDefault(); }
+    // horizontal decides -- and D is a write, it marks a word known, which
+    // is why the hint under the stepper names both axes. WASD rather than
+    // the arrows, which the player has (see the controls block).
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 's') { show(showing + 1); e.preventDefault(); }
+    if (e.key === 'w') { show(showing - 1); e.preventDefault(); }
+    if (e.key === 'd') { decide('known'); e.preventDefault(); }
+    if (e.key === 'a') { decide('pass'); e.preventDefault(); }
   });
 
   bind();
@@ -774,10 +805,11 @@ function cueAt(cues, now) {
     var el = document.activeElement;
     if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ||
                el.tagName === 'SELECT' || el.isContentEditable)) return;
-    if (e.key === 'ArrowDown' || e.key === 'j') { go(s.at + 1); e.preventDefault(); }
-    if (e.key === 'ArrowUp' || e.key === 'k') { go(s.at - 1); e.preventDefault(); }
-    if (e.key === 'ArrowRight') { decide('known'); e.preventDefault(); }
-    if (e.key === 'ArrowLeft') { decide('pass'); e.preventDefault(); }
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 's') { go(s.at + 1); e.preventDefault(); }
+    if (e.key === 'w') { go(s.at - 1); e.preventDefault(); }
+    if (e.key === 'd') { decide('known'); e.preventDefault(); }
+    if (e.key === 'a') { decide('pass'); e.preventDefault(); }
   });
 })();
 
@@ -902,8 +934,8 @@ function cueAt(cues, now) {
     var el = document.activeElement;
     if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ||
                el.tagName === 'SELECT' || el.isContentEditable)) return;
-    if (e.key === 'ArrowRight' || e.key === 'y') { answer('know'); e.preventDefault(); }
-    if (e.key === 'ArrowLeft' || e.key === 'n') { answer('no'); e.preventDefault(); }
+    if (e.key === 'd' || e.key === 'y') { answer('know'); e.preventDefault(); }
+    if (e.key === 'a' || e.key === 'n') { answer('no'); e.preventDefault(); }
     if (e.key === 's') { answer('skip'); e.preventDefault(); }
   });
 })();
