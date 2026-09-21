@@ -78,7 +78,8 @@ darauf ankommen	ankommen :: darauf
 in die Tat umsetzen	umsetzen :: in die tat
 das Sagen haben	haben :: das sagen
 Sinn machen	machen/ergeben :: sinn
-die Rede sein	sein :: * rede
+die Rede sein	sein :: die rede
+die Rede sein	sein :: keine rede
 in der Kritik stehen	stehen :: in der kritik
 auf einem anderen Blatt stehen	stehen :: auf einem anderen blatt
 die Nerven verlieren	verlieren :: die nerven
