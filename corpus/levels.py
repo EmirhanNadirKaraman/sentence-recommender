@@ -13,6 +13,18 @@ its lines in text order — so a resumed pass asks the same lines, and the
 level read back is the mean over that same sample rather than over every
 line anyone ever levelled, which would tilt towards the plan's picks, the
 easiest lines the video has.
+
+The draw depends on the whole pool, and that is its weakness: a line
+hidden, a rebuilt corpus or a re-run of `detect-language` changes the
+pool and re-rolls the sample, and thirty out of a hundred and thirty
+re-drawn keeps about seven of the old thirty — under `ENOUGH`, so the
+video reads as unlevelled until the pass is run again (about twenty-three
+lines, half a cent). Visible, not silent: the reel scores such a video at
+the typical level and shows none. A pool-independent draw — the thirty
+lines with the smallest hash of video and text — would not re-roll, and
+is the rule to adopt the next time every video is levelled anyway; switching
+now would re-roll all 1,536 at once, and the lines already levelled are
+mostly not the ones it would pick.
 """
 from __future__ import annotations
 

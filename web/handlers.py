@@ -140,7 +140,7 @@ class Viewer:
         # reader knows, so it survives marking a word known — the scores are
         # recomputed each load, the grouping is not.
         self._videos: dict[str, dict] = {}
-        self._video_levels: dict[str, dict[str, float]] = {}
+        self._video_levels: dict[str, tuple[dict[str, float], float | None]] = {}
         # How many lines each video's subtitles hold before filtering, per
         # source. The denominator `watchability` needs to tell a video you
         # can follow from the readable tenth of one you cannot.
@@ -2212,22 +2212,27 @@ class Viewer:
             return rows
         known, goals = self.known, frozenset(self.app.goal_units)
         spoken = self._spoken_lines(source)
-        levels = self._levels(source)
+        levels, typical = self._levels(source)
         rows = sorted((self._score_video(v, s, known, goals, spoken.get(v),
-                                         levels.get(v))
+                                         levels.get(v), typical)
                        for v, s in self._grouped(source).items()),
                       key=lambda r: -r["watch"])
         self._scores.save(source, stamp, rows)
         return rows
 
-    def _levels(self, source: str) -> dict[str, float]:
+    def _levels(self, source: str) -> tuple[dict[str, float], float | None]:
         """Video -> the judge's level of it, from a sample of its lines
-        (`corpus.levels`). Cached: the answers are read once a process.
+        (`corpus.levels`), and the typical level — the median of them.
+        Cached: the answers are read once a process, so a fresh level pass
+        shows after a restart.
 
-        A video not yet levelled gets the median of those that are, for
-        the reason `corpus.answers.Judged` gives for an unjudged sentence:
-        left at nothing it would outrank every levelled video, and the
-        feed would open on whatever the pass had not reached.
+        Only the measured. A video not yet levelled is *scored* at the
+        typical level, for the reason `corpus.answers.Judged` gives for an
+        unjudged sentence — left at nothing it would outrank every levelled
+        video — but it is *stored* and shown with no level, so a reader can
+        tell a B1 the judge measured from a B1 assumed, and a video whose
+        sample the corpus has since re-rolled (see `corpus.levels`) is seen
+        to need levelling rather than quietly wearing the median.
         """
         if source not in self._video_levels:
             judged = self.app.judged
@@ -2235,8 +2240,7 @@ class Viewer:
                      if (level := video_level(judged, video, (s.text for s in lines)))
                      is not None}
             typical = sorted(found.values())[len(found) // 2] if found else None
-            levels = {video: found.get(video, typical) for video in self._grouped(source)}
-            self._video_levels[source] = {v: l for v, l in levels.items() if l is not None}
+            self._video_levels[source] = (found, typical)
         return self._video_levels[source]
 
     def _channel_of(self) -> dict[str, str]:
@@ -2314,8 +2318,11 @@ class Viewer:
 
     def _score_video(self, video_id: str, sentences: list, known, goals,
                      dialogue: int | None = None,
-                     level: float | None = None) -> dict:
-        """One video against one known set, and the judge's level of it.
+                     level: float | None = None,
+                     typical: float | None = None) -> dict:
+        """One video against one known set, and the judge's level of it —
+        `level` where measured, `typical` in the score where not, and the
+        row keeps only what was measured.
 
         The next-best words fall out of the same pass: a sentence with one
         unknown is both what makes the video teachable and the evidence for
@@ -2342,8 +2349,8 @@ class Viewer:
                 "lines": len(sentences), "minutes": minutes,
                 "comprehension": comprehension, "i+1": teachable,
                 "teaches": len(unblocks),
-                "watch": watchability(comprehension, minutes,
-                                      len(sentences), dialogue, level),
+                "watch": watchability(comprehension, minutes, len(sentences), dialogue,
+                                      level if level is not None else typical),
                 # Enough to show, not the whole tail: the panel lists eight.
                 "next": [(u.kind, u.key, n) for u, n in gain.most_common(NEXT_WORDS)],
                 "level": level}
@@ -2468,9 +2475,9 @@ class Viewer:
             # every score beside it, and the ranking quietly stops agreeing
             # with itself.
             spoken = self._spoken_lines(source)
-            levels = self._levels(source)
+            levels, typical = self._levels(source)
             fresh = {v: self._score_video(v, grouped[v], known, goals,
-                                          spoken.get(v), levels.get(v))
+                                          spoken.get(v), levels.get(v), typical)
                      for v in touched if v in grouped}
             rows = sorted((fresh.get(r["video"], r) for r in rows),
                           key=lambda r: -r["watch"])

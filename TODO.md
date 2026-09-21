@@ -2088,7 +2088,10 @@ agreed, free work first and the $1.66 last:
    **A1 476 → 843 · A2 1,279 → 1,742 · B1 1,644 → 1,056 · B2 365 →
    125**, the three shown per card B1 4,886 → 4,079 and B2 1,253 →
    695, for a judge-product median of .72 → .69 and 85 → 96 steps
-   under .3. Same 3,883 steps, same 77,431 readable at the end. The
+   under .3 — measured before steps 2 and 3 landed, which gave real
+   levels to thousands of candidates that had taken the median, so the
+   next rebuild will not reproduce these numbers exactly. Same 3,883
+   steps, same 77,431 readable at the end. The
    doubt drop: 445 sentences lose a pair (`Hast du gehört, was ich
    gesagt habe?` no longer says `gehören`, nor the parser's bare lemma).
    Refusals had been read under the judge's model name, never the
@@ -2137,7 +2140,12 @@ agreed, free work first and the $1.66 last:
    top ten. `well_formed` and `standard` for lyrics and dialect are not
    asked — $0.6 left in the account — and a new video gets the median
    level until `ask-sentences --per-video 30 --only level` is run again,
-   which asks only what is new.
+   which asks only what is new — and `serve` restarted, the answers being
+   read once a process. Stored and shown only where measured: the 349
+   videos under the reel's forty-line floor were never sampled and show
+   no level, and a video whose sample the corpus re-rolls (a hidden line,
+   a rebuild — `corpus.levels` says why) reads as unlevelled rather than
+   quietly wearing the median.
 
 Not now: a floor and a deferral for the 85 steps taught with a doubtful
 sentence (step 1 changes which those are), and one matcher for fixed
