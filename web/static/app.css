@@ -114,6 +114,17 @@ button {
 }
 button.go { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 button:hover { border-color: var(--target); }
+/* A link that is the one thing to do next -- "Learn them one by one",
+   "Next video" -- wears the button, ink on paper with an arrow, so nobody
+   has to guess that it is clickable. */
+a.go {
+  display: inline-block; font: 400 16px var(--sans); padding: 10px 16px;
+  min-height: 44px; box-sizing: border-box; line-height: 22px;
+  color: var(--paper); background: var(--ink); border: 1px solid var(--ink);
+  border-radius: 3px; text-decoration: none; cursor: pointer;
+}
+a.go::after { content: " \2192"; }
+a.go:hover { border-color: var(--target); background: var(--target); }
 
 /* More or less of a channel. Quiet until you have said something: this sits
    above the picture on every reel and must not compete with it. */
