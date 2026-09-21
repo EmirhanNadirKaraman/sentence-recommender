@@ -135,7 +135,12 @@ class Judged:
         found = self._levels.get(text)
         if found is None:
             return None
-        return LEVELS[min(range(len(LEVELS)), key=lambda i: abs(i - found))]
+        return label(found)
+
+    def expected(self, text: str) -> float | None:
+        """The level as the judge's expectation, in levels above A1 (0–4),
+        or None where it was never asked; what a video's mean is made of."""
+        return self._levels.get(text)
 
     def ease(self, text: str) -> float:
         """How much of a sentence's worth its level leaves it, for a reader
@@ -262,6 +267,11 @@ class AnswerStore:
                       _median(v for units in plain.values() for v in units.values()
                               if v > 0.0),          # refusals are not answers
                       levels, _median(levels.values()) if levels else 0.0)
+
+
+def label(level: float) -> str:
+    """The nearest of A1–C1 to a level counted above A1."""
+    return LEVELS[min(range(len(LEVELS)), key=lambda i: abs(i - level))]
 
 
 def _median(values) -> float:

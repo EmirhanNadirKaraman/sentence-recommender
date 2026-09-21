@@ -110,3 +110,31 @@ class BestVideosTest(unittest.TestCase):
         self.assertNotEqual(drawn, sample("other", texts, 30))
         self.assertEqual(sample("video", texts[:10], 30), sorted(texts[:10]))
 
+
+class ScoreStoreLevelTest(unittest.TestCase):
+    def test_a_videos_level_is_stored_and_read_back_and_an_old_table_gains_it(self) -> None:
+        import sqlite3
+        import tempfile
+        from pathlib import Path
+        from scores import ScoreStore
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "state.sqlite3"
+            with sqlite3.connect(path) as conn:      # a table from before the column
+                conn.execute("CREATE TABLE video_score (source TEXT NOT NULL, video_id TEXT "
+                             "NOT NULL, title TEXT, lines INTEGER NOT NULL, minutes REAL, "
+                             "comprehension REAL NOT NULL, teachable INTEGER NOT NULL, "
+                             "teaches INTEGER NOT NULL, watch REAL NOT NULL, "
+                             "next_words TEXT NOT NULL DEFAULT '[]', "
+                             "PRIMARY KEY (source, video_id))")
+            store = ScoreStore(path)
+            row = {"video": "v", "title": "", "lines": 50, "minutes": 10.0,
+                   "comprehension": 0.5, "i+1": 1, "teaches": 1, "watch": 0.3,
+                   "next": [], "level": 1.5}
+            store.save("subtitle", "stamp", [row])
+            (back,) = store.load("subtitle", "stamp")
+            self.assertEqual(back["level"], 1.5)
+            store.update("subtitle", "stamp", [{**row, "level": None, "watch": 0.2}])
+            (back,) = store.latest("subtitle")
+            self.assertIsNone(back["level"])
+            self.assertEqual(back["watch"], 0.2)
+

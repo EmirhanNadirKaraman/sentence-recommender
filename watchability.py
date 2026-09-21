@@ -86,9 +86,41 @@ def length_band(minutes: float | None) -> float:
     return max(0.0, 1 - (minutes - IDEAL_MINUTES) * LONG_MINUTES)
 
 
+# What a level of the judge's costs a video, as a share — see `level_band`.
+# The same fifth a card's sentence pays (`corpus.answers.LEVEL_COST`), read
+# against the corpus on 2026-09-21: 1,536 watchable videos levelled from
+# thirty lines each run from .21 (`200 Tägliche Aktivitäten auf Deutsch
+# A1`) to 3.16 (`Anfechtungsklage & Nichtigkeitsklage`), median 2.04, a
+# tenth under 1.48 and a tenth over 2.40 — 7 A1, 161 A2, 1,295 B1, 73 B2.
+# At a fifth a level the easiest video keeps .96 and the median .59, so
+# the band decides among videos comprehension cannot tell apart and does
+# not overturn a video you can actually follow; at .3 a B2 video would keep
+# .05 and be gone.
+LEVEL_COST = 0.2
+
+
+def level_band(level: float | None) -> float:
+    """How well a video's German sits, on its own, in [0, 1].
+
+    `level` is the judge's mean over a sample of the video's lines, in
+    levels above A1 (`corpus.levels`). Lower is better, a fifth a level,
+    as for the sentences a card shows: the reel is for a reader starting
+    from nothing, and with two hundred words known comprehension is 2–20%
+    everywhere and orders the feed by which videos happen to say those
+    words. This is the difficulty that does not depend on the word count.
+    None -- a video not yet levelled -- is left alone, and the caller
+    hands such a video the typical level rather than None, or it would
+    outrank every levelled one.
+    """
+    if level is None:
+        return 1.0
+    return max(0.0, 1.0 - LEVEL_COST * level)
+
+
 def watchability(comprehension: float, minutes: float | None,
                  lines: int = ENOUGH_LINES,
-                 dialogue: int | None = None) -> float:
+                 dialogue: int | None = None,
+                 level: float | None = None) -> float:
     """How well this plays with your hands full.
 
     Three bands multiplied. Comprehension decides whether you can follow it
@@ -104,6 +136,9 @@ def watchability(comprehension: float, minutes: float | None,
     video being judged on the part that happened to parse -- see
     `TYPICAL_COVERAGE`. Omit it and nothing is damped, which is what every
     caller did before the fraction was available to them.
+
+    `level` is the judge's level of the video, `level_band`; omitted,
+    nothing is damped.
     """
     follow = min(comprehension / COMFORTABLE, 1.0)
     follow *= follow                      # squared: half-understood is far
@@ -111,4 +146,4 @@ def watchability(comprehension: float, minutes: float | None,
     covered = (min((lines / dialogue) / TYPICAL_COVERAGE, 1.0)
                if dialogue else 1.0)
     return round(follow * length_band(minutes)
-                 * min(lines / ENOUGH_LINES, 1.0) * covered, 4)
+                 * min(lines / ENOUGH_LINES, 1.0) * covered * level_band(level), 4)

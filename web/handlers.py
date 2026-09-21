@@ -34,11 +34,13 @@ from watchability import ENOUGH_LINES, taste_weight, watchability
 
 # Bump when scoring changes: the stored rows are only valid for
 # the code that wrote them.
-SCORE_VERSION = 5
+SCORE_VERSION = 6
 
 # How many next-best words to keep per video. The panel shows eight;
 # storing more would be paying to remember what nobody reads.
 NEXT_WORDS = 8
+from corpus.answers import label
+from corpus.levels import video_level
 from corpus.quality import score as quality, well_formed
 from corpus.sentence import Sentence
 from db import Database
@@ -138,6 +140,7 @@ class Viewer:
         # reader knows, so it survives marking a word known — the scores are
         # recomputed each load, the grouping is not.
         self._videos: dict[str, dict] = {}
+        self._video_levels: dict[str, dict[str, float]] = {}
         # How many lines each video's subtitles hold before filtering, per
         # source. The denominator `watchability` needs to tell a video you
         # can follow from the readable tenth of one you cannot.
@@ -1972,6 +1975,7 @@ class Viewer:
             self._scopes.clear()
             self._stuck.clear()
             self._videos.clear()
+            self._video_levels.clear()
             self._ranked.clear()
             self._unit_videos.clear()
             self._quiz.clear()
@@ -2087,6 +2091,8 @@ class Viewer:
         length = f"{row['minutes']:.0f} min" if row["minutes"] else "unknown"
         cells = [("you can follow", f"{row['comprehension']:.0%}"),
                  ("length", length),
+                 *([("level, the judge says", label(row["level"]))]
+                   if row.get("level") is not None else []),
                  ("sentences", f"{row['lines']:,}"),
                  ("one new thing", f"{row['i+1']:,}"),
                  ("teaches from your list", f"{row['teaches']:,}"),
@@ -2206,11 +2212,32 @@ class Viewer:
             return rows
         known, goals = self.known, frozenset(self.app.goal_units)
         spoken = self._spoken_lines(source)
-        rows = sorted((self._score_video(v, s, known, goals, spoken.get(v))
+        levels = self._levels(source)
+        rows = sorted((self._score_video(v, s, known, goals, spoken.get(v),
+                                         levels.get(v))
                        for v, s in self._grouped(source).items()),
                       key=lambda r: -r["watch"])
         self._scores.save(source, stamp, rows)
         return rows
+
+    def _levels(self, source: str) -> dict[str, float]:
+        """Video -> the judge's level of it, from a sample of its lines
+        (`corpus.levels`). Cached: the answers are read once a process.
+
+        A video not yet levelled gets the median of those that are, for
+        the reason `corpus.answers.Judged` gives for an unjudged sentence:
+        left at nothing it would outrank every levelled video, and the
+        feed would open on whatever the pass had not reached.
+        """
+        if source not in self._video_levels:
+            judged = self.app.judged
+            found = {video: level for video, lines in self._grouped(source).items()
+                     if (level := video_level(judged, video, (s.text for s in lines)))
+                     is not None}
+            typical = sorted(found.values())[len(found) // 2] if found else None
+            levels = {video: found.get(video, typical) for video in self._grouped(source)}
+            self._video_levels[source] = {v: l for v, l in levels.items() if l is not None}
+        return self._video_levels[source]
 
     def _channel_of(self) -> dict[str, str]:
         """Video -> the YouTube id of the channel that published it."""
@@ -2286,8 +2313,9 @@ class Viewer:
         return self._spoken[source]
 
     def _score_video(self, video_id: str, sentences: list, known, goals,
-                     dialogue: int | None = None) -> dict:
-        """One video against one known set.
+                     dialogue: int | None = None,
+                     level: float | None = None) -> dict:
+        """One video against one known set, and the judge's level of it.
 
         The next-best words fall out of the same pass: a sentence with one
         unknown is both what makes the video teachable and the evidence for
@@ -2315,9 +2343,10 @@ class Viewer:
                 "comprehension": comprehension, "i+1": teachable,
                 "teaches": len(unblocks),
                 "watch": watchability(comprehension, minutes,
-                                      len(sentences), dialogue),
+                                      len(sentences), dialogue, level),
                 # Enough to show, not the whole tail: the panel lists eight.
-                "next": [(u.kind, u.key, n) for u, n in gain.most_common(NEXT_WORDS)]}
+                "next": [(u.kind, u.key, n) for u, n in gain.most_common(NEXT_WORDS)],
+                "level": level}
 
     def _videos_with(self, source: str) -> dict:
         """Unit -> the videos that say it.
@@ -2439,8 +2468,9 @@ class Viewer:
             # every score beside it, and the ranking quietly stops agreeing
             # with itself.
             spoken = self._spoken_lines(source)
+            levels = self._levels(source)
             fresh = {v: self._score_video(v, grouped[v], known, goals,
-                                          spoken.get(v))
+                                          spoken.get(v), levels.get(v))
                      for v in touched if v in grouped}
             rows = sorted((fresh.get(r["video"], r) for r in rows),
                           key=lambda r: -r["watch"])
@@ -2609,6 +2639,7 @@ class Viewer:
             f"{escape((r['title'] or r['video'])[:58])}</a>"
             f"{self._wrote_it(r['video'])}</td>"
             f"<td class='n'>{r['comprehension']:.0%}</td>"
+            f"<td class='n'>{label(r['level']) if r.get('level') is not None else '—'}</td>"
             f"<td class='n'>{r['watch']:.2f}</td>"
             f"<td class='n'>{self._density(r):.1f}</td>"
             f"<td class='n'>{r['teaches']:,}</td>"
@@ -2619,25 +2650,28 @@ class Viewer:
             for r in ranked
         )
         table = (f"<table class='rows'><tr><th>video</th>"
-                 f"<th class='n'>you follow</th><th class='n'>watch</th>"
+                 f"<th class='n'>you follow</th><th class='n'>level</th>"
+                 f"<th class='n'>watch</th>"
                  f"<th class='n'>i+1/min</th>"
                  f"<th class='n'>teaches</th><th class='n'>cues</th>"
                  f"<th class='n'>length</th></tr>{rows}</table>" if rows
                  else "<p class='empty'>No aligned subtitles yet.</p>")
         picker = "".join(
             f"<a href='{self._link('/subtitles', source, by=value if value != 'watch' else '')}'"
-            f" class='{'on' if order == value else ''}'>{label}</a>"
-            for value, label in (("watch", "easiest to follow"),
-                                 ("density", "most to learn per minute"),
-                                 ("teaching", "most of your list per minute"),
-                                 ("plan", "in order, each building on the last"))
+            f" class='{'on' if order == value else ''}'>{label_}</a>"
+            for value, label_ in (("watch", "easiest to follow"),
+                                  ("level", "simplest German"),
+                                  ("density", "most to learn per minute"),
+                                  ("teaching", "most of your list per minute"),
+                                  ("plan", "in order, each building on the last"))
         )
         body = ("<h1>Videos</h1>"
                 f"<div class='switch'><span>Best first</span>{picker}</div>"
                 "<p class='note'><em>You follow</em> is the share of its "
-                "sentences you can already read, and <em>watch</em> combines "
-                "that with length. Those favour videos you understand "
-                "already. <em>i+1/min</em> asks the opposite question — how "
+                "sentences you can already read, <em>level</em> is what the "
+                "judge makes of thirty of its lines, and <em>watch</em> "
+                "combines the two with length. Those favour videos you "
+                "understand already. <em>i+1/min</em> asks the opposite question — how "
                 "much this video could teach you per minute — and picks "
                 "almost entirely different films: of the top fifty by each, "
                 "two are the same. Both move as you mark words known. "
@@ -2674,6 +2708,11 @@ class Viewer:
             return sorted(rows, key=lambda r: plan.get(r["video"], 10 ** 9))
         if order == "density":
             return sorted(rows, key=self._density, reverse=True)
+        if order == "level":
+            # Unlevelled last, not first: a video nothing is known about is
+            # not a simple one.
+            return sorted(rows, key=lambda r: (r.get("level") is None,
+                                               r.get("level") or 0.0, -r["watch"]))
         if order == "teaching":
             return sorted(rows, key=lambda r: (r["teaches"] / r["minutes"]
                                                if r.get("minutes") else 0.0),

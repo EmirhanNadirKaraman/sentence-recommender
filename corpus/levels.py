@@ -27,3 +27,19 @@ def sample(video_id: str, texts, n: int = SAMPLE) -> list[str]:
     if len(ordered) <= n:
         return ordered
     return random.Random(video_id).sample(ordered, n)
+
+# How many of the sample must be levelled before the mean is trusted. A
+# video half of whose thirty are in is within a seventh of a level; fewer
+# than that is a guess wearing a number.
+ENOUGH = SAMPLE // 2
+
+
+def video_level(judged, video_id: str, texts, n: int = SAMPLE) -> float | None:
+    """The video's level: the mean of the judge's expectation over its
+    sample, in levels above A1, or None until enough of the sample is in."""
+    found = [judged.expected(text) for text in sample(video_id, texts, n)]
+    found = [level for level in found if level is not None]
+    if len(found) < min(ENOUGH, n):
+        return None
+    return sum(found) / len(found)
+

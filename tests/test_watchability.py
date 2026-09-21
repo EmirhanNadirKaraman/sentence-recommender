@@ -14,7 +14,8 @@ from __future__ import annotations
 
 import unittest
 
-from watchability import ENOUGH_LINES, IDEAL_MINUTES, length_band, watchability
+from watchability import (ENOUGH_LINES, IDEAL_MINUTES, length_band, level_band,
+                          watchability)
 
 
 def score(comprehension=1.0, minutes=IDEAL_MINUTES, lines=ENOUGH_LINES,
@@ -65,3 +66,39 @@ class BandsTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LevelTest(unittest.TestCase):
+    """The judge's level of a video, a fifth a level, and nothing without
+    one -- the caller hands an unlevelled video the typical level."""
+
+    def test_easier_german_plays_better(self) -> None:
+        self.assertGreater(watchability(0.5, IDEAL_MINUTES, level=1.0),
+                           watchability(0.5, IDEAL_MINUTES, level=2.0))
+        self.assertAlmostEqual(level_band(0.0), 1.0)
+        self.assertAlmostEqual(level_band(2.0), 0.6)
+        self.assertEqual(level_band(None), 1.0)
+
+    def test_omitting_it_changes_nothing(self) -> None:
+        self.assertEqual(watchability(0.5, IDEAL_MINUTES),
+                         watchability(0.5, IDEAL_MINUTES, level=None))
+
+
+class VideoLevelTest(unittest.TestCase):
+    """A video's level is the mean over its sample, once enough of the
+    sample is in."""
+
+    def test_the_mean_over_the_sample_and_nothing_under_the_bar(self) -> None:
+        from corpus.answers import Judged
+        from corpus.levels import ENOUGH, SAMPLE, sample, video_level
+        texts = [f"Zeile {n}." for n in range(60)]
+        drawn = sample("v", texts)
+        judged = Judged({}, {}, levels={t: 2.0 for t in drawn[:ENOUGH]})
+        self.assertAlmostEqual(video_level(judged, "v", texts), 2.0)
+        thin = Judged({}, {}, levels={t: 2.0 for t in drawn[:ENOUGH - 1]})
+        self.assertIsNone(video_level(thin, "v", texts))
+        # Lines outside the sample do not count, however many are levelled.
+        outside = Judged({}, {}, levels={t: 0.0 for t in texts if t not in drawn})
+        self.assertIsNone(video_level(outside, "v", texts))
+        self.assertEqual(len(drawn), SAMPLE)
+
