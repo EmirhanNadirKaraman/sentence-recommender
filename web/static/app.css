@@ -159,8 +159,17 @@ a.go:hover { border-color: var(--target); background: var(--target); }
 
 /* The player sits above the reading, and follows whichever sentence is shown. */
 .stage { margin: 6px 0 22px; }
-.stage .de { font-size: 17px; color: var(--ink-2); margin: 12px 0 0;
-  min-height: 1.6em; }
+/* The subtitle under the picture: a subtitle, not the sentence being
+   taught. Bigger than it was and in the sans face on its own band, so
+   it reads as what the video is saying; the i+1 sentence above it keeps
+   the serif at 30px and stays the thing on the page. */
+.stage .de { font: 400 22px/1.45 var(--sans); color: var(--ink);
+  background: var(--surface); border-left: 3px solid var(--target);
+  padding: 10px 14px 4px; border-radius: 0 4px 0 0; margin: 10px 0 0; min-height: 1.45em; }
+.stage .en { background: var(--surface); border-left: 3px solid var(--target);
+  padding: 0 14px 10px; border-radius: 0 0 4px 0; margin: 0; min-height: 1.2em; }
+.stage .de:empty, .stage .en:empty { min-height: 0; padding-top: 0; padding-bottom: 0; }
+#reel .stage .de { font-size: 24px; }
 
 /* Per-sentence corrections. Quiet: these are for the exception, not the
    reading, and should not compete with the sentence above them. */
@@ -498,4 +507,7 @@ form.mine .actions { margin-top: 0; }
 /* The word being learned, at the top of the reading page. */
 .de.lead.new { margin: 14px 0 2px; }
 #reading-top .en { margin: 0 0 6px; }
+
+/* A word button that is the new word keeps the mark. */
+button.w.target { color: var(--target); border-bottom: 1px solid var(--target); }
 

@@ -1055,7 +1055,7 @@ class Viewer:
             + (f" data-video='{escape(s.timing.video_id)}' "
                f"data-at='{s.timing.start:.2f}'" if s.timing else "")
             + ">"
-            f"{sentence(s.text, s.translation, s.surface_of(unit), lead=True, level=self.app.judged.level(s.text))}"
+            f"{sentence(s.text, s.translation, s.surface_of(unit), lead=True, level=self.app.judged.level(s.text), words=_words(s))}"
             f"{self._also_new(s, unit, known)}"
             f"{self._sentence_tools(s.text, source, '/')}</div>"
             for i, s in enumerate(options)
@@ -1427,7 +1427,7 @@ class Viewer:
             f"{quote(s.unit.key, safe='')}?src={quote(source)}'>"
             f"{escape(s.unit.key)}</a></div>"
             + (sentence(said.text, said.translation, said.surface_of(s.unit),
-                        level=self.app.judged.level(said.text))
+                        level=self.app.judged.level(said.text), words=_words(said))
                + ("" if self.app.judged.clean(said.text) else
                   "<p class='also'>The judge doubts this sentence; nothing "
                   "cleaner said the word when the walk reached it.</p>")
@@ -2343,7 +2343,7 @@ class Viewer:
             + (" <span class='tag'>the plan's pick</span>" if u == pick else "")
             + (" <span class='tag'>on your list</span>" if u in goals else "")
             + "</div>"
-            f"{sentence(said.text, said.translation, said.surface_of(u))}"
+            f"{sentence(said.text, said.translation, said.surface_of(u), words=_words(said))}"
             f"<p class='also'>{len(positions):,} sentence"
             f"{'' if len(positions) == 1 else 's'} need only this"
             + (f" · brings {unlocks[u]:,} more to one word away"

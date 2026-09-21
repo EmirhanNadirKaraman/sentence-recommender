@@ -370,7 +370,7 @@ function glossPopup(button, lineText) {
 document.addEventListener('click', function (e) {
   var w = e.target.closest('button.w');
   if (!w) return;
-  var holder = w.closest('.said, #caption');
+  var holder = w.closest('.said, #caption, .de');
   glossPopup(w, holder ? holder.dataset.text || holder.textContent : w.textContent);
 });
 

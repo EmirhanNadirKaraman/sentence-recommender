@@ -583,6 +583,18 @@ class SubtitleWordsTest(unittest.TestCase):
             ["mal", "lemma", "mal"], ["kurz", "lemma", "kurz"],
             ["üben!", "pattern", "etw. (Akk) üben"]])
 
+    def test_a_sentences_words_are_buttons_and_the_new_word_keeps_its_mark(self) -> None:
+        from web.render import sentence
+        words = [["Lasst", "pattern", "etw. (Akk) üben"], ["uns", "pattern", "etw. (Akk) üben"],
+                 ["kurz", "lemma", "kurz"], ["üben!", "pattern", "etw. (Akk) üben"]]
+        html = sentence("Lasst uns kurz üben!", "Let us practise.", "Lasst uns üben",
+                        lead=True, words=words)
+        self.assertIn("data-text='Lasst uns kurz üben!'", html)
+        self.assertIn("class='w target' data-kind='pattern' data-key='etw. (Akk) üben'>Lasst<", html)
+        self.assertIn("class='w' data-kind='lemma' data-key='kurz'>kurz<", html)
+        self.assertIn("class='w target' data-kind='pattern' data-key='etw. (Akk) üben'>üben!<", html)
+        self.assertIn("<p class='en'>Let us practise.</p>", html)
+
     def test_a_line_nobody_analysed_is_still_words(self) -> None:
         from corpus.sentence import Sentence
         from web.handlers import _words

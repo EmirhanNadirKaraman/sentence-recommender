@@ -116,14 +116,35 @@ def mark(text: str, surface: str | None) -> str:
 
 
 def sentence(text: str, translation: str | None, surface: str | None = None,
-             lead: bool = False, level: str | None = None) -> str:
+             lead: bool = False, level: str | None = None,
+             words: list[list[str]] | None = None) -> str:
     """A sentence, its English under it, and the level the judge gave it
     — `B1` — after the German where one is known, so a reader can see why
-    a sentence was picked over a harder one, or why this one is hard."""
+    a sentence was picked over a harder one, or why this one is hard.
+
+    With `words` — `[token, kind, key]` per token, as `web.handlers._words`
+    reads them off a sentence — every word is a button that opens its
+    gloss, as a subtitle's words do; the new word's tokens are marked in it
+    as before. Without, the text is plain with the new word marked.
+    """
     size = " lead" if lead else ""
     badge = f" <span class='level' title='the level the judge gave it'>{escape(level)}</span>" \
         if level else ""
-    out = f"<p class='de{size}'>{mark(text, surface)}{badge}</p>"
+    body = clickable(words, surface) if words else mark(text, surface)
+    out = f"<p class='de{size}' data-text='{escape(text)}'>{body}{badge}</p>"
     if translation:
         out += f"<p class='en'>{escape(translation)}</p>"
     return out
+
+
+def clickable(words: list[list[str]], surface: str | None) -> str:
+    """Every word a button carrying its unit; the tokens of `surface` —
+    the new word as the sentence says it — marked as the target."""
+    wanted = {w.strip(".,;:!?„“”\"'()[]…-–—").lower() for w in (surface or "").split()}
+    out = []
+    for token, kind, key in words:
+        bare = token.strip(".,;:!?„“”\"'()[]…-–—").lower()
+        hit = " target" if bare and bare in wanted else ""
+        out.append(f"<button type='button' class='w{hit}' data-kind='{escape(kind)}'"
+                   f" data-key='{escape(key)}'>{escape(token)}</button>")
+    return " ".join(out)
