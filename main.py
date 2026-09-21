@@ -400,6 +400,12 @@ def _parser() -> argparse.ArgumentParser:
     ask.add_argument("--skip", nargs="*", default=(),
                      help="questions to leave out, to meet a budget "
                           "(e.g. guessable)")
+    ask.add_argument("--only", nargs="*", default=(),
+                     help="the questions to ask and no other (e.g. level "
+                          "well_formed standard)")
+    ask.add_argument("--videos", type=int, default=None,
+                     help="only the lines of the reel's best N videos, as "
+                          "last scored, best first")
 
     sub.add_parser("mcp-serve",
                    help="serve the roadmap and the reviews as MCP tools over "
@@ -767,7 +773,8 @@ def main() -> int:
         ServeCommand().run(app, args.port, not args.no_browser, args.host)
     elif args.command == "ask-sentences":
         AskSentencesCommand().run(app, args.limit, args.workers, args.dry_run,
-                                  args.log, args.plan, tuple(args.skip))
+                                  args.log, args.plan, tuple(args.skip),
+                                  tuple(args.only), args.videos)
     elif args.command == "mcp-serve":
         McpServeCommand().run(app)
     elif args.command == "build-study-list":

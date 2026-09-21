@@ -61,3 +61,36 @@ class ReadTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BestVideosTest(unittest.TestCase):
+    """`--videos N`: the lines of the reel's best N videos, best first,
+    the thin and the removed left out."""
+
+    def test_the_lines_come_best_video_first(self) -> None:
+        import tempfile
+        from pathlib import Path
+        from alignment.timing import Timing
+        from commands.ask_sentences import _of_the_best_videos
+        from scores import ScoreStore
+        from config import Settings
+        from context import Application
+        with tempfile.TemporaryDirectory() as tmp:
+            app = Application(Settings(state_path=Path(tmp) / "state.sqlite3"))
+            row = lambda video, watch, lines=50: {
+                "video": video, "title": "", "lines": lines, "minutes": 10.0,
+                "comprehension": 0.9, "i+1": 1, "teaches": 1, "watch": watch, "next": []}
+            ScoreStore(app.settings.state_path).save("subtitle", "stamp", [
+                row("best", 0.9), row("thin", 0.95, lines=5), row("next", 0.5)])
+            lines = [Sentence("Zweitbestes Video, erste Zeile.", timing=Timing("next", 1.0, 2.0)),
+                     Sentence("Bestes Video, zweite Zeile.", timing=Timing("best", 9.0, 10.0)),
+                     Sentence("Bestes Video, erste Zeile.", timing=Timing("best", 1.0, 2.0)),
+                     Sentence("Zu dünn.", timing=Timing("thin", 1.0, 2.0)),
+                     Sentence("Nicht im Feed.", timing=Timing("other", 1.0, 2.0)),
+                     Sentence("Ohne Video.")]
+            self.assertEqual([s.text for s in _of_the_best_videos(app, lines, 2)],
+                             ["Bestes Video, erste Zeile.", "Bestes Video, zweite Zeile.",
+                              "Zweitbestes Video, erste Zeile."])
+            self.assertEqual([s.text for s in _of_the_best_videos(app, lines, 1)],
+                             ["Bestes Video, erste Zeile.", "Bestes Video, zweite Zeile."])
+

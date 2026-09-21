@@ -140,6 +140,17 @@ class StoreTest(unittest.TestCase):
             self.assertEqual(answers.answered("jev", 1), {GIVE})
             self.assertEqual(answers.answered("jev", 2), set())
 
+    def test_answered_means_every_question_the_run_asks(self) -> None:
+        """A level-only run over a video skips what the full pass levelled;
+        the full pass does not skip a sentence that has only its level."""
+        tmp, answers = store()
+        with tmp:
+            answers.save(GIVE, "jev", 1, {"complete": (0.9, None), "level": (0.2, None)})
+            answers.save(THERE, "jev", 1, {"level": (0.2, None)})
+            self.assertEqual(answers.answered("jev", 1, ("level",)), {GIVE, THERE})
+            self.assertEqual(answers.answered("jev", 1, ("complete", "level")), {GIVE})
+            self.assertEqual(answers.answered("jev", 1), {GIVE})
+
 
 class RankTest(unittest.TestCase):
     def sentences(self):

@@ -209,14 +209,20 @@ class AnswerStore:
                 (text, unit.kind, unit.key, REFUSED, model,
                  datetime.now().isoformat(timespec="seconds")))
 
-    def answered(self, model: str, version: int) -> set[str]:
+    def answered(self, model: str, version: int,
+                 questions: tuple[str, ...] = ("complete",)) -> set[str]:
         """The sentences this model has answered at this version — what a
-        resumed pass skips."""
+        resumed pass skips: those holding every one of `questions`. A pass
+        that asks `level` alone of a video's lines skips what the full
+        pass already levelled, and the full pass, asking `complete` among
+        the rest, does not skip a sentence that has only the level."""
+        marks = ", ".join("?" for _ in questions)
         with open_state(self._path) as conn:
             return {text for (text,) in conn.execute(
-                "SELECT DISTINCT text FROM sentence_answer"
-                " WHERE question = 'complete' AND version = ? AND model = ?",
-                (version, model))}
+                "SELECT text FROM sentence_answer"
+                f" WHERE question IN ({marks}) AND version = ? AND model = ?"
+                " GROUP BY text HAVING count(DISTINCT question) = ?",
+                (*questions, version, model, len(questions)))}
 
     def counts(self) -> dict[str, int]:
         with open_state(self._path) as conn:

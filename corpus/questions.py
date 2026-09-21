@@ -162,7 +162,13 @@ def state_for(text: str, units: dict[str, dict]) -> dict:
     `units` maps an id to `{"spoken", "canonical", "surface"}` — the word as
     the card names it, as the matcher wrote it, and as the sentence says
     it; the ids are what the per-unit questions name in their instructions.
+    With no unit to ask about, the sentence travels alone: the notation
+    explains canonicals and there is none, and a hundred tokens a request
+    is a tenth of a level-only pass (experiment 06 asked exactly this state
+    and agreed with the full pass on 94% of sentences within a level).
     """
+    if not units:
+        return {"sentence": text}
     return {"sentence": text, "units": units, "notation": NOTATION}
 
 

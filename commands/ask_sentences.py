@@ -92,16 +92,43 @@ def read(response, asked) -> dict[str, tuple[float, dict | None]]:
     return out
 
 
+def _of_the_best_videos(app, sentences, count: int):
+    """The lines of the reel's best `count` videos, best video first.
+
+    As the reel last ranked them (`ScoreStore.latest`), the videos it
+    refuses to offer left out (`ENOUGH_LINES`), a removed channel's too.
+    Best first, so a run that stops early has covered the top of the
+    feed, which is what a reader sees.
+    """
+    from scores import ScoreStore                            # noqa: PLC0415
+    from watchability import ENOUGH_LINES                    # noqa: PLC0415
+    banned = app.banned_videos()
+    ranked = [row["video"] for row in ScoreStore(app.settings.state_path).latest("subtitle")
+              if row["lines"] >= ENOUGH_LINES and row["video"] not in banned][:count]
+    place = {video: n for n, video in enumerate(ranked)}
+    chosen = [s for s in sentences if s.timing and s.timing.video_id in place]
+    return sorted(chosen, key=lambda s: (place[s.timing.video_id], s.timing.start))
+
+
 class AskSentencesCommand:
     def run(self, app, limit: int | None = None, workers: int | None = None,
             dry_run: bool = False, log: Path = Path("out/ask.log"),
-            plan: str | None = None, skip: tuple[str, ...] = ()) -> None:
+            plan: str | None = None, skip: tuple[str, ...] = (),
+            only: tuple[str, ...] = (), videos: int | None = None) -> None:
         """`plan` restricts the run to one stored plan's candidates — the
         sentences that plan's cards show or could show — and `skip` names
         questions to leave out. Both are how a budget is met: the vendor
         charges per question per request, so the only savings are fewer
         sentences and fewer questions, and a sentence no card of the plan
-        you use can show is the first not to ask about."""
+        you use can show is the first not to ask about.
+
+        `videos` is the other selection: the lines of the reel's best `N`
+        videos as last scored, best first, for the numbers the reel wants
+        of a whole video rather than of a card's sentence — its level
+        above all. `only` is `skip` the other way round, for the run that
+        asks one or two questions of many lines; a sentence is skipped as
+        answered when it holds every question the run asks.
+        """
         import os                                            # noqa: PLC0415
         from config import load_dotenv                       # noqa: PLC0415
         from corpus import questions                         # noqa: PLC0415
@@ -115,12 +142,17 @@ class AskSentencesCommand:
             raise SystemExit("TYPESAFE_API_KEY is not set in .env")
 
         skipped = frozenset(skip)
-        unknown = skipped - set(questions.NAMES)
+        if only:
+            skipped |= set(questions.NAMES) - set(only)
+        unknown = (skipped | set(only)) - set(questions.NAMES)
         if unknown:
             raise SystemExit(f"no such question: {', '.join(sorted(unknown))}"
                              f" — the questions are {', '.join(questions.NAMES)}")
+        asking = tuple(q for q in (*questions.SENTENCE, "level") if q not in skipped)
+        if not asking:
+            raise SystemExit("nothing left to ask about the sentence itself")
         sentences = app.corpus("subtitle")
-        have = app.answers.answered(model, questions.VERSION)
+        have = app.answers.answered(model, questions.VERSION, asking)
         # Every stored plan, or the one whose label matches `plan`.
         like = f"%{plan}%" if plan else "%"
         with open_state(settings.state_path) as conn:
@@ -137,14 +169,23 @@ class AskSentencesCommand:
         todo = sorted((s for s in sentences if s.text not in have), key=tier)
         if plan:
             todo = [s for s in todo if tier(s) < 2]
+        if videos:
+            todo = _of_the_best_videos(app, todo, videos)
         tiers = Counter(tier(s) for s in todo)
         print(f"{len(sentences):,} teachable subtitle sentences · "
               f"{len(have):,} answered by {model} at version {questions.VERSION} · "
-              f"{len(todo):,} to ask" + (f" for the plan matching {plan!r}" if plan else ""),
+              f"{len(todo):,} to ask"
+              + (f" for the plan matching {plan!r}" if plan else "")
+              + (f" in the reel's best {videos:,} videos" if videos else ""),
               flush=True)
-        print(f"  in order: {tiers[0]:,} shown on a card · {tiers[1]:,} the walk "
-              f"weighed" + ("" if plan else f" · {tiers[2]:,} more")
-              + (f" · without {', '.join(sorted(skipped))}" if skipped else ""), flush=True)
+        if videos:
+            print(f"  best video first · asking {', '.join(asking)}"
+                  + ("" if "plain" in skipped else " · plain per unit"), flush=True)
+        else:
+            print(f"  in order: {tiers[0]:,} shown on a card · {tiers[1]:,} the walk "
+                  f"weighed" + ("" if plan else f" · {tiers[2]:,} more")
+                  + (f" · without {', '.join(sorted(skipped))}" if skipped else ""),
+                  flush=True)
         if limit:
             todo = todo[:limit]
             print(f"  asking about the first {len(todo):,}", flush=True)
