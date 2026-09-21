@@ -136,7 +136,7 @@ def script() -> str:
   }
 
   window.onYouTubeIframeAPIReady = function () {
-    player = new YT.Player('player', {events: {onReady: function () {
+    player = new YT.Player('player', {events: quietEvents({onReady: function () {
       window.__player = player;
       window.__sentenceStart = function () {
         return cues[showing] ? parseFloat(cues[showing].dataset.at) : null;
@@ -144,7 +144,7 @@ def script() -> str:
       setInterval(function () {
         if (player && player.getCurrentTime) showCue(player.getCurrentTime());
       }, 250);
-    }}});
+    }})});
   };
 
   cues.forEach(function (cue) {

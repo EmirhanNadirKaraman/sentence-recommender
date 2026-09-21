@@ -495,3 +495,7 @@ form.mine .actions { margin-top: 0; }
 .attempts .kind { font: 400 12px var(--sans); color: var(--ink-2); margin-left: 6px; }
 .attempts .en { font: 400 14px/1.4 var(--sans); color: var(--ink-2); }
 
+/* The word being learned, at the top of the reading page. */
+.de.lead.new { margin: 14px 0 2px; }
+#reading-top .en { margin: 0 0 6px; }
+

@@ -723,12 +723,13 @@ class Viewer:
             # the iframe and the YouTube API has to boot again — a second or
             # two of nothing, on the action taken most often.
             + f"<div id='reading-top'>{self._progress(readable, total)}"
-            + f"<p class='note'>{lede}</p></div>"
+            + f"<p class='note'>{lede}</p>"
+            + self._new_thing(step, occurrences, kind) + "</div>"
             + self._audio_toggle()
             + "<div class='card' id='card'>"
             + self._stage(deck)
             + "<div id='reading'>"
-            + self._reading(step, deck, source, occurrences, kind, watchable)
+            + self._reading(step, deck, source, watchable)
             + "</div></div>"
             + ("<h2>Transcript</h2><ol class='transcript' id='transcript'></ol>"
                if watchable else "")
@@ -736,19 +737,21 @@ class Viewer:
         )
         return self._page("i+1", body, "/", source)
 
-    def _reading(self, step, deck, source, occurrences, kind,
-                 watchable) -> str:
-        """Everything a decision replaces, minus the player above it."""
-        unit = step.unit
-        return (
-            self._deck(deck, unit, source)
-            + "<h2>The new thing</h2>"
-            f"<p class='de'>{escape(unit.key)}</p>"
-            f"<p class='en'>{kind}, appearing in {occurrences:,} sentence"
-            f"{'s' if occurrences != 1 else ''} here and opening {step.gain} "
-            f"more</p>"
-            + self._actions(unit, source, "/", watchable=watchable)
-        )
+    @staticmethod
+    def _new_thing(step, occurrences: int, kind: str) -> str:
+        """The word itself, above the picture, where the page opens: it
+        used to sit under the deck, below the fold, and the reader was
+        scrolling past the video to find out what they were learning."""
+        return (f"<p class='de lead new'>{escape(step.unit.key)}</p>"
+                f"<p class='en'>{kind}, appearing in {occurrences:,} sentence"
+                f"{'s' if occurrences != 1 else ''} here and opening {step.gain} "
+                f"more</p>")
+
+    def _reading(self, step, deck, source, watchable) -> str:
+        """Everything below the player that a decision replaces: the deck
+        and the decision itself."""
+        return (self._deck(deck, step.unit, source)
+                + self._actions(step.unit, source, "/", watchable=watchable))
 
     def next_json(self, query: dict) -> dict:
         """The next word, for swapping in without a page load.
@@ -775,9 +778,9 @@ class Viewer:
             kind = "a word"
         return {
             "top": (self._progress(readable, total)
-                    + f"<p class='note'>{lede}</p>"),
-            "html": self._reading(step, deck, source, occurrences, kind,
-                                  watchable),
+                    + f"<p class='note'>{lede}</p>"
+                    + self._new_thing(step, occurrences, kind)),
+            "html": self._reading(step, deck, source, watchable),
             # Whether this deck has a clip at all, and nothing more. Which
             # clip to open is decided on the page, from the slide actually on
             # screen -- this used to name the first sentence in the deck with

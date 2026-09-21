@@ -123,6 +123,27 @@ function loadCues(id) {
     .catch(function () { return []; });
 }
 
+// YouTube's own captions off. There is no parameter for it -- the embed
+// follows the viewer's YouTube preference -- but the API can unload the
+// captions module, once the module exists, which is after each video
+// loads; so it is done on every change of state into buffering or
+// playing. Our caption sits under the picture, the words clickable, and
+// the burnt-in one was doubling it, half cropped.
+function captionsOff(player) {
+  try { if (player && player.unloadModule) player.unloadModule('captions'); }
+  catch (_) {}
+}
+function quietEvents(events) {
+  var onState = events.onStateChange;
+  events.onStateChange = function (e) {
+    if (e.data === 1 || e.data === 3) captionsOff(e.target);
+    if (onState) onState(e);
+  };
+  var onReady = events.onReady;
+  events.onReady = function (e) { captionsOff(e.target); if (onReady) onReady(e); };
+  return events;
+}
+
 // The control bar under every player. Whichever page made the player
 // registers it here when it is ready, with a way to ask where the current
 // sentence starts; the bar itself is the same everywhere.
@@ -474,7 +495,7 @@ function cueAt(cues, now) {
   }
 
   window.onYouTubeIframeAPIReady = function () {
-    player = new YT.Player('player', {events: {onReady: function () {
+    player = new YT.Player('player', {events: quietEvents({onReady: function () {
       ready = true;
       window.__player = player;
       window.__sentenceStart = function () {
@@ -485,7 +506,7 @@ function cueAt(cues, now) {
       setInterval(function () {
         if (player && player.getCurrentTime) follow(player.getCurrentTime());
       }, 250);
-    }}});
+    }})});
   };
 
   // A decision, without the page reload it used to cost. Anything unexpected
@@ -649,7 +670,7 @@ function cueAt(cues, now) {
   }
 
   window.onYouTubeIframeAPIReady = function () {
-    player = new YT.Player('player', {events: {onReady: function () {
+    player = new YT.Player('player', {events: quietEvents({onReady: function () {
       ready = true;
       window.__player = player;
       window.__sentenceStart = function () {
@@ -663,7 +684,7 @@ function cueAt(cues, now) {
         if (caption) { caption.innerHTML = wordsHtml(cues[i]); caption.dataset.text = cues[i].text; }
         if (captionEn) captionEn.textContent = cues[i].en || '';
       }, 250);
-    }}});
+    }})});
   };
 
   showCues(s.video);
