@@ -38,6 +38,10 @@ CREATE TABLE IF NOT EXISTS video_score (
     -- The judge's level of the video, in levels above A1, from a sample of
     -- its lines (`corpus.levels`); NULL until enough of them are levelled.
     level         REAL,
+    -- The share of its lines readable whole. `comprehension` is the share
+    -- of its words known; the panel's "one word away" arithmetic is in
+    -- lines and wants this.
+    readable      REAL,
     PRIMARY KEY (source, video_id)
 );
 CREATE TABLE IF NOT EXISTS video_score_meta (
@@ -48,7 +52,7 @@ CREATE TABLE IF NOT EXISTS video_score_meta (
 """
 
 COLUMNS = ("video_id", "title", "lines", "minutes", "comprehension",
-           "teachable", "teaches", "watch", "next_words", "level")
+           "teachable", "teaches", "watch", "next_words", "level", "readable")
 
 
 class ScoreStore:
@@ -74,6 +78,8 @@ class ScoreStore:
                          " next_words TEXT NOT NULL DEFAULT '[]'")
         if "level" not in have:
             conn.execute("ALTER TABLE video_score ADD COLUMN level REAL")
+        if "readable" not in have:
+            conn.execute("ALTER TABLE video_score ADD COLUMN readable REAL")
 
     def load(self, source: str, stamp: str) -> list[dict] | None:
         """The stored scores, or None if they no longer describe you."""
@@ -112,7 +118,7 @@ class ScoreStore:
             conn.execute("DELETE FROM video_score WHERE source = ?", (source,))
             conn.executemany(
                 f"INSERT INTO video_score (source, {', '.join(COLUMNS)})"
-                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 [self._as_record(source, r) for r in rows])
             self._restamp(conn, source, stamp)
 
@@ -125,14 +131,14 @@ class ScoreStore:
         with open_state(self._path) as conn:
             conn.executemany(
                 f"INSERT INTO video_score (source, {', '.join(COLUMNS)})"
-                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
                 " ON CONFLICT(source, video_id) DO UPDATE SET"
                 " title = excluded.title, lines = excluded.lines,"
                 " minutes = excluded.minutes,"
                 " comprehension = excluded.comprehension,"
                 " teachable = excluded.teachable, teaches = excluded.teaches,"
                 " watch = excluded.watch, next_words = excluded.next_words,"
-                " level = excluded.level",
+                " level = excluded.level, readable = excluded.readable",
                 [self._as_record(source, r) for r in rows])
             self._restamp(conn, source, stamp)
 
@@ -158,14 +164,15 @@ class ScoreStore:
     def _as_record(source: str, row: dict) -> tuple:
         return (source, row["video"], row["title"], row["lines"], row["minutes"],
                 row["comprehension"], row["i+1"], row["teaches"], row["watch"],
-                json.dumps(row.get("next", []), ensure_ascii=False), row.get("level"))
+                json.dumps(row.get("next", []), ensure_ascii=False), row.get("level"),
+                row.get("readable"))
 
     @staticmethod
     def _as_row(record) -> dict:
         (video, title, lines, minutes, comprehension, teachable, teaches,
-         watch, next_words, level) = record
+         watch, next_words, level, readable) = record
         return {"video": video, "title": title, "lines": lines,
                 "minutes": minutes, "comprehension": comprehension,
                 "i+1": teachable, "teaches": teaches, "watch": watch,
                 "next": [tuple(x) for x in json.loads(next_words)],
-                "level": level}
+                "level": level, "readable": readable}

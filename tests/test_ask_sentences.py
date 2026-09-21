@@ -128,11 +128,12 @@ class ScoreStoreLevelTest(unittest.TestCase):
                              "PRIMARY KEY (source, video_id))")
             store = ScoreStore(path)
             row = {"video": "v", "title": "", "lines": 50, "minutes": 10.0,
-                   "comprehension": 0.5, "i+1": 1, "teaches": 1, "watch": 0.3,
-                   "next": [], "level": 1.5}
+                   "comprehension": 0.5, "readable": 0.1, "i+1": 1, "teaches": 1,
+                   "watch": 0.3, "next": [], "level": 1.5}
             store.save("subtitle", "stamp", [row])
             (back,) = store.load("subtitle", "stamp")
             self.assertEqual(back["level"], 1.5)
+            self.assertEqual(back["readable"], 0.1)
             store.update("subtitle", "stamp", [{**row, "level": None, "watch": 0.2}])
             (back,) = store.latest("subtitle")
             self.assertIsNone(back["level"])

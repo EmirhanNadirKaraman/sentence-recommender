@@ -34,7 +34,7 @@ from watchability import ENOUGH_LINES, taste_weight, watchability
 
 # Bump when scoring changes: the stored rows are only valid for
 # the code that wrote them.
-SCORE_VERSION = 7
+SCORE_VERSION = 8
 
 # How many next-best words to keep per video. The panel shows eight;
 # storing more would be paying to remember what nobody reads.
@@ -2089,7 +2089,9 @@ class Viewer:
 
     def _scoreboard(self, row: dict) -> str:
         length = f"{row['minutes']:.0f} min" if row["minutes"] else "unknown"
-        cells = [("you can follow", f"{row['comprehension']:.0%}"),
+        cells = [("of its words you know", f"{row['comprehension']:.0%}"),
+                 *([("of its lines you can read", f"{row['readable']:.0%}")]
+                   if row.get("readable") is not None else []),
                  ("length", length),
                  *([("level, the judge says", label(row["level"]))]
                    if row.get("level") is not None else []),
@@ -2129,7 +2131,9 @@ class Viewer:
 
         goals = frozenset(self.app.goal_units)
         total = max(row["lines"], 1)
-        at = row["comprehension"]
+        # In lines, like the gain: a row from before the share of lines was
+        # stored apart from the share of words says nothing here.
+        at = row.get("readable")
         # The first entry is what a sideways swipe takes, so it says so. The
         # panel lists eight and the gesture is silent about which — swiping
         # blind into a permanent change to your vocabulary is not a thing to
@@ -2145,16 +2149,18 @@ class Viewer:
                 "on your list" if unit in goals else "extra",
                 unit.kind, quote(unit.key, safe=""), quote(source),
                 escape(unit.key), count, "" if count == 1 else "s",
-                f" — {at:.0%} to {(at + count / total):.0%}" if count else "",
+                f" — {at:.0%} to {(at + count / total):.0%} of its lines"
+                if count and at is not None else "",
                 self._word_actions(unit, source, back))
             for n, (unit, count) in enumerate(gain.most_common(limit)))
         best = gain.most_common(1)[0]
         return (f"<h2>Learn next to follow this one</h2>"
                 f"<p class='note'>{len(gain):,} words here are a single step "
                 f"away. <strong>{escape(best[0].key)}</strong> buys the most: "
-                f"{best[1]} sentence{'' if best[1] == 1 else 's'}, "
-                f"taking you from {at:.0%} to "
-                f"{(at + best[1] / total):.0%}.</p>"
+                f"{best[1]} sentence{'' if best[1] == 1 else 's'}"
+                + (f", taking you from {at:.0%} to {(at + best[1] / total):.0%} "
+                   "of its lines" if at is not None else "")
+                + ".</p>"
                 f"<div class='ledger'>{entries}</div>")
 
     def _watchable(self, source: str, floor: int = ENOUGH_LINES) -> list[dict]:
@@ -2324,6 +2330,20 @@ class Viewer:
         `level` where measured, `typical` in the score where not, and the
         row keeps only what was measured.
 
+        `comprehension` is the share of the video's *words* you know — of
+        every word occurrence in its lines, counted the way the strict
+        roadmap counts. It was the share of its *lines* you could read
+        whole, and with 215 words known that was 1.7% at the median, 17.6%
+        at the top and exactly zero for 388 of 1,536 videos: eighteen
+        distinct values, an order made of noise. Counted by word the same
+        videos run 58% to 80%, every one distinct, and agree with the
+        judge's level at −.66 by rank where the line share managed −.19.
+        It is also what the reading research means by comprehension — 95
+        to 98% of the words is where reading gets comfortable — so
+        `COMFORTABLE` finally measures what it was written against. The
+        line share is kept as `readable`, because the words a video is one
+        step from are still counted in lines.
+
         The next-best words fall out of the same pass: a sentence with one
         unknown is both what makes the video teachable and the evidence for
         which word to learn. Counting them and discarding which ones they
@@ -2331,10 +2351,13 @@ class Viewer:
         rebuild an answer it had already computed.
         """
         readable = teachable = 0
+        words = known_words = 0
         unblocks: set = set()
         gain: Counter = Counter()
         for sentence in sentences:
             missing = sentence.units - known
+            words += len(sentence.units)
+            known_words += len(sentence.units) - len(missing)
             if not missing:
                 readable += 1
             elif len(missing) == 1:
@@ -2343,12 +2366,13 @@ class Viewer:
                 gain[unit] += 1
                 if unit in goals:
                     unblocks.add(unit)
-        comprehension = readable / len(sentences)
+        comprehension = known_words / words if words else 0.0
         minutes = self._minutes().get(video_id)
         return {"video": video_id, "title": self._titles().get(video_id, ""),
                 "lines": len(sentences), "minutes": minutes,
-                "comprehension": comprehension, "i+1": teachable,
-                "teaches": len(unblocks),
+                "comprehension": comprehension,
+                "readable": readable / len(sentences),
+                "i+1": teachable, "teaches": len(unblocks),
                 "watch": watchability(comprehension, minutes, len(sentences), dialogue,
                                       level if level is not None else typical),
                 # Enough to show, not the whole tail: the panel lists eight.
@@ -2657,7 +2681,7 @@ class Viewer:
             for r in ranked
         )
         table = (f"<table class='rows'><tr><th>video</th>"
-                 f"<th class='n'>you follow</th><th class='n'>level</th>"
+                 f"<th class='n'>words</th><th class='n'>level</th>"
                  f"<th class='n'>watch</th>"
                  f"<th class='n'>i+1/min</th>"
                  f"<th class='n'>teaches</th><th class='n'>cues</th>"
@@ -2674,11 +2698,11 @@ class Viewer:
         )
         body = ("<h1>Videos</h1>"
                 f"<div class='switch'><span>Best first</span>{picker}</div>"
-                "<p class='note'><em>You follow</em> is the share of its "
-                "sentences you can already read, <em>level</em> is what the "
-                "judge makes of thirty of its lines, and <em>watch</em> "
-                "combines the two with length. Those favour videos you "
-                "understand already. <em>i+1/min</em> asks the opposite question — how "
+                "<p class='note'><em>Words</em> is the share of its words "
+                "you already know, <em>level</em> is what the judge makes "
+                "of thirty of its lines, and <em>watch</em> combines the two "
+                "with length. Those favour videos you understand already. "
+                "<em>i+1/min</em> asks the opposite question — how "
                 "much this video could teach you per minute — and picks "
                 "almost entirely different films: of the top fifty by each, "
                 "two are the same. Both move as you mark words known. "
