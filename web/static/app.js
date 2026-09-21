@@ -149,10 +149,17 @@ function quietEvents(events) {
 // sentence starts; the bar itself is the same everywhere.
 window.__player = null;
 window.__sentenceStart = null;
+// The start of every subtitle of the video on screen, in order, for the
+// line-by-line keys and the auto-pause; each page registers its own.
+window.__cueTimes = null;
 
 (function () {
   var bar = document.getElementById('controls');
   if (!bar) return;
+  var AUTOPAUSE = 'i1-autopause';
+  var autopause = false;
+  try { autopause = localStorage.getItem(AUTOPAUSE) === '1'; } catch (_) {}
+  var lastCue = -1;
   function live() {
     var p = window.__player;
     return p && p.getPlayerState ? p : null;
@@ -161,6 +168,36 @@ window.__sentenceStart = null;
     seconds = Math.max(0, Math.floor(seconds || 0));
     return Math.floor(seconds / 60) + ':' + ('0' + (seconds % 60)).slice(-2);
   }
+  function times() { return window.__cueTimes ? (window.__cueTimes() || []) : []; }
+  function cueIndex(now) {
+    var t = times(), i = -1;
+    while (i + 1 < t.length && t[i + 1] <= now) i++;
+    return i;
+  }
+  // The subtitle before: the one whose start is clearly behind the
+  // playhead, so a second press goes back another line rather than
+  // restarting the same one; the next: the first start ahead.
+  function step(p, by) {
+    var t = times(), now = p.getCurrentTime(), to = null;
+    if (by < 0) { for (var i = t.length - 1; i >= 0; i--) if (t[i] < now - 0.8) { to = t[i]; break; } }
+    else { for (var j = 0; j < t.length; j++) if (t[j] > now + 0.05) { to = t[j]; break; } }
+    if (to == null) return;
+    p.seekTo(Math.max(to - 0.4, 0), true);
+    p.playVideo();
+  }
+  function showAutopause() {
+    var b = document.getElementById('autopause');
+    if (b) {
+      b.textContent = 'Auto-pause ' + (autopause ? 'on' : 'off');
+      b.classList.toggle('on', autopause);
+    }
+  }
+  function toggleAutopause() {
+    autopause = !autopause;
+    try { localStorage.setItem(AUTOPAUSE, autopause ? '1' : '0'); } catch (_) {}
+    showAutopause();
+  }
+  showAutopause();
   bar.addEventListener('click', function (e) {
     var b = e.target.closest('button[data-act]');
     var p = live();
@@ -168,6 +205,12 @@ window.__sentenceStart = null;
     var act = b.dataset.act;
     if (act === 'toggle') {
       if (p.getPlayerState() === 1) p.pauseVideo(); else p.playVideo();
+    } else if (act === 'prev') {
+      step(p, -1);
+    } else if (act === 'next') {
+      step(p, 1);
+    } else if (act === 'autopause') {
+      toggleAutopause();
     } else if (act === 'back') {
       p.seekTo(Math.max(p.getCurrentTime() - 5, 0), true);
     } else if (act === 'fwd') {
@@ -198,6 +241,21 @@ window.__sentenceStart = null;
       at.textContent = clock(p.getCurrentTime()) + ' / ' + clock(p.getDuration());
   }, 500);
 
+  // Auto-pause: when the playhead crosses into the next subtitle, stop
+  // on its first frame, so play goes on from the start of the next line.
+  // Only while playing, and only forwards by one -- a seek or a new
+  // video resets what "the next line" is.
+  setInterval(function () {
+    var p = live();
+    if (!p || !p.getCurrentTime) return;
+    var i = cueIndex(p.getCurrentTime());
+    if (autopause && p.getPlayerState() === 1 && lastCue >= 0 && i === lastCue + 1) {
+      p.pauseVideo();
+      p.seekTo(times()[i], true);
+    }
+    lastCue = i;
+  }, 100);
+
   // The keys YouTube's own player answers to, answered here, because the
   // frame cannot see them: arrows seek five seconds and turn the volume,
   // space and k play or pause, j and l seek ten, m mutes, f goes full
@@ -225,6 +283,9 @@ window.__sentenceStart = null;
       var frame = document.getElementById('player');
       if (frame && frame.requestFullscreen) frame.requestFullscreen();
     }
+    else if (key === 'q') step(p, -1);
+    else if (key === 'e') step(p, 1);
+    else if (key === 't') toggleAutopause();
     else return;
     e.preventDefault();
   });
@@ -517,6 +578,7 @@ function cueAt(cues, now) {
         var el = slides[showing];
         return el && el.dataset.at ? parseFloat(el.dataset.at) : null;
       };
+      window.__cueTimes = function () { return cues.map(function (c) { return c.at; }); };
       play(showing);
       setInterval(function () {
         if (player && player.getCurrentTime) follow(player.getCurrentTime());
@@ -691,6 +753,7 @@ function cueAt(cues, now) {
       window.__sentenceStart = function () {
         return cues[marking] ? cues[marking].at : 0;
       };
+      window.__cueTimes = function () { return cues.map(function (c) { return c.at; }); };
       setInterval(function () {
         if (!player || !player.getCurrentTime) return;
         var i = cueAt(cues, player.getCurrentTime());

@@ -303,6 +303,7 @@ a.go:hover { border-color: var(--target); background: var(--target); }
 .controls { display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
   margin: 8px 0 0; }
 .controls button { min-height: 36px; padding: 6px 10px; font-size: 14px; }
+.controls button.on { border-color: var(--target); color: var(--target); }
 .controls .clock { font: 400 13px var(--sans); color: var(--ink-2); margin-left: auto; }
 
 /* Listening rather than watching: the picture goes, the words get the room.

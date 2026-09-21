@@ -54,13 +54,17 @@ def controls() -> str:
     sentence starts (`window.__sentenceStart`)."""
     return (
         "<div class='controls' id='controls'>"
+        "<button type='button' data-act='prev' title='The subtitle before (Q)'>&#8249; line</button>"
         "<button type='button' data-act='sentence' title='Play this sentence again'>"
         "&#8635; sentence</button>"
+        "<button type='button' data-act='next' title='The next subtitle (E)'>line &#8250;</button>"
         "<button type='button' data-act='back' title='Five seconds back'>&minus;5 s</button>"
         "<button type='button' data-act='toggle' id='toggle'>Play</button>"
         "<button type='button' data-act='fwd' title='Five seconds on'>+5 s</button>"
         "<button type='button' data-act='rate' id='rate' title='Slower or normal speed'>1&times;</button>"
         "<button type='button' data-act='mute' id='mute'>Sound off</button>"
+        "<button type='button' data-act='autopause' id='autopause' "
+        "title='Pause after every subtitle (T)'>Auto-pause off</button>"
         "<button type='button' data-act='full' title='Full screen'>&#x26F6;</button>"
         "<span class='clock' id='clock'></span>"
         "</div>"
@@ -141,6 +145,7 @@ def script() -> str:
       window.__sentenceStart = function () {
         return cues[showing] ? parseFloat(cues[showing].dataset.at) : null;
       };
+      window.__cueTimes = function () { return times; };
       setInterval(function () {
         if (player && player.getCurrentTime) showCue(player.getCurrentTime());
       }, 250);

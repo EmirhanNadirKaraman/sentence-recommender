@@ -1075,7 +1075,8 @@ class Viewer:
             # Naming both axes, because D is no longer a
             # way of looking around: it marks the word known.
             "<span class='hint'>W/S another sentence &nbsp; "
-            "D know it &nbsp; A later &nbsp; arrows, space: the video &nbsp;&nbsp; "
+            "D know it &nbsp; A later &nbsp; arrows, space: the video &nbsp; "
+            "Q/E a line back or on &nbsp; T auto-pause &nbsp;&nbsp; "
             + (f"{readable} of them need only this"
                if readable != 1 else "one of them needs only this")
             + "</span></div>"
