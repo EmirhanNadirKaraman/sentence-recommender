@@ -207,6 +207,12 @@ def _make_handler(viewers: "Viewers"):
                     self._redirect(viewer.hide_sentence(form))
                 elif posted == "/api/try":
                     self._send_json(viewer.try_json(form))
+                elif posted == "/review":
+                    outcome = viewer.save_review(form)
+                    if isinstance(outcome, tuple):
+                        self._send(outcome[1], 200)
+                    else:
+                        self._redirect(outcome)
                 elif posted == "/mine":
                     outcome = viewer.save_mine(form)
                     if isinstance(outcome, tuple):
@@ -258,6 +264,8 @@ def _make_handler(viewers: "Viewers"):
                 return viewer.study(query), 200
             if path == "/mine":
                 return viewer.mine(query), 200
+            if path == "/review":
+                return viewer.review(query), 200
             if path == "/api/next":
                 self._send_json(viewer.next_json(query))
                 return "", 0

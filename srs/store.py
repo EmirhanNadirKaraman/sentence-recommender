@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS cards (
     ease_factor   REAL NOT NULL,
     repetitions   INTEGER NOT NULL,
     last_review   TEXT,
+    lapses        INTEGER NOT NULL DEFAULT 0,
     UNIQUE (kind, key)
 );
 CREATE INDEX IF NOT EXISTS ix_cards_due ON cards(due_date);
@@ -32,15 +33,19 @@ class CardStore:
         path.parent.mkdir(parents=True, exist_ok=True)
         with open_state(self._path) as conn:
             conn.executescript(SCHEMA)
+            # A table from before lapses were counted.
+            have = {row[1] for row in conn.execute("PRAGMA table_info(cards)")}
+            if "lapses" not in have:
+                conn.execute("ALTER TABLE cards ADD COLUMN lapses INTEGER NOT NULL DEFAULT 0")
 
     def add(self, card: Card) -> None:
         """Insert a card, leaving an existing one for the same unit alone —
-        rebuilding a roadmap must not reset review history."""
+        a claim made twice is one claim, with its history."""
         with open_state(self._path) as conn:
             conn.execute(
                 "INSERT OR IGNORE INTO cards"
                 " (kind, key, due_date, interval_days, ease_factor, repetitions,"
-                "  last_review) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                "  last_review, lapses) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 self._to_row(card),
             )
 
@@ -57,7 +62,7 @@ class CardStore:
             conn.executemany(
                 "INSERT OR IGNORE INTO cards"
                 " (kind, key, due_date, interval_days, ease_factor, repetitions,"
-                "  last_review) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                "  last_review, lapses) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 [self._to_row(card) for card in cards],
             )
 
@@ -65,16 +70,15 @@ class CardStore:
         with open_state(self._path) as conn:
             conn.execute(
                 "UPDATE cards SET due_date = ?, interval_days = ?, ease_factor = ?,"
-                " repetitions = ?, last_review = ? WHERE kind = ? AND key = ?",
+                " repetitions = ?, last_review = ?, lapses = ? WHERE kind = ? AND key = ?",
                 (card.due_date.isoformat(), card.interval_days, card.ease_factor,
                  card.repetitions,
                  card.last_review.isoformat() if card.last_review else None,
-                 card.unit.kind, card.unit.key),
+                 card.lapses, card.unit.kind, card.unit.key),
             )
 
     def remove(self, unit: Unit) -> None:
-        """Drop a unit's card — used when it is marked known, since there is
-        nothing left to test."""
+        """Drop a unit's card: the claim graduated, or was withdrawn."""
         with open_state(self._path) as conn:
             conn.execute("DELETE FROM cards WHERE kind = ? AND key = ?",
                          (unit.kind, unit.key))
@@ -86,7 +90,7 @@ class CardStore:
         with open_state(self._path) as conn:
             row = conn.execute(
                 "SELECT card_id, kind, key, due_date, interval_days, ease_factor,"
-                " repetitions, last_review FROM cards WHERE kind = ? AND key = ?",
+                " repetitions, last_review, lapses FROM cards WHERE kind = ? AND key = ?",
                 (unit.kind, unit.key),
             ).fetchone()
         return self._from_row(row) if row else None
@@ -95,7 +99,7 @@ class CardStore:
         with open_state(self._path) as conn:
             rows = conn.execute(
                 "SELECT card_id, kind, key, due_date, interval_days, ease_factor,"
-                " repetitions, last_review FROM cards WHERE due_date <= ?"
+                " repetitions, last_review, lapses FROM cards WHERE due_date <= ?"
                 " ORDER BY due_date LIMIT ?",
                 (now.isoformat(), limit),
             ).fetchall()
@@ -116,11 +120,12 @@ class CardStore:
             card.unit.kind, card.unit.key, card.due_date.isoformat(),
             card.interval_days, card.ease_factor, card.repetitions,
             card.last_review.isoformat() if card.last_review else None,
+            card.lapses,
         )
 
     @staticmethod
     def _from_row(row: tuple) -> Card:
-        card_id, kind, key, due, interval, ease, reps, last = row
+        card_id, kind, key, due, interval, ease, reps, last, lapses = row
         return Card(
             unit=Unit(kind, key),
             due_date=datetime.fromisoformat(due),
@@ -128,5 +133,6 @@ class CardStore:
             ease_factor=ease,
             repetitions=reps,
             last_review=datetime.fromisoformat(last) if last else None,
+            lapses=lapses,
             card_id=card_id,
         )

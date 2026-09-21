@@ -42,6 +42,7 @@ class Application:
         self._banned: tuple[int, frozenset[str]] | None = None
         self._machine: tuple[int, frozenset[str]] | None = None
         self._own_texts: frozenset[str] | None = None
+        self._tools = None
 
     # --- storage ---------------------------------------------------------
 
@@ -153,6 +154,14 @@ class Application:
             [Sentence(text, origin="own", translation=english)])
         self.corpus_store.append([analysed], build=GENERATED)
         self._own_texts = None
+
+    def mcp_prompt(self, unit: Unit) -> dict:
+        """What to ask about a claimed word — see `commands.mcp_serve`;
+        the review page asks the same."""
+        from commands.mcp_serve import Tools                 # noqa: PLC0415
+        if self._tools is None:
+            self._tools = Tools(self)
+        return self._tools.prompt_for(unit)
 
     def machine_made(self) -> frozenset[str]:
         """Every sentence of a channel marked machine-made, by text -- what

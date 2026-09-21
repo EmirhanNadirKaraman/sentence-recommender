@@ -24,6 +24,29 @@ from srs.card import Card
 from vocab.entry import Unit
 
 
+# A word marked known is a claim on probation (decided 2026-09-21). It counts
+# as known at once -- the plan, the reel and the next step move on -- and a
+# card is due the next day. Each passed review confirms it; at five it has
+# graduated and is never asked again. Two failed reviews in a row un-mark
+# it: the plan's decks assumed it was known, and it was not.
+CONFIRMATIONS = 5
+LAPSES_TO_UNMARK = 2
+
+GRADUATED = "graduated"
+UNMARKED = "unmarked"
+SCHEDULED = "scheduled"
+
+
+def verdict(card: Card) -> str:
+    """What a review just decided about the claim: `graduated`, `unmarked`
+    or `scheduled` for another look."""
+    if card.repetitions >= CONFIRMATIONS:
+        return GRADUATED
+    if card.lapses >= LAPSES_TO_UNMARK:
+        return UNMARKED
+    return SCHEDULED
+
+
 class SM2Scheduler:
     DEFAULT_EASE = 2.5
     INITIAL_INTERVAL = 1.0
@@ -43,6 +66,12 @@ class SM2Scheduler:
             repetitions=0,
         )
 
+    def claimed(self, unit: Unit, now: datetime) -> Card:
+        """The card for a word just marked known: due tomorrow, not now —
+        the reader has the sentence in front of them this minute."""
+        return replace(self.new_card(unit, now),
+                       due_date=now + timedelta(days=self.INITIAL_INTERVAL))
+
     def review(self, card: Card, correct: bool, now: datetime) -> Card:
         if correct:
             interval = min(
@@ -50,15 +79,18 @@ class SM2Scheduler:
             )
             ease = min(card.ease_factor + self.EASE_BONUS, self.MAX_EASE)
             repetitions = card.repetitions + 1
+            lapses = 0
         else:
             interval = self.INITIAL_INTERVAL
             ease = max(card.ease_factor - self.EASE_PENALTY, self.MIN_EASE)
             repetitions = 0
+            lapses = card.lapses + 1
         return replace(
             card,
             interval_days=interval,
             ease_factor=ease,
             repetitions=repetitions,
+            lapses=lapses,
             due_date=now + timedelta(days=interval),
             last_review=now,
         )

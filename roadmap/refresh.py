@@ -23,7 +23,6 @@ confusing `:llm` for one of them.
 """
 from __future__ import annotations
 
-from datetime import datetime
 from typing import NamedTuple
 
 from corpus.quality import well_formed
@@ -157,7 +156,6 @@ class RoadmapRefresher:
         # over every word in the files. CorpusIndex takes a snapshot rather
         # than holding on to this, so one instance serves every walk.
         known = self._app.known_set()
-        known_units = known.units
         goal_units = frozenset(self._app.goal_units)
         # Also once: ranking the goal list is seconds, and every roadmap
         # ranks it the same way.
@@ -225,12 +223,4 @@ class RoadmapRefresher:
                 self._store.append(fresh, label, current_stamp(),
                                    len(sentences))
             out[label] = len(fresh)
-
-            # Only the new steps mint cards: the rest already have theirs,
-            # from whichever run first planned them.
-            now = datetime.now()
-            self._app.card_store.add_many([
-                self._app.scheduler.new_card(step.unit, now)
-                for step in fresh if step.unit not in known_units
-            ])
         return out

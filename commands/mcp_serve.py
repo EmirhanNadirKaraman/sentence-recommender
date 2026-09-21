@@ -49,9 +49,13 @@ INSTRUCTIONS = (
     "A German learner's own i+1 roadmap and spaced-repetition queue. "
     "`next_up` is the sentence to teach now — everything in it is known "
     "except one unit. `mark_known` records the decision and moves the plan "
-    "on. `due_cards` and `grade` run reviews. `check_word` explains why a "
-    "word on the study list is or is not being taught. `status` says what is "
-    "built; the `roadmap://` resource is a whole stored plan."
+    "on. A word marked known is a claim on probation: `due_cards` are the "
+    "claims to test today, each with what to ask; `grade` records the "
+    "answer — five passes graduate a word, two failures in a row un-mark "
+    "it. `due_sentences` and `grade_sentence` do the same for the sentences "
+    "the learner wrote to say. `check_word` explains why a word on the study "
+    "list is or is not being taught. `status` says what is built; the "
+    "`roadmap://` resource is a whole stored plan."
 )
 
 ACTIONS = ("known", "pass", "undo")
@@ -124,8 +128,72 @@ class Tools:
         }
 
     def due_cards(self, limit: int = 20) -> list[dict[str, Any]]:
-        """The review cards due now, soonest first, with their SM-2 state."""
-        return [_card(c) for c in self.app.card_store.due(datetime.now(), limit)]
+        """The claims to test now, soonest first, each with what to ask.
+
+        You are the examiner. Ask the learner to write a German sentence
+        using `spoken` (the word, or the verb of a pattern); do not show
+        `examples` — sentences they have not seen, with English — until
+        they have answered, then use them to show how it is used. Pass if
+        the sentence uses the word correctly in the sense of the examples
+        (any correct form of it; slips elsewhere in the sentence do not
+        fail it, but point them out and give the natural phrasing). Then
+        call `grade` with the verdict. `confirmations` is passes in a row
+        so far (five graduate the word), `lapses` failures in a row (two
+        un-mark it).
+        """
+        out = []
+        for card in self.app.card_store.due(datetime.now(), limit):
+            out.append({**_card(card), **self.prompt_for(card.unit)})
+        return out
+
+    def prompt_for(self, unit: Unit) -> dict[str, Any]:
+        """What to ask about one unit: the word to write with, and fresh
+        sentences that show how it is used.
+
+        Fresh: not the sentences the plan taught the word with, which the
+        learner would recognise as sentences rather than know as the word.
+        Subtitle and generated text only, never a transcript's, which does
+        not leave the machine.
+        """
+        from deck.spoken import spoken                       # noqa: PLC0415
+        from roadmap.examples import ExampleIndex            # noqa: PLC0415
+        known = self.viewer.known
+        seen = self._taught_with(unit)
+        holding = self.app.corpus("subtitle", "generated", strict=True,
+                                  holding=(unit.kind, unit.key))
+        ranked = ExampleIndex(holding).examples(
+            unit, known, limit=12, verdicts=self.app.verdicts(), judged=self.app.judged)
+        fresh = [s for s in ranked if s.text not in seen] or ranked
+        fresh = self.app.with_english(fresh[:3])
+        return {"task": "write", "spoken": spoken(unit.key),
+                "meaning": self.app.glosses.sense(unit.kind, unit.key, fresh[0].text,
+                                                  self.app.llm_model) if fresh else None,
+                "examples": [{"text": s.text, "english": s.translation or "",
+                              "surface": s.surface_of(unit)} for s in fresh]}
+
+    def _taught_with(self, unit: Unit) -> set[str]:
+        """The sentences every stored plan showed for the unit."""
+        from state import open_state                         # noqa: PLC0415
+        with open_state(self.app.settings.state_path) as conn:
+            return {t for (t,) in conn.execute(
+                "SELECT sentence FROM roadmap WHERE kind = ? AND key = ?"
+                " UNION SELECT e.text FROM roadmap_example e"
+                " JOIN roadmap r ON r.source = e.source AND r.position = e.position"
+                " WHERE r.kind = ? AND r.key = ? AND e.n < 3",
+                (unit.kind, unit.key, unit.kind, unit.key))}
+
+    def due_sentences(self, limit: int = 20) -> list[dict[str, Any]]:
+        """The learner's own sentences to ask for now (see `/mine`): show
+        `english` and ask for the German; `text` is their sentence, do not
+        show it until they have answered. Pass if they said it, or said it
+        with a slip you would let go in conversation; then `grade_sentence`."""
+        return self.app.own.due(datetime.now())[:limit]
+
+    def grade_sentence(self, text: str, correct: bool) -> dict[str, Any]:
+        """Grade one of the learner's own sentences, `text` as `due_sentences`
+        gave it, and reschedule it."""
+        self.app.own.grade(text, correct, datetime.now())
+        return {"text": text, "correct": correct}
 
     def roadmap(self, label: str) -> str:
         """A stored roadmap, one step per line: position, kind, unit, the
@@ -164,16 +232,26 @@ class Tools:
         return {"unit": _unit(unit), "action": action}
 
     def grade(self, key: str, correct: bool, kind: str = LEMMA) -> dict[str, Any]:
-        """Grade a review of one card and reschedule it by SM-2. Returns the
-        card's new state; the next due date is what the grade decided."""
+        """Grade a review of one claim and say what became of it. `outcome`
+        is `scheduled` (asked again at `due`), `graduated` (five passes: the
+        word is known for good, no more reviews) or `unmarked` (two failures
+        in a row: the word is no longer counted as known and the plan will
+        teach it again). Tell the learner which."""
+        from srs.scheduler import GRADUATED, UNMARKED, verdict  # noqa: PLC0415
         unit = _parse(kind, key)
         card = self.app.card_store.get(unit)
         if card is None:
             raise ValueError(f"no card for {unit}; `due_cards` lists the ones "
                              "there are")
         reviewed = self.app.scheduler.review(card, correct, datetime.now())
-        self.app.card_store.save(reviewed)
-        return _card(reviewed)
+        outcome = verdict(reviewed)
+        if outcome == GRADUATED:
+            self.app.card_store.remove(unit)
+        elif outcome == UNMARKED:
+            self.viewer.mark_known({"kind": unit.kind, "key": unit.key, "action": "undo"})
+        else:
+            self.app.card_store.save(reviewed)
+        return {**_card(reviewed), "outcome": outcome}
 
     # --- helpers ----------------------------------------------------------
 
@@ -222,9 +300,26 @@ def _card(card: Card) -> dict[str, Any]:
         "interval_days": card.interval_days,
         "ease": card.ease_factor,
         "repetitions": card.repetitions,
+        "confirmations": card.repetitions,
+        "lapses": card.lapses,
         "last_review": (card.last_review.isoformat(timespec="seconds")
                         if card.last_review else None),
     }
+
+
+def examiner() -> str:
+    """Run a review session: test each claim due today, grade it, repeat."""
+    return (
+        "You are my German examiner, working from my own review queue through "
+        "this server. Call `due_cards`. For each card, ask me to write a "
+        "sentence using the word. Wait for my answer. Judge it as the tool "
+        "describes — strict on the word, lenient elsewhere — tell me in a line "
+        "what was right or wrong and the natural phrasing, show one of the "
+        "examples, and call `grade`. "
+        "Tell me when a word graduates or is un-marked. Then `due_sentences`: "
+        "show me the English of each and ask for my German; `grade_sentence`. "
+        "End with what passed, what did not, and what is gone back to the plan."
+    )
 
 
 def tutor() -> str:
@@ -267,10 +362,13 @@ def build(tools: Tools):
     server.tool(annotations=reads)(anticipated(tools.check_word))
     server.tool(annotations=reads)(anticipated(tools.next_up))
     server.tool(annotations=reads)(tools.due_cards)
+    server.tool(annotations=reads)(tools.due_sentences)
     server.tool()(anticipated(tools.mark_known))
     server.tool()(anticipated(tools.grade))
+    server.tool()(tools.grade_sentence)
     server.resource("roadmap://{label}", mime_type="text/plain")(tools.roadmap)
     server.prompt()(tutor)
+    server.prompt()(examiner)
     return server
 
 

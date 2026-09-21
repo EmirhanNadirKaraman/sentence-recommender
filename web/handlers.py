@@ -1329,7 +1329,12 @@ class Viewer:
             self.app.snoozes.snooze(unit, self.app.settings.snooze_words)
         else:
             self.app.marked_known.add(unit)
-            self.app.card_store.remove(unit)
+            # A claim on probation: known at once, and a card due tomorrow
+            # to confirm it -- five passes graduate it, two failures in a row
+            # take the mark back (`srs.scheduler`). The card used to be
+            # removed here on the reading that nothing was left to test.
+            self.app.card_store.add(
+                self.app.scheduler.claimed(unit, datetime.now()))
             # The blocked page is computed against what you know and cached
             # per source, and nothing here was clearing it — so a word you had
             # just learned went on being listed as stranded until the server
@@ -1851,6 +1856,139 @@ class Viewer:
             len(s.units - known - {target}),
             not (video_id and s.timing and s.timing.video_id == video_id)))[:DECK_SIZE]
         return deck, len(holding)
+
+    # --- reviewing the claims ---------------------------------------------
+
+    def review(self, query: dict, result: dict | None = None) -> str:
+        """The words you claimed to know, tested: one at a time, write a
+        sentence with it, and the schedule does the rest.
+
+        The same cards Claude examines over MCP (`due_cards`/`grade`); here
+        the local model judges — the sentence as a native speaker would
+        say it, a line on what changed, and whether the word was used
+        right — and the verdict is graded at once. `result` is what a
+        judgement just returned, shown above the next card. Without the
+        model you grade yourself.
+        """
+        from srs.scheduler import CONFIRMATIONS, LAPSES_TO_UNMARK  # noqa: PLC0415
+        source = self.source(query)
+        now = datetime.now()
+        total, due_count = self.app.card_store.counts(now)
+        due = self.app.card_store.due(now, limit=1)
+        verdict = ""
+        if result:
+            said = {"graduated": "Graduated — five in a row, it is yours for good.",
+                    "unmarked": "Two misses in a row: the word is no longer counted as "
+                                "known, and the plan will teach it again.",
+                    "scheduled": f"Next asked {_in_days(result['due'])}."}.get(result.get("outcome"), "")
+            verdict = (
+                "<div class='note said" + ("" if result.get("correct") else " bad") + "'>"
+                f"<p><strong>{escape(result['spoken'])}</strong> — "
+                f"{'right' if result.get('correct') else 'not quite'}. {escape(result.get('note', ''))}</p>"
+                + (f"<p class='de'>{escape(result['german'])}</p>"
+                   f"<p class='en'>{escape(result.get('english', ''))}</p>" if result.get("german") else "")
+                + f"<p>{escape(said)}</p>"
+                + ("<form method='post' action='/mine' class='tools'>"
+                   f"<input type='hidden' name='src' value='{escape(source)}'>"
+                   f"<input type='hidden' name='german' value='{escape(result['german'])}'>"
+                   f"<input type='hidden' name='english' value='{escape(result.get('english', ''))}'>"
+                   "<button name='action' value='keep'>Keep it in Mine</button></form>"
+                   if result.get("german") and result.get("correct") else "")
+                + "</div>")
+        if not due:
+            body = (f"<h1>Review</h1>{verdict}"
+                    f"<p class='empty'>Nothing is due. {total:,} word"
+                    f"{'s' if total != 1 else ''} on probation — each is asked "
+                    f"again a day after you mark it, then further apart; {CONFIRMATIONS} "
+                    f"in a row and it graduates, {LAPSES_TO_UNMARK} misses in a row and "
+                    "it goes back to the plan.</p>")
+            return self._page("Review", body, "/review", source)
+        card = due[0]
+        asked = self.app.mcp_prompt(card.unit)
+        hint = (f"<details><summary>A hint</summary><p class='en'>{escape(asked['meaning'])}</p></details>"
+                if asked.get("meaning") else "")
+        body = (
+            f"<h1>Review</h1>{verdict}"
+            f"<p class='note'>{due_count:,} due · {total:,} on probation. Write a German "
+            f"sentence using the word; the local model says whether the word is used "
+            "right and how a native speaker would put it.</p>"
+            "<div class='card' id='review-card'>"
+            f"<p class='note'>Use it in a sentence"
+            f"{' — a verb pattern' if card.unit.is_pattern else ''}: "
+            f"{card.repetitions} of {CONFIRMATIONS} confirmed"
+            f"{f', {card.lapses} miss' if card.lapses else ''}</p>"
+            f"<p class='de lead'>{escape(asked['spoken'])}</p>"
+            + hint
+            + "<form class='mine' method='post' action='/review'>"
+            f"<input type='hidden' name='src' value='{escape(source)}'>"
+            f"<input type='hidden' name='kind' value='{escape(card.unit.kind)}'>"
+            f"<input type='hidden' name='key' value='{escape(card.unit.key)}'>"
+            "<textarea name='sentence' rows='2' autofocus placeholder='Your sentence'></textarea>"
+            "<div class='actions'>"
+            "<button class='go' name='action' value='check'>Check it</button>"
+            "<button name='action' value='good' title='Without the model: I used it right'>"
+            "I got it</button>"
+            "<button name='action' value='again' title='Without the model: I did not'>"
+            "I missed it</button>"
+            "<button name='action' value='skip'>Skip for now</button>"
+            "</div></form></div>")
+        return self._page("Review", body, "/review", source)
+
+    def save_review(self, form: dict) -> str | tuple[str, str]:
+        """A decision on the review page: judged by the model, or by you."""
+        from srs.scheduler import GRADUATED, UNMARKED, verdict  # noqa: PLC0415
+        source = form.get("src", "")
+        action = (form.get("action") or "").strip()
+        unit = Unit(form.get("kind", ""), form.get("key", ""))
+        back = f"/review?src={quote(source)}"
+        card = self.app.card_store.get(unit) if unit.key else None
+        if card is None or action == "skip":
+            return back
+        result: dict = {"spoken": self.app.mcp_prompt(unit)["spoken"]}
+        if action == "check":
+            written = (form.get("sentence") or "").strip()
+            if not written:
+                return back
+            judged = self._judge(unit, written)
+            if judged is None:
+                return ("page", self.review({"src": source}, {
+                    **result, "correct": False, "german": "", "outcome": "",
+                    "note": "The local model is not answering; grade it yourself below."}))
+            result.update(judged)
+            correct = bool(judged["correct"])
+        else:
+            correct = action == "good"
+            result["correct"] = correct
+        reviewed = self.app.scheduler.review(card, correct, datetime.now())
+        outcome = verdict(reviewed)
+        if outcome == GRADUATED:
+            self.app.card_store.remove(unit)
+        elif outcome == UNMARKED:
+            self._unmark(unit)
+        else:
+            self.app.card_store.save(reviewed)
+        result.update(outcome=outcome, due=reviewed.due_date.isoformat())
+        return ("page", self.review({"src": source}, result))
+
+    def _judge(self, unit: Unit, written: str) -> dict | None:
+        """The local model on a sentence written with a word: right or not,
+        the natural phrasing, the English."""
+        import json                                          # noqa: PLC0415
+        from deck.spoken import spoken                       # noqa: PLC0415
+        from generation.client import LLMClient              # noqa: PLC0415
+        client = LLMClient(timeout=60)
+        if not client.available:
+            return None
+        try:
+            reply = client.complete(JUDGE, f"Word: {spoken(unit.key)}\nSentence: {written}",
+                                    temperature=0.1, response_format=JUDGE_FORMAT)
+            got = json.loads(reply)
+            return {"correct": bool(got.get("correct")),
+                    "german": str(got.get("german", "")).strip(),
+                    "note": str(got.get("note", "")).strip(),
+                    "english": str(got.get("english", "")).strip()}
+        except Exception:                                    # noqa: BLE001 -- the tunnel, bad JSON
+            return None
 
     # --- the sentences you wrote ------------------------------------------
 
@@ -2802,13 +2940,13 @@ class Viewer:
         costs a corpus load on the next page that needs one, which is the
         right price for an action taken once in a session.
 
-        The card comes back too. It was deleted on the assumption you knew
-        the word; taking that back should put it in the queue again rather
-        than quietly losing its place.
+        The card goes with the mark: it was the claim's probation, and a
+        claim withdrawn -- by you, or by two failed reviews -- has nothing
+        left to confirm. The word is back in the plan's frontier, to be
+        taught again with a new sentence.
         """
         self.app.marked_known.remove(unit)
-        self.app.card_store.add_many(
-            [self.app.scheduler.new_card(unit, datetime.now())])
+        self.app.card_store.remove(unit)
         self._known = None
         self._scopes.clear()
         self._stuck.clear()
@@ -3382,6 +3520,31 @@ CHECK = (
     "nothing needed changing. \"english\" is the natural English of the "
     "corrected sentence."
 )
+JUDGE = (
+    "A learner of German was asked to write a sentence using a word, to show "
+    "they know it. Reply with JSON and nothing else: {\"correct\": true or "
+    "false, \"german\": ..., \"note\": ..., \"english\": ...}. \"correct\" is "
+    "whether the WORD is used correctly in an ordinary sense of it — the right "
+    "word in the right place, in a form that fits; a slip elsewhere in the "
+    "sentence (an article, an ending, word order) does NOT make it false. "
+    "\"german\" is the sentence as a native speaker would say it, keeping the "
+    "learner's meaning and wording where they were fine. \"note\" is ONE short "
+    "English sentence on what was right or wrong. \"english\" is the natural "
+    "English of the corrected sentence."
+)
+JUDGE_FORMAT = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "judge",
+        "schema": {
+            "type": "object",
+            "properties": {"correct": {"type": "boolean"}, "german": {"type": "string"},
+                           "note": {"type": "string"}, "english": {"type": "string"}},
+            "required": ["correct", "german", "note", "english"],
+            "additionalProperties": False,
+        },
+    },
+}
 CHECK_FORMAT = {
     "type": "json_schema",
     "json_schema": {

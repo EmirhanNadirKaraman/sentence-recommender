@@ -7,7 +7,6 @@ only when they are needed to unblock the next goal.
 """
 from __future__ import annotations
 
-from datetime import datetime
 
 from config import Settings
 from corpus.quality import well_formed
@@ -134,12 +133,11 @@ class BuildRoadmapCommand:
         RoadmapStore(settings.state_path).save(plan, label, current_stamp(),
                                               len(sentences))
 
-        now = datetime.now()
-        app.card_store.add_many(
-            [app.scheduler.new_card(step.unit, now) for step in plan])
-
+        # No cards: a card is a claim on probation, made when a word is
+        # marked known (`srs.scheduler`). A plan used to mint one per step,
+        # 84,680 of them across five plans, all due, none ever asked.
         print(f"roadmap [{label}]: {len(plan)} steps · {index.readable} sentences "
-              f"fully readable at the end · {len(plan)} cards ready")
+              f"fully readable at the end")
         if index.granted:
             # Almost all of these are earned during the walk rather than at
             # the seed: a reader starting from function words alone knows

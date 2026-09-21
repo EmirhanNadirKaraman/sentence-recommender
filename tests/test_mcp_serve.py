@@ -30,6 +30,7 @@ from roadmap.step import RoadmapStep
 from roadmap.store import RoadmapStore, current_stamp
 from srs import CardStore, SM2Scheduler
 from vocab.entry import Unit
+from vocab.own_sentences import OwnSentences
 from vocab.known_store import KnownStore
 from vocab.snooze_store import SnoozeStore
 
@@ -84,6 +85,15 @@ def stub_app(tmp: Path) -> SimpleNamespace:
         corpus_store=SimpleNamespace(
             builds=lambda teachable_only=False: {"subtitle": 3}),
         apply_overrides=lambda deck, resolve=None: deck,
+        # What a review prompt reads: the sentences saying a word (none
+        # here), the verdicts and the judge, the English, and Mine.
+        corpus=lambda *builds, **query: [],
+        verdicts=lambda: {},
+        judged=None,
+        with_english=lambda sentences: sentences,
+        glosses=SimpleNamespace(sense=lambda *a, **k: None),
+        llm_model="",
+        own=OwnSentences(state),
     )
     app.known_set = lambda: KnownSet(app.marked_known.units())
     RoadmapStore(state).save(STEPS, LABEL, stamp=current_stamp(), total=3)
@@ -168,10 +178,15 @@ class ToolsTest(unittest.TestCase):
         self.assertEqual(self.tools.due_cards(), [])
         self.assertEqual(store.get(Unit.lemma("merken")).repetitions, 1)
 
-    def test_marking_known_drops_the_card(self) -> None:
-        self.app.card_store.add(
-            self.app.scheduler.new_card(Unit.lemma("merken"), NOW))
+    def test_marking_known_makes_the_claim_a_card_due_tomorrow(self) -> None:
+        """A word marked known is a claim on probation: known at once, and
+        a card to confirm it from tomorrow. Taking the mark back withdraws
+        the card with it."""
         self.tools.mark_known("merken")
+        card = self.app.card_store.get(Unit.lemma("merken"))
+        self.assertIsNotNone(card)
+        self.assertGreater(card.due_date, datetime.now() + timedelta(hours=23))
+        self.tools.mark_known("merken", action="undo")
         self.assertIsNone(self.app.card_store.get(Unit.lemma("merken")))
 
     def test_the_roadmap_resource_is_one_line_a_step(self) -> None:
@@ -223,8 +238,8 @@ class WireTest(unittest.IsolatedAsyncioTestCase):
             tools = {t.name: t for t in (await client.list_tools()).tools}
             self.assertEqual(
                 set(tools),
-                {"status", "check_word", "next_up", "due_cards",
-                 "mark_known", "grade"})
+                {"status", "check_word", "next_up", "due_cards", "due_sentences",
+                 "mark_known", "grade", "grade_sentence"})
             # The schema comes from the signature, through the error wrapper.
             self.assertEqual(tools["grade"].input_schema["required"],
                              ["key", "correct"])
@@ -234,7 +249,7 @@ class WireTest(unittest.IsolatedAsyncioTestCase):
             self.assertEqual([t.uri_template for t in templates.resource_templates],
                              ["roadmap://{label}"])
             prompts = await client.list_prompts()
-            self.assertEqual([p.name for p in prompts.prompts], ["tutor"])
+            self.assertEqual([p.name for p in prompts.prompts], ["tutor", "examiner"])
 
     async def test_a_dict_comes_back_structured(self) -> None:
         async with Client(self.server) as client:

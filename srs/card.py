@@ -27,6 +27,9 @@ class Card:
     repetitions: int = 0
     last_review: datetime | None = None
     card_id: int | None = None
+    # Failed reviews in a row. `repetitions` is passes in a row; between
+    # them a card says how the claim is going -- see `srs.scheduler.verdict`.
+    lapses: int = 0
 
     def is_due(self, now: datetime) -> bool:
         return self.due_date <= now
