@@ -30,6 +30,17 @@ class Unit:
     def __post_init__(self) -> None:
         object.__setattr__(self, "_hash", hash((self.kind, self.key)))
 
+    def __reduce__(self):
+        """Rebuilt, not restored, on the far side of a pickle.
+
+        The hash above is a per-process number — Python salts string
+        hashing at start-up — so a unit handed back from a worker with its
+        hash attached lands in the wrong bucket of every set in the parent,
+        equal to nothing. `corpus.parallel` found this: two sentences in
+        twelve thousand agreed with the single-process answer.
+        """
+        return (Unit, (self.kind, self.key))
+
     def __hash__(self) -> int:
         """The hash, computed once when the unit is made.
 

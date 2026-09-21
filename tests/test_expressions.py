@@ -117,5 +117,27 @@ class MatchTest(unittest.TestCase):
         self.assertNotIn("lemma:davon", found)
 
 
+@unittest.skipUnless(_PARSER, "de_core_news_md is not installed")
+class ParallelTest(unittest.TestCase):
+    def test_the_pool_gives_the_analysers_own_answer(self) -> None:
+        """Eight workers, the same units and surfaces as one process — the
+        first pass is per sentence, and the vote the second pass reads is
+        merged from every worker's tally."""
+        from corpus import parallel
+        from corpus.sentence import Sentence
+        texts = ["Das ist auf jeden Fall richtig.", "Es gibt ein Problem.",
+                 "Ich habe die Prüfung bestanden.", "Er steht früh auf."] * 3
+        sentences = [Sentence(t) for t in texts]
+        analyzer = UnitAnalyzer(REGISTERED | {"es gibt"})
+        serial = analyzer.analyze_all(sentences)
+        parallel.CHUNK, chunk = 4, parallel.CHUNK
+        try:
+            pooled = parallel.analyze_all(analyzer, sentences, 2)
+        finally:
+            parallel.CHUNK = chunk
+        self.assertEqual([(s.units, s.surfaces) for s in pooled],
+                         [(s.units, s.surfaces) for s in serial])
+
+
 if __name__ == "__main__":
     unittest.main()

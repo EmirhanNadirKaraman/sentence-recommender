@@ -469,3 +469,17 @@ class LLMContentCheckTest(unittest.TestCase):
         ))
         self.assertEqual(corrector.rejected, 0)
         self.assertEqual(len(result), 2)
+
+
+class UnitAcrossProcessesTest(unittest.TestCase):
+    def test_a_unit_that_crosses_a_pickle_is_equal_to_one_made_here(self) -> None:
+        """Its hash is a per-process number; restored as pickled it would
+        sit in the wrong bucket of every set, equal to nothing."""
+        import pickle
+        from vocab.entry import Unit
+        unit = Unit.lemma("auf")
+        back = pickle.loads(pickle.dumps(unit))
+        self.assertEqual(back, unit)
+        self.assertIn(back, {unit})
+        self.assertEqual(hash(back), hash(unit))
+

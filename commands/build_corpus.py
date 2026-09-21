@@ -16,6 +16,7 @@ from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 from alignment import SubtitleAligner
+from corpus import parallel
 from corpus import (
     GENERATED, LLMCorrector, MergeCorrector, SubtitleSource, sources_for,
 )
@@ -77,7 +78,11 @@ class BuildCorpusCommand:
             print(f"  limited to {len(kept)}")
 
         print(f"  analysing with {settings.analysis_processes} processes…", flush=True)
-        analysed = app.analyzer.analyze_all(kept)
+        analysed = parallel.analyze_all(
+            app.analyzer, kept, settings.analysis_processes,
+            on_progress=lambda done, total: print(
+                f"  … {done:,}/{total:,} ({time.time() - started:.0f}s)", flush=True)
+            if done % 20_000 == 0 or done == total else None)
 
         # Subtitle builds keep what the filter set aside, unanalysed. Those
         # sentences are not worth studying from, but they were still said, and
@@ -113,7 +118,8 @@ class BuildCorpusCommand:
               flush=True)
         # `with_units` replaces rather than adds, so the stored units are
         # overwritten by this parse and need no clearing first.
-        analysed = app.analyzer.analyze_all(stored)
+        analysed = parallel.analyze_all(app.analyzer, stored,
+                                        app.settings.analysis_processes)
         app.corpus_store.save(analysed, build=GENERATED)
         units = len({u for s in analysed for u in s.units})
         print(f"  cached {len(analysed)} sentences, {units} distinct units "
