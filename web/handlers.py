@@ -1734,8 +1734,8 @@ class Viewer:
         body = (
             f"<h1>{escape(key)}</h1>"
             f"<p class='note'>{holding:,} sentences here use it"
-            + (f"; {readable} of these {len(deck)} need only this word"
-               if readable else f"; none of these {len(deck)} is one word away yet")
+            + (f"; {readable} need only this word"
+               if readable else f"; none is one word away yet — these {len(deck)} are the nearest")
             + ".</p>"
             + ("<p class='note'>You have marked this known.</p>" if already else "")
             + self._audio_toggle()
@@ -1765,9 +1765,17 @@ class Viewer:
         found = ExampleIndex(holding).examples(
             target, known, limit=25, minutes=self.app.video_minutes,
             verdicts=self.app.verdicts(), judged=self.app.judged)
-        # Stable: within a band of equally readable sentences the rank's
-        # order stands, and the reel's own video moves to the front of it.
-        deck = sorted(found, key=lambda s: (
+        # The sentences that need only this word, the reel's own video's
+        # first; the rank's order stands within that. Only those: the
+        # reading page's deck reaches past i+1 so a rare word still has
+        # something to step through, but a reader who came from a video's
+        # "one step away" was promised sentences they can read with this
+        # one word, and a sentence with a second unknown in it is not that.
+        # Where no sentence is one word away at all -- a word reached from
+        # the roadmap or the blocked page -- the nearest ones stand in, each
+        # saying what else in it is new.
+        readable = [s for s in found if not (s.units - known - {target})]
+        deck = sorted(readable or found, key=lambda s: (
             len(s.units - known - {target}),
             not (video_id and s.timing and s.timing.video_id == video_id)))[:DECK_SIZE]
         return deck, len(holding)
