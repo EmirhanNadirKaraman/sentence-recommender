@@ -123,6 +123,93 @@ function loadCues(id) {
     .catch(function () { return []; });
 }
 
+// A subtitle line as words a reader can click. Each word is a button --
+// buttons are what the swipe handlers leave alone, and what a finger can
+// hit -- carrying the unit it wears, where the corpus knows one. Clicking
+// opens `glossPopup` below: what the word means in this line, and the way
+// to a dictionary.
+function wordsHtml(cue) {
+  var words = cue.words && cue.words.length
+    ? cue.words : cue.text.split(/\s+/).map(function (w) { return [w, '', '']; });
+  return words.map(function (w) {
+    return "<button type='button' class='w' data-kind='" + escapeAttr(w[1]) +
+           "' data-key='" + escapeAttr(w[2]) + "'>" + escapeText(w[0]) + "</button>";
+  }).join(' ');
+}
+
+function escapeText(t) {
+  return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function escapeAttr(t) { return escapeText(t).replace(/'/g, '&#39;'); }
+
+// The popup under a clicked word: the gloss of the word in that line --
+// stored for the card's own word, asked of the local model for any other
+// and kept -- and dict.cc and DWDS for the word itself. One popup for the
+// whole page; a click on another word refills it, a click elsewhere or
+// Escape closes it.
+var glossBox = null;
+
+function glossPopup(button, lineText) {
+  var kind = button.dataset.kind || '', key = button.dataset.key || '';
+  var token = button.textContent.replace(/^[„"“”'(\[…\-–—]+|[.,;:!?„“”"')\]…\-–—]+$/g, '');
+  var lookup = kind === 'lemma' ? key
+             : kind === 'pattern' ? key.replace(/\(.*?\)/g, '').trim().split(/\s+/).pop()
+             : token;
+  if (!glossBox) {
+    glossBox = document.createElement('div');
+    glossBox.className = 'gloss';
+    glossBox.id = 'gloss';
+    document.body.appendChild(glossBox);
+    document.addEventListener('click', function (e) {
+      if (glossBox && !glossBox.hidden && !e.target.closest('#gloss, .w'))
+        glossBox.hidden = true;
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && glossBox) glossBox.hidden = true;
+    });
+  }
+  var src = (document.querySelector('input[name="src"]') || {}).value || '';
+  var state = document.getElementById('reel-state');
+  if (!src && state) { try { src = JSON.parse(state.textContent).src || ''; } catch (_) {} }
+  glossBox.innerHTML =
+    "<div class='gloss-word'><strong>" + escapeText(token) + "</strong>" +
+    (key && key !== token ? " <span class='gloss-key'>" + escapeText(key) + "</span>" : "") +
+    "</div><p class='gloss-means'>…</p><div class='gloss-actions'>" +
+    "<a class='link' target='_blank' rel='noopener' href='https://www.dict.cc/?s=" +
+    encodeURIComponent(lookup) + "'>dict.cc \u2197</a>" +
+    "<a class='link' target='_blank' rel='noopener' href='https://www.dwds.de/wb/" +
+    encodeURIComponent(lookup) + "'>DWDS \u2197</a>" +
+    (kind ? "<button type='button' class='known'>I know this</button>" : "") +
+    "<button type='button' class='close'>Close</button></div>";
+  glossBox.hidden = false;
+  glossBox.querySelector('.close').onclick = function () { glossBox.hidden = true; };
+  var knownBtn = glossBox.querySelector('.known');
+  if (knownBtn) knownBtn.onclick = function () {
+    var body = new URLSearchParams({kind: kind, key: key, src: src, action: 'known', back: '/'});
+    knownBtn.disabled = true;
+    fetch('/known', {method: 'POST', body: body, redirect: 'manual', keepalive: true})
+      .catch(function () {})
+      .then(function () { knownBtn.textContent = 'Known'; });
+  };
+  var means = glossBox.querySelector('.gloss-means');
+  fetch('/api/gloss?text=' + encodeURIComponent(lineText) + '&word=' + encodeURIComponent(token) +
+        '&kind=' + encodeURIComponent(kind) + '&key=' + encodeURIComponent(key))
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      means.textContent = d.means || 'No gloss — the local model is not answering.';
+      if (d.known && knownBtn) { knownBtn.textContent = 'Known'; knownBtn.disabled = true; }
+    })
+    .catch(function () { means.textContent = 'No gloss — the local model is not answering.'; });
+}
+
+// One listener for every subtitle line on the page, wherever it is drawn.
+document.addEventListener('click', function (e) {
+  var w = e.target.closest('button.w');
+  if (!w) return;
+  var holder = w.closest('.said, #caption');
+  glossPopup(w, holder ? holder.dataset.text || holder.textContent : w.textContent);
+});
+
 // Which cue is being spoken at `now`, or -1 if there are none. A linear
 // scan: cues are in order and this runs four times a second, so finding the
 // place costs less than keeping an index would.
@@ -180,8 +267,12 @@ function cueAt(cues, now) {
              c.clock + "</span><span class='said'></span></li>";
     }).join('');
     Array.prototype.forEach.call(box.querySelectorAll('.cue'), function (el, i) {
-      el.querySelector('.said').textContent = cues[i].text;
-      el.addEventListener('click', function () {
+      var said = el.querySelector('.said');
+      said.innerHTML = wordsHtml(cues[i]);
+      said.dataset.text = cues[i].text;
+      el.addEventListener('click', function (e) {
+        // A word opens its gloss; the rest of the line seeks the video.
+        if (e.target.closest('button.w')) return;
         if (player && player.seekTo) {
           player.seekTo(Math.max(cues[i].at - 0.4, 0), true);
           player.playVideo();
@@ -204,7 +295,7 @@ function cueAt(cues, now) {
     if (all[marking]) all[marking].classList.remove('now');
     marking = i;
     if (all[i]) { all[i].classList.add('now'); keepInView(all[i]); }
-    if (line) line.textContent = cues[i].text;
+    if (line) { line.innerHTML = wordsHtml(cues[i]); line.dataset.text = cues[i].text; }
     if (lineEn) lineEn.textContent = cues[i].en || '';
   }
 
@@ -417,7 +508,7 @@ function cueAt(cues, now) {
         var i = cueAt(cues, player.getCurrentTime());
         if (i < 0 || i === marking) return;
         marking = i;
-        if (caption) caption.textContent = cues[i].text;
+        if (caption) { caption.innerHTML = wordsHtml(cues[i]); caption.dataset.text = cues[i].text; }
         if (captionEn) captionEn.textContent = cues[i].en || '';
       }, 250);
     }}});

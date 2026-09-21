@@ -506,9 +506,6 @@ class ComingBackTest(unittest.TestCase):
         self.assertNotIn(" ", self.here({"q": "der Hut"}, "q"))
 
 
-if __name__ == "__main__":
-    unittest.main()
-
 
 class MachineCaptionMarkTest(unittest.TestCase):
     """Saying which videos a machine wrote the subtitles for.
@@ -567,3 +564,30 @@ class MachineCaptionMarkTest(unittest.TestCase):
         self.assertNotIn("_wrote_it", reels)
         self.assertIn("_machine_written",
                       inspect.getsource(Viewer._scoreboard))
+
+
+class SubtitleWordsTest(unittest.TestCase):
+    """A subtitle line is sent as words, each with the unit it wears."""
+
+    def test_each_word_carries_its_unit_and_punctuation_stays_on_it(self) -> None:
+        from corpus.sentence import Sentence
+        from vocab.entry import Unit
+        from web.handlers import _words
+        used = Unit.pattern("etw. (Akk) üben")
+        line = Sentence("Lasst uns mal kurz üben!",
+                        units=frozenset({used, Unit.lemma("kurz"), Unit.lemma("mal")}),
+                        surfaces=((used, "Lasst uns üben"), (Unit.lemma("kurz"), "kurz"),
+                                  (Unit.lemma("mal"), "mal")))
+        self.assertEqual(_words(line), [
+            ["Lasst", "pattern", "etw. (Akk) üben"], ["uns", "pattern", "etw. (Akk) üben"],
+            ["mal", "lemma", "mal"], ["kurz", "lemma", "kurz"],
+            ["üben!", "pattern", "etw. (Akk) üben"]])
+
+    def test_a_line_nobody_analysed_is_still_words(self) -> None:
+        from corpus.sentence import Sentence
+        from web.handlers import _words
+        self.assertEqual(_words(Sentence("Na ja.")), [["Na", "", ""], ["ja.", "", ""]])
+
+
+if __name__ == "__main__":
+    unittest.main()

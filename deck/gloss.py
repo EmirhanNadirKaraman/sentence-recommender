@@ -264,6 +264,29 @@ class GlossStore:
         return {(kind, key, text): means for kind, key, text, means, version in rows
                 if version == GLOSS_VERSION or not CASE_FRAME.search(key)}
 
+    def sense(self, kind: str, key: str, text: str, model: str = "") -> str | None:
+        """One word's meaning in one sentence, the newest there is, whatever
+        prompt made it -- what the subtitle popup shows -- or None."""
+        with open_state(self._path) as conn:
+            row = conn.execute(
+                "SELECT means FROM unit_sense WHERE kind = ? AND key = ? AND text = ?"
+                " AND means IS NOT NULL AND (? = '' OR model = ?)"
+                " ORDER BY version DESC LIMIT 1",
+                (kind, key, text, model, model)).fetchone()
+        return row[0] if row else None
+
+    def save_sense(self, kind: str, key: str, text: str, means: str, model: str) -> None:
+        """A meaning asked for on the spot -- a word clicked in a subtitle --
+        kept under version 0, a prompt of its own that no card reads."""
+        with open_state(self._path) as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO unit_sense"
+                " (kind, key, text, means, version, model, made_at)"
+                " VALUES (?, ?, ?, ?, 0, ?, ?)",
+                (kind, key, text, means, model,
+                 datetime.now().isoformat(timespec="seconds")))
+            conn.commit()
+
     def senses_for_reading(self, model: str = "") -> dict:
         """What a document shows: the newest meaning there is for each
         sentence, whatever prompt produced it.

@@ -946,9 +946,50 @@ class Viewer:
         """
         return {"cues": [
             {"at": round(c.timing.start, 2), "clock": _clock(c.timing.start),
-             "text": c.text, "en": c.translation or ""}
+             "text": c.text, "en": c.translation or "", "words": _words(c)}
             for c in self.app.with_english(self._cues(video_id))
         ]}
+
+    def gloss_json(self, query: dict) -> dict:
+        """What one word means in one subtitle line, for the popup.
+
+        The card's own word has its gloss already, made beside the sentence
+        by `gloss-deck`; any other word is asked of the local model here,
+        once, and kept in the same table under version 0 -- a different
+        question from the deck's, so never read as a card's meaning -- so
+        the second click anywhere is instant. Without the model the popup
+        still opens: the dictionary links need nothing from here.
+        """
+        text = (query.get("text") or "").strip()
+        word = (query.get("word") or "").strip()
+        kind = (query.get("kind") or "").strip()
+        key = (query.get("key") or "").strip() or word.lower()
+        kind = kind if kind in ("lemma", "pattern") else "word"
+        if not text or not word:
+            return {"error": "no word"}
+        model = self.app.llm_model
+        means = self.app.glosses.sense(kind, key, text, model)
+        if means is None:
+            means = self._ask_gloss(text, word, key if kind != "word" else word)
+            if means:
+                self.app.glosses.save_sense(kind, key, text, means, model)
+        unit = Unit(kind, key) if kind != "word" else None
+        return {"means": means or "", "key": key, "kind": kind,
+                "known": bool(unit and unit in self.known)}
+
+    def _ask_gloss(self, text: str, word: str, named: str) -> str | None:
+        from generation.client import LLMClient              # noqa: PLC0415
+        client = LLMClient(timeout=30)
+        if not client.available:
+            return None
+        try:
+            reply = client.complete(GLOSS_ONE, f"Sentence: {text}\nWord: {word}"
+                                    + (f" ({named})" if named != word else ""),
+                                    temperature=0.1)
+        except Exception:                                    # noqa: BLE001 -- the tunnel
+            return None
+        line = reply.strip().splitlines()[0].strip() if reply.strip() else ""
+        return line[:200] or None
 
     def _deck(self, options: list[Sentence], unit: Unit,
               source: str = "") -> str:
@@ -3142,6 +3183,39 @@ def _hunt_term(unit: Unit) -> str:
     a lookup site indexes.
     """
     return unit.key.split()[-1] if unit.is_pattern else unit.key
+
+
+GLOSS_ONE = (
+    "You gloss German for an English-speaking learner. Reply with ONE short "
+    "English sentence and nothing else, of the form \"X means Y.\" where X is "
+    "the German word as it is written in the sentence (with its article if it "
+    "is a noun, in the infinitive if it is a verb) and Y is what it means IN "
+    "THIS SENTENCE. If the word is part of a fixed expression, gloss the "
+    "expression."
+)
+
+
+def _words(sentence: Sentence) -> list[list[str]]:
+    """The line as words a reader can click, each with the unit it wears.
+
+    `[token, kind, key]` per whitespace token, kind and key blank where no
+    unit claims the word — a line the filter set aside is not analysed at
+    all, and its words still open a popup, with the dictionary and the
+    model's gloss of the word as written.
+    """
+    claimed: dict[str, tuple[str, str]] = {}
+    for unit, surface in sentence.surfaces:
+        for piece in surface.split():
+            claimed.setdefault(_bare(piece), (unit.kind, unit.key))
+    out = []
+    for token in sentence.text.split():
+        kind, key = claimed.get(_bare(token), ("", ""))
+        out.append([token, kind, key])
+    return out
+
+
+def _bare(token: str) -> str:
+    return token.strip(".,;:!?„“”\"'()[]…-–—").lower()
 
 
 def _clock(seconds: float) -> str:

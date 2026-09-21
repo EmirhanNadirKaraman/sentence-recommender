@@ -263,6 +263,9 @@ def _make_handler(viewers: "Viewers"):
             if path == "/api/transcript":
                 self._send_json(viewer.transcript_json(query.get("video", "")))
                 return "", 0
+            if path == "/api/gloss":
+                self._send_json(viewer.gloss_json(query))
+                return "", 0
             if path.startswith("/unit/"):
                 _, _, kind, key = path.split("/", 3)
                 return viewer.unit(kind, unquote(key), query), 200
