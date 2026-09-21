@@ -2198,8 +2198,9 @@ not matter. Known: `das heißt` also takes *that is called* (`ein Buch,
 das heißt: …`), and the parser tags that `das` PDS like the marker's,
 300 of 300, so nothing here can tell them apart; `eine Rolle spielen`
 takes the literal role. 1,523 subtitle candidates of the new plan are
-unjudged (the expressions' decks) — `ask-sentences --plan beginner`,
-about $0.11, on a go. Seen on the way and
+unjudged (the expressions' decks) — asked, 0 failed, **$0.09**, 47,750
+sentences judged in all; they count at the next rebuild. Ledger for the
+day: $3.14 + $0.005 + $0.013 + $1.05 + $0.09 = **$4.30** of $4.80. Seen on the way and
 left: six cards the gloss cannot fill (`hängen`, `aufheben`, `vereinen`,
 `klopfen`, `reiten`, `strukturieren`) because the model returns two
 answers for three sentences — the third has the word as a noun or a
