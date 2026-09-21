@@ -93,4 +93,20 @@ class BestVideosTest(unittest.TestCase):
                               "Zweitbestes Video, erste Zeile."])
             self.assertEqual([s.text for s in _of_the_best_videos(app, lines, 1)],
                              ["Bestes Video, erste Zeile.", "Bestes Video, zweite Zeile."])
+            # A sample a video, drawn before the answered are left out, so a
+            # resumed run draws the same lines and asks only what is left.
+            first = _of_the_best_videos(app, lines, None, per_video=1)
+            self.assertEqual(len(first), 2)                # one a video, two videos
+            again = _of_the_best_videos(app, lines, None, per_video=1,
+                                        have=frozenset({first[0].text}))
+            self.assertEqual([s.text for s in again], [first[1].text])
+
+    def test_a_videos_sample_is_the_same_every_time(self) -> None:
+        from corpus.levels import sample
+        texts = [f"Zeile {n}." for n in range(100)]
+        drawn = sample("video", texts, 30)
+        self.assertEqual(len(drawn), 30)
+        self.assertEqual(drawn, sample("video", reversed(texts), 30))
+        self.assertNotEqual(drawn, sample("other", texts, 30))
+        self.assertEqual(sample("video", texts[:10], 30), sorted(texts[:10]))
 

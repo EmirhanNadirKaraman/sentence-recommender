@@ -92,14 +92,22 @@ def read(response, asked) -> dict[str, tuple[float, dict | None]]:
     return out
 
 
-def _of_the_best_videos(app, sentences, count: int):
+def _of_the_best_videos(app, sentences, count: int | None, per_video: int | None = None,
+                        have: frozenset[str] = frozenset()):
     """The lines of the reel's best `count` videos, best video first.
 
     As the reel last ranked them (`ScoreStore.latest`), the videos it
     refuses to offer left out (`ENOUGH_LINES`), a removed channel's too.
     Best first, so a run that stops early has covered the top of the
-    feed, which is what a reader sees.
+    feed, which is what a reader sees. `count` None is every video.
+
+    `per_video` asks about a sample of each video's lines instead of all
+    of them -- `corpus.levels.sample`, the same lines every run, drawn
+    from all the video's lines and not just the unanswered ones, or a
+    resumed run would draw a fresh thirty each time. `have` is what is
+    already answered, left out after the draw.
     """
+    from corpus.levels import sample                         # noqa: PLC0415
     from scores import ScoreStore                            # noqa: PLC0415
     from watchability import ENOUGH_LINES                    # noqa: PLC0415
     banned = app.banned_videos()
@@ -107,6 +115,14 @@ def _of_the_best_videos(app, sentences, count: int):
               if row["lines"] >= ENOUGH_LINES and row["video"] not in banned][:count]
     place = {video: n for n, video in enumerate(ranked)}
     chosen = [s for s in sentences if s.timing and s.timing.video_id in place]
+    if per_video:
+        by_video: dict[str, list] = {}
+        for s in chosen:
+            by_video.setdefault(s.timing.video_id, []).append(s)
+        drawn = {(video, text) for video, lines in by_video.items()
+                 for text in sample(video, (s.text for s in lines), per_video)}
+        chosen = [s for s in chosen if (s.timing.video_id, s.text) in drawn]
+    chosen = [s for s in chosen if s.text not in have]
     return sorted(chosen, key=lambda s: (place[s.timing.video_id], s.timing.start))
 
 
@@ -114,7 +130,8 @@ class AskSentencesCommand:
     def run(self, app, limit: int | None = None, workers: int | None = None,
             dry_run: bool = False, log: Path = Path("out/ask.log"),
             plan: str | None = None, skip: tuple[str, ...] = (),
-            only: tuple[str, ...] = (), videos: int | None = None) -> None:
+            only: tuple[str, ...] = (), videos: int | None = None,
+            per_video: int | None = None) -> None:
         """`plan` restricts the run to one stored plan's candidates — the
         sentences that plan's cards show or could show — and `skip` names
         questions to leave out. Both are how a budget is met: the vendor
@@ -125,9 +142,11 @@ class AskSentencesCommand:
         `videos` is the other selection: the lines of the reel's best `N`
         videos as last scored, best first, for the numbers the reel wants
         of a whole video rather than of a card's sentence — its level
-        above all. `only` is `skip` the other way round, for the run that
-        asks one or two questions of many lines; a sentence is skipped as
-        answered when it holds every question the run asks.
+        above all; `per_video` takes a fixed sample of each video's lines
+        instead of all of them (see `corpus.levels`). `only` is `skip` the
+        other way round, for the run that asks one or two questions of
+        many lines; a sentence is skipped as answered when it holds every
+        question the run asks.
         """
         import os                                            # noqa: PLC0415
         from config import load_dotenv                       # noqa: PLC0415
@@ -169,16 +188,18 @@ class AskSentencesCommand:
         todo = sorted((s for s in sentences if s.text not in have), key=tier)
         if plan:
             todo = [s for s in todo if tier(s) < 2]
-        if videos:
-            todo = _of_the_best_videos(app, todo, videos)
+        if videos or per_video:
+            todo = _of_the_best_videos(app, sentences, videos, per_video, frozenset(have))
         tiers = Counter(tier(s) for s in todo)
         print(f"{len(sentences):,} teachable subtitle sentences · "
               f"{len(have):,} answered by {model} at version {questions.VERSION} · "
               f"{len(todo):,} to ask"
               + (f" for the plan matching {plan!r}" if plan else "")
-              + (f" in the reel's best {videos:,} videos" if videos else ""),
+              + (f" in the reel's best {videos:,} videos" if videos else
+                 " in every video the reel offers" if per_video else "")
+              + (f", {per_video} lines a video" if per_video else ""),
               flush=True)
-        if videos:
+        if videos or per_video:
             print(f"  best video first · asking {', '.join(asking)}"
                   + ("" if "plain" in skipped else " · plain per unit"), flush=True)
         else:

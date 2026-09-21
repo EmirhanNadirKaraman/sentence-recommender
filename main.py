@@ -406,6 +406,9 @@ def _parser() -> argparse.ArgumentParser:
     ask.add_argument("--videos", type=int, default=None,
                      help="only the lines of the reel's best N videos, as "
                           "last scored, best first")
+    ask.add_argument("--per-video", type=int, default=None,
+                     help="a fixed sample of this many lines a video, every "
+                          "video the reel offers unless --videos says fewer")
 
     sub.add_parser("mcp-serve",
                    help="serve the roadmap and the reviews as MCP tools over "
@@ -774,7 +777,7 @@ def main() -> int:
     elif args.command == "ask-sentences":
         AskSentencesCommand().run(app, args.limit, args.workers, args.dry_run,
                                   args.log, args.plan, tuple(args.skip),
-                                  tuple(args.only), args.videos)
+                                  tuple(args.only), args.videos, args.per_video)
     elif args.command == "mcp-serve":
         McpServeCommand().run(app)
     elif args.command == "build-study-list":
