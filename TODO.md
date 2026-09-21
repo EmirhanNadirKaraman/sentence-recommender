@@ -2147,6 +2147,25 @@ agreed, free work first and the $1.66 last:
    a rebuild — `corpus.levels` says why) reads as unlevelled rather than
    quietly wearing the median.
 
+**And the reel's comprehension is words, not lines (`371adfe`).** Asked
+whether the number of known words was a bad measure of a video's
+difficulty, the three were compared on the 1,536 videos against 215
+known words. The share of *lines* readable whole — what the reel had
+called "you can follow" — ran 1.7% at the median, 17.6% at the top,
+exactly zero for 388 videos, eighteen distinct values, and agreed with
+the judge's level at −.19 by rank; the share of *words* known ran 58%
+to 80%, every video distinct, and agreed at −.66. So known words is a
+good measure counted by word, and the two disagree where it matters:
+`200 Tägliche Aktivitäten (A1)` is level .21 with 53% of its words
+known (daily-life vocabulary the 215 do not cover); full films are 74%
+words known at level 1.3–1.5. Coverage is the distance from the reader
+and moves as they learn; the level is the text's and does not. The reel
+now scores coverage — which is what reading research means by the word
+and what `COMFORTABLE` at 95% was written against — times the level
+band, keeps the line share as `readable` for the panel's "one word away"
+arithmetic, and shows both. `Mia fliegt zur WM` (74%, A2) leads at .51
+where it led at .033 for being the least-zero of a column of zeros.
+
 Not now: a floor and a deferral for the 85 steps taught with a doubtful
 sentence (step 1 changes which those are), and one matcher for fixed
 expressions from the discovery list (its own day). Seen on the way and
