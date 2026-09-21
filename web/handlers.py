@@ -2032,7 +2032,7 @@ class Viewer:
         its place only while someone keeps it honest.
         """
         source = self.source(query)
-        ranked = self._watchable(source)
+        ranked = self._settled(source)
         if not ranked:
             # Two different emptinesses, and saying the wrong one sends
             # someone looking for a bug. `transcript` is written prose with
@@ -2102,7 +2102,7 @@ class Viewer:
         it and the client keeps the player.
         """
         source = self.source(query)
-        ranked = self._watchable(source)
+        ranked = self._settled(source)
         if not ranked:
             return {"empty": True}
         here = min(max(int(query.get("i") or 0), 0), len(ranked) - 1)
@@ -2156,7 +2156,12 @@ class Viewer:
         both, and crediting either one would promise a gain that learning it
         does not deliver.
         """
-        gain = Counter({Unit(kind, key): n for kind, key, n in row.get("next", [])})
+        # A word set aside stays out of the panel until it wakes: "not yet"
+        # used to leave it exactly where it was, at the top, as if the
+        # swipe had been ignored.
+        asleep = self.app.snoozes.asleep()
+        gain = Counter({Unit(kind, key): n for kind, key, n in row.get("next", [])
+                        if Unit(kind, key) not in asleep})
         if not gain:
             return ("<p class='note'>Nothing here is one word away — every "
                     "sentence you cannot read needs two or more.</p>")
@@ -2195,6 +2200,20 @@ class Viewer:
                    "of its lines" if at is not None else "")
                 + ".</p>"
                 f"<div class='ledger'>{entries}</div>")
+
+    def _settled(self, source: str) -> list[dict]:
+        """The reel's rows once every decision has been scored in.
+
+        A marked word is scored on a worker so the POST returns at once,
+        and the feed asked for its row again the moment it did — before
+        the worker had replaced the rows in memory — so the panel came back
+        naming the word just learned as the next to learn, with the old
+        numbers beside it. The stamp guards what is on disk, not what is
+        held here. So the feed waits for the queue to drain: a word's worth
+        of videos, well under a second, and only when something is queued.
+        """
+        self._marks.join()
+        return self._watchable(source)
 
     def _watchable(self, source: str, floor: int = ENOUGH_LINES) -> list[dict]:
         """Every video with enough in it, best-to-watch first.
