@@ -2050,7 +2050,7 @@ per-pattern table is the first measurement of what each answer costs. Experiment
 04 is this benchmark; the lemma disagreements, dialect marks and compounds
 listed above stay as the second set, for the calibration question itself.
 
-### 27. What the answers should change next — planned, 2026-09-21
+### 27. What the answers should change next — step 1 done, 2026-09-21
 
 The pass is in the pick (`rank`, `teaching_sentence`, the quiz, the walk)
 and that part is settled: 3,437 of the beginner plan's 3,883 steps are
@@ -2075,6 +2075,27 @@ agreed, free work first and the $1.66 last:
    and comprehension. Then rebuild the plan, re-gloss what moved (local,
    ~15 min), export, and compare the teaching-sentence level histogram
    before and after — that is the proof.
+
+   **Done, 03:40** (`1f3ed9e`). Measured before building: a level key
+   *after* the judge's product moves nothing — the product is a
+   continuous number and ties are rare — so the level is a factor in
+   it, a fifth off per level above A1, chosen at .2 from .1/.2/.3 on
+   the stored candidates. Without the setting: the plans are walked for
+   a reader starting from nothing and lower is better for that reader;
+   a level of one's own is the parameter to add when someone asks for
+   harder, and the stamp does not have to learn about it until then.
+   The proof, teaching sentences of the beginner plan, before → after:
+   **A1 476 → 843 · A2 1,279 → 1,742 · B1 1,644 → 1,056 · B2 365 →
+   125**, the three shown per card B1 4,886 → 4,079 and B2 1,253 →
+   695, for a judge-product median of .72 → .69 and 85 → 96 steps
+   under .3. Same 3,883 steps, same 77,431 readable at the end. The
+   doubt drop: 445 sentences lose a pair (`Hast du gehört, was ich
+   gesagt habe?` no longer says `gehören`, nor the parser's bare lemma).
+   Refusals had been read under the judge's model name, never the
+   gloss's — fixed on the way. Rebuilt, re-glossed (1,544 cards, 17.5
+   min at seven in flight, 3 failed), exported (3,882 of 3,883 glossed),
+   `serve` restarted; ROADMAP_VERSION is 4, so the other four stored
+   plans are stale twice over.
 2. **The candidates a rebuilt plan pulls in — ~$0.1–0.3, on a go.**
    `ask-sentences --plan beginner` asks exactly the subtitle candidates
    nobody has judged, so every card stays judged.
