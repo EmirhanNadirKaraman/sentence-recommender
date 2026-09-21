@@ -1702,46 +1702,62 @@ class Viewer:
         return rows
 
     def unit(self, kind: str, key: str, query: dict) -> str:
+        """One word, read the way the reading page reads a step: a deck of
+        the sentences that say it, the readable ones first, each opening
+        its video at the second it was said.
+
+        It used to be a list of twenty-five with a "watch at 0:42" link
+        apiece, which is a page about the word; a reader arriving from the
+        reel's "learn next" panel wants the sentences that word would make
+        readable, and to hear them — the same card as the reading page,
+        with its player, stepper and transcript. `video` names the reel
+        the reader came from: that video's sentences go first among the
+        equally readable, since they are the ones the panel promised.
+        """
         source = self.source(query)
         target = Unit(kind, key)
         known = self.known
+        video_id = query.get("video") or ""
         # Asked of the database, not of a corpus in memory. This page wants
-        # twenty-five sentences saying one word and used to load all 115,000
-        # to find them: forty-six seconds, the slowest thing in the app.
+        # a few sentences saying one word and used to load all 115,000 to
+        # find them: forty-six seconds, the slowest thing in the app.
         list_only = self.counting(query)
         holding = self.app.corpus(*self._builds(source), list_only=list_only,
                                   strict=not list_only, holding=(kind, key))
-        found = self.app.with_english(ExampleIndex(holding).examples(
+        found = ExampleIndex(holding).examples(
             target, known, limit=25, minutes=self.app.video_minutes,
-            verdicts=self.app.verdicts(), judged=self.app.judged))
-
-        entries = "".join(
-            "<div class='entry'>"
-            f"<div class='rail'>{len(s.units - known - {target})}"
-            "<span class='kind'>unknown</span></div>"
-            f"<div class='body'>{sentence(s.text, s.translation, s.surface_of(target))}"
-            + (f"<div class='actions'><a class='link' href='/watch?src={quote(source)}"
-               f"&kind={quote(kind)}&key={quote(key, safe='')}&i={i}'>"
-               f"Watch at {_clock(s.timing.start)}</a></div>" if s.timing else "")
-            + self._sentence_tools(
-                s.text, source, f"/unit/{kind}/{quote(key, safe='')}")
-            + "</div></div>"
-            for i, s in enumerate(found)
-        )
-        listing = (f"<div class='ledger'>{entries}</div>" if found
-                   else "<p class='empty'>No sentence in this corpus uses it. "
-                        "Generate one with <code>python main.py fill-gaps</code>.</p>")
+            verdicts=self.app.verdicts(), judged=self.app.judged)
+        # Stable: within a band of equally readable sentences the rank's
+        # order stands, and the reel's own video moves to the front of it.
+        deck = sorted(found, key=lambda s: (
+            len(s.units - known - {target}),
+            not (video_id and s.timing and s.timing.video_id == video_id)))[:DECK_SIZE]
+        readable = sum(1 for s in deck if not (s.units - known - {target}))
         already = target in known
+        watchable = self._has_video(deck)
+        back = (f"/unit/{kind}/{quote(key, safe='')}?src={quote(source)}"
+                + (f"&video={quote(video_id, safe='')}" if video_id else ""))
+        if not deck:
+            body = (f"<h1>{escape(key)}</h1><p class='empty'>No sentence in this "
+                    "corpus uses it. Generate one with "
+                    "<code>python main.py fill-gaps</code>.</p>")
+            return self._page(key, body, "/roadmap", source)
         body = (
             f"<h1>{escape(key)}</h1>"
-            f"<p class='note'>{len(holding):,} sentences here use "
-            "it. The rail counts what else is unknown in each, so the top ones "
-            "are the readable ones.</p>"
-            + ("<p class='note'>You have marked this known.</p>" if already
-               else self._actions(target, source,
-                                  f"/unit/{kind}/{quote(key, safe='')}",
-                                  watchable=any(s.timing for s in found)))
-            + listing
+            f"<p class='note'>{len(holding):,} sentences here use it"
+            + (f"; {readable} of these {len(deck)} need only this word"
+               if readable else f"; none of these {len(deck)} is one word away yet")
+            + ".</p>"
+            + ("<p class='note'>You have marked this known.</p>" if already else "")
+            + self._audio_toggle()
+            + "<div class='card' id='card'>"
+            + self._stage(deck)
+            + self._deck(deck, target, source)
+            + "</div>"
+            + ("" if already else self._actions(target, source, back, watchable=watchable))
+            + ("<h2>Transcript</h2><ol class='transcript' id='transcript'></ol>"
+               if watchable else "")
+            + video.merged_script()
         )
         return self._page(key, body, "/roadmap", source)
 
@@ -2148,13 +2164,14 @@ class Viewer:
         entries = "".join(
             "<div class='entry{}'><div class='rail'>+{:.0%}<span class='kind'>{}</span>"
             "</div><div class='body'><div class='unit'>"
-            "<a href='/unit/{}/{}?src={}'>{}</a></div>"
+            "<a href='/unit/{}/{}?src={}&video={}'>{}</a></div>"
             "<p class='also'>{} more sentence{} in this video readable"
             "{}</p>{}</div></div>".format(
                 " target" if n == 0 else "",
                 count / total,
                 "on your list" if unit in goals else "extra",
                 unit.kind, quote(unit.key, safe=""), quote(source),
+                quote(row["video"], safe=""),
                 escape(unit.key), count, "" if count == 1 else "s",
                 f" — {at:.0%} to {(at + count / total):.0%} of its lines"
                 if count and at is not None else "",

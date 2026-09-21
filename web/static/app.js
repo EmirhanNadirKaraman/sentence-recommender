@@ -256,6 +256,9 @@ function cueAt(cues, now) {
   function decide(value) {
     var b = document.querySelector('.actions button[value="' + value + '"]');
     if (!b || !b.form || busy) return;
+    // A card with no region to swap — the word page — decides the old
+    // way: the form posts and comes back to where it was.
+    if (!region) { b.form.submit(); return; }
     busy = true;
     var body = new URLSearchParams(new FormData(b.form));
     body.append('action', value);
