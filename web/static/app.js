@@ -256,6 +256,12 @@ function escapeAttr(t) { return escapeText(t).replace(/'/g, '&#39;'); }
 // Escape closes it.
 var glossBox = null;
 
+function closeGloss() {
+  if (!glossBox || glossBox.hidden) return;
+  glossBox.hidden = true;
+  if (glossBox.resume) { glossBox.resume(); glossBox.resume = null; }
+}
+
 function glossPopup(button, lineText) {
   var kind = button.dataset.kind || '', key = button.dataset.key || '';
   var token = button.textContent.replace(/^[„"“”'(\[…\-–—]+|[.,;:!?„“”"')\]…\-–—]+$/g, '');
@@ -266,13 +272,13 @@ function glossPopup(button, lineText) {
     glossBox = document.createElement('div');
     glossBox.className = 'gloss';
     glossBox.id = 'gloss';
+    glossBox.hidden = true;
     document.body.appendChild(glossBox);
     document.addEventListener('click', function (e) {
-      if (glossBox && !glossBox.hidden && !e.target.closest('#gloss, .w'))
-        glossBox.hidden = true;
+      if (glossBox && !glossBox.hidden && !e.target.closest('#gloss, .w')) closeGloss();
     });
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && glossBox) glossBox.hidden = true;
+      if (e.key === 'Escape' && glossBox && !glossBox.hidden) closeGloss();
     });
   }
   var src = (document.querySelector('input[name="src"]') || {}).value || '';
@@ -296,8 +302,17 @@ function glossPopup(button, lineText) {
     "<div class='gloss-checked' hidden><p class='de'></p><p class='gloss-note'></p>" +
     "<p class='en'></p><div class='gloss-actions'><button type='button' class='go keep'>Keep it in Mine</button>" +
     "</div></div></div>";
+  // Reading the gloss while the video talks on is reading nothing; the
+  // video waits, and goes on when the popup goes. A second word clicked
+  // while it is open refills it and keeps the first click's promise.
+  if (glossBox.hidden) {
+    var p = window.__player;
+    var wasPlaying = !!(p && p.getPlayerState && p.getPlayerState() === 1);
+    if (wasPlaying) p.pauseVideo();
+    glossBox.resume = wasPlaying ? function () { if (p && p.playVideo) p.playVideo(); } : null;
+  }
   glossBox.hidden = false;
-  glossBox.querySelector('.close').onclick = function () { glossBox.hidden = true; };
+  glossBox.querySelector('.close').onclick = function () { closeGloss(); };
   var knownBtn = glossBox.querySelector('.known');
   if (knownBtn) knownBtn.onclick = function () {
     var body = new URLSearchParams({kind: kind, key: key, src: src, action: 'known', back: '/'});
