@@ -205,6 +205,8 @@ def _make_handler(viewers: "Viewers"):
                     self._redirect(viewer.set_blacklist(form))
                 elif posted == "/hide":
                     self._redirect(viewer.hide_sentence(form))
+                elif posted == "/api/try":
+                    self._send_json(viewer.try_json(form))
                 elif posted == "/mine":
                     outcome = viewer.save_mine(form)
                     if isinstance(outcome, tuple):

@@ -455,6 +455,15 @@ button.w:hover { border-bottom-color: var(--target); border-color: transparent;
 .gloss-means { margin: 6px 0 10px; }
 .gloss-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .gloss-actions .link { padding: 8px 12px; border: 1px solid var(--faint); border-radius: 3px; }
+.gloss-examples .de { font-size: 16px; margin: 4px 0 0; }
+.gloss-examples .en { margin: 0 0 6px; }
+.gloss-try { margin-top: 12px; display: grid; gap: 8px; }
+.gloss-try textarea { width: 100%; box-sizing: border-box; font: 400 16px/1.5 var(--serif);
+  padding: 8px 10px; color: var(--ink); background: var(--paper);
+  border: 1px solid var(--faint); border-radius: 3px; resize: vertical; }
+.gloss-checked .de { font-size: 17px; margin: 6px 0 0; }
+.gloss-note { color: var(--ink-2); margin: 2px 0; }
+.gloss { max-height: 70vh; overflow-y: auto; }
 @media (max-width: 600px) {
   .gloss { bottom: calc(64px + env(safe-area-inset-bottom)); }
 }

@@ -974,8 +974,39 @@ class Viewer:
             if means:
                 self.app.glosses.save_sense(kind, key, text, means, model)
         unit = Unit(kind, key) if kind != "word" else None
+        examples = []
+        if unit is not None:
+            deck, _ = self._word_deck(unit, self.source(query))
+            examples = [{"text": x.text, "en": x.translation or ""}
+                        for x in self.app.with_english(deck[:3]) if x.text != text]
         return {"means": means or "", "key": key, "kind": kind,
-                "known": bool(unit and unit in self.known)}
+                "known": bool(unit and unit in self.known), "examples": examples}
+
+    def try_json(self, form: dict) -> dict:
+        """A sentence the reader wrote with a word, checked by the model.
+
+        Back come the sentence as a native speaker would say it, one line
+        on what changed, and its English -- the three things "keep it"
+        needs to put it into Mine. Nothing is stored here.
+        """
+        import json                                          # noqa: PLC0415
+        from generation.client import LLMClient              # noqa: PLC0415
+        said = (form.get("sentence") or "").strip()
+        word = (form.get("word") or "").strip()
+        if not said:
+            return {"error": "nothing written"}
+        client = LLMClient(timeout=60)
+        if not client.available:
+            return {"error": "no model"}
+        try:
+            reply = client.complete(CHECK, f"Word: {word}\nSentence: {said}",
+                                    temperature=0.2, response_format=CHECK_FORMAT)
+            got = json.loads(reply)
+            return {"german": str(got.get("german", "")).strip(),
+                    "note": str(got.get("note", "")).strip(),
+                    "english": str(got.get("english", "")).strip()}
+        except Exception as error:                           # noqa: BLE001 -- the tunnel, bad JSON
+            return {"error": type(error).__name__}
 
     def _ask_gloss(self, text: str, word: str, named: str) -> str | None:
         from generation.client import LLMClient              # noqa: PLC0415
@@ -3339,6 +3370,31 @@ def _in_days(due: str) -> str:
     from datetime import datetime                            # noqa: PLC0415
     days = (datetime.fromisoformat(due) - datetime.now()).days
     return "today" if days < 1 else f"in {days} d"
+
+
+CHECK = (
+    "A learner of German wrote a sentence to practise a word. Reply with JSON "
+    "and nothing else: {\"german\": ..., \"note\": ..., \"english\": ...}. "
+    "\"german\" is the sentence as a native speaker would actually say it — "
+    "keep the learner's wording and meaning, correct only what is wrong or "
+    "unidiomatic, and keep the word they are practising. \"note\" is ONE short "
+    "English sentence saying what you changed and why, or \"Correct.\" if "
+    "nothing needed changing. \"english\" is the natural English of the "
+    "corrected sentence."
+)
+CHECK_FORMAT = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "check",
+        "schema": {
+            "type": "object",
+            "properties": {"german": {"type": "string"}, "note": {"type": "string"},
+                           "english": {"type": "string"}},
+            "required": ["german", "note", "english"],
+            "additionalProperties": False,
+        },
+    },
+}
 
 
 GLOSS_ONE = (

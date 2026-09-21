@@ -174,13 +174,21 @@ function glossPopup(button, lineText) {
   glossBox.innerHTML =
     "<div class='gloss-word'><strong>" + escapeText(token) + "</strong>" +
     (key && key !== token ? " <span class='gloss-key'>" + escapeText(key) + "</span>" : "") +
-    "</div><p class='gloss-means'>…</p><div class='gloss-actions'>" +
+    "</div><p class='gloss-means'>…</p><div class='gloss-examples'></div>" +
+    "<div class='gloss-actions'>" +
     "<a class='link' target='_blank' rel='noopener' href='https://www.dict.cc/?s=" +
     encodeURIComponent(lookup) + "'>dict.cc \u2197</a>" +
     "<a class='link' target='_blank' rel='noopener' href='https://www.dwds.de/wb/" +
     encodeURIComponent(lookup) + "'>DWDS \u2197</a>" +
     (kind ? "<button type='button' class='known'>I know this</button>" : "") +
-    "<button type='button' class='close'>Close</button></div>";
+    "<button type='button' class='use'>Use it in a sentence</button>" +
+    "<button type='button' class='close'>Close</button></div>" +
+    "<div class='gloss-try' hidden><textarea rows='2' placeholder='Write a German sentence with " +
+    escapeAttr(lookup) + "'></textarea><div class='gloss-actions'>" +
+    "<button type='button' class='go check'>Check it</button></div>" +
+    "<div class='gloss-checked' hidden><p class='de'></p><p class='gloss-note'></p>" +
+    "<p class='en'></p><div class='gloss-actions'><button type='button' class='go keep'>Keep it in Mine</button>" +
+    "</div></div></div>";
   glossBox.hidden = false;
   glossBox.querySelector('.close').onclick = function () { glossBox.hidden = true; };
   var knownBtn = glossBox.querySelector('.known');
@@ -192,14 +200,63 @@ function glossPopup(button, lineText) {
       .then(function () { knownBtn.textContent = 'Known'; });
   };
   var means = glossBox.querySelector('.gloss-means');
+  var examples = glossBox.querySelector('.gloss-examples');
   fetch('/api/gloss?text=' + encodeURIComponent(lineText) + '&word=' + encodeURIComponent(token) +
-        '&kind=' + encodeURIComponent(kind) + '&key=' + encodeURIComponent(key))
+        '&kind=' + encodeURIComponent(kind) + '&key=' + encodeURIComponent(key) +
+        (src ? '&src=' + encodeURIComponent(src) : ''))
     .then(function (r) { return r.json(); })
     .then(function (d) {
       means.textContent = d.means || 'No gloss — the local model is not answering.';
       if (d.known && knownBtn) { knownBtn.textContent = 'Known'; knownBtn.disabled = true; }
+      examples.innerHTML = (d.examples || []).map(function (x) {
+        return "<p class='de'>" + escapeText(x.text) + "</p>" +
+               (x.en ? "<p class='en'>" + escapeText(x.en) + "</p>" : "");
+      }).join('');
     })
     .catch(function () { means.textContent = 'No gloss — the local model is not answering.'; });
+
+  // Writing a sentence with the word: checked by the model, kept into Mine.
+  var tryBox = glossBox.querySelector('.gloss-try');
+  glossBox.querySelector('.use').onclick = function () {
+    tryBox.hidden = !tryBox.hidden;
+    if (!tryBox.hidden) tryBox.querySelector('textarea').focus();
+  };
+  var checked = glossBox.querySelector('.gloss-checked');
+  glossBox.querySelector('.check').onclick = function () {
+    var written = tryBox.querySelector('textarea').value.trim();
+    if (!written) return;
+    var b = glossBox.querySelector('.check');
+    b.disabled = true; b.textContent = 'Checking…';
+    fetch('/api/try', {method: 'POST',
+                       body: new URLSearchParams({word: lookup, kind: kind, key: key, sentence: written})})
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        b.disabled = false; b.textContent = 'Check it';
+        if (d.error || !d.german) {
+          checked.hidden = false;
+          checked.querySelector('.de').textContent = '';
+          checked.querySelector('.gloss-note').textContent = 'The local model is not answering.';
+          checked.querySelector('.en').textContent = '';
+          checked.querySelector('.keep').hidden = true;
+          return;
+        }
+        checked.hidden = false;
+        checked.querySelector('.de').textContent = d.german;
+        checked.querySelector('.gloss-note').textContent = d.note;
+        checked.querySelector('.en').textContent = d.english;
+        var keep = checked.querySelector('.keep');
+        keep.hidden = false; keep.disabled = false; keep.textContent = 'Keep it in Mine';
+        keep.onclick = function () {
+          keep.disabled = true;
+          fetch('/mine', {method: 'POST', redirect: 'manual',
+                          body: new URLSearchParams({action: 'keep', german: d.german,
+                                                     english: d.english, src: src})})
+            .catch(function () {})
+            .then(function () { keep.textContent = 'Kept \u2713'; });
+        };
+      })
+      .catch(function () { b.disabled = false; b.textContent = 'Check it'; });
+  };
 }
 
 // One listener for every subtitle line on the page, wherever it is drawn.
