@@ -150,10 +150,37 @@ def ordered(pending: list[tuple[str, bool]], shown: set[str],
         pending, key=lambda item: tier(*item, shown, candidates))]
 
 
+def best_videos_first(app, todo: list[str], count: int) -> tuple[list[str], int]:
+    """`todo` with the lines of the reel's best `count` videos in front, best
+    video first, the rest in the order they came; and how many moved.
+
+    The tiers above serve the reader of cards. The reel's reader watches a
+    transcript, and a line with no English under it is a gap they meet at
+    the top of the feed first — so the feed's order, as last scored, is the
+    order to fill it in.
+    """
+    from db import Database                                  # noqa: PLC0415
+    from scores import ScoreStore                            # noqa: PLC0415
+    from watchability import ENOUGH_LINES                    # noqa: PLC0415
+    banned = app.banned_videos()
+    ranked = [row["video"] for row in ScoreStore(app.settings.state_path).latest()
+              if row["lines"] >= ENOUGH_LINES and row["video"] not in banned][:count]
+    place = {video: n for n, video in enumerate(ranked)}
+    first: dict[str, int] = {}
+    if ranked:
+        with Database(app.settings.own) as db:
+            for video, text in db.rows(
+                    "SELECT video_id, text FROM corpus_sentence"
+                    " WHERE video_id = ANY(%s)", (ranked,)):
+                first[text] = min(first.get(text, len(ranked)), place[video])
+    todo = sorted(todo, key=lambda text: first.get(text, len(ranked)))
+    return todo, sum(1 for text in todo if text in first)
+
+
 class TranslateSentencesCommand:
     def run(self, app, limit: int | None = None, batch: int = BATCH,
             workers: int | None = None, log: Path = Path("out/translate.log"),
-            everything: bool = False) -> None:
+            everything: bool = False, videos: int | None = None) -> None:
         import os                                            # noqa: PLC0415
         from concurrent.futures import (ThreadPoolExecutor,   # noqa: PLC0415
                                         as_completed)
@@ -210,6 +237,10 @@ class TranslateSentencesCommand:
             print("  left for --all: " + " · ".join(
                 f"{tiers[n]:,} {TIERS[n]}" for n in range(last, len(TIERS))),
                 flush=True)
+        if videos:
+            todo, moved = best_videos_first(app, todo, videos)
+            print(f"  the reel's best {videos:,} videos first: {moved:,} of their lines",
+                  flush=True)
         if limit:
             todo = todo[:limit]
             print(f"  asking about the first {len(todo):,}", flush=True)

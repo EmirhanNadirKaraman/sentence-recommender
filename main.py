@@ -233,6 +233,9 @@ def _parser() -> argparse.ArgumentParser:
     translate.add_argument("--workers", type=int, default=None,
                            help="requests in flight (default: one per server "
                                 "slot, or 2 if the server will not say)")
+    translate.add_argument("--videos", type=int, default=None,
+                           help="the lines of the reel's best N videos first, "
+                                "as last scored, best first")
     translate.add_argument("--log", type=Path, default=Path("out/translate.log"),
                            help="every sentence and its English, appended as "
                                 "they land")
@@ -740,7 +743,7 @@ def main() -> int:
     elif args.command == "translate-sentences":
         TranslateSentencesCommand().run(app, args.limit, args.batch,
                                         args.workers, args.log,
-                                        args.everything)
+                                        args.everything, args.videos)
     elif args.command == "progress":
         ProgressCommand().run(app, args.label)
     elif args.command == "check-model":
