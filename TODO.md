@@ -2050,7 +2050,7 @@ per-pattern table is the first measurement of what each answer costs. Experiment
 04 is this benchmark; the lemma disagreements, dialect marks and compounds
 listed above stay as the second set, for the calibration question itself.
 
-### 27. What the answers should change next — step 1 done, 2026-09-21
+### 27. What the answers should change next — DONE, 2026-09-21
 
 The pass is in the pick (`rank`, `teaching_sentence`, the quiz, the walk)
 and that part is settled: 3,437 of the beginner plan's 3,883 steps are
@@ -2099,6 +2099,11 @@ agreed, free work first and the $1.66 last:
 2. **The candidates a rebuilt plan pulls in — ~$0.1–0.3, on a go.**
    `ask-sentences --plan beginner` asks exactly the subtitle candidates
    nobody has judged, so every card stays judged.
+
+   **Done, 04:10.** 195 sentences (2 shown, 193 weighed), $0.013,
+   46,227 judged in all. The vendor threw 17 × `529 high traffic` and
+   6 × `400 Unknown model: jev-1.13.0` in the first run; both transient,
+   two resumed runs cleared them. They count at the next rebuild.
 3. **The reel's difficulty — ~$1, on a go.** Only 18% of subtitle lines
    are judged and they are the plan's picks, the easy ones; no video has
    three quarters of its lines levelled, two have half. Experiment 06
@@ -2109,6 +2114,30 @@ agreed, free work first and the $1.66 last:
    `watchability` gets a level band against the setting; `well_formed`
    and `standard` keep lyrics and on-screen text out of comprehension.
    Leaves ~$0.3 in reserve.
+
+   **Done differently, 05:20** (`20f0379`, `a1004de`). Looking at the
+   reel's order before spending on it: with 215 words known,
+   comprehension is 17% for the best video and 2–3% by the 300th, so
+   "the top 300" was the top of a noisy order, and what the reel lacked
+   was a difficulty that does not depend on the word count at all. So
+   every watchable video instead, from a fixed thirty-line sample each
+   (`corpus.levels`, seeded by the video, drawn before the answered are
+   left out, so a resumed run asks the same lines): `ask-sentences
+   --per-video 30 --only level`, 36,172 lines, 0 failed, **$1.05** at
+   72,000 an hour, the sentence travelling alone in the request. The
+   result: 1,536 videos levelled, .21 (`200 Tägliche Aktivitäten A1`) to
+   3.16 (`Anfechtungsklage & Nichtigkeitsklage`), median 2.04, 7 A1 ·
+   161 A2 · 1,295 B1 · 73 B2; the easiest ten are learner dialogues and
+   `Nicos Weg`, the hardest law, bookkeeping, black holes, the RAF. The
+   level multiplies into `watchability` at the card's fifth a level
+   (`LEVEL_COST`, with the distribution beside it), shows on the reel's
+   scoreboard, and the catalogue has a level column and a "simplest
+   German" order. `Yusufs erster Tag` (.54) rose from fifth to third in
+   the feed; `Warum es gut ist, in Deutschland zu leben` (1.92) left the
+   top ten. `well_formed` and `standard` for lyrics and dialect are not
+   asked — $0.6 left in the account — and a new video gets the median
+   level until `ask-sentences --per-video 30 --only level` is run again,
+   which asks only what is new.
 
 Not now: a floor and a deferral for the 85 steps taught with a doubtful
 sentence (step 1 changes which those are), and one matcher for fixed
