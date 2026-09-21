@@ -2166,9 +2166,16 @@ band, keeps the line share as `readable` for the panel's "one word away"
 arithmetic, and shows both. `Mia fliegt zur WM` (74%, A2) leads at .51
 where it led at .033 for being the least-zero of a column of zeros.
 
-Not now: a floor and a deferral for the 85 steps taught with a doubtful
-sentence (step 1 changes which those are), and one matcher for fixed
-expressions from the discovery list (its own day). Seen on the way and
+**The floor, done (`c2388bf`).** A word whose best sentence is under
+`FLOOR` (.3 on the four) is deferred until a cleaner one is a step away,
+and taught last if none ever is; the page says so. On the rebuilt plan
+96 such steps became 88 — most such words have no clean sentence in the
+corpus at all — but their median position moved from 3,552 to 3,840:
+the doubtful tail is the tail now. Levels unchanged (A1 855 · A2 1,738 ·
+B1 1,049 · B2 129).
+
+Not now: one matcher for fixed expressions from the discovery list (its
+own day — next). Seen on the way and
 left: six cards the gloss cannot fill (`hängen`, `aufheben`, `vereinen`,
 `klopfen`, `reiten`, `strukturieren`) because the model returns two
 answers for three sentences — the third has the word as a noun or a
