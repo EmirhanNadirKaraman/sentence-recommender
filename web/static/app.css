@@ -456,16 +456,28 @@ button.w:hover { border-bottom-color: var(--target); border-color: transparent;
 .cue.now button.w { color: inherit; }
 
 /* The gloss popup: what the clicked word means in that line, and the way
-   to a dictionary. Fixed above the tab bar like the undo bar. */
+   to a dictionary. In the middle of the screen, in a colour of its own
+   -- a warm card on the cool page -- so it reads as something laid over
+   the page rather than another part of it. */
+:root { --pop: #fbf6ea; --pop-ink: #2b2416; --pop-ink-2: #6b5f47; --pop-line: #e2d7bb; }
+@media (prefers-color-scheme: dark) {
+  :root { --pop: #2a2418; --pop-ink: #f3ead6; --pop-ink-2: #c2b48f; --pop-line: #4a3f2a; }
+}
 .gloss {
-  position: fixed; left: 12px; right: 12px; z-index: 21;
-  max-width: 760px; margin: 0 auto;
-  bottom: calc(12px + env(safe-area-inset-bottom));
-  padding: 14px 16px; border-radius: 4px;
-  background: var(--surface); color: var(--ink);
-  border: 1px solid var(--faint); box-shadow: 0 6px 24px rgba(0, 0, 0, .28);
+  position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: calc(100% - 24px); max-width: 640px; z-index: 21;
+  padding: 16px 18px; border-radius: 6px;
+  background: var(--pop); color: var(--pop-ink);
+  border: 1px solid var(--pop-line); box-shadow: 0 12px 40px rgba(0, 0, 0, .35);
   font: 400 15px/1.5 var(--sans);
 }
+.gloss .en, .gloss .gloss-key, .gloss .gloss-note { color: var(--pop-ink-2); }
+.gloss .de { color: var(--pop-ink); }
+.gloss button, .gloss .link {
+  color: var(--pop-ink); background: transparent; border-color: var(--pop-line);
+}
+.gloss button.go { background: var(--pop-ink); color: var(--pop); border-color: var(--pop-ink); }
+.gloss textarea { background: var(--pop); color: var(--pop-ink); border-color: var(--pop-line); }
 .gloss[hidden] { display: none; }
 .gloss-word { font-size: 17px; }
 .gloss-word strong { font-family: var(--serif); font-weight: 400; font-size: 20px; }
@@ -482,9 +494,6 @@ button.w:hover { border-bottom-color: var(--target); border-color: transparent;
 .gloss-checked .de { font-size: 17px; margin: 6px 0 0; }
 .gloss-note { color: var(--ink-2); margin: 2px 0; }
 .gloss { max-height: 70vh; overflow-y: auto; }
-@media (max-width: 600px) {
-  .gloss { bottom: calc(64px + env(safe-area-inset-bottom)); }
-}
 
 /* Mine: a box to write in, and the draft above it to read over. */
 form.mine { display: grid; gap: 12px; margin: 12px 0 24px; }
