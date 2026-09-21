@@ -111,7 +111,7 @@ def _of_the_best_videos(app, sentences, count: int | None, per_video: int | None
     from scores import ScoreStore                            # noqa: PLC0415
     from watchability import ENOUGH_LINES                    # noqa: PLC0415
     banned = app.banned_videos()
-    ranked = [row["video"] for row in ScoreStore(app.settings.state_path).latest("subtitle")
+    ranked = [row["video"] for row in ScoreStore(app.settings.state_path).latest()
               if row["lines"] >= ENOUGH_LINES and row["video"] not in banned][:count]
     place = {video: n for n, video in enumerate(ranked)}
     chosen = [s for s in sentences if s.timing and s.timing.video_id in place]

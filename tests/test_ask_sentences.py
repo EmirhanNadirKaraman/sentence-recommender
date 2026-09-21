@@ -80,7 +80,7 @@ class BestVideosTest(unittest.TestCase):
             row = lambda video, watch, lines=50: {
                 "video": video, "title": "", "lines": lines, "minutes": 10.0,
                 "comprehension": 0.9, "i+1": 1, "teaches": 1, "watch": watch, "next": []}
-            ScoreStore(app.settings.state_path).save("subtitle", "stamp", [
+            ScoreStore(app.settings.state_path).save("all", "stamp", [
                 row("best", 0.9), row("thin", 0.95, lines=5), row("next", 0.5)])
             lines = [Sentence("Zweitbestes Video, erste Zeile.", timing=Timing("next", 1.0, 2.0)),
                      Sentence("Bestes Video, zweite Zeile.", timing=Timing("best", 9.0, 10.0)),

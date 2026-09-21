@@ -87,14 +87,21 @@ class ScoreStore:
                 " ORDER BY watch DESC", (source,)).fetchall()
         return [self._as_row(r) for r in rows]
 
-    def latest(self, source: str) -> list[dict]:
+    def latest(self, source: str | None = None) -> list[dict]:
         """The stored scores as last written, best first, whoever they were
         scored for. Not for a page -- `load` is, and it refuses a stamp
         that no longer describes the reader -- but for choosing which
         videos to spend on first: the reel's order moves with every word
         learned, and slowly, so the last order is the right one to work
-        down."""
+        down. With no `source` named, the source scored most recently --
+        the one the reel was last looked at under."""
         with open_state(self._path) as conn:
+            if source is None:
+                row = conn.execute("SELECT source FROM video_score_meta"
+                                   " ORDER BY made_at DESC LIMIT 1").fetchone()
+                if row is None:
+                    return []
+                source = row[0]
             rows = conn.execute(
                 f"SELECT {', '.join(COLUMNS)} FROM video_score WHERE source = ?"
                 " ORDER BY watch DESC", (source,)).fetchall()
