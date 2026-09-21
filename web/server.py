@@ -205,6 +205,12 @@ def _make_handler(viewers: "Viewers"):
                     self._redirect(viewer.set_blacklist(form))
                 elif posted == "/hide":
                     self._redirect(viewer.hide_sentence(form))
+                elif posted == "/mine":
+                    outcome = viewer.save_mine(form)
+                    if isinstance(outcome, tuple):
+                        self._send(outcome[1], 200)
+                    else:
+                        self._redirect(outcome)
                 elif posted == "/fix":
                     self._redirect(viewer.save_fix(form))
                 elif posted == "/lists":
@@ -248,6 +254,8 @@ def _make_handler(viewers: "Viewers"):
                 return viewer.watch(query), 200
             if path == "/study":
                 return viewer.study(query), 200
+            if path == "/mine":
+                return viewer.mine(query), 200
             if path == "/api/next":
                 self._send_json(viewer.next_json(query))
                 return "", 0

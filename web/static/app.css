@@ -459,3 +459,15 @@ button.w:hover { border-bottom-color: var(--target); border-color: transparent;
   .gloss { bottom: calc(64px + env(safe-area-inset-bottom)); }
 }
 
+/* Mine: a box to write in, and the draft above it to read over. */
+form.mine { display: grid; gap: 12px; margin: 12px 0 24px; }
+form.mine textarea {
+  width: 100%; box-sizing: border-box; font: 400 17px/1.5 var(--serif);
+  padding: 10px 12px; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--faint); border-radius: 3px; resize: vertical;
+}
+form.mine label { font: 400 13.5px var(--sans); color: var(--ink-2); }
+form.mine .actions { margin-top: 0; }
+#mine-card details { margin: 12px 0; }
+#mine-card summary { cursor: pointer; font: 400 15px var(--sans); color: var(--ink-2); }
+

@@ -28,6 +28,9 @@ from vocab.compounds import Compounds
 # that an equally good spoken sentence wins every pick, not so much that a
 # word only a synthetic channel says goes untaught.
 MACHINE_COST = 0.5
+# And what one the reader wrote themselves is worth beside a stranger's:
+# double, so it leads every card of every word in it.
+OWN_BONUS = 2.0
 
 
 class Application:
@@ -38,6 +41,7 @@ class Application:
         # (blacklist version, the videos it removes) -- see `banned_videos`.
         self._banned: tuple[int, frozenset[str]] | None = None
         self._machine: tuple[int, frozenset[str]] | None = None
+        self._own_texts: frozenset[str] | None = None
 
     # --- storage ---------------------------------------------------------
 
@@ -128,6 +132,27 @@ class Application:
         """What the reader has said about each channel. See `vocab.channel_taste`."""
         from vocab.channel_taste import ChannelTaste       # noqa: PLC0415
         return ChannelTaste(self.settings.state_path)
+
+    @cached_property
+    def own(self):
+        """The sentences the reader wrote to say. See `vocab.own_sentences`."""
+        from vocab.own_sentences import OwnSentences        # noqa: PLC0415
+        return OwnSentences(self.settings.state_path)
+
+    def adopt(self, text: str, english: str) -> None:
+        """Take a sentence the reader wrote into the corpus and the schedule.
+
+        Analysed like any other, so its words are units and it stands on
+        their cards -- first, by `OWN_BONUS` in `verdicts` -- and stored
+        under the `generated` build with `origin` "own", where a rebuild
+        of that build re-analyses it with the rest.
+        """
+        from corpus.sentence import GENERATED, Sentence      # noqa: PLC0415
+        self.own.add(text, english)
+        (analysed,) = self.analyzer.analyze_all(
+            [Sentence(text, origin="own", translation=english)])
+        self.corpus_store.append([analysed], build=GENERATED)
+        self._own_texts = None
 
     def machine_made(self) -> frozenset[str]:
         """Every sentence of a channel marked machine-made, by text -- what
@@ -540,6 +565,12 @@ class Application:
         said = self.overrides.verdicts()
         for text in self.machine_made():
             said[text] = said.get(text, 1.0) * MACHINE_COST
+        # And the reader's own sentences, the other way: the best example
+        # of a word is the sentence they wrote to say with it.
+        if self._own_texts is None:
+            self._own_texts = self.own.texts()
+        for text in self._own_texts:
+            said[text] = said.get(text, 1.0) * OWN_BONUS
         return said
 
     def beginner_set(self) -> KnownSet:

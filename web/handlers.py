@@ -1821,6 +1821,140 @@ class Viewer:
             not (video_id and s.timing and s.timing.video_id == video_id)))[:DECK_SIZE]
         return deck, len(holding)
 
+    # --- the sentences you wrote ------------------------------------------
+
+    def mine(self, query: dict, draft: dict | None = None) -> str:
+        """Your own sentences: write one, have it put into German, keep it;
+        then be asked for it again, English first, until you can say it.
+
+        `draft` is a translation just made and not yet saved, shown above
+        the box so it can be read over and edited before it is kept.
+        """
+        source = self.source(query)
+        own = self.app.own
+        due = own.due()
+        saved = own.all()
+        top = ""
+        if draft:
+            top = (
+                "<h2>Read it over, then keep it</h2>"
+                "<form class='mine' method='post' action='/mine'>"
+                f"<input type='hidden' name='src' value='{escape(source)}'>"
+                "<label>German<br><textarea name='german' rows='2'>"
+                f"{escape(draft['german'])}</textarea></label>"
+                "<label>English<br><textarea name='english' rows='2'>"
+                f"{escape(draft['english'])}</textarea></label>"
+                "<div class='actions'>"
+                "<button class='go' name='action' value='keep'>Keep it</button>"
+                "<button name='action' value='translate'>Translate again</button>"
+                "</div></form>")
+        ask = ""
+        if due:
+            first = due[0]
+            ask = (
+                f"<h2>Say it in German ({len(due)} due)</h2>"
+                "<div class='card' id='mine-card'>"
+                f"<p class='en lead'>{escape(first['english'])}</p>"
+                f"<details><summary>Show the German</summary>"
+                f"<p class='de'>{escape(first['text'])}</p></details>"
+                "<form class='actions' method='post' action='/mine'>"
+                f"<input type='hidden' name='src' value='{escape(source)}'>"
+                f"<input type='hidden' name='text' value='{escape(first['text'])}'>"
+                "<button class='go' name='action' value='good'>I said it</button>"
+                "<button name='action' value='again'>Not yet</button>"
+                "</form></div>")
+        rows = "".join(
+            "<div class='entry'><div class='rail'>"
+            f"{'due' if r['due'] <= _now_iso() else _in_days(r['due'])}"
+            f"<span class='kind'>{r['repetitions']}× said</span></div>"
+            "<div class='body'>"
+            + sentence(r["text"], r["english"])
+            + "<form class='tools' method='post' action='/mine'>"
+            f"<input type='hidden' name='src' value='{escape(source)}'>"
+            f"<input type='hidden' name='text' value='{escape(r['text'])}'>"
+            "<button name='action' value='forget'>Forget it</button></form>"
+            "</div></div>"
+            for r in saved)
+        body = (
+            "<h1>Mine</h1>"
+            "<p class='note'>Sentences you want to be able to say. Write one in "
+            "English or German; the local model puts it into German, you read it "
+            "over and keep it. A kept sentence joins the corpus as yours — it leads "
+            "the cards of every word in it — and comes back here to be said from "
+            "the English, spaced further apart each time you can.</p>"
+            + top
+            + "<h2>Write one</h2>"
+            "<form class='mine' method='post' action='/mine'>"
+            f"<input type='hidden' name='src' value='{escape(source)}'>"
+            "<textarea name='said' rows='2' placeholder='Something you wanted to say — "
+            "in English, or in German to have it checked'></textarea>"
+            "<div class='actions'><button class='go' name='action' value='translate'>"
+            "Put it into German</button></div></form>"
+            + ask
+            + (f"<h2>{len(saved)} kept</h2><div class='ledger'>{rows}</div>" if saved else "")
+        )
+        return self._page("Mine", body, "/mine", source)
+
+    def save_mine(self, form: dict) -> str | tuple[str, str]:
+        """A decision on the Mine page: translate, keep, grade or forget.
+
+        Returns where to go, or the page itself when there is a draft to
+        show -- a translation is not stored until it is read over.
+        """
+        source = form.get("src", "")
+        action = (form.get("action") or "").strip()
+        back = f"/mine?src={quote(source)}"
+        if action == "translate":
+            said = (form.get("said") or form.get("german") or form.get("english") or "").strip()
+            if not said:
+                return back
+            german, english = self._into_german(said)
+            return ("page", self.mine({"src": source},
+                                      {"german": german, "english": english}))
+        text = (form.get("german") or form.get("text") or "").strip()
+        if action == "keep":
+            english = (form.get("english") or "").strip()
+            if text and english:
+                self.app.adopt(text, english)
+                # The corpus in memory predates the sentence.
+                self._corpora.clear()
+                self._scopes.clear()
+                self._quiz.clear()
+        elif action in ("good", "again") and text:
+            self.app.own.grade(text, action == "good")
+        elif action == "forget" and text:
+            self.app.own.remove(text)
+            self.app._own_texts = None
+        return back
+
+    def _into_german(self, said: str) -> tuple[str, str]:
+        """German and English for what was written, whichever it was in.
+
+        The language is judged the way `detect-language` judges a line;
+        English is put into German, German is kept and given its English,
+        by the local model either way.
+        """
+        from commands.detect_language import language_of    # noqa: PLC0415
+        from generation.client import LLMClient              # noqa: PLC0415
+        from lingua import Language, LanguageDetectorBuilder  # noqa: PLC0415
+        detector = LanguageDetectorBuilder.from_languages(Language.GERMAN, Language.ENGLISH).build()
+        client = LLMClient(timeout=60)
+        if language_of(said, detector) == "en":
+            german = self._model_line(client, INTO_GERMAN, said) or ""
+            return german, said
+        english = self._model_line(client, INTO_ENGLISH, said) or ""
+        return said, english
+
+    @staticmethod
+    def _model_line(client, system: str, user: str) -> str | None:
+        if not client.available:
+            return None
+        try:
+            reply = client.complete(system, user, temperature=0.2)
+        except Exception:                                    # noqa: BLE001 -- the tunnel
+            return None
+        return reply.strip().splitlines()[0].strip().strip('"') if reply.strip() else None
+
     # --- studying one video ----------------------------------------------
 
     def study(self, query: dict) -> str:
@@ -3183,6 +3317,28 @@ def _hunt_term(unit: Unit) -> str:
     a lookup site indexes.
     """
     return unit.key.split()[-1] if unit.is_pattern else unit.key
+
+
+INTO_GERMAN = (
+    "Translate the sentence into natural, everyday spoken German, as a native "
+    "speaker would actually say it to a friend or a colleague. Reply with the "
+    "German sentence only."
+)
+INTO_ENGLISH = (
+    "Translate the German sentence into natural English. Reply with the English "
+    "sentence only."
+)
+
+
+def _now_iso() -> str:
+    from datetime import datetime                            # noqa: PLC0415
+    return datetime.now().isoformat()
+
+
+def _in_days(due: str) -> str:
+    from datetime import datetime                            # noqa: PLC0415
+    days = (datetime.fromisoformat(due) - datetime.now()).days
+    return "today" if days < 1 else f"in {days} d"
 
 
 GLOSS_ONE = (

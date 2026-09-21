@@ -208,6 +208,24 @@ class CorpusStore:
                     kept, template="(%s, %s, %s)", page_size=5000)
         self._stamp(build)
 
+    def append(self, sentences: list[Sentence], build: str) -> None:
+        """Add to a build what `save` would have replaced it with.
+
+        For the sentences a reader writes (`vocab.own_sentences`): one at a
+        time, into the `generated` build beside the model's, and the build
+        stays what it was otherwise. A text the build already holds is left
+        alone rather than doubled.
+        """
+        with self._read() as cur:
+            cur.execute("SELECT text FROM corpus_sentence WHERE build = %s AND text = ANY(%s)",
+                        (build, [s.text for s in sentences]))
+            held = {text for (text,) in cur.fetchall()}
+        fresh = [s for s in sentences if s.text not in held]
+        if fresh:
+            self._write(fresh, build)
+            with self._read() as cur:
+                cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY corpus_unit_count")
+
     def _write(self, sentences: list[Sentence], build: str) -> None:
         """Insert sentences and their units, in batches.
 
