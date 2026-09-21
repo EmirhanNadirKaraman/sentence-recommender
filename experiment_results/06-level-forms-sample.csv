@@ -1,0 +1,201 @@
+text,stored_top,stored_expected,stored,n
+Ein scheinbar ewiger Kreislauf des Entstehens und Vergehens.,C1,3.63,"{""A2"": 0.0, ""A1"": 0.0, ""C1"": 0.74, ""B1"": 0.11, ""B2"": 0.15}",1
+"Ja, er lebt im Norden.",A1,0.01,"{""B2"": 0.0, ""A2"": 0.01, ""C1"": 0.0, ""B1"": 0.0, ""A1"": 0.99}",2
+Und damit kommen wir zu Spiel Nummer vier.,A1,0.72,"{""C1"": 0.0, ""A2"": 0.37, ""B2"": 0.01, ""B1"": 0.16, ""A1"": 0.46}",3
+"Die Regierung hätte gar keine Mehrheit mehr, was spätestens dann kompliziert würde, wenn es darum geht, einen Haushalt zu verabschieden.",B2,3.0,"{""A1"": 0.0, ""C1"": 0.0, ""A2"": 0.0, ""B2"": 1.0, ""B1"": 0.0}",4
+Hier unten gibt es noch ein Video mit Mirko.,A1,0.32,"{""A2"": 0.26, ""B1"": 0.03, ""A1"": 0.71, ""B2"": 0.0, ""C1"": 0.0}",5
+Ich muss doch sauber machen.,A2,0.7,"{""A2"": 0.7, ""A1"": 0.3, ""B1"": 0.0, ""C1"": 0.0, ""B2"": 0.0}",6
+Daniel Aßmann fährt durch eine wunderschöne Landschaft.,A1,0.47,"{""C1"": 0.0, ""B1"": 0.03, ""A1"": 0.56, ""A2"": 0.41, ""B2"": 0.0}",7
+Ich mach die Wäsche gerade.,A1,0.05,"{""C1"": 0.0, ""A2"": 0.05, ""B2"": 0.0, ""B1"": 0.0, ""A1"": 0.95}",8
+"Sie sind in Vereinen engagiert, machen Politik.",A2,1.08,"{""A1"": 0.25, ""B1"": 0.31, ""B2"": 0.01, ""A2"": 0.43, ""C1"": 0.0}",9
+Ich gehe auf jemanden zu und nehme mit ihm oder ihr Kontakt auf.,A2,1.06,"{""C1"": 0.0, ""A1"": 0.22, ""B1"": 0.26, ""A2"": 0.51, ""B2"": 0.01}",10
+"Nehmen wir zum Beispiel mal meinen Namen, Lisa.",A1,0.43,"{""C1"": 0.0, ""B1"": 0.08, ""A2"": 0.24, ""A1"": 0.67, ""B2"": 0.01}",11
+"Lasst uns ein bisschen diskutieren, unten in den Kommentaren.",A1,0.82,"{""B2"": 0.01, ""A1"": 0.39999999999999997, ""A2"": 0.39, ""B1"": 0.2, ""C1"": 0.0}",12
+Und das ist in der Regel nicht leicht.,A1,0.74,"{""A1"": 0.45999999999999996, ""C1"": 0.0, ""B1"": 0.18, ""B2"": 0.01, ""A2"": 0.35}",13
+"Aktuell liegt er bei ungefähr 75 Prozent, aber auch das ist noch ein enorm hoher Wert.",B1,2.14,"{""C1"": 0.0, ""A2"": 0.02, ""B2"": 0.16, ""B1"": 0.82, ""A1"": 0.0}",14
+Grönland ist seit deren Gründung mit Dänemark auch zusammen Mitglied der NATO.,B2,2.56,"{""A1"": 0.0, ""B1"": 0.45, ""A2"": 0.01, ""B2"": 0.51, ""C1"": 0.03}",15
+"Stellt euch vor, jemand hält eine Rede und sagt darin etwas, das ihr gut findet.",B1,2.11,"{""A2"": 0.03, ""A1"": 0.01, ""B1"": 0.8, ""B2"": 0.16, ""C1"": 0.0}",16
+Dort wurde so etwas schon eingeführt.,A2,1.97,"{""A1"": 0.0, ""C1"": 0.0, ""B1"": 0.13, ""B2"": 0.42, ""A2"": 0.45}",17
+Hab also den vollen Schutz.,A2,0.62,"{""C1"": 0.0, ""B1"": 0.06, ""A1"": 0.44, ""A2"": 0.5, ""B2"": 0.0}",18
+"Es war so schön, mit dir zu fahren.",A2,1.06,"{""A1"": 0.02, ""B1"": 0.08, ""A2"": 0.9, ""C1"": 0.0, ""B2"": 0.0}",19
+"Ja, du bist zur Tür gegangen und hast sie abgeschlossen.",A2,1.18,"{""C1"": 0.0, ""A2"": 0.8099999999999999, ""B1"": 0.17, ""B2"": 0.01, ""A1"": 0.01}",20
+Nach fünf Jahren ist dann alles abgeschlossen.,A2,1.2,"{""A1"": 0.05, ""B1"": 0.21, ""A2"": 0.72, ""C1"": 0.0, ""B2"": 0.02}",21
+Ich habe keine Angst um diese Juden.,A2,0.91,"{""C1"": 0.0, ""A2"": 0.66, ""B2"": 0.01, ""A1"": 0.22, ""B1"": 0.11}",22
+Und es wird weiter gegen Hunter Biden ermittelt.,B2,2.67,"{""C1"": 0.01, ""B1"": 0.24, ""A1"": 0.0, ""B2"": 0.7, ""A2"": 0.05}",23
+"Und plötzlich ertrug ich den Gedanken, nicht mir, dich ebenfalls in der Galerie meiner Erinnerungen zu sehen.",C1,3.7,"{""A2"": 0.0, ""C1"": 0.71, ""A1"": 0.0, ""B1"": 0.01, ""B2"": 0.28}",24
+"Ich freue mich, ich bin schon sehr sehr gespannt.",A1,0.21,"{""B2"": 0.0, ""B1"": 0.02, ""A2"": 0.17, ""A1"": 0.81, ""C1"": 0.0}",25
+Komplett unwahrscheinlich wäre das zumindest nicht.,B2,2.54,"{""B2"": 0.51, ""A2"": 0.07, ""C1"": 0.05, ""A1"": 0.0, ""B1"": 0.37}",26
+"Und da fühlt sich der Iran massiv gestört von den USA, die wiederum keinen neuen Krieg beginnen wollten.",B2,2.82,"{""A1"": 0.0, ""B1"": 0.19, ""A2"": 0.0, ""C1"": 0.01, ""B2"": 0.8}",27
+Zu einem Heiligen der Revolution.,C1,2.96,"{""B2"": 0.17, ""B1"": 0.25, ""A1"": 0.01, ""C1"": 0.46, ""A2"": 0.11}",28
+"Einmal überschritten, bedeutet zum Zentrum zu fallen, in die Zukunft zu fallen.",C1,3.46,"{""C1"": 0.61, ""A1"": 0.0, ""B1"": 0.15, ""A2"": 0.0, ""B2"": 0.24}",29
+"Er hat die Hantel in seiner Hand und merkt, dass er sie nicht richtig gegriffen hat.",B1,1.89,"{""B1"": 0.84, ""A1"": 0.01, ""B2"": 0.03, ""C1"": 0.0, ""A2"": 0.12}",30
+"Sprich, der Körper bekämpft sich selbst.",B1,1.87,"{""C1"": 0.05, ""A1"": 0.08, ""B1"": 0.64, ""A2"": 0.15, ""B2"": 0.08}",31
+"Paul steht immer da, wo man ihn braucht.",B1,1.96,"{""C1"": 0.0, ""B1"": 0.95, ""A1"": 0.01, ""B2"": 0.01, ""A2"": 0.03}",32
+Kann ich mich damit hier behaupten?,A2,1.61,"{""A1"": 0.01, ""B2"": 0.18, ""C1"": 0.0, ""B1"": 0.26, ""A2"": 0.55}",33
+Also von wegen wieder Abgrenzung zum Deutschen.,C1,3.37,"{""B2"": 0.42, ""C1"": 0.48, ""A1"": 0.0, ""A2"": 0.01, ""B1"": 0.09}",34
+Ich bin im Gefängnis jenseits der fünf Welten.,C1,2.81,"{""A2"": 0.09, ""A1"": 0.01, ""C1"": 0.37, ""B1"": 0.35, ""B2"": 0.18}",35
+"Aber das produzierte Bisschen, das wir zu sehen bekommen, halten wir für ein vollständiges Bild.",B2,2.54,"{""B2"": 0.5, ""A1"": 0.0, ""A2"": 0.0, ""C1"": 0.02, ""B1"": 0.48}",36
+"Wenn der Pilot recht hat, hält die Deutschen nichts mehr auf.",B1,2.1,"{""C1"": 0.0, ""A1"": 0.0, ""B1"": 0.9, ""A2"": 0.0, ""B2"": 0.1}",37
+Dann wird der Wind wieder stark.,A1,0.37,"{""A1"": 0.67, ""C1"": 0.0, ""B1"": 0.04, ""B2"": 0.0, ""A2"": 0.29}",38
+"Ja, das klingt leider sehr realistisch.",A2,0.84,"{""A2"": 0.45, ""A1"": 0.36, ""B2"": 0.01, ""C1"": 0.0, ""B1"": 0.18}",39
+Da werden also viele neue Arbeitsplätze frei.,A2,1.39,"{""B2"": 0.07, ""A2"": 0.5, ""C1"": 0.0, ""B1"": 0.34, ""A1"": 0.09}",40
+Ordentlich arbeiten und zu den Kunden immer ehrlich sein.,A1,0.58,"{""C1"": 0.0, ""B1"": 0.1, ""A2"": 0.38, ""A1"": 0.52, ""B2"": 0.0}",41
+Ich habe vielleicht zu fest gedrückt oder gezogen.,A2,1.14,"{""A2"": 0.87, ""A1"": 0.0, ""C1"": 0.0, ""B1"": 0.12, ""B2"": 0.01}",42
+Da könnte ich irgendwann noch ein ganz langes Video dazu machen!,B2,2.18,"{""A1"": 0.0, ""C1"": 0.0, ""B2"": 0.47, ""A2"": 0.29, ""B1"": 0.24}",43
+"Wir sind uns sicher, nicht wahr, Jim?",A1,0.77,"{""B2"": 0.04, ""C1"": 0.0, ""A2"": 0.27, ""A1"": 0.5, ""B1"": 0.19}",44
+"Ich sage dir, ich akzeptiere das nicht länger.",B1,1.3,"{""B1"": 0.49, ""B2"": 0.02, ""A1"": 0.23, ""A2"": 0.26, ""C1"": 0.0}",45
+"Die Dame, die wir jetzt suchen, hat einen Hund.",B1,1.59,"{""A2"": 0.13, ""C1"": 0.0, ""B1"": 0.73, ""A1"": 0.14, ""B2"": 0.0}",46
+"Erst in diesem Jahr, 2021, zieht sich Deutschland, wie die USA, komplett aus Afghanistan zurück.",B2,2.59,"{""A2"": 0.01, ""A1"": 0.0, ""C1"": 0.01, ""B1"": 0.4, ""B2"": 0.58}",47
+"Denn den Weg in die Katastrophe, den geht es Stück für Stück.",C1,3.04,"{""A1"": 0.0, ""B2"": 0.34, ""A2"": 0.0, ""C1"": 0.35000000000000003, ""B1"": 0.31}",48
+Etwa 90 Gramm pro Stunde.,A1,0.32,"{""A2"": 0.28, ""C1"": 0.0, ""A1"": 0.7, ""B1"": 0.02, ""B2"": 0.0}",49
+Ohne das BSW wird mutmaßlich keine Regierung gebildet werden können.,B2,2.98,"{""B2"": 0.94, ""A2"": 0.0, ""B1"": 0.04, ""A1"": 0.0, ""C1"": 0.02}",50
+Es gab auch schon einige Aktionen.,A2,1.02,"{""A1"": 0.01, ""B1"": 0.03, ""A2"": 0.96, ""C1"": 0.0, ""B2"": 0.0}",51
+"Finde ich sehr spannend, schreibt es unten in die Kommentare.",A1,0.8,"{""A2"": 0.31, ""A1"": 0.45, ""C1"": 0.0, ""B1"": 0.23, ""B2"": 0.01}",52
+Ich verrate euch jetzt mal ein Geheimnis.,A1,0.37,"{""A2"": 0.27, ""A1"": 0.68, ""B2"": 0.0, ""B1"": 0.05, ""C1"": 0.0}",53
+In Sachsen-Anhalt liegt die AfD momentan bei 40 Prozent und in Mecklenburg-Vorpommern bei 38 Prozent.,B1,2.12,"{""C1"": 0.0, ""B1"": 0.7, ""B2"": 0.21, ""A1"": 0.0, ""A2"": 0.09}",54
+Da finde ich die französische Lösung nicht gut.,A2,0.78,"{""B1"": 0.12, ""C1"": 0.0, ""A1"": 0.34, ""B2"": 0.0, ""A2"": 0.54}",55
+"Der Vogel ist wie gesagt aus Holz, es ist zum Glück kein echter Vogel.",A1,0.81,"{""A2"": 0.31, ""B2"": 0.0, ""C1"": 0.0, ""B1"": 0.25, ""A1"": 0.44}",56
+Die Folge wäre ein Chaos.,B2,2.44,"{""B1"": 0.08, ""A2"": 0.21, ""C1"": 0.0, ""B2"": 0.69, ""A1"": 0.02}",57
+"Mach dir keine Sorgen um das Geld, den Großteil bezahle ich.",A2,1.11,"{""C1"": 0.0, ""B1"": 0.27, ""B2"": 0.01, ""A1"": 0.18, ""A2"": 0.54}",58
+"Aber ihr könnt uns unterstützen, wenn ihr möchtet.",B1,1.74,"{""C1"": 0.0, ""A1"": 0.04, ""B1"": 0.76, ""B2"": 0.01, ""A2"": 0.19}",59
+Trotzdem hat sich Kamala Harris für ihn entschieden.,A2,1.76,"{""B2"": 0.22, ""C1"": 0.0, ""A2"": 0.46, ""A1"": 0.0, ""B1"": 0.32}",60
+"Dieses Leben beginnt allein durch unsere Worte, durch die Bildschirme zu dringen und in jeden einzelnen, der dort sitzt, zu fließen.",C1,3.37,"{""A2"": 0.0, ""A1"": 0.0, ""C1"": 0.51, ""B1"": 0.14, ""B2"": 0.35}",61
+"Wodargs Kritik: ""Da gibt es ein Protokoll, das hat Herr Drosten eingereicht bei der WHO.",B1,2.27,"{""B1"": 0.64, ""B2"": 0.3, ""C1"": 0.01, ""A1"": 0.0, ""A2"": 0.05}",62
+"Wenn ich loslasse, wirst du nie wieder zu mir zurückkommen, oder?",B1,2.08,"{""A2"": 0.01, ""A1"": 0.0, ""B1"": 0.9, ""C1"": 0.0, ""B2"": 0.09}",63
+"Und alles, was wir haben, sind bloß Schatten der Menschen, die unsere entfernte Vergangenheit als ihre Gegenwart erlebten.",C1,3.7,"{""C1"": 0.71, ""B1"": 0.01, ""A2"": 0.0, ""A1"": 0.0, ""B2"": 0.28}",64
+Denn dort erfolgt die Kommunikation über Funk.,B1,2.03,"{""B2"": 0.09, ""A2"": 0.04, ""C1"": 0.0, ""A1"": 0.01, ""B1"": 0.86}",65
+Ich bin Bein von seinem Bein und Fleisch von seinem Fleisch.,C1,2.69,"{""A2"": 0.12, ""A1"": 0.04, ""C1"": 0.37, ""B1"": 0.32, ""B2"": 0.15}",66
+"Hör zu, ich weiß nicht, was zwischen uns passiert ist.",B1,1.93,"{""A1"": 0.02, ""B2"": 0.01, ""C1"": 0.0, ""B1"": 0.9299999999999999, ""A2"": 0.04}",67
+Da muss Bonnie Way Williams schon wieder weg gewesen sein.,B2,2.2,"{""A2"": 0.26, ""A1"": 0.0, ""B2"": 0.42, ""B1"": 0.3, ""C1"": 0.02}",68
+"Und hatte so leichte Schmerzen, auch in der Brust.",A2,1.14,"{""C1"": 0.0, ""B1"": 0.13, ""A2"": 0.85, ""A1"": 0.01, ""B2"": 0.01}",69
+"Die ganze Fülle von ihm, die mich als Geist erfüllt.",C1,3.64,"{""A1"": 0.0, ""B2"": 0.16, ""C1"": 0.74, ""B1"": 0.1, ""A2"": 0.0}",70
+Und diese Sicht der Dinge hat sich eigentlich bis heute gehalten.,B1,2.23,"{""B2"": 0.28, ""A1"": 0.0, ""B1"": 0.61, ""C1"": 0.02, ""A2"": 0.09}",71
+"Die USA brennen, könnte man schon sagen.",B1,2.44,"{""B1"": 0.47, ""A2"": 0.04, ""B2"": 0.46, ""A1"": 0.01, ""C1"": 0.02}",72
+"Ein Apfel ist, sag ich mal, ein klassisches deutsches Produkt.",A1,0.64,"{""A2"": 0.35, ""A1"": 0.51, ""C1"": 0.0, ""B1"": 0.13, ""B2"": 0.01}",73
+Sie werden nicht mehr in Ihr Kleid passen.,A2,0.98,"{""B2"": 0.02, ""B1"": 0.1, ""C1"": 0.0, ""A1"": 0.16, ""A2"": 0.72}",74
+Und den brauchen wir auch in diesen Zeiten.,A2,0.82,"{""B2"": 0.01, ""A2"": 0.49, ""C1"": 0.0, ""B1"": 0.15, ""A1"": 0.35}",75
+"Die Bühne besteht nun aus Raum und Zeit zugleich, und beides ist nicht überall gleich.",C1,3.14,"{""C1"": 0.45999999999999996, ""B1"": 0.32, ""A2"": 0.0, ""A1"": 0.0, ""B2"": 0.22}",76
+"Insgesamt ist das eine schwierige Situation, in der eigentlich nur ein Land vermitteln kann, das keine Interessen in der Region hat.",B2,2.75,"{""B2"": 0.71, ""A1"": 0.0, ""A2"": 0.0, ""B1"": 0.27, ""C1"": 0.02}",77
+"Möglich wäre nur, dass im Rahmen der Ermittlungen Dinge herauskommen, bei denen man sagen muss, es geht nicht anders, Donald Trump muss weg.",B2,3.09,"{""A2"": 0.0, ""A1"": 0.0, ""B2"": 0.91, ""C1"": 0.09, ""B1"": 0.0}",78
+"Aber reicht das aus, um unseren Bedarf auch in Zukunft zu decken?",B1,2.16,"{""A2"": 0.03, ""B2"": 0.19, ""C1"": 0.0, ""B1"": 0.78, ""A1"": 0.0}",79
+Energie kann nicht wirklich verloren gehen.,A2,1.35,"{""A2"": 0.7, ""C1"": 0.0, ""B2"": 0.11, ""B1"": 0.16, ""A1"": 0.03}",80
+"Bitte, bitte tötet mich nicht.",A1,0.38,"{""A2"": 0.29, ""B2"": 0.01, ""B1"": 0.03, ""A1"": 0.67, ""C1"": 0.0}",81
+"Der Mann macht man eine schnelle, kräftige Bewegung und berührt die Scheibe mit der Hand.",A2,1.05,"{""A1"": 0.17, ""B1"": 0.2, ""A2"": 0.62, ""C1"": 0.0, ""B2"": 0.01}",82
+"Unbesiegt im Feld, verraten in der Heimat.",C1,3.65,"{""B1"": 0.08, ""C1"": 0.73, ""A1"": 0.0, ""A2"": 0.0, ""B2"": 0.19}",83
+"Vor uns, drüben am Horizont, jenseits vom Inntal, die Tuxer Alpen.",C1,3.03,"{""A2"": 0.06, ""B1"": 0.25, ""C1"": 0.43, ""B2"": 0.25, ""A1"": 0.01}",84
+"Du bist vor fünfzig Jahren, lieber Erich, als Fremder der Liebe zu deiner Johanna gefolgt.",C1,3.77,"{""A2"": 0.01, ""A1"": 0.0, ""C1"": 0.81, ""B1"": 0.02, ""B2"": 0.16}",85
+Die ganze Fülle von ihm.,C1,2.6,"{""C1"": 0.4, ""B1"": 0.31, ""A2"": 0.17, ""A1"": 0.05, ""B2"": 0.07}",86
+"Ein Thema haben wir uns aber für YouTube aufgehoben, damit wir in richtigen Deep Dive machen können.",B1,2.22,"{""A2"": 0.01, ""A1"": 0.0, ""C1"": 0.0, ""B1"": 0.76, ""B2"": 0.23}",87
+"Ich fühle mich als Anette, weil du mich als Anette siehst.",B1,1.95,"{""A2"": 0.02, ""C1"": 0.0, ""B2"": 0.01, ""A1"": 0.02, ""B1"": 0.95}",88
+"So, das Ding ist schon hoch.",A1,0.21,"{""B2"": 0.0, ""B1"": 0.05, ""A1"": 0.84, ""C1"": 0.0, ""A2"": 0.11}",89
+Genau die Summe schlug er beim Blick über den Lake Washington raus.,C1,3.19,"{""A2"": 0.02, ""A1"": 0.0, ""C1"": 0.41000000000000003, ""B1"": 0.18, ""B2"": 0.39}",90
+Könnte Trump die Zahlungen und Lieferungen an die Ukraine eventuell auch komplett einstellen?,B2,2.97,"{""B1"": 0.03, ""B2"": 0.97, ""A1"": 0.0, ""A2"": 0.0, ""C1"": 0.0}",91
+"Mein Herz, meine Seele, meine Liebe.",A1,0.21,"{""B2"": 0.0, ""B1"": 0.05, ""A1"": 0.87, ""A2"": 0.07, ""C1"": 0.01}",92
+Was könnten die Schlimmes anrichten?,B2,2.75,"{""A1"": 0.0, ""C1"": 0.0, ""B1"": 0.13, ""B2"": 0.81, ""A2"": 0.06}",93
+Das ist der Jurist Elwood Towner.,A1,0.28,"{""C1"": 0.0, ""B1"": 0.03, ""B2"": 0.0, ""A1"": 0.75, ""A2"": 0.22}",94
+Wenn ich etwas Falsches mache oder falsch handle.,B1,1.83,"{""B2"": 0.0, ""C1"": 0.0, ""A2"": 0.07, ""A1"": 0.05, ""B1"": 0.88}",95
+Rund 1 Million Menschen sollen im Laufe der Jahre in die Lager gesperrt worden sein.,B2,3.0,"{""C1"": 0.03, ""B2"": 0.9400000000000001, ""B1"": 0.03, ""A1"": 0.0, ""A2"": 0.0}",96
+Vom griechischen Aristoteles bis hin zu Karl Marx.,C1,2.73,"{""C1"": 0.32, ""A2"": 0.13, ""B2"": 0.24, ""A1"": 0.01, ""B1"": 0.3}",97
+"Terroristen sind sich zunächst mal sicher, auf der richtigen Seite zu stehen.",B1,2.24,"{""A1"": 0.0, ""C1"": 0.01, ""B2"": 0.25, ""A2"": 0.03, ""B1"": 0.71}",98
+"Nach dem Motto: Kann sein, muss aber nicht.",B1,1.69,"{""C1"": 0.01, ""A2"": 0.34, ""B2"": 0.13, ""B1"": 0.46, ""A1"": 0.06}",99
+Ich will nicht immer nur ihre Leitungen retten müssen.,B1,1.68,"{""C1"": 0.0, ""B1"": 0.49, ""B2"": 0.1, ""A2"": 0.4, ""A1"": 0.01}",100
+"Unsere Aufgabe ist es, die Kinder zu schützen, wenn es die Eltern nicht können oder nicht tun.",B1,2.03,"{""C1"": 0.0, ""A1"": 0.0, ""B2"": 0.04, ""B1"": 0.95, ""A2"": 0.01}",101
+Es gibt wirtschaftliche und auch politische Kontakte.,A1,0.66,"{""B1"": 0.12, ""C1"": 0.0, ""A1"": 0.46, ""B2"": 0.0, ""A2"": 0.42}",102
+"Und wo wir gerade bei Änderungen sind, da sind wir bei einem entscheidenden Problem.",B1,2.31,"{""A2"": 0.0, ""C1"": 0.01, ""B1"": 0.7, ""A1"": 0.0, ""B2"": 0.29}",103
+Der Unterricht fällt heute wegen Krankheit aus.,A2,0.66,"{""B2"": 0.0, ""B1"": 0.09, ""A1"": 0.43, ""C1"": 0.0, ""A2"": 0.48}",104
+Oft wird Avocado ja in Brotaufstrich verwendet.,A2,1.48,"{""C1"": 0.0, ""A2"": 0.54, ""B2"": 0.16, ""B1"": 0.23, ""A1"": 0.07}",105
+Nach ein paar Sekunden habe ich ihn erkannt.,A2,1.14,"{""B2"": 0.0, ""B1"": 0.14, ""C1"": 0.0, ""A1"": 0.0, ""A2"": 0.86}",106
+Der Staat würde alles komplett überwachen.,B2,2.66,"{""A2"": 0.15, ""A1"": 0.0, ""B2"": 0.81, ""B1"": 0.04, ""C1"": 0.0}",107
+"Er oder sie kommt aus dieser Situation heraus mit einem kleinen Schaden, der aber eigentlich viel größer hätte sein können.",B2,2.84,"{""A2"": 0.0, ""C1"": 0.0, ""A1"": 0.0, ""B1"": 0.16, ""B2"": 0.84}",108
+"Definition und Beweise, also nur sprachliches Denken.",C1,2.99,"{""A2"": 0.02, ""A1"": 0.0, ""C1"": 0.38, ""B1"": 0.35, ""B2"": 0.25}",109
+Der Geist der modernen Welt ist mit dem Jahr 1492 verbunden.,B2,2.51,"{""B1"": 0.37, ""A2"": 0.08, ""B2"": 0.51, ""A1"": 0.0, ""C1"": 0.04}",110
+"Wie hoch ist also die Wahrscheinlichkeit, dass Olaf Scholz im Herbst zum Kanzler gewählt wird?",B2,2.67,"{""C1"": 0.0, ""A1"": 0.0, ""B1"": 0.33, ""B2"": 0.67, ""A2"": 0.0}",111
+"Zum anderen auch, weil es kaum einen Bezug zu Deutschland gibt.",B1,2.08,"{""C1"": 0.0, ""B1"": 0.9, ""B2"": 0.09, ""A1"": 0.0, ""A2"": 0.01}",112
+"Der Leib Christi, die Fülle dessen, der alles in allem erfüllt in diesem Körper jetzt, im mächtigen Namen Jesu.",C1,3.94,"{""B1"": 0.0, ""C1"": 0.9400000000000001, ""A1"": 0.0, ""A2"": 0.0, ""B2"": 0.06}",113
+Ich bin jetzt ein Profi.,A1,0.05,"{""B2"": 0.0, ""A2"": 0.05, ""C1"": 0.0, ""B1"": 0.0, ""A1"": 0.95}",114
+Und mit einem kleinen Stück Metall.,A1,0.32,"{""A1"": 0.7, ""B1"": 0.02, ""A2"": 0.28, ""C1"": 0.0, ""B2"": 0.0}",115
+Ist leider nicht immer möglich oder fast nie.,A2,0.89,"{""B2"": 0.02, ""A1"": 0.33, ""A2"": 0.47000000000000003, ""C1"": 0.0, ""B1"": 0.18}",116
+Die Erkenntnisse aus den Unis werden umgesetzt.,B2,2.6,"{""B2"": 0.68, ""B1"": 0.24, ""A1"": 0.0, ""C1"": 0.0, ""A2"": 0.08}",117
+"Das alles, das ist der Landesregierung Bayerns wichtig, geht aber nur in einem engen Rahmen.",B1,2.42,"{""B1"": 0.59, ""A2"": 0.0, ""C1"": 0.01, ""B2"": 0.4, ""A1"": 0.0}",118
+"Die Achse Berlin, Rom, Tokio.",C1,2.08,"{""C1"": 0.27, ""A2"": 0.15, ""B2"": 0.17, ""B1"": 0.17, ""A1"": 0.24}",119
+"In denen geht es um das Dunkle, tief in der Seele Verborgene, Märchen.",C1,3.52,"{""C1"": 0.66, ""B1"": 0.14, ""B2"": 0.2, ""A2"": 0.0, ""A1"": 0.0}",120
+Einmal NAND und NOR NAND bedeutet Nicht Und.,C1,2.59,"{""A2"": 0.19, ""A1"": 0.08, ""C1"": 0.35, ""B1"": 0.14, ""B2"": 0.24}",121
+Ein schwarzes Loch von der Masse unserer Sonne verliert in: Jahren nur: seiner Masse.,C1,3.42,"{""C1"": 0.56, ""B2"": 0.31, ""A1"": 0.0, ""B1"": 0.12, ""A2"": 0.01}",122
+Genutzt wird AWS vor allem von professionellen Kunden.,B2,2.14,"{""C1"": 0.0, ""A2"": 0.33, ""A1"": 0.01, ""B2"": 0.49, ""B1"": 0.17}",123
+"Man, ich kann mit dem Text jetzt unterschiedlich arbeiten.",A2,1.27,"{""A1"": 0.03, ""C1"": 0.0, ""B1"": 0.27, ""B2"": 0.02, ""A2"": 0.67}",124
+"Und ein Weg, das zu tun, sind MHC-Klasse-I-Moleküle.",C1,3.6,"{""B2"": 0.32, ""C1"": 0.64, ""B1"": 0.04, ""A1"": 0.0, ""A2"": 0.0}",125
+"Und die Autoren wissen natürlich, dass die Welt anders ist, als von ihnen realistisch beschrieben.",B2,2.86,"{""B2"": 0.74, ""A1"": 0.0, ""A2"": 0.0, ""B1"": 0.2, ""C1"": 0.06}",126
+Später orientiert sich Großbritannien nach Osten.,A2,1.5,"{""A2"": 0.45, ""A1"": 0.07, ""C1"": 0.0, ""B2"": 0.09, ""B1"": 0.39}",127
+Es gibt für alles ein erstes Mal.,A1,0.43,"{""C1"": 0.0, ""A2"": 0.31, ""B2"": 0.0, ""B1"": 0.06, ""A1"": 0.63}",128
+Wie groß schätzt die Chancen ein?,A2,1.52,"{""A2"": 0.42, ""A1"": 0.08, ""C1"": 0.0, ""B2"": 0.1, ""B1"": 0.4}",129
+Bist du schon wach oder noch müde?,A1,0.03,"{""A2"": 0.03, ""A1"": 0.97, ""B1"": 0.0, ""B2"": 0.0, ""C1"": 0.0}",130
+"Du könntest mir beibringen, was ich nicht weiß.",B1,2.42,"{""C1"": 0.0, ""B2"": 0.43, ""A2"": 0.01, ""B1"": 0.56, ""A1"": 0.0}",131
+"Ich würde sagen, das ist auch dringend notwendig.",B2,2.6,"{""C1"": 0.0, ""A1"": 0.0, ""B2"": 0.64, ""B1"": 0.32, ""A2"": 0.04}",132
+"Die erste ist: “eine Aufgabe oder ein Projekt erfolgreich abschließen”, “eine Aufgabe erledigen”, “etwas erreichen”, “etwas bewältigen”.",A2,1.05,"{""B2"": 0.01, ""A2"": 0.46, ""C1"": 0.01, ""A1"": 0.26, ""B1"": 0.26}",133
+Alkohol ist wirklich also eine super Droge.,A1,0.53,"{""C1"": 0.0, ""B2"": 0.01, ""B1"": 0.08, ""A1"": 0.57, ""A2"": 0.34}",134
+Der Ursprung dafür soll im Jahr 2013 liegen.,B2,2.43,"{""B2"": 0.48, ""C1"": 0.0, ""A2"": 0.05, ""A1"": 0.0, ""B1"": 0.47}",135
+Einerseits genießt Wissenschaft gerade viel Aufmerksamkeit.,B1,2.18,"{""C1"": 0.0, ""A1"": 0.0, ""B2"": 0.26, ""B1"": 0.66, ""A2"": 0.08}",136
+"Und das ist das Tolle, was wir heute machen können.",B1,1.76,"{""A1"": 0.07, ""B1"": 0.81, ""B2"": 0.01, ""A2"": 0.11, ""C1"": 0.0}",137
+Und deshalb kann ich jetzt nicht mit dir sprechen.,A2,1.23,"{""B2"": 0.01, ""B1"": 0.34, ""A1"": 0.13, ""A2"": 0.52, ""C1"": 0.0}",138
+Das lässt sich nur schwer belegen.,B2,2.78,"{""A2"": 0.03, ""A1"": 0.0, ""B2"": 0.79, ""C1"": 0.01, ""B1"": 0.17}",139
+"Zum Beispiel wird Konrad, der König von Jerusalem, bei einem Anschlag getötet.",B2,2.89,"{""A1"": 0.0, ""B1"": 0.11, ""A2"": 0.0, ""B2"": 0.89, ""C1"": 0.0}",140
+"Dann kann ich zum Konzert gehen."" Nein!",A2,0.99,"{""A2"": 0.56, ""A1"": 0.23, ""B2"": 0.01, ""C1"": 0.0, ""B1"": 0.2}",141
+Und wie viele Leute haben die Veränderungen gemacht?,A2,1.23,"{""C1"": 0.0, ""A1"": 0.01, ""B2"": 0.01, ""B1"": 0.22, ""A2"": 0.76}",142
+Das würde auch wirtschaftliche Folgen mit sich bringen.,B2,2.85,"{""A2"": 0.03, ""A1"": 0.0, ""B1"": 0.09, ""B2"": 0.88, ""C1"": 0.0}",143
+Zudem gilt für viele Politiker nach wie vor das Prinzip der Sicherheit.,B2,2.52,"{""B1"": 0.48, ""A2"": 0.01, ""C1"": 0.02, ""B2"": 0.49, ""A1"": 0.0}",144
+Vielleicht greifen wir die anderen Minderheiten in einem anderen Video auf.,B1,1.7,"{""B2"": 0.06, ""C1"": 0.0, ""A2"": 0.34, ""A1"": 0.01, ""B1"": 0.59}",145
+"Und dann ist da noch die NATO, auch das ein wichtiger Schritt.",B1,1.61,"{""B2"": 0.06, ""C1"": 0.0, ""B1"": 0.54, ""A2"": 0.35, ""A1"": 0.05}",146
+Die wiederum bestehen aus noch kleineren Teilchen.,B1,1.85,"{""A2"": 0.27, ""A1"": 0.01, ""B1"": 0.59, ""C1"": 0.01, ""B2"": 0.12}",147
+"Pro Monat stehen jedem und jeder Abgeordneten etwa 20.000 Euro zur Verfügung, um eigene Mitarbeiter einzustellen.",B2,2.64,"{""C1"": 0.01, ""B2"": 0.63, ""B1"": 0.35, ""A2"": 0.01, ""A1"": 0.0}",148
+Beide treten 1937 auch in die NSDAP ein.,B2,2.06,"{""A1"": 0.0, ""B2"": 0.39, ""C1"": 0.03, ""A2"": 0.39, ""B1"": 0.19}",149
+"Stella, Stella, ich konnte doch nichts dafür.",A2,1.42,"{""B2"": 0.12, ""A1"": 0.02, ""B1"": 0.2, ""C1"": 0.0, ""A2"": 0.66}",150
+"Ihr merkt, die zeitlichen Grenzen fassen die Wirklichkeit nur ungefähr.",C1,3.17,"{""B2"": 0.17, ""A2"": 0.0, ""A1"": 0.0, ""B1"": 0.33, ""C1"": 0.5}",151
+Aber unter den gleichen Umständen würde ich aus heutiger Sicht dasselbe wieder tun.,B2,2.71,"{""A2"": 0.01, ""A1"": 0.0, ""B1"": 0.28, ""B2"": 0.7, ""C1"": 0.01}",152
+"An die Einheit des Ortes hält sich Lessing in ""Emilia Galotti"" nicht.",C1,3.72,"{""B2"": 0.22, ""A2"": 0.0, ""C1"": 0.75, ""A1"": 0.0, ""B1"": 0.03}",153
+"Ja, ich fahre jetzt zurück nach Kansas.",A1,0.16,"{""C1"": 0.0, ""A1"": 0.85, ""B1"": 0.01, ""B2"": 0.0, ""A2"": 0.14}",154
+"Und wenn ich etwas herausnehme, streiche ich es durch.",B1,1.9,"{""C1"": 0.0, ""B2"": 0.01, ""A1"": 0.02, ""B1"": 0.9, ""A2"": 0.07}",155
+"Ja, entschuldige, ich brauche zwei Bildschirme für diesen neuen Kunden.",A2,0.89,"{""A1"": 0.31, ""C1"": 0.0, ""B1"": 0.18, ""B2"": 0.01, ""A2"": 0.5}",156
+"Was das Thema Religion angeht, da gibt es bei Kılıçdaroğlu außerdem noch eine Besonderheit.",B1,2.26,"{""B2"": 0.24, ""A1"": 0.0, ""A2"": 0.0, ""B1"": 0.75, ""C1"": 0.01}",157
+Danach gefiel ihnen das Leben dort nicht mehr.,A2,1.27,"{""C1"": 0.0, ""B1"": 0.25, ""B2"": 0.01, ""A1"": 0.0, ""A2"": 0.74}",158
+Was passiert am Rand der Scheibe?,A1,0.53,"{""C1"": 0.0, ""A2"": 0.33, ""B1"": 0.1, ""A1"": 0.56, ""B2"": 0.0}",159
+Das sei auch nach außen wichtig.,B2,2.19,"{""B2"": 0.43, ""A1"": 0.01, ""A2"": 0.22, ""C1"": 0.0, ""B1"": 0.34}",160
+"Da spannt die Stimme einen Bogen, wie ein Dach.",C1,3.06,"{""B1"": 0.36, ""C1"": 0.44, ""A1"": 0.0, ""A2"": 0.01, ""B2"": 0.19}",161
+Früher hat man Tiere als Opfer für die Götter getötet.,A2,1.45,"{""C1"": 0.0, ""B1"": 0.27, ""A1"": 0.0, ""A2"": 0.64, ""B2"": 0.09}",162
+"Oder mir wurde gesagt, na ja, versuch es nicht mal mit Deutsch.",B2,2.48,"{""B2"": 0.53, ""A1"": 0.0, ""B1"": 0.39, ""C1"": 0.01, ""A2"": 0.07}",163
+"Wir fangen an mit einer Alternative für ein Wort, das ihr garantiert ständig benutzt: „schaffen“.",B1,2.02,"{""B2"": 0.05, ""C1"": 0.0, ""A2"": 0.03, ""A1"": 0.0, ""B1"": 0.92}",164
+Woher kommt diese Welt der abstrakten Vorstellung?,C1,3.02,"{""A2"": 0.01, ""B1"": 0.37, ""A1"": 0.0, ""B2"": 0.21, ""C1"": 0.41}",165
+"Von bislang 2747 Betrieben auf 22.000 Betriebe, nur in Deutschland.",C1,2.97,"{""C1"": 0.41000000000000003, ""A1"": 0.0, ""B2"": 0.26, ""B1"": 0.22, ""A2"": 0.11}",166
+Unser soziales Wesen wurde Teil unserer Natur.,B1,2.35,"{""A1"": 0.0, ""B1"": 0.49, ""C1"": 0.1, ""B2"": 0.28, ""A2"": 0.13}",167
+Sie hat nicht Recht gehabt.,A2,1.09,"{""A1"": 0.01, ""B2"": 0.02, ""C1"": 0.0, ""B1"": 0.06, ""A2"": 0.91}",168
+Und dann füllt Markus die Schrift aus.,A1,0.54,"{""B2"": 0.0, ""A2"": 0.42, ""C1"": 0.0, ""A1"": 0.52, ""B1"": 0.06}",169
+Ganz zu schweigen von einem guten.,C1,2.56,"{""C1"": 0.3, ""B2"": 0.2, ""A1"": 0.04, ""B1"": 0.3, ""A2"": 0.16}",170
+Anfangs ist der Mensch zu Fuß unterwegs.,A1,0.27,"{""A2"": 0.21, ""A1"": 0.76, ""B2"": 0.0, ""C1"": 0.0, ""B1"": 0.03}",171
+Dann sähe die Reaktion aus der Politik vermutlich anders aus.,B2,2.85,"{""B1"": 0.13, ""C1"": 0.0, ""A2"": 0.01, ""B2"": 0.86, ""A1"": 0.0}",172
+Denn mit Gas könnte es in Deutschland eng werden.,B1,2.0,"{""A2"": 0.15, ""A1"": 0.0, ""B1"": 0.7, ""B2"": 0.15, ""C1"": 0.0}",173
+Die ist war auch war aber stärker noch ist so geblieben.,C1,2.48,"{""C1"": 0.3, ""A1"": 0.07, ""B2"": 0.19, ""B1"": 0.27, ""A2"": 0.17}",174
+Du brauchst auch vielleicht Deutsch in deiner Umgebung oder in deinem Alltag.,A2,0.99,"{""A1"": 0.18, ""B1"": 0.17, ""C1"": 0.0, ""B2"": 0.0, ""A2"": 0.65}",175
+Glauben Sie zum Vergnügen schlagen wir uns unsere Nächte um die Ohren.,C1,3.35,"{""B2"": 0.34, ""B1"": 0.14, ""A2"": 0.01, ""A1"": 0.0, ""C1"": 0.51}",176
+"Mir reicht schon wenn überhaupt erstmal dahin kommen, dass wir Schülern wirklich ganz stark vermitteln kritisches, bewusstes Denken.",B2,2.66,"{""C1"": 0.05, ""B1"": 0.39, ""A1"": 0.0, ""A2"": 0.0, ""B2"": 0.5599999999999999}",177
+Allerdings gibt es noch eine Besonderheit.,A2,1.1,"{""A2"": 0.45, ""B2"": 0.01, ""A1"": 0.23, ""B1"": 0.31, ""C1"": 0.0}",178
+Sehr vernünftig aber leider zu spät.,A1,0.53,"{""A1"": 0.57, ""C1"": 0.0, ""A2"": 0.34, ""B2"": 0.01, ""B1"": 0.08}",179
+"Dass die Planeten an allem schuld sind, das ist aus heutiger Sicht natürlich Unsinn.",B2,2.55,"{""A1"": 0.0, ""B2"": 0.53, ""C1"": 0.01, ""B1"": 0.46, ""A2"": 0.0}",180
+Und jetzt wird es richtig seltsam.,A1,0.42,"{""C1"": 0.0, ""A1"": 0.68, ""B2"": 0.0, ""B1"": 0.1, ""A2"": 0.22}",181
+Permanent werden neue Inhalte veröffentlicht.,B2,2.4,"{""A1"": 0.01, ""B1"": 0.21, ""B2"": 0.6, ""A2"": 0.18, ""C1"": 0.0}",182
+Die Schichten der Realität ergeben nur miteinander Sinn.,C1,3.36,"{""B1"": 0.2, ""B2"": 0.24, ""C1"": 0.56, ""A2"": 0.0, ""A1"": 0.0}",183
+"Das bin nicht nur ich, das sind auch ganz andere.",A1,0.65,"{""B1"": 0.16, ""A1"": 0.53, ""B2"": 0.01, ""A2"": 0.3, ""C1"": 0.0}",184
+"Erstaunlich weit gedacht, auch im Vergleich zu dem, was erstmals danach kommt, viel viel weiter gedacht als bei Platon.",C1,3.5,"{""A2"": 0.0, ""B2"": 0.4, ""C1"": 0.56, ""B1"": 0.03, ""A1"": 0.0}",185
+"Ja, Physik, Mathe und Chemie.",A1,0.01,"{""C1"": 0.0, ""A1"": 0.99, ""B1"": 0.0, ""A2"": 0.01, ""B2"": 0.0}",186
+Dein Gott gebetet dir krie sollst du im Staub.,C1,2.83,"{""C1"": 0.37, ""A2"": 0.12, ""B2"": 0.23, ""A1"": 0.01, ""B1"": 0.27}",187
+"Das bedeutet, dass man jemanden oder etwas aufmerksam hört.",B1,1.84,"{""B2"": 0.0, ""B1"": 0.88, ""A1"": 0.04, ""C1"": 0.0, ""A2"": 0.08}",188
+"Also, der ganze Abschnitt war seit etwa 10 Uhr für den Verkehr gesperrt.",B2,2.37,"{""C1"": 0.0, ""B2"": 0.54, ""B1"": 0.29, ""A2"": 0.17, ""A1"": 0.0}",189
+"Die ganze Fülle von ihm, die meine Seele erfüllt.",C1,3.25,"{""B1"": 0.27, ""C1"": 0.52, ""A1"": 0.0, ""A2"": 0.0, ""B2"": 0.21}",190
+Wir reden nicht alle gleich in Franken.,A1,0.63,"{""B1"": 0.1, ""B2"": 0.01, ""A1"": 0.49, ""A2"": 0.4, ""C1"": 0.0}",191
+Max ist der mit dem Hut.,A1,0.31,"{""B1"": 0.06, ""C1"": 0.0, ""A1"": 0.75, ""B2"": 0.0, ""A2"": 0.19}",192
+Ein Dichter wie er reicht einer Frau schon als Feind.,C1,3.3,"{""A2"": 0.01, ""C1"": 0.49, ""B1"": 0.17, ""A1"": 0.0, ""B2"": 0.33}",193
+Die Eltern sind Grace und Mark.,A1,0.02,"{""C1"": 0.0, ""A1"": 0.98, ""B1"": 0.0, ""B2"": 0.0, ""A2"": 0.02}",194
+Im Zweifel aber bedient man sich seiner Person.,C1,3.35,"{""B1"": 0.16, ""A1"": 0.0, ""B2"": 0.33, ""A2"": 0.0, ""C1"": 0.51}",195
+Objektiv an sich in der Welt.,C1,2.91,"{""B2"": 0.06, ""A2"": 0.11, ""C1"": 0.59, ""B1"": 0.13, ""A1"": 0.11}",196
+Das ist die wahre Tochter der Familie Ruan!,A1,0.47,"{""A1"": 0.62, ""B2"": 0.01, ""C1"": 0.0, ""B1"": 0.07, ""A2"": 0.3}",197
+Da gibt es dann andere Werte.,A1,0.6,"{""B2"": 0.0, ""B1"": 0.13, ""C1"": 0.0, ""A1"": 0.53, ""A2"": 0.34}",198
+"Sondern es wird einfach mal probiert und dann geguckt, was passiert.",B1,1.85,"{""C1"": 0.0, ""A2"": 0.12, ""B2"": 0.03, ""B1"": 0.82, ""A1"": 0.03}",199
+"Nicht ohne Grund sind zum Beispiel Künstler, die ihre Herkunft im Osten hervorheben, dort besonders erfolgreich.",B2,2.75,"{""C1"": 0.03, ""A1"": 0.0, ""B1"": 0.28, ""B2"": 0.69, ""A2"": 0.0}",200

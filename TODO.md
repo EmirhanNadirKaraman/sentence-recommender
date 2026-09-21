@@ -2018,6 +2018,29 @@ a table of lemma sequences, a `phrase_table` row and a list line each,
 the words consumed as `es gibt`'s are — rather than a rule per
 expression.
 
+**A cheaper `level`, measured (experiment 06, 2026-09-21, $0.005).**
+The pass costs 1,630 tokens a sentence because every request carries the
+text of every question; levelling the other 215,000 subtitle lines that
+way is ~$15, and a video's difficulty needs only `level`. Two forms put
+to 200 levelled sentences, 40 per level, and read against the pass's own
+answers (`06-is-a-cheaper-level-question-the-same-question.md`):
+
+  * **A**, the same question alone in the request: 493 tokens, $0.021 a
+    thousand, top label agrees 79%, within one level 94%, mean shift
+    +0.01 — the same question. Its disagreements are the pass's C1 on
+    fragments like `Die Achse Berlin, Rom, Tokio.`, which A calls A1.
+  * **B**, twenty sentences a request with the A1–C1 descriptions once in
+    the state and bare labels as criteria: 157 tokens, $0.007, but 52%
+    agreement, 80% within one, and a shift of −0.44 levels — it calls
+    B1 A2 (21 of 40) and C1 B1 (18 of 40). A different question. Rejected.
+
+So the rest of the corpus is form A at ~$4.5, or per video as the reel
+needs it — about 150 lines, seven tenths of a cent each — and the $1.66
+left covers the first 80,000 lines. What stays open is whether the drift
+was the batching or the moved descriptions; the full criteria repeated
+twenty times would cost about 250 tokens a sentence and another $0.005
+to check.
+
 **What this does not settle.** The list writes `stehen<TAB>jdm. (Dat)
 stehen` and means the verb; the frame came from the dictionary. Once rows
 are judged, the goal `jdm. (Dat) stehen` would teach *to suit someone* from
