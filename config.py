@@ -144,6 +144,9 @@ class Settings:
     order_words: Path = ROOT / "data" / "old_data" / "words_4000.txt"
     form_words: Path = ROOT / "data" / "final_result.txt"
     goal_words: Path = ROOT / "data" / "study_list.txt"
+    # Fixed expressions — units found by their words. The matcher reads how;
+    # the application and the study list read only the names.
+    expressions: Path = ROOT / "data" / "expressions.txt"
     # A list the reader built and saved, handed over instead of read. The
     # path above still names it — a plan's label carries the stem — but the
     # entries come from `word_list` in the state file. See `vocab.word_lists`.

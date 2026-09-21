@@ -346,6 +346,115 @@ def expletive_construction(token):
     return None
 
 
+# --- fixed expressions ----------------------------------------------------
+#
+# `data/expressions.txt`: units found by their words rather than by a verb's
+# frame — `auf jeden Fall`, `und zwar`, `eine Rolle spielen`. The file says
+# what a pattern looks like. Two kinds: words in a row, found in a pass
+# before the verbs and nouns are read so that `der Fall` is never emitted
+# from `auf jeden Fall`; and words hanging from a verb, decided in the verb
+# branch where `es gibt` is, replacing the verb's blueprint. Either way the
+# words are consumed, and the analyser drops their lemmas too.
+
+def _elements(words):
+    """`auf [gar] keinen fall` -> [(word or None for `*`, optional)]."""
+    out = []
+    for word in words.split():
+        optional = word.startswith("[") and word.endswith("]")
+        word = word[1:-1] if optional else word
+        out.append((None if word == "*" else word.lower(), optional or word == "*"))
+    return out
+
+
+def load_expressions(file_path):
+    """The file as two tables: the rows, and the hanging words by verb."""
+    rows, by_verb = [], {}
+    if not file_path.exists():
+        return rows, by_verb
+    for line in file_path.read_text(encoding="utf-8").splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        canonical, _, pattern = line.rstrip().partition("\t")
+        canonical, pattern = canonical.strip(), pattern.strip()
+        if not canonical or not pattern:
+            continue                # registered by being named; found elsewhere
+        if "::" in pattern:
+            verbs, _, words = pattern.partition("::")
+            for verb in verbs.split("/"):
+                by_verb.setdefault(verb.strip().lower(), []).append(
+                    (canonical, _elements(words)))
+        else:
+            rows.append((canonical, _elements(pattern)))
+    return rows, by_verb
+
+
+EXPRESSION_ROWS, EXPRESSIONS_BY_VERB = load_expressions(_DATA_DIR / "expressions.txt")
+
+
+def _match_row(doc, elements, i, k=0):
+    """The token indices matching `elements[k:]` from token `i`, or None.
+
+    A `*` matches any one token but is not returned: `tut mir wirklich
+    leid` is the expression around `wirklich`, not with it."""
+    if k == len(elements):
+        return []
+    word, optional = elements[k]
+    if i < len(doc) and (word is None or doc[i].text.lower() == word):
+        rest = _match_row(doc, elements, i + 1, k + 1)
+        if rest is not None:
+            return rest if word is None else [i, *rest]
+    if optional:
+        return _match_row(doc, elements, i, k + 1)
+    return None
+
+
+def find_expression_rows(doc, consumed):
+    """Every row expression in the sentence, its words consumed."""
+    found = []
+    for canonical, elements in EXPRESSION_ROWS:
+        i = 0
+        while i < len(doc):
+            indices = None if i in consumed else _match_row(doc, elements, i)
+            if not indices:
+                i += 1
+                continue
+            consumed.update(indices)
+            found.append({
+                "dictionary_entry": canonical,
+                "sentence_phrase": [doc[j].text for j in indices],
+                "logic": "EXPRESSION",
+                "match_type": "exact (expression)",
+                "indices": indices,
+                "expression": indices,
+            })
+            i = indices[-1] + 1
+    return found
+
+
+def _hangs_from(token, verb, hops=3):
+    # By index: spaCy hands out a fresh `Token` on every access, so `is`
+    # never holds between two of them.
+    for _ in range(hops):
+        if token.head.i == verb.i:
+            return True
+        if token.head.i == token.i:
+            return False
+        token = token.head
+    return False
+
+
+def hanging_expression(doc, verb, full_verb):
+    """The expression `verb` is the verb of, as (canonical, word indices),
+    or None: the words in a row somewhere in the sentence, each hanging
+    from the verb."""
+    for canonical, elements in EXPRESSIONS_BY_VERB.get(full_verb, ()):
+        for i in range(len(doc)):
+            indices = _match_row(doc, elements, i)
+            if indices and all(_hangs_from(doc[j], verb) for j in indices):
+                return canonical, indices
+    return None
+
+
 def extract_german_logic(doc, overrides=None):
     """
     Extract phrases from a pre-computed spaCy doc.
@@ -359,6 +468,10 @@ def extract_german_logic(doc, overrides=None):
     _ = overrides  # reserved; see docstring
     result = []
     consumed = set()
+    # The row expressions first, so their words are spoken for before any
+    # verb or noun can claim them: `Fall` in `auf jeden Fall` is not `der
+    # Fall`, and `tut` in `tut mir leid` is not `tun`.
+    result.extend(find_expression_rows(doc, consumed))
 
     for token in doc:
         if token.i in consumed:
@@ -435,13 +548,29 @@ def extract_german_logic(doc, overrides=None):
             # since the constructed blueprint has needed it all along.
             blueprint = None
             match_info = "exact"
+            expression = []
             expletive = expletive_construction(token)
+            hanging = None if expletive is not None else hanging_expression(doc, token, full_verb)
             if expletive is not None:
                 blueprint, es = expletive
                 match_info = "exact (expletive)"
                 if es is not None:
                     indices.append(es)
                     consumed.add(es)
+            elif hanging is not None:
+                # `eine Rolle spielen` is not a use of `spielen`, as `es
+                # gibt` is not one of `geben`: the words hanging from the
+                # verb name the unit, and with the verb they are what the
+                # analyser takes out of the sentence.
+                blueprint, words = hanging
+                match_info = "exact (expression)"
+                expression = sorted({*words, *(i for i in indices
+                                               if doc[i].pos_ in ("VERB", "AUX")
+                                               or doc[i].dep_ == "svp")})
+                for i in words:
+                    if i not in indices:
+                        indices.append(i)
+                    consumed.add(i)
             elif "sich" in components:
                 blueprint = verb_blueprint_map.get(f"sich {full_verb}")
                 if blueprint is not None:
@@ -466,7 +595,8 @@ def extract_german_logic(doc, overrides=None):
                 "sentence_phrase": [doc[i].text for i in indices],
                 "logic": " -> ".join(components),
                 "match_type": match_info,
-                "indices": indices
+                "indices": indices,
+                **({"expression": expression} if expression else {}),
             })
 
         # --- NOUN/OTHER COLLECTION ---

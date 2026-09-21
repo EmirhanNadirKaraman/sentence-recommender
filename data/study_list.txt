@@ -4,11 +4,12 @@
 # form the matcher speaks. The second column is the one that counts; the
 # first is there so this stays readable.
 #
-# Order is priority. Everything above the divider comes from
-# words_4000.txt, which is ranked; everything below is known to
+# Order is priority. Everything above the first divider comes from
+# words_4000.txt, which is ranked; then the fixed expressions of
+# expressions.txt; everything below the last divider is known to
 # final_result.txt but was never ranked, so it sits at the end.
 #
-# Generated 2026-09-09. Rebuild with:  python main.py build-study-list
+# Generated 2026-09-21. Rebuild with:  python main.py build-study-list
 
 ein	ein
 zu	zu
@@ -70,14 +71,6 @@ das Jahr	das Jahr
 um	um
 durch	durch
 geben	jdm. (Dat) etw. (Akk) geben
-# `es gibt` is not a use of the line above, and five sentences in six that
-# said `gibt` were it (experiment 04, 2026-09-20). Its own unit now: the
-# matcher routes the expletive to this canonical and migration b31e7c0d9a42
-# registers it. Hand-placed beside `geben` rather than added to
-# `final_result.txt`, whose fuzzy index would file it under `es` and hand it
-# to every pronoun in the corpus; `build-study-list` therefore does not
-# know it, and a rebuild of this file has to keep this line.
-es gibt	es gibt
 wie	wie
 das Mal	das Mal
 hier	hier
@@ -4108,6 +4101,53 @@ die Ermittlung	die Ermittlung
 westdeutsch	westdeutsch
 vortragen	jdm. (Dat) etw. (Akk) vortragen
 jdn. zu etw. einladen	jdn. zu etw. einladen
+
+# --- fixed expressions, from expressions.txt ---
+es gibt	es gibt
+auf jeden Fall	auf jeden Fall
+auf keinen Fall	auf keinen Fall
+und zwar	und zwar
+es tut mir leid	es tut mir leid
+wie gesagt	wie gesagt
+kurz gesagt	kurz gesagt
+das heißt	das heißt
+keine Ahnung	keine Ahnung
+keine Sorge	keine Sorge
+kein Problem	kein Problem
+kein Wunder	kein Wunder
+im Gegenteil	im Gegenteil
+zum Glück	zum Glück
+zum einen	zum einen
+zum anderen	zum anderen
+zum Teufel	zum Teufel
+mein Gott	mein Gott
+na ja	na ja
+nun ja	nun ja
+jede Menge	jede Menge
+im Laufe	im Laufe
+auf den ersten Blick	auf den ersten Blick
+nach dem Motto	nach dem Motto
+meiner Meinung nach	meiner Meinung nach
+muss man sagen	muss man sagen
+wenn man so will	wenn man so will
+es handelt sich um	es handelt sich um
+eine Rolle spielen	eine Rolle spielen
+zur Verfügung stehen	zur Verfügung stehen
+zur Verfügung stellen	zur Verfügung stellen
+in Kauf nehmen	in Kauf nehmen
+ins Spiel kommen	ins Spiel kommen
+ins Spiel bringen	ins Spiel bringen
+in den Griff bekommen	in den Griff bekommen
+sich Sorgen machen	sich Sorgen machen
+davon ausgehen	davon ausgehen
+darauf ankommen	darauf ankommen
+in die Tat umsetzen	in die Tat umsetzen
+das Sagen haben	das Sagen haben
+Sinn machen	Sinn machen
+die Rede sein	die Rede sein
+in der Kritik stehen	in der Kritik stehen
+auf einem anderen Blatt stehen	auf einem anderen Blatt stehen
+die Nerven verlieren	die Nerven verlieren
 
 # --- below here: known forms that the ranked list never named ---
 

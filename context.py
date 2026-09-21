@@ -50,11 +50,26 @@ class Application:
     # --- corpus ----------------------------------------------------------
 
     @cached_property
-    def analyzer(self) -> UnitAnalyzer:
+    def registered_patterns(self) -> frozenset[str]:
+        """Every canonical a pattern unit may have: `phrase_table`'s, and
+        the fixed expressions' from `data/expressions.txt`.
+
+        The expressions are registered by being named in the file rather
+        than by a row in the table: the table is refilled from upstream by
+        `sync-catalogue`, and a row added here by hand is truthful until
+        that runs and silently gone after. `es gibt` has its row from a
+        migration and is named in the file as well.
+        """
+        from vocab.expressions import canonicals             # noqa: PLC0415
         with Database(self.settings.own) as db:
             patterns = PatternRepository(db, self.settings.language).canonicals()
+        return patterns | frozenset(canonicals(self.settings.expressions))
+
+    @cached_property
+    def analyzer(self) -> UnitAnalyzer:
         return UnitAnalyzer(
-            patterns, self.settings.language, self.settings.analysis_processes
+            self.registered_patterns, self.settings.language,
+            self.settings.analysis_processes,
         )
 
     def filter(self, min_words: int | None = None) -> SentenceFilter:
@@ -554,10 +569,8 @@ class Application:
             cached = self.resolved.get("goals", files)
             if cached is not None:
                 return tuple(Unit(kind, key) for kind, key in cached)
-        with Database(self.settings.own) as db:
-            patterns = PatternRepository(db, self.settings.language).canonicals()
         units = GoalList(self.settings.goal_words, stored).units(
-            patterns, self.analyzer.lemmatise_each,
+            self.registered_patterns, self.analyzer.lemmatise_each,
             GoalList.corrections(self.settings.goal_lemmas),
         )
         if stored is None:

@@ -1,18 +1,22 @@
 """Building the one list that says both what to learn and in what order.
 
-Two files hold half the answer each:
+Three files hold the answer between them:
 
   `words_4000.txt`     the order — curated, most useful first — but it names
                        words in their bare dictionary shape
   `final_result.txt`   the shape the matcher and `phrase_table` actually
                        speak, `etw./jdn. (Akk) haben` rather than `haben`,
                        but in an order of its own
+  `expressions.txt`    the fixed expressions — `auf jeden Fall`, `eine Rolle
+                       spielen`, `es gibt` — units found by their words,
+                       which neither of the other two can name
 
-They join on `final_result`'s first column, which is exactly what
+The first two join on `final_result`'s first column, which is exactly what
 `words_4000` lists — 4,095 of 4,096 lines match outright. The merge walks
-`words_4000` in order, swapping each entry for its blueprint, then appends
-whatever `final_result` knows that the ordering file never mentioned, so
-nothing learnable is lost just because it was not ranked.
+`words_4000` in order, swapping each entry for its blueprint, then the
+expressions in the order their file gives them, then appends whatever
+`final_result` knows that the ordering file never mentioned, so nothing
+learnable is lost just because it was not ranked.
 
 The result is written to disk rather than computed each time: it is the
 answer to "what am I studying, and in what order", and that deserves to be
@@ -30,27 +34,30 @@ HEADER = """\
 # form the matcher speaks. The second column is the one that counts; the
 # first is there so this stays readable.
 #
-# Order is priority. Everything above the divider comes from
-# {order_file}, which is ranked; everything below is known to
+# Order is priority. Everything above the first divider comes from
+# {order_file}, which is ranked; then the fixed expressions of
+# {expressions_file}; everything below the last divider is known to
 # {form_file} but was never ranked, so it sits at the end.
 #
 # Generated {today}. Rebuild with:  python main.py build-study-list
 """
 
+EXPRESSIONS = "\n# --- fixed expressions, from {expressions_file} ---\n"
 DIVIDER = "\n# --- below here: known forms that the ranked list never named ---\n"
-# Units the list carries by hand, because the sources cannot: `es gibt` is
-# not a key `final_result.txt` can hold (its fuzzy index would file it
-# under `es`). Named here so `hand_edits` knows a line for one is a hand
-# line and not a generated one.
-HAND_UNITS = frozenset({"es gibt"})
+# Units the list carries by hand, because no source can. None today: `es
+# gibt` was one until `expressions.txt` existed to name it. Kept so that
+# `hand_edits` has a place to be told about the next one.
+HAND_UNITS: frozenset[str] = frozenset()
 
 
 class StudyListBuilder:
     """Merges a ranking and a form dictionary into one ordered list."""
 
-    def __init__(self, order_file: Path, form_file: Path) -> None:
+    def __init__(self, order_file: Path, form_file: Path,
+                 expressions_file: Path | None = None) -> None:
         self._order_file = order_file
         self._form_file = form_file
+        self._expressions_file = expressions_file
 
     def build(self) -> tuple[list[tuple[str, str]], list[tuple[str, str]]]:
         """The ranked (word, form) pairs, and the unranked leftovers."""
@@ -84,13 +91,15 @@ class StudyListBuilder:
         if not path.exists():
             return []
         rendered = HEADER.format(today="", order_file=self._order_file.name,
-                                 form_file=self._form_file.name)
+                                 form_file=self._form_file.name,
+                                 expressions_file=self._expressions_name)
         header = {line.strip() for line in rendered.splitlines()}
-        divider = DIVIDER.strip()
+        dividers = {DIVIDER.strip(),
+                    EXPRESSIONS.format(expressions_file=self._expressions_name).strip()}
         found = []
         for line in path.read_text(encoding="utf-8").splitlines():
             stripped = line.strip()
-            if not stripped or stripped == divider:
+            if not stripped or stripped in dividers:
                 continue
             if stripped.startswith("#"):
                 # The header, whose one dated line is matched by its prefix.
@@ -114,12 +123,29 @@ class StudyListBuilder:
         ranked, rest = self.build()
         lines = [HEADER.format(today=date.today().isoformat(),
                                order_file=self._order_file.name,
-                               form_file=self._form_file.name)]
+                               form_file=self._form_file.name,
+                               expressions_file=self._expressions_name)]
         lines.extend(f"{word}\t{form}" for word, form in ranked)
+        expressions = self.expressions()
+        if expressions:
+            lines.append(EXPRESSIONS.format(expressions_file=self._expressions_name))
+            lines.extend(f"{name}\t{name}" for name in expressions)
         lines.append(DIVIDER)
         lines.extend(f"{word}\t{form}" for word, form in rest)
         path.write_text("\n".join(lines) + "\n", encoding="utf-8")
         return len(ranked), len(rest)
+
+    @property
+    def _expressions_name(self) -> str:
+        return self._expressions_file.name if self._expressions_file else "expressions.txt"
+
+    def expressions(self) -> tuple[str, ...]:
+        """The fixed expressions, as their file orders them: each is both
+        the word and the form, the canonical being the unit's key."""
+        from vocab.expressions import canonicals                 # noqa: PLC0415
+        if self._expressions_file is None:
+            return ()
+        return canonicals(self._expressions_file)
 
     # --- the two halves ---------------------------------------------------
 

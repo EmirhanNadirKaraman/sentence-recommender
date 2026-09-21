@@ -1,0 +1,84 @@
+# Fixed expressions: units of their own, found by their words.
+#
+# One a line, `canonical<TAB>pattern`. The canonical is the unit's key, what
+# the card is titled and the study list names; it is registered as a
+# pattern by being here (see `Application.registered_patterns`), not by a
+# row in `phrase_table`, so a sync of the catalogue cannot lose it.
+#
+# A pattern is words of the sentence, lowercased, in a row:
+#
+#     auf jeden fall              the three words, adjacent
+#     auf [gar] keinen fall       `[gar]` may be absent
+#     [es] tut mir * leid         `*` is any one word, or none
+#
+# or a verb and words that hang from it anywhere in its clause:
+#
+#     spielen :: rolle            `eine Rolle spielen`, `spielt eine große Rolle`
+#     stehen/stellen :: zur verfügung
+#
+# The verb is a lemma with its separable prefix folded in (`ausgehen` for
+# `gehe davon aus`); `/` separates alternatives. The words hang from the
+# verb when each one's head, followed up to three times, is the verb.
+#
+# A line with no pattern names a canonical the matcher finds some other
+# way — `es gibt` by the parse (`expletive_construction`) — so that it is
+# registered and listed like the rest.
+#
+# What is here came from the corpus pass: `expression` said yes to 2,988
+# judged sentences, and the word n-grams that stand out in them against
+# the no-set (`05-expressions-by-lift.csv`, TODO #26) are these, read by
+# hand — `auf jeden Fall` in 101 of them, `und zwar` 99, `tut mir leid`
+# 62, `eine Rolle spielen` about 60. The matched words are consumed: a
+# sentence saying `auf jeden Fall` does not say `der Fall`, and one saying
+# `eine Rolle spielen` does not say `spielen`, exactly as `es gibt` does
+# not say `geben`. Both were what `plain` had been putting under .2.
+
+es gibt
+
+# in a row
+auf jeden Fall	auf jeden fall
+auf keinen Fall	auf [gar] keinen fall
+und zwar	und zwar
+es tut mir leid	[es] tut mir * leid
+wie gesagt	wie gesagt
+kurz gesagt	kurz gesagt
+das heißt	das heißt
+keine Ahnung	keine ahnung
+keine Sorge	keine sorge
+kein Problem	kein problem
+kein Wunder	kein wunder
+im Gegenteil	im gegenteil
+zum Glück	zum glück
+zum einen	zum einen
+zum anderen	zum anderen
+zum Teufel	zum teufel
+mein Gott	mein gott
+na ja	na ja
+nun ja	nun ja
+jede Menge	jede menge
+im Laufe	im laufe
+auf den ersten Blick	auf den ersten blick
+nach dem Motto	nach dem motto
+meiner Meinung nach	meiner meinung nach
+muss man sagen	muss man sagen
+wenn man so will	wenn man so will
+es handelt sich um	[es] handelt sich um
+
+# a verb and what hangs from it
+eine Rolle spielen	spielen :: rolle
+zur Verfügung stehen	stehen :: zur verfügung
+zur Verfügung stellen	stellen :: zur verfügung
+in Kauf nehmen	nehmen :: in kauf
+ins Spiel kommen	kommen :: ins spiel
+ins Spiel bringen	bringen :: ins spiel
+in den Griff bekommen	bekommen/kriegen :: in den griff
+sich Sorgen machen	machen :: sorgen
+davon ausgehen	ausgehen :: davon
+darauf ankommen	ankommen :: darauf
+in die Tat umsetzen	umsetzen :: in die tat
+das Sagen haben	haben :: das sagen
+Sinn machen	machen/ergeben :: sinn
+die Rede sein	sein :: * rede
+in der Kritik stehen	stehen :: in der kritik
+auf einem anderen Blatt stehen	stehen :: auf einem anderen blatt
+die Nerven verlieren	verlieren :: die nerven

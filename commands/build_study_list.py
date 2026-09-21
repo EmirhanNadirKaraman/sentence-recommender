@@ -11,11 +11,14 @@ class BuildStudyListCommand:
             if not path.exists():
                 raise SystemExit(f"missing {path}")
 
-        builder = StudyListBuilder(settings.order_words, settings.form_words)
+        builder = StudyListBuilder(settings.order_words, settings.form_words,
+                                   settings.expressions)
         ranked, rest = builder.write(settings.goal_words, force=force)
 
         print(f"wrote {settings.goal_words}")
         print(f"  {ranked:,} ranked, from {settings.order_words.name}")
+        print(f"  {len(builder.expressions()):,} fixed expressions, from "
+              f"{settings.expressions.name}")
         print(f"  {rest:,} more known to {settings.form_words.name} but never ranked")
         print("\nRebuild the roadmap to use it:")
         print("  python main.py build-roadmap --source subtitle --goals")

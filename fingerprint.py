@@ -32,6 +32,8 @@ SOURCES = (
     # from — a filter change alters the cached corpus just as surely.
     ROOT / "corpus" / "filter.py",
     ROOT / "data" / "final_result.txt",
+    # The fixed expressions and how each is found.
+    ROOT / "data" / "expressions.txt",
     ROOT / "data" / "lemma_overrides.txt",
     # Which nouns are kept apart from the verb they share a lemma with.
     ROOT / "data" / "noun_verb_splits.txt",

@@ -322,16 +322,28 @@ class UnitAnalyzer:
             # bare lemma left in, strict counting renamed `geben` back into
             # the `geben` goal, so the sentence stayed a `geben` example
             # after the pattern row had gone — the whole reason `es gibt`
-            # was split off (TODO #26).
+            # was split off (TODO #26). A fixed expression consumes every
+            # word of its own the same way — `auf jeden Fall` is not `der
+            # Fall`, `eine Rolle spielen` is not `spielen` — and the
+            # matcher says which those are (`expression`), since the match
+            # also carries the object's article and adjective, which are
+            # words the sentence does say.
             if phrase["match_type"] == "exact (expletive)":
-                for i in phrase["indices"]:
-                    # The verb, and the expletive itself: `es` here is not
-                    # the pronoun, and `’s` split off `gibt’s` is not a word.
-                    if doc[i].pos_ in ("VERB", "AUX") \
-                            or doc[i].text.lower() in ("es", "'s", "’s"):
-                        gone = Unit.exact(self._verb_lemma(doc[i]))
-                        units.discard(gone)
-                        surfaces.pop(gone, None)
+                gone = [i for i in phrase["indices"]
+                        # The verb, and the expletive itself: `es` here is
+                        # not the pronoun, and `’s` split off `gibt’s` is
+                        # not a word.
+                        if doc[i].pos_ in ("VERB", "AUX")
+                        or doc[i].text.lower() in ("es", "'s", "’s")]
+            else:
+                gone = phrase.get("expression", ())
+            for i in gone:
+                lemma = self._verb_lemma(doc[i])
+                if i in prefix_of:              # folded above: `gehe … aus` is `ausgehen`
+                    lemma = prefix_of[i].lemma_.lower() + lemma
+                spoken = Unit.exact(lemma)
+                units.discard(spoken)
+                surfaces.pop(spoken, None)
         return frozenset(units), tuple(surfaces.items())
 
     @staticmethod
@@ -348,6 +360,9 @@ class UnitAnalyzer:
         reads the same set rather than naming `NE` alone — which let the
         article through as a pattern after the word side stopped counting it.
         """
+        # An expression is its own words, found by them: nothing to doubt.
+        if phrase["match_type"] == "exact (expression)":
+            return True
         score = FUZZY_SCORE.search(phrase["match_type"])
         if score and float(score.group(1)) < MIN_FUZZY:
             return False
