@@ -71,6 +71,9 @@ class RoadmapBuilder:
         # average by one.
         self._gaps = gaps_by_video(
             (index.sentence(p) for p in range(len(index))), index.known)
+        # Units whose best sentence the judge would not teach with, and how
+        # many candidates each had when that was decided — see `_next_step`.
+        self._deferred: dict[Unit, int] = {}
 
     @property
     def goals(self) -> frozenset[Unit]:
@@ -126,28 +129,58 @@ class RoadmapBuilder:
 
     def _next_step(self, position: int, exclude: frozenset = frozenset(),
                    kinds: frozenset = frozenset()) -> RoadmapStep | None:
-        # One pass, keeping the best rather than materialising every score:
-        # the frontier runs to thousands of units and this is the innermost
-        # loop of the whole walk. `key` still breaks ties reproducibly, and
-        # `>` keeps the first of equals exactly as `max` did.
-        best: tuple[Unit, set[int], int, float] | None = None
-        for unit, positions in self._index.candidates().items():
-            if not positions or unit in exclude:
-                continue
-            if self._only_goals and unit not in self._goals:
-                continue
-            if kinds and unit.kind not in kinds:
-                continue
-            gain, score = self._score(unit, positions)
-            if best is None or (score, unit.key) > (best[3], best[0].key):
-                best = (unit, positions, gain, score)
-        if best is None:
-            return None
+        """The best unit the frontier offers, taught with a clean sentence.
+
+        A word whose best sentence the judge puts under `FLOOR` — a
+        fragment, two lines glued together — is deferred: the walk takes
+        the next unit instead and comes back to this one when a cleaner
+        sentence has become one step away, which learning other words
+        makes happen. Deferred for as long as the candidates do not change:
+        a unit's candidates only grow until it is learned, so their count
+        says whether there is anything new to look at, and the frontier
+        scan skips a deferred unit at that count in one comparison. Only
+        the winner of a scan is ever judged, so a scan repeats once per
+        deferral found, not per unit. When nothing clean is left anywhere,
+        the best of the deferred is taught after all — a doubtful sentence
+        beats leaving the word untaught, and the page says which it was.
+        """
+        skipped: tuple[Unit, set[int], int, float] | None = None
+        while True:
+            # One pass, keeping the best rather than materialising every
+            # score: the frontier runs to thousands of units and this is the
+            # innermost loop of the whole walk. `key` still breaks ties
+            # reproducibly, and `>` keeps the first of equals as `max` did.
+            best: tuple[Unit, set[int], int, float] | None = None
+            for unit, positions in self._index.candidates().items():
+                if not positions or unit in exclude:
+                    continue
+                if self._only_goals and unit not in self._goals:
+                    continue
+                if kinds and unit.kind not in kinds:
+                    continue
+                gain, score = self._score(unit, positions)
+                if self._deferred.get(unit) == len(positions):
+                    if skipped is None or (score, unit.key) > (skipped[3], skipped[0].key):
+                        skipped = (unit, positions, gain, score)
+                    continue
+                if best is None or (score, unit.key) > (best[3], best[0].key):
+                    best = (unit, positions, gain, score)
+            if best is None:
+                if skipped is None:
+                    return None
+                best = skipped
+                example = self._example(best[0], best[1])
+                break
+            example = self._example(best[0], best[1])
+            if self._judged is None or self._judged.clean(example.text):
+                break
+            # Found doubtful: the next scan files it under `skipped`.
+            self._deferred[best[0]] = len(best[1])
         unit, sentences, gain, score = best
         return RoadmapStep(
             position=position,
             unit=unit,
-            sentence=self._example(unit, sentences),
+            sentence=example,
             gain=gain,
             score=score,
             now_readable=len(sentences),

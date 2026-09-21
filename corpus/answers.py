@@ -56,6 +56,14 @@ REFUSED = "gloss_refused"
 # from .2 up the fixed expressions begin to mix with the word itself
 # (`100 Jahre` at .19 is the one false no seen in the band). 403 pairs.
 DOUBT = 0.2
+# Below this product of the four, a sentence is not clean enough to teach a
+# word with while anything cleaner says the word: `Auch weil klassische
+# Medien aufspringen.` at .04, `Zumal es auch das wichtigste Organ ist, wie
+# ich finde.` at .07. Read against the beginner plan on 2026-09-21: 96 of
+# its 3,883 steps were taught under this line and 15 under .1, all words
+# with nothing better one step away at the time. The median judged product
+# is .38, so an unjudged sentence, scored as typical, stands above it.
+FLOOR = 0.3
 # What a level costs an example, as a share: an A1 sentence is worth all of
 # its quality, a B1 one three fifths, a B2 one two fifths. Measured on the
 # beginner plan's stored candidates before it was chosen (TODO #27): a
@@ -112,6 +120,12 @@ class Judged:
         teaching sentence, the quiz -- so that no two of them can weigh
         the same sentence differently."""
         return self.sentence(text) * self.unit(text, unit) * self.ease(text)
+
+    def clean(self, text: str) -> bool:
+        """Whether the sentence is one to teach a word with at all — its
+        quality product at `FLOOR` or above. The walk defers a word whose
+        best sentence is not, until a clean one is one step away."""
+        return self.sentence(text) >= FLOOR
 
     def unit(self, text: str, unit: Unit) -> float:
         """How well the sentence serves as an example of `unit`: `plain` —

@@ -710,6 +710,10 @@ class Viewer:
         else:
             lede = "Everything in this sentence is yours except one word."
             kind = "a word"
+        # A step the walk took after all: nothing cleaner said the word.
+        if not self.app.judged.clean(step.sentence.text):
+            lede += (" The judge doubts this sentence — a fragment, or two lines "
+                     "in one — and nothing cleaner says the word yet.")
         body = (
             switch + picker
             # Everything from here down is replaced in place when a word is
@@ -1339,6 +1343,9 @@ class Viewer:
             f"{escape(s.unit.key)}</a></div>"
             + (sentence(said.text, said.translation, said.surface_of(s.unit),
                         level=self.app.judged.level(said.text))
+               + ("" if self.app.judged.clean(said.text) else
+                  "<p class='also'>The judge doubts this sentence; nothing "
+                  "cleaner said the word when the walk reached it.</p>")
                if said is not None else
                "<p class='also'>Its sentence came from a channel you removed, "
                "and nothing else in its deck survives.</p>")

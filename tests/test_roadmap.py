@@ -104,6 +104,38 @@ class RoadmapBuilderTest(unittest.TestCase):
         self.assertEqual(plan[0].unit, Unit.lemma("haben"))
         self.assertEqual(plan[0].sentence.text, "Ich habe einen Gast.")
 
+    def test_a_word_with_only_a_doubtful_sentence_waits_for_a_clean_one(self) -> None:
+        """`kaputt` is one step away in two sentences the judge calls
+        broken and would win on gain; `haben` in one clean sentence. The
+        walk takes `haben`, which makes a clean `kaputt` sentence one step
+        away, and teaches `kaputt` with that."""
+        from corpus.answers import Judged                   # noqa: PLC0415
+        sentences = [sentence("Kaputt kam mir das.", "ich", "kaputt"),
+                     sentence("Alles kaputt und.", "ich", "kaputt"),
+                     sentence("Ich habe einen Gast.", "ich", "haben"),
+                     sentence("Ich habe ein kaputtes Auto.", "ich", "haben", "kaputt")]
+        index = CorpusIndex(sentences, KnownSet({Unit.lemma("ich")}))
+        judged = Judged({"Kaputt kam mir das.": 0.1, "Alles kaputt und.": 0.05,
+                         "Ich habe einen Gast.": 0.9, "Ich habe ein kaputtes Auto.": 0.9}, {})
+        plan = RoadmapBuilder(index, UnitPriority.build(()), judged=judged).build()
+        self.assertEqual([s.unit.key for s in plan], ["haben", "kaputt"])
+        self.assertEqual(plan[1].sentence.text, "Ich habe ein kaputtes Auto.")
+
+    def test_a_word_no_clean_sentence_ever_says_is_taught_last_anyway(self) -> None:
+        from corpus.answers import Judged                   # noqa: PLC0415
+        sentences = [sentence("Kaputt kam mir das.", "ich", "kaputt"),
+                     sentence("Alles kaputt und.", "ich", "kaputt"),
+                     sentence("Ich habe einen Gast.", "ich", "haben")]
+        index = CorpusIndex(sentences, KnownSet({Unit.lemma("ich")}))
+        judged = Judged({"Kaputt kam mir das.": 0.1, "Alles kaputt und.": 0.05,
+                         "Ich habe einen Gast.": 0.9}, {})
+        plan = RoadmapBuilder(index, UnitPriority.build(()), judged=judged).build()
+        self.assertEqual([s.unit.key for s in plan], ["haben", "kaputt"])
+        # And without a judge the gain decides, as it always did.
+        index = CorpusIndex(sentences, KnownSet({Unit.lemma("ich")}))
+        plan = RoadmapBuilder(index, UnitPriority.build(())).build()
+        self.assertEqual([s.unit.key for s in plan], ["kaputt", "haben"])
+
     def test_stops_when_nothing_is_i_plus_one(self) -> None:
         sentences = [sentence("hard", "a", "b", "c")]
         index = CorpusIndex(sentences, KnownSet())

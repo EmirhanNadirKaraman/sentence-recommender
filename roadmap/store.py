@@ -44,7 +44,10 @@ ALL = "all"
 # judge says a sentence does not say is dropped from it at load time. Both
 # change which sentences reach a deck and which is first, and neither is in
 # the analyser fingerprint. See `corpus.answers.Judged`.
-ROADMAP_VERSION = 4
+#
+# 5: a word whose best sentence the judge puts under `FLOOR` is deferred
+# until a clean one is a step away, and taught last if none ever is.
+ROADMAP_VERSION = 5
 
 
 def current_stamp() -> str:
