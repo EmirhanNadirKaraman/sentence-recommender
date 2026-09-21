@@ -143,7 +143,10 @@ class Tools:
         """
         out = []
         for card in self.app.card_store.due(datetime.now(), limit):
-            out.append({**_card(card), **self.prompt_for(card.unit)})
+            out.append({**_card(card), **self.prompt_for(card.unit),
+                        # What they wrote with it before, newest first: the
+                        # note is what they keep getting wrong.
+                        "attempts": self.app.attempts.of(card.unit)})
         return out
 
     def prompt_for(self, unit: Unit) -> dict[str, Any]:
@@ -231,18 +234,25 @@ class Tools:
                                 "action": action, "src": source})
         return {"unit": _unit(unit), "action": action}
 
-    def grade(self, key: str, correct: bool, kind: str = LEMMA) -> dict[str, Any]:
-        """Grade a review of one claim and say what became of it. `outcome`
-        is `scheduled` (asked again at `due`), `graduated` (five passes: the
-        word is known for good, no more reviews) or `unmarked` (two failures
-        in a row: the word is no longer counted as known and the plan will
-        teach it again). Tell the learner which."""
+    def grade(self, key: str, correct: bool, kind: str = LEMMA, written: str = "",
+              note: str = "", german: str = "") -> dict[str, Any]:
+        """Grade a review of one claim and say what became of it. Pass what
+        the learner wrote as `written`, your one-line note as `note` and
+        the natural phrasing as `german`; they are kept as the word's
+        history and shown at the next review. `outcome` is `scheduled`
+        (asked again at `due`), `graduated` (five passes: the word is known
+        for good, no more reviews) or `unmarked` (two failures in a row:
+        the word is no longer counted as known and the plan will teach it
+        again). Tell the learner which."""
         from srs.scheduler import GRADUATED, UNMARKED, verdict  # noqa: PLC0415
         unit = _parse(kind, key)
         card = self.app.card_store.get(unit)
         if card is None:
             raise ValueError(f"no card for {unit}; `due_cards` lists the ones "
                              "there are")
+        if written:
+            self.app.attempts.add(unit, written, german or None, note or None, None,
+                                  correct, "claude")
         reviewed = self.app.scheduler.review(card, correct, datetime.now())
         outcome = verdict(reviewed)
         if outcome == GRADUATED:
@@ -315,7 +325,9 @@ def examiner() -> str:
         "sentence using the word. Wait for my answer. Judge it as the tool "
         "describes — strict on the word, lenient elsewhere — tell me in a line "
         "what was right or wrong and the natural phrasing, show one of the "
-        "examples, and call `grade`. "
+        "examples, and call `grade` with my sentence, your note and the "
+        "phrasing, so the next review can see them. Read `attempts` first: "
+        "if I made the same mistake before, say so. "
         "Tell me when a word graduates or is un-marked. Then `due_sentences`: "
         "show me the English of each and ask for my German; `grade_sentence`. "
         "End with what passed, what did not, and what is gone back to the plan."

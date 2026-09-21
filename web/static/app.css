@@ -480,3 +480,10 @@ form.mine .actions { margin-top: 0; }
 #mine-card details { margin: 12px 0; }
 #mine-card summary { cursor: pointer; font: 400 15px var(--sans); color: var(--ink-2); }
 
+/* What you wrote with a word before: under the review card and on the
+   word's page, folded away until asked for. */
+.attempts { list-style: none; margin: 8px 0 0; padding: 0; font: 400 16px/1.5 var(--serif); }
+.attempts li { margin: 0 0 8px; }
+.attempts .kind { font: 400 12px var(--sans); color: var(--ink-2); margin-left: 6px; }
+.attempts .en { font: 400 14px/1.4 var(--sans); color: var(--ink-2); }
+

@@ -140,6 +140,12 @@ class Application:
         from vocab.own_sentences import OwnSentences        # noqa: PLC0415
         return OwnSentences(self.settings.state_path)
 
+    @cached_property
+    def attempts(self):
+        """What the reader wrote with each word. See `vocab.attempts`."""
+        from vocab.attempts import Attempts                  # noqa: PLC0415
+        return Attempts(self.settings.state_path)
+
     def adopt(self, text: str, english: str) -> None:
         """Take a sentence the reader wrote into the corpus and the schedule.
 

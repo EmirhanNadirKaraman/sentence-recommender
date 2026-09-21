@@ -1002,11 +1002,16 @@ class Viewer:
             reply = client.complete(CHECK, f"Word: {word}\nSentence: {said}",
                                     temperature=0.2, response_format=CHECK_FORMAT)
             got = json.loads(reply)
-            return {"german": str(got.get("german", "")).strip(),
-                    "note": str(got.get("note", "")).strip(),
-                    "english": str(got.get("english", "")).strip()}
+            out = {"german": str(got.get("german", "")).strip(),
+                   "note": str(got.get("note", "")).strip(),
+                   "english": str(got.get("english", "")).strip()}
         except Exception as error:                           # noqa: BLE001 -- the tunnel, bad JSON
             return {"error": type(error).__name__}
+        kind, key = (form.get("kind") or "").strip(), (form.get("key") or "").strip()
+        if kind in ("lemma", "pattern") and key:
+            self.app.attempts.add(Unit(kind, key), said, out["german"], out["note"],
+                                  out["english"], None, "popup")
+        return out
 
     def _ask_gloss(self, text: str, word: str, named: str) -> str | None:
         from generation.client import LLMClient              # noqa: PLC0415
@@ -1815,6 +1820,7 @@ class Viewer:
                if readable else f"; none is one word away yet — these {len(deck)} are the nearest")
             + ".</p>"
             + ("<p class='note'>You have marked this known.</p>" if already else "")
+            + self._attempts_html(target)
             + self._audio_toggle()
             + "<div class='card' id='card'>"
             + self._stage(deck)
@@ -1926,6 +1932,7 @@ class Viewer:
         asked = self.app.mcp_prompt(card.unit)
         hint = (f"<details><summary>A hint</summary><p class='en'>{escape(asked['meaning'])}</p></details>"
                 if asked.get("meaning") else "")
+        hint += self._attempts_html(card.unit)
         body = (
             f"<h1>Review</h1>{verdict}"
             f"<p class='note'>{due_count:,} due · {total:,} on probation. Write a German "
@@ -1953,6 +1960,21 @@ class Viewer:
             "</div></form></div>")
         return self._page("Review", body, "/review", source)
 
+    def _attempts_html(self, unit: Unit) -> str:
+        """What you wrote with the word before, and what came of it."""
+        found = self.app.attempts.of(unit)
+        if not found:
+            return ""
+        rows = "".join(
+            "<li>" + escape(a["written"])
+            + (f" <span class='kind'>{'right' if a['correct'] else 'missed'}</span>"
+               if a["correct"] is not None else "")
+            + (f"<br><span class='en'>{escape(a['note'])}</span>" if a["note"] else "")
+            + "</li>"
+            for a in found)
+        return (f"<details><summary>What you wrote before ({len(found)})</summary>"
+                f"<ul class='attempts'>{rows}</ul></details>")
+
     def save_review(self, form: dict) -> str | tuple[str, str]:
         """A decision on the review page: judged by the model, or by you."""
         from srs.scheduler import GRADUATED, UNMARKED, verdict  # noqa: PLC0415
@@ -1971,9 +1993,12 @@ class Viewer:
             judged = self._judge(unit, written) or {
                 "correct": None, "german": "",
                 "note": "The local model is not answering; say yourself how it went."}
+            self.app.attempts.add(unit, written, judged.get("german"), judged.get("note"),
+                                  judged.get("english"), None, "review")
             return ("page", self.review({"src": source}, {**result, **judged, "pending": True}))
         correct = action == "good"
         result["correct"] = correct
+        self.app.attempts.grade_last(unit, correct)
         reviewed = self.app.scheduler.review(card, correct, datetime.now())
         outcome = verdict(reviewed)
         if outcome == GRADUATED:

@@ -30,6 +30,7 @@ from roadmap.step import RoadmapStep
 from roadmap.store import RoadmapStore, current_stamp
 from srs import CardStore, SM2Scheduler
 from vocab.entry import Unit
+from vocab.attempts import Attempts
 from vocab.own_sentences import OwnSentences
 from vocab.known_store import KnownStore
 from vocab.snooze_store import SnoozeStore
@@ -94,6 +95,7 @@ def stub_app(tmp: Path) -> SimpleNamespace:
         glosses=SimpleNamespace(sense=lambda *a, **k: None),
         llm_model="",
         own=OwnSentences(state),
+        attempts=Attempts(state),
     )
     app.known_set = lambda: KnownSet(app.marked_known.units())
     RoadmapStore(state).save(STEPS, LABEL, stamp=current_stamp(), total=3)
