@@ -93,11 +93,25 @@ class Judged:
         self._typical_fit = typical_fit
         self._levels = levels or {}
         self._typical_level = typical_level
+        # Once, here: `apply_overrides` asks for it on every load and on
+        # every stored deck it hands out, a roadmap page's worth at a time.
+        self._doubted = {text: frozenset(key for (_, key), value in found.items()
+                                         if value < DOUBT)
+                         for text, found in fit.items()
+                         if any(value < DOUBT for value in found.values())}
 
     def sentence(self, text: str) -> float:
         """How much the judge thinks the sentence is worth showing at all:
         the four quality answers multiplied, each a probability."""
         return self._quality.get(text, self._typical_quality)
+
+    def worth(self, text: str, unit: Unit) -> float:
+        """What the judge makes of the sentence as an example of `unit`,
+        all in: worth showing at all, the word itself, and its level. The
+        one product every ranking multiplies in -- the walk, the deck, the
+        teaching sentence, the quiz -- so that no two of them can weigh
+        the same sentence differently."""
+        return self.sentence(text) * self.unit(text, unit) * self.ease(text)
 
     def unit(self, text: str, unit: Unit) -> float:
         """How well the sentence serves as an example of `unit`: `plain` —
@@ -149,12 +163,7 @@ class Judged:
         counting as an occurrence anywhere: the walk's gain, the reel's
         "one word away", `/blocked`, comprehension.
         """
-        out: dict[str, set[str]] = defaultdict(set)
-        for text, found in self._fit.items():
-            for (kind, key), value in found.items():
-                if value < DOUBT:
-                    out[text].add(key)
-        return {text: frozenset(keys) for text, keys in out.items()}
+        return self._doubted
 
     def __len__(self) -> int:
         return len(self._quality)

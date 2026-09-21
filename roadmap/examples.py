@@ -137,8 +137,7 @@ def rank(unit: Unit, known: frozenset[Unit],
         """
         said = 1.0 if verdicts is None else verdicts.get(s.text, 1.0)
         if judged is not None:
-            said *= judged.sentence(s.text) * judged.unit(s.text, unit) \
-                * judged.ease(s.text)
+            said *= judged.worth(s.text, unit)
         return said
 
     def video_fit(s) -> float:
@@ -308,7 +307,7 @@ def teaching_sentence(candidates, unit: Unit,
     def worth(s: Sentence) -> float:
         w = said.get(s.text, 1.0)
         if judged is not None:
-            w *= judged.sentence(s.text) * judged.unit(s.text, unit) * judged.ease(s.text)
+            w *= judged.worth(s.text, unit)
         return w
     return max(candidates, key=lambda s: (worth(s), quality(s.text), variety(s.text), s.text))
 

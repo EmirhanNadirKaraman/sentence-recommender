@@ -358,8 +358,7 @@ class QuizCommand:
         judged = app.judged
 
         def said(text: str) -> float:
-            return (verdicts.get(text, 1.0) * judged.sentence(text)
-                    * judged.unit(text, unit))
+            return verdicts.get(text, 1.0) * judged.worth(text, unit)
         return sorted(found, key=lambda t: (-said(t), -score(t)))[:want]
 
     @staticmethod
