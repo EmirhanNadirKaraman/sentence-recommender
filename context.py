@@ -20,7 +20,7 @@ from srs import CardStore, PromptBuilder, SM2Scheduler
 from vocab import (CheckedStore, GoalList, KnownStore, SnoozeStore, Unit,
                    WordListLoader)
 from vocab.cache import ResolvedCache
-from vocab.aliases import Aliases
+from vocab.aliases import Aliases, heads
 from vocab.compounds import Compounds
 
 
@@ -379,7 +379,14 @@ class Application:
         # stored deck predates the decision as much as it predates a hidden
         # sentence, and every live load passes this way as well.
         banned = self.banned_videos()
-        if not hidden and not corrected and not banned:
+        # And the judge's no: a pattern whose letters the matcher found in
+        # a sentence that says another word -- `gehört` read as `gehören`
+        # -- leaves the sentence here, with the bare lemma the parser
+        # produced beside it, so the pair stops counting as an occurrence
+        # on every page rather than sorting last on one card. A hand
+        # correction says more than the judge and is left as written.
+        doubted = self.judged.doubted()
+        if not hidden and not corrected and not banned and not doubted:
             return sentences
         out = []
         for sentence in sentences:
@@ -389,6 +396,9 @@ class Application:
                     and sentence.timing.video_id in banned:
                 continue
             fix = corrected.get(sentence.text)
+            doubt = doubted.get(sentence.text) if fix is None else None
+            if doubt:
+                sentence = _without(sentence, doubt)
             if fix is not None:
                 # A correction replaces the units outright, and those units
                 # have not been past `resolve` — the store applied it to what
@@ -570,3 +580,23 @@ class Application:
             if path.exists():
                 surfaces.extend(loader.load(path).surfaces)
         return surfaces
+
+
+def _without(sentence, keys: frozenset[str]):
+    """The sentence with the doubted patterns gone, and the lemma each
+    names with them: the analyser writes `gehört` as both `jdm. (Dat)
+    gehören` and the bare `gehören`, and under strict counting the second
+    is already renamed into the first, but a plain load keeps both."""
+    named = {head.lower() for key in keys for head in heads(key)}
+
+    def gone(unit: Unit) -> bool:
+        return (unit.key in keys if unit.is_pattern
+                else unit.key.lower() in named)
+
+    if not any(gone(unit) for unit in sentence.units):
+        return sentence
+    return sentence.with_units(
+        frozenset(unit for unit in sentence.units if not gone(unit)),
+        tuple((unit, surface) for unit, surface in sentence.surfaces if not gone(unit)),
+    )
+

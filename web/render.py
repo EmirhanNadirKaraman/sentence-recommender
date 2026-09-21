@@ -115,9 +115,14 @@ def mark(text: str, surface: str | None) -> str:
 
 
 def sentence(text: str, translation: str | None, surface: str | None = None,
-             lead: bool = False) -> str:
+             lead: bool = False, level: str | None = None) -> str:
+    """A sentence, its English under it, and the level the judge gave it
+    — `B1` — after the German where one is known, so a reader can see why
+    a sentence was picked over a harder one, or why this one is hard."""
     size = " lead" if lead else ""
-    out = f"<p class='de{size}'>{mark(text, surface)}</p>"
+    badge = f" <span class='level' title='the level the judge gave it'>{escape(level)}</span>" \
+        if level else ""
+    out = f"<p class='de{size}'>{mark(text, surface)}{badge}</p>"
     if translation:
         out += f"<p class='en'>{escape(translation)}</p>"
     return out

@@ -210,6 +210,13 @@ button:hover { border-color: var(--target); }
 .deck { min-height: 7.2rem; will-change: transform; }
 @media (prefers-reduced-motion: reduce) { .deck { transition: none !important; } }
 .also { font: 400 13.5px/1.5 var(--sans); color: var(--ink-2); margin: 10px 0 0; }
+/* The judge's level, after the German: small, quiet, and never in the
+   flow of the sentence -- it says why this one was picked, not what it
+   says. */
+.level { font: 400 11.5px/1 var(--sans); color: var(--ink-2); vertical-align: middle;
+  border: 1px solid var(--faint); border-radius: 3px; padding: 2px 4px; margin-left: 6px;
+  white-space: nowrap; }
+.de.lead .level { font-size: 12.5px; }
 .also.clear { color: var(--target); }
 
 /* Taking back the one destructive thing here. Fixed to the bottom because a

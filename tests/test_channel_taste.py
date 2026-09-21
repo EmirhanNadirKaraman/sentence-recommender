@@ -195,3 +195,45 @@ class RemovalTest(unittest.TestCase):
         # The version moved, so the cached set is not trusted; with no
         # channel left there is nothing to look up and nothing is banned.
         self.assertEqual(self.app.apply_overrides(self.said), self.said)
+
+
+class DoubtTest(unittest.TestCase):
+    """A pair the judge says is not the word leaves the sentence at the
+    same gate, with the lemma the pattern names."""
+
+    def setUp(self) -> None:
+        from config import Settings
+        from context import Application
+        from corpus.sentence import Sentence
+        from vocab.entry import Unit
+        self._dir = tempfile.TemporaryDirectory()
+        self.app = Application(Settings(
+            state_path=Path(self._dir.name) / "state.sqlite3"))
+        self.heard = Unit.pattern("jdm. (Dat) gehören")
+        self.lemma = Unit.lemma("gehören")
+        self.have = Unit.pattern("etw./jdn. (Akk) haben")
+        self.said = Sentence("Hast du gehört?",
+                             units=frozenset({self.heard, self.lemma, self.have}),
+                             surfaces=((self.heard, "gehört"), (self.have, "Hast")))
+
+    def tearDown(self) -> None:
+        self._dir.cleanup()
+
+    def test_the_doubted_pattern_and_its_lemma_leave_the_sentence(self) -> None:
+        self.app.answers.save(self.said.text, self.app.settings.judge_model, 1,
+                              {"plain:u1": (0.05, None), "plain:u2": (0.9, None)},
+                              units={"u1": self.heard, "u2": self.have})
+        (out,) = self.app.apply_overrides([self.said])
+        self.assertEqual(out.units, frozenset({self.have}))
+        self.assertEqual(out.surfaces, ((self.have, "Hast"),))
+
+    def test_a_hand_correction_outranks_the_judge(self) -> None:
+        self.app.answers.save(self.said.text, self.app.settings.judge_model, 1,
+                              {"plain:u1": (0.05, None)}, units={"u1": self.heard})
+        self.app.overrides.set_units(self.said.text, {self.heard: "gehört"})
+        (out,) = self.app.apply_overrides([self.said])
+        self.assertEqual(out.units, frozenset({self.heard}))
+
+    def test_nothing_doubted_changes_nothing(self) -> None:
+        self.assertEqual(self.app.apply_overrides([self.said]), [self.said])
+

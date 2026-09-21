@@ -85,14 +85,53 @@ class StoreTest(unittest.TestCase):
 
     def test_a_refusal_is_about_the_pair(self) -> None:
         """`Es gibt ein Problem.` refused as `geben` is worthless for `geben`
-        and untouched for any other word."""
+        and untouched for any other word -- and it is the gloss's model
+        that refused, so it is read under the judge's name too."""
         tmp, answers = store()
         with tmp:
             answers.refuse(THERE, GEBEN, "local")
-            judged = answers.load("local", 1)
+            judged = answers.load("jev", 1)
         self.assertEqual(judged.unit(THERE, GEBEN), 0.0)
         self.assertEqual(judged.unit(THERE, Unit.pattern("es gibt")), 1.0)
         self.assertEqual(judged.sentence(THERE), 1.0)
+
+    def test_the_level_is_an_ease_and_a_label(self) -> None:
+        """Stored as the expected level over A1–C1 scaled to one; read as
+        a share of the sentence's worth, a fifth off per level, and as the
+        nearest label for a badge."""
+        tmp, answers = store()
+        with tmp:
+            answers.save(GIVE, "jev", 1, {"level": (0.0, {"A1": 1.0})})       # A1
+            answers.save(THERE, "jev", 1, {"level": (0.5, {"B1": 1.0})})      # B1
+            answers.save(BROKEN, "jev", 1, {"level": (0.75, {"B2": 1.0})})    # B2
+            judged = answers.load("jev", 1)
+        self.assertEqual(judged.level(GIVE), "A1")
+        self.assertEqual(judged.level(THERE), "B1")
+        self.assertIsNone(judged.level("Nie gefragt."))
+        self.assertAlmostEqual(judged.ease(GIVE), 1.0)
+        self.assertAlmostEqual(judged.ease(THERE), 0.6)
+        self.assertAlmostEqual(judged.ease(BROKEN), 0.4)
+        # Unjudged is a typical judged sentence, the median: B1 here.
+        self.assertAlmostEqual(judged.ease("Nie gefragt."), 0.6)
+
+    def test_with_no_level_judged_ease_is_everything(self) -> None:
+        tmp, answers = store()
+        with tmp:
+            judged = answers.load("jev", 1)
+        self.assertEqual(judged.ease(GIVE), 1.0)
+        self.assertIsNone(judged.level(GIVE))
+
+    def test_doubted_is_the_pairs_the_judge_said_no_to(self) -> None:
+        """`plain` under the doubt line, or a refusal; a pair the judge
+        merely thinks less of is ranked, not dropped."""
+        tmp, answers = store()
+        with tmp:
+            answers.save(GIVE, "jev", 1, {"plain:u1": (0.05, None), "plain:u2": (0.4, None)},
+                         units={"u1": Unit.pattern("jdm. (Dat) gehören"), "u2": GEBEN})
+            answers.refuse(THERE, GEBEN, "local")
+            judged = answers.load("jev", 1)
+        self.assertEqual(judged.doubted(), {GIVE: frozenset({"jdm. (Dat) gehören"}),
+                                            THERE: frozenset({GEBEN.key})})
 
     def test_answered_is_what_a_resumed_pass_skips(self) -> None:
         tmp, answers = store()
@@ -125,6 +164,20 @@ class RankTest(unittest.TestCase):
         known = frozenset({Unit.exact("ich")})
         self.assertEqual(index.examples(GEBEN, known, limit=2),
                          index.examples(GEBEN, known, limit=2, judged=judged))
+
+    def test_of_two_sentences_the_judge_likes_alike_the_easier_is_first(self) -> None:
+        """A B2 sentence at .9 loses to an A2 one at .7: the level is a
+        factor in the worth, not a key after it, because a key after a
+        continuous product hardly ever fires."""
+        index = ExampleIndex(self.sentences())
+        tmp, answers = store()
+        with tmp:
+            answers.save(BROKEN, "jev", 1, {"complete": (0.9, None), "level": (0.75, None)})
+            answers.save(GIVE, "jev", 1, {"complete": (0.7, None), "level": (0.25, None)})
+            judged = answers.load("jev", 1)
+        first = index.examples(GEBEN, frozenset({Unit.exact("ich")}), limit=1,
+                               judged=judged)[0]
+        self.assertEqual(first.text, GIVE)
 
 
 if __name__ == "__main__":

@@ -25,6 +25,7 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
+from corpus.questions import LEVELS
 from state import open_state
 from vocab.entry import Unit
 
@@ -48,6 +49,21 @@ CREATE INDEX IF NOT EXISTS ix_sentence_answer_question
 # The questions about the sentence itself, whose product is its quality.
 QUALITY = ("stands_alone", "complete", "standard", "well_formed")
 REFUSED = "gloss_refused"
+# Below this, `plain` is a no: the sentence does not say the word. Read
+# from the answers on 2026-09-21 — under .1 is all look-alikes (`gehört`
+# as `gehören`, `magst` as `der Magen`, `gelassen` as `lassen`), .1–.2 is
+# the same with `pass auf` as `der Pass` and `das Sagen` as `sagen`, and
+# from .2 up the fixed expressions begin to mix with the word itself
+# (`100 Jahre` at .19 is the one false no seen in the band). 403 pairs.
+DOUBT = 0.2
+# What a level costs an example, as a share: an A1 sentence is worth all of
+# its quality, a B1 one three fifths, a B2 one two fifths. Measured on the
+# beginner plan's stored candidates before it was chosen (TODO #27): a
+# level used only to break ties moved nothing, because the judge's product
+# is a continuous number and ties are rare; at .1 a level the plan's B1
+# sentences fell from 1,644 to 1,462, at .2 to 1,178, at .3 to 966, giving
+# up .02, .03 and .07 of the product on the picks that changed.
+LEVEL_COST = 0.2
 
 
 class Judged:
@@ -68,11 +84,15 @@ class Judged:
 
     def __init__(self, quality: dict[str, float],
                  fit: dict[str, dict[tuple[str, str], float]],
-                 typical_quality: float = 1.0, typical_fit: float = 1.0) -> None:
+                 typical_quality: float = 1.0, typical_fit: float = 1.0,
+                 levels: dict[str, float] | None = None,
+                 typical_level: float = 0.0) -> None:
         self._quality = quality
         self._fit = fit
         self._typical_quality = typical_quality
         self._typical_fit = typical_fit
+        self._levels = levels or {}
+        self._typical_level = typical_level
 
     def sentence(self, text: str) -> float:
         """How much the judge thinks the sentence is worth showing at all:
@@ -94,6 +114,47 @@ class Judged:
         if not found:
             return self._typical_fit
         return found.get((unit.kind, unit.key), self._typical_fit)
+
+    def level(self, text: str) -> str | None:
+        """The level the judge gave the sentence, as its nearest label —
+        `B1` — or None where it was never asked."""
+        found = self._levels.get(text)
+        if found is None:
+            return None
+        return LEVELS[min(range(len(LEVELS)), key=lambda i: abs(i - found))]
+
+    def ease(self, text: str) -> float:
+        """How much of a sentence's worth its level leaves it, for a reader
+        starting from nothing: `1 - LEVEL_COST` a level above A1.
+
+        Lower is better, unconditionally. The plans are walked for a
+        reader who begins at the beginning, and every word is taught from
+        the sentences that say it, so among sentences the judge thinks
+        equally good the one a beginner could read wins. A reader's own
+        level is the obvious parameter here and is not one yet; nobody has
+        asked for harder. Unjudged scores as the median judged level, for
+        the reason given above for quality: at A1 it would win every pick.
+        With nothing judged at all the median is A1 and nothing moves.
+        """
+        level = self._levels.get(text, self._typical_level)
+        return max(0.0, 1.0 - LEVEL_COST * level)
+
+    def doubted(self) -> dict[str, frozenset[str]]:
+        """Per sentence, the pattern keys the judge says it does not say.
+
+        A `plain` under `DOUBT`, or a gloss refused: the matcher found the
+        word's letters and the sentence has another word in them — `gehört`
+        is `hören`, not `gehören`. Applied where the corpus is read, so the
+        pair is not merely ranked last for the word's own card but stops
+        counting as an occurrence anywhere: the walk's gain, the reel's
+        "one word away", `/blocked`, comprehension.
+        """
+        out: dict[str, set[str]] = defaultdict(set)
+        for text, found in self._fit.items():
+            for (kind, key), value in found.items():
+                if value < DOUBT:
+                    out[text].add(key)
+        return {text: frozenset(keys) for text, keys in out.items()}
 
     def __len__(self) -> int:
         return len(self._quality)
@@ -157,19 +218,26 @@ class AnswerStore:
         """The answers as something `rank` can read, in memory.
 
         A few million rows for the whole build, read once per process: the
-        quality product per sentence, and per sentence the fit of each unit
-        the judge was asked about. Refusals count regardless of version —
-        they were never versioned questions.
+        quality product per sentence, the level, and per sentence the fit
+        of each unit the judge was asked about. Refusals count regardless
+        of version and model — they were never versioned questions, and
+        the model that refused is the gloss's, not the judge's; read by
+        the judge's name they were never read at all.
         """
         quality: dict[str, float] = {}
+        levels: dict[str, float] = {}
         plain: dict[str, dict[tuple[str, str], float]] = defaultdict(dict)
         with open_state(self._path) as conn:
             for text, kind, key, question, value in conn.execute(
                     "SELECT text, kind, key, question, value FROM sentence_answer"
-                    " WHERE model = ? AND (version = ? OR question = ?)",
+                    " WHERE (model = ? AND version = ?) OR question = ?",
                     (model, version, REFUSED)):
                 if question in QUALITY:
                     quality[text] = quality.get(text, 1.0) * value
+                elif question == "level":
+                    # Stored scaled to 0–1 over the labels; read as levels
+                    # above A1, which is what `ease` charges for.
+                    levels[text] = value * (len(LEVELS) - 1)
                 elif question == "plain":
                     plain[text][(kind, key)] = value
                 elif question == REFUSED:
@@ -177,7 +245,8 @@ class AnswerStore:
         return Judged(quality, dict(plain),
                       _median(quality.values()),
                       _median(v for units in plain.values() for v in units.values()
-                              if v > 0.0))          # refusals are not answers
+                              if v > 0.0),          # refusals are not answers
+                      levels, _median(levels.values()) if levels else 0.0)
 
 
 def _median(values) -> float:

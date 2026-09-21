@@ -39,7 +39,12 @@ ALL = "all"
 # fingerprint cannot see the change — but every step of every plan moves,
 # and a plan built under the old rule offered sentences holding words it had
 # not taught. See `Aliases`.
-ROADMAP_VERSION = 3
+#
+# 4: the judge's level is a factor in a sentence's worth, and a pattern the
+# judge says a sentence does not say is dropped from it at load time. Both
+# change which sentences reach a deck and which is first, and neither is in
+# the analyser fingerprint. See `corpus.answers.Judged`.
+ROADMAP_VERSION = 4
 
 
 def current_stamp() -> str:

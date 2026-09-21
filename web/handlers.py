@@ -968,7 +968,7 @@ class Viewer:
             + (f" data-video='{escape(s.timing.video_id)}' "
                f"data-at='{s.timing.start:.2f}'" if s.timing else "")
             + ">"
-            f"{sentence(s.text, s.translation, s.surface_of(unit), lead=True)}"
+            f"{sentence(s.text, s.translation, s.surface_of(unit), lead=True, level=self.app.judged.level(s.text))}"
             f"{self._also_new(s, unit, known)}"
             f"{self._sentence_tools(s.text, source, '/')}</div>"
             for i, s in enumerate(options)
@@ -1334,7 +1334,8 @@ class Viewer:
             f"<div class='unit'><a href='/unit/{s.unit.kind}/"
             f"{quote(s.unit.key, safe='')}?src={quote(source)}'>"
             f"{escape(s.unit.key)}</a></div>"
-            + (sentence(said.text, said.translation, said.surface_of(s.unit))
+            + (sentence(said.text, said.translation, said.surface_of(s.unit),
+                        level=self.app.judged.level(said.text))
                if said is not None else
                "<p class='also'>Its sentence came from a channel you removed, "
                "and nothing else in its deck survives.</p>")

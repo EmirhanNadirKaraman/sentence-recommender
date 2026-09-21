@@ -73,11 +73,15 @@ def rank(unit: Unit, known: frozenset[Unit],
 
     `judged` is what the corpus pass's judge answered (`corpus.answers`):
     per sentence, whether it stands alone, is complete, standard and well
-    formed; per sentence and unit, whether the word is the word itself and
-    how much the sentence gives it away. It multiplies into the same term
-    as `verdicts`, and for the same reason it sits above quality: `quality`
-    reads characters, and a judge has read the sentence. A sentence nobody
-    has judged scores as a typical judged one — see `corpus.answers.Judged`
+    formed, and which level could read it; per sentence and unit, whether
+    the word is the word itself. It multiplies into the same term as
+    `verdicts`, and for the same reason it sits above quality: `quality`
+    reads characters, and a judge has read the sentence. The level is a
+    factor in that product too, not a key after it — a key after a
+    continuous product breaks ties that hardly ever happen, and measured
+    on the beginner plan it moved nothing, where the factor moved a third
+    of the B1 picks to A2 and A1 (see `LEVEL_COST`). A sentence nobody has
+    judged scores as a typical judged one — see `corpus.answers.Judged`
     for why not 1.0 — and with nothing judged at all that is 1.0, so an
     empty store reorders nothing.
 
@@ -133,7 +137,8 @@ def rank(unit: Unit, known: frozenset[Unit],
         """
         said = 1.0 if verdicts is None else verdicts.get(s.text, 1.0)
         if judged is not None:
-            said *= judged.sentence(s.text) * judged.unit(s.text, unit)
+            said *= judged.sentence(s.text) * judged.unit(s.text, unit) \
+                * judged.ease(s.text)
         return said
 
     def video_fit(s) -> float:
@@ -291,8 +296,8 @@ def teaching_sentence(candidates, unit: Unit,
     """The one sentence a unit is taught with, out of those it alone unlocks.
 
     What anyone has said about the sentence first — a reader's mark, the
-    judge's answers — then `quality`, then `variety`, then the text so the
-    choice is stable. The walk chooses with this and stores it; the
+    judge's answers, its level — then `quality`, then `variety`, then the
+    text so the choice is stable. The walk chooses with this and stores it; the
     Frontier page shows the same choice live. It used to have its own —
     `quality` alone — and showed `Du wirst alles sagen Wir möchten, dass
     Sie es sagen.` for `sagen` after the judge had put that sentence at
@@ -303,7 +308,7 @@ def teaching_sentence(candidates, unit: Unit,
     def worth(s: Sentence) -> float:
         w = said.get(s.text, 1.0)
         if judged is not None:
-            w *= judged.sentence(s.text) * judged.unit(s.text, unit)
+            w *= judged.sentence(s.text) * judged.unit(s.text, unit) * judged.ease(s.text)
         return w
     return max(candidates, key=lambda s: (worth(s), quality(s.text), variety(s.text), s.text))
 
