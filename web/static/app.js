@@ -123,6 +123,61 @@ function loadCues(id) {
     .catch(function () { return []; });
 }
 
+// The control bar under every player. Whichever page made the player
+// registers it here when it is ready, with a way to ask where the current
+// sentence starts; the bar itself is the same everywhere.
+window.__player = null;
+window.__sentenceStart = null;
+
+(function () {
+  var bar = document.getElementById('controls');
+  if (!bar) return;
+  function live() {
+    var p = window.__player;
+    return p && p.getPlayerState ? p : null;
+  }
+  function clock(seconds) {
+    seconds = Math.max(0, Math.floor(seconds || 0));
+    return Math.floor(seconds / 60) + ':' + ('0' + (seconds % 60)).slice(-2);
+  }
+  bar.addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-act]');
+    var p = live();
+    if (!b || !p) return;
+    var act = b.dataset.act;
+    if (act === 'toggle') {
+      if (p.getPlayerState() === 1) p.pauseVideo(); else p.playVideo();
+    } else if (act === 'back') {
+      p.seekTo(Math.max(p.getCurrentTime() - 5, 0), true);
+    } else if (act === 'fwd') {
+      p.seekTo(p.getCurrentTime() + 5, true);
+    } else if (act === 'sentence') {
+      var at = window.__sentenceStart ? window.__sentenceStart() : null;
+      if (at != null) { p.seekTo(Math.max(at - 0.4, 0), true); p.playVideo(); }
+    } else if (act === 'rate') {
+      var rate = p.getPlaybackRate() === 1 ? 0.75 : 1;
+      p.setPlaybackRate(rate);
+      b.textContent = rate + '\u00d7';
+    } else if (act === 'mute') {
+      if (p.isMuted()) { p.unMute(); b.textContent = 'Sound off'; }
+      else { p.mute(); b.textContent = 'Sound on'; }
+    } else if (act === 'full') {
+      var frame = document.getElementById('player');
+      if (frame && frame.requestFullscreen) frame.requestFullscreen();
+      else if (frame && frame.webkitRequestFullscreen) frame.webkitRequestFullscreen();
+    }
+  });
+  setInterval(function () {
+    var p = live();
+    if (!p) return;
+    var toggle = document.getElementById('toggle');
+    if (toggle) toggle.textContent = p.getPlayerState() === 1 ? 'Pause' : 'Play';
+    var at = document.getElementById('clock');
+    if (at && p.getCurrentTime)
+      at.textContent = clock(p.getCurrentTime()) + ' / ' + clock(p.getDuration());
+  }, 500);
+})();
+
 // A subtitle line as words a reader can click. Each word is a button --
 // buttons are what the swipe handlers leave alone, and what a finger can
 // hit -- carrying the unit it wears, where the corpus knows one. Clicking
@@ -390,6 +445,11 @@ function cueAt(cues, now) {
   window.onYouTubeIframeAPIReady = function () {
     player = new YT.Player('player', {events: {onReady: function () {
       ready = true;
+      window.__player = player;
+      window.__sentenceStart = function () {
+        var el = slides[showing];
+        return el && el.dataset.at ? parseFloat(el.dataset.at) : null;
+      };
       play(showing);
       setInterval(function () {
         if (player && player.getCurrentTime) follow(player.getCurrentTime());
@@ -560,6 +620,10 @@ function cueAt(cues, now) {
   window.onYouTubeIframeAPIReady = function () {
     player = new YT.Player('player', {events: {onReady: function () {
       ready = true;
+      window.__player = player;
+      window.__sentenceStart = function () {
+        return cues[marking] ? cues[marking].at : 0;
+      };
       setInterval(function () {
         if (!player || !player.getCurrentTime) return;
         var i = cueAt(cues, player.getCurrentTime());

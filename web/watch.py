@@ -22,19 +22,48 @@ LEAD_IN = 0.4
 
 
 def player(video_id: str, start: float) -> str:
-    """The video, opened at the moment the sentence is said.
+    """The video, opened at the moment the sentence is said, with our own
+    controls under it.
 
     Deliberately no `end`: stopping at the sentence would make the caption and
     transcript pointless, and the reason to hear a word said is to hear what
     surrounds it.
+
+    YouTube's own controls are off (`controls=0`) and the frame is cropped
+    by a title bar's height top and bottom (`.player iframe`), which is the
+    only way to be rid of the title-and-share bar the embed lays over the
+    picture at the start and on every pause. What that costs -- play,
+    pause, seeking, the speed, the sound, full screen -- the bar below
+    gives back through the player API, on every page alike, and it works
+    on the reel too, where the picture itself cannot take a click.
     """
     return (
         "<div class='player'>"
         f"<iframe id='player' title='Video' allowfullscreen "
-        "allow='autoplay; accelerometer; encrypted-media; picture-in-picture' "
+        "allow='autoplay; accelerometer; encrypted-media; picture-in-picture; fullscreen' "
         f"src='https://www.youtube-nocookie.com/embed/{escape(video_id)}"
         f"?start={max(int(start - LEAD_IN), 0)}"
-        "&rel=0&modestbranding=1&enablejsapi=1&playsinline=1'></iframe></div>"
+        "&rel=0&controls=0&enablejsapi=1&playsinline=1'></iframe></div>"
+        + controls()
+    )
+
+
+def controls() -> str:
+    """The bar under every player. `app.js` binds it to whichever player
+    the page made (`window.__player`) and asks the page where the current
+    sentence starts (`window.__sentenceStart`)."""
+    return (
+        "<div class='controls' id='controls'>"
+        "<button type='button' data-act='sentence' title='Play this sentence again'>"
+        "&#8635; sentence</button>"
+        "<button type='button' data-act='back' title='Five seconds back'>&minus;5 s</button>"
+        "<button type='button' data-act='toggle' id='toggle'>Play</button>"
+        "<button type='button' data-act='fwd' title='Five seconds on'>+5 s</button>"
+        "<button type='button' data-act='rate' id='rate' title='Slower or normal speed'>1&times;</button>"
+        "<button type='button' data-act='mute' id='mute'>Sound off</button>"
+        "<button type='button' data-act='full' title='Full screen'>&#x26F6;</button>"
+        "<span class='clock' id='clock'></span>"
+        "</div>"
     )
 
 
@@ -74,7 +103,7 @@ def script() -> str:
     scrolling the document would carry the video out of the viewport, which
     is the opposite of what a video page is for.
     """
-    return """
+    return f"<script src='{stamped('app.js')}'></script>" + """
 <script src='https://www.youtube.com/iframe_api'></script>
 <script>
 (function () {
@@ -108,6 +137,10 @@ def script() -> str:
 
   window.onYouTubeIframeAPIReady = function () {
     player = new YT.Player('player', {events: {onReady: function () {
+      window.__player = player;
+      window.__sentenceStart = function () {
+        return cues[showing] ? parseFloat(cues[showing].dataset.at) : null;
+      };
       setInterval(function () {
         if (player && player.getCurrentTime) showCue(player.getCurrentTime());
       }, 250);
@@ -155,11 +188,6 @@ def merged_script() -> str:
 def stage(video_id: str, start: float) -> str:
     """The player, ready for whichever sentence the deck is showing."""
     return (
-        "<div class='stage' id='stage'><div class='player'>"
-        f"<iframe id='player' title='Video' allowfullscreen "
-        "allow='autoplay; accelerometer; encrypted-media; picture-in-picture' "
-        f"src='https://www.youtube-nocookie.com/embed/{escape(video_id)}"
-        f"?start={max(int(start - LEAD_IN), 0)}"
-        "&rel=0&modestbranding=1&enablejsapi=1&playsinline=1'></iframe></div>"
+        f"<div class='stage' id='stage'>{player(video_id, start)}"
         "<p class='de' id='caption'></p><p class='en' id='caption-en'></p></div>"
     )

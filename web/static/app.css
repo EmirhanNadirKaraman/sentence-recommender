@@ -284,9 +284,17 @@ a.go:hover { border-color: var(--target); background: var(--target); }
 
 /* Video: player above, transcript following along beside it. */
 .player { position: relative; padding-bottom: 56.25%; height: 0;
-  background: var(--surface); border: 1px solid var(--faint); }
-.player iframe { position: absolute; inset: 0; width: 100%; height: 100%;
-  border: 0; }
+  background: var(--surface); border: 1px solid var(--faint); overflow: hidden; }
+/* Cropped by a title bar's height top and bottom: the embed lays a title
+   and share bar over the picture at the start and on every pause, and no
+   parameter turns it off any more. Our own bar under the player gives
+   back what the native controls did. */
+.player iframe { position: absolute; left: 0; width: 100%;
+  top: -60px; height: calc(100% + 120px); border: 0; }
+.controls { display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+  margin: 8px 0 0; }
+.controls button { min-height: 36px; padding: 6px 10px; font-size: 14px; }
+.controls .clock { font: 400 13px var(--sans); color: var(--ink-2); margin-left: auto; }
 
 /* Listening rather than watching: the picture goes, the words get the room.
    For a run this is the honest shape of the thing — you are not looking at
