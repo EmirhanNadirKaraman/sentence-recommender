@@ -34,7 +34,7 @@ from watchability import ENOUGH_LINES, taste_weight, watchability
 
 # Bump when scoring changes: the stored rows are only valid for
 # the code that wrote them.
-SCORE_VERSION = 6
+SCORE_VERSION = 7
 
 # How many next-best words to keep per video. The panel shows eight;
 # storing more would be paying to remember what nobody reads.
