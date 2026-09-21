@@ -2049,3 +2049,52 @@ a verb's goal is the verb or the frame is item 2 of the survey above, and the
 per-pattern table is the first measurement of what each answer costs. Experiment
 04 is this benchmark; the lemma disagreements, dialect marks and compounds
 listed above stay as the second set, for the calibration question itself.
+
+### 27. What the answers should change next — planned, 2026-09-21
+
+The pass is in the pick (`rank`, `teaching_sentence`, the quiz, the walk)
+and that part is settled: 3,437 of the beginner plan's 3,883 steps are
+taught with a sentence the judge puts at .5 or better, 85 below .3, 15
+below .1 (rare words with nothing better), and `plain` doubts the taught
+unit in 5. What the same numbers have not been used for, in the order
+agreed, free work first and the $1.66 last:
+
+1. **`level` into the pick, `plain` into the counts — no spend.** The
+   beginner plan teaches with A1 626 · A2 1,087 · **B1 1,634 · B2 416**
+   sentences: i+1 guarantees the words and nothing guarantees the
+   syntax, and `quality` plateaus (80% score 1.000) so a level key would
+   do real work. A "my level" setting (A1–B2), a key in `rank` and
+   `teaching_sentence` right after the judge product — among clean
+   readable sentences the one nearest the setting wins — and a level
+   badge on the slide and on `/roadmap`. And a unit dropped from a
+   sentence where `plain` < .2 (403 judged pairs — `gehört` counted as
+   `gehören`, `spielen` in `eine Rolle spielen`), at corpus load, keyed
+   by text like the other overrides: today that only demotes the
+   sentence in the word's own deck while it still counts as an
+   occurrence in the walk's gain, the reel's "+X% readable", `/blocked`
+   and comprehension. Then rebuild the plan, re-gloss what moved (local,
+   ~15 min), export, and compare the teaching-sentence level histogram
+   before and after — that is the proof.
+2. **The candidates a rebuilt plan pulls in — ~$0.1–0.3, on a go.**
+   `ask-sentences --plan beginner` asks exactly the subtitle candidates
+   nobody has judged, so every card stays judged.
+3. **The reel's difficulty — ~$1, on a go.** Only 18% of subtitle lines
+   are judged and they are the plan's picks, the easy ones; no video has
+   three quarters of its lines levelled, two have half. Experiment 06
+   says form A (`level` alone, 493 tokens) is the pass's question and
+   form B (batched, scale in the state) is not. So: form A over the
+   sentences of the reel's top ~300 watchable videos (~45,000 lines),
+   stored under the same `level` question so nothing is asked twice, and
+   `watchability` gets a level band against the setting; `well_formed`
+   and `standard` keep lyrics and on-screen text out of comprehension.
+   Leaves ~$0.3 in reserve.
+
+Not now: a floor and a deferral for the 85 steps taught with a doubtful
+sentence (step 1 changes which those are), and one matcher for fixed
+expressions from the discovery list (its own day). Seen on the way and
+left: six cards the gloss cannot fill (`hängen`, `aufheben`, `vereinen`,
+`klopfen`, `reiten`, `strukturieren`) because the model returns two
+answers for three sentences — the third has the word as a noun or a
+participle (`das Klopfen`, `relativ strukturiert`, `vereint!`), which the
+matcher counted as the verb and the judge never saw, the sentence being a
+transcript's.
