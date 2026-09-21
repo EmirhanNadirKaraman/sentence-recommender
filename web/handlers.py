@@ -1712,7 +1712,8 @@ class Viewer:
         readable, and to hear them — the same card as the reading page,
         with its player, stepper and transcript. `video` names the reel
         the reader came from: that video's sentences go first among the
-        equally readable, since they are the ones the panel promised.
+        equally readable, since they are the ones the panel promised, and
+        a decision sends the reader back to that reel.
         """
         source = self.source(query)
         target = Unit(kind, key)
@@ -1735,8 +1736,9 @@ class Viewer:
         readable = sum(1 for s in deck if not (s.units - known - {target}))
         already = target in known
         watchable = self._has_video(deck)
-        back = (f"/unit/{kind}/{quote(key, safe='')}?src={quote(source)}"
-                + (f"&video={quote(video_id, safe='')}" if video_id else ""))
+        # A decision here is the end of the visit: back to the reel the
+        # reader came from, at the same video, or to the reading page.
+        back = f"/reels?video={quote(video_id, safe='')}" if video_id else "/"
         if not deck:
             body = (f"<h1>{escape(key)}</h1><p class='empty'>No sentence in this "
                     "corpus uses it. Generate one with "
@@ -2044,7 +2046,14 @@ class Viewer:
             return self._page("Reels", f"<h1>Nothing to watch</h1>"
                           f"<p class='empty'>{why}</p>", "/reels", source)
 
-        here = min(max(int(query.get("i") or 0), 0), len(ranked) - 1)
+        # By position, or by the video a page is sending the reader back
+        # to: the word page came from a reel, and after a decision there
+        # the order may have moved, so the video is the address, not `i`.
+        wanted = query.get("video") or ""
+        here = next((n for n, r in enumerate(ranked) if r["video"] == wanted), None) \
+            if wanted and not query.get("i") else None
+        if here is None:
+            here = min(max(int(query.get("i") or 0), 0), len(ranked) - 1)
         row = ranked[here]
         args = f"?src={quote(source)}"
         prev = (f"<a class='link' href='/reels{args}&i={here - 1}'>&larr; easier</a>"
