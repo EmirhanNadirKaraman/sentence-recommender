@@ -29,7 +29,7 @@ from vocab.search import UnitSearch
 from vocab.word_lists import WordListStore
 from fingerprint import analyser_fingerprint
 from scores import ScoreStore
-from vocab.channel_taste import TASTES, ChannelTaste
+from vocab.channel_taste import MACHINE, TASTES, ChannelTaste
 from watchability import ENOUGH_LINES, taste_weight, watchability
 
 # Bump when scoring changes: the stored rows are only valid for
@@ -2062,6 +2062,23 @@ class Viewer:
                    f"<th></th></tr>{''.join(row(c, d) for c, d in gone.items())}"
                    "</table>" if gone
                    else "<p class='empty'>No channel is removed.</p>")
+        synthetic = [c for c, t in self._taste.all().items() if t == MACHINE]
+
+        def machine_row(channel: str) -> str:
+            return ("<tr><td>"
+                    f"{escape(names.get(channel) or channel)}</td>"
+                    f"<td class='n'>{counts.get(channel, 0):,}</td>"
+                    "<td><form method='post' action='/taste'>"
+                    f"<input type='hidden' name='channel' value='{escape(channel)}'>"
+                    f"<input type='hidden' name='taste' value='{MACHINE}'>"
+                    f"<input type='hidden' name='back' value='/settings?src={quote(source)}'>"
+                    "<button type='submit'>Not machine-made after all</button>"
+                    "</form></td></tr>")
+
+        machine = ("<table class='rows'><tr><th>channel</th>"
+                   "<th class='n'>videos</th><th></th></tr>"
+                   f"{''.join(machine_row(c) for c in synthetic)}</table>" if synthetic
+                   else "<p class='empty'>No channel is marked machine-made.</p>")
         options = "".join(
             f"<option value='{escape(channel)}'>"
             f"{escape(names.get(channel) or channel)} "
@@ -2070,7 +2087,15 @@ class Viewer:
             if channel not in gone and counts.get(channel))
         body = (
             "<h1>Settings</h1>"
-            "<h2>Removed channels</h2>"
+            "<h2>Machine-made channels</h2>"
+            "<p class='note'>Marked on the reel, under the picture. A "
+            "machine-made channel's videos sink in the feed as a set-aside "
+            "channel's do, and its sentences count half on every card, deck "
+            "and plan — a sentence nobody said is a worse example than one "
+            "somebody did, but it still shows where nothing spoken says the "
+            "word. Stored plans pick it up at the next rebuild.</p>"
+            + machine
+            + "<h2>Removed channels</h2>"
             "<p class='note'>A removed channel is gone from every page: its "
             "sentences leave the roadmap, the decks and the examples, and "
             "its videos leave the feed and the catalogue. Nothing is "
@@ -2448,7 +2473,7 @@ class Viewer:
                     f" aria-pressed='{'true' if chosen else 'false'}'>"
                     f"{label}</button>")
 
-        # Removal is its own form rather than a third taste: the taste
+        # Removal is its own form rather than a fourth taste: the taste
         # buttons toggle and rank, this one takes the channel off every page,
         # and it is undone in Settings rather than by pressing it again.
         return ("<form class='taste' method='post' action='/taste'>"
@@ -2457,6 +2482,7 @@ class Viewer:
                 f"<span class='who'>{escape(name)}</span>"
                 + button("up", "More of this")
                 + button("down", "Less of this")
+                + button(MACHINE, "Machine-made")
                 + "</form>"
                 "<form class='taste remove' method='post' action='/blacklist'>"
                 f"<input type='hidden' name='channel' value='{escape(channel)}'>"

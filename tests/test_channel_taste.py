@@ -237,3 +237,38 @@ class DoubtTest(unittest.TestCase):
     def test_nothing_doubted_changes_nothing(self) -> None:
         self.assertEqual(self.app.apply_overrides([self.said]), [self.said])
 
+
+class MachineMadeTest(unittest.TestCase):
+    """A channel marked machine-made sinks in the feed as a set-aside one
+    does, and its sentences count half wherever anything ranks."""
+
+    def setUp(self) -> None:
+        from config import Settings
+        from context import Application
+        self._dir = tempfile.TemporaryDirectory()
+        self.app = Application(Settings(
+            state_path=Path(self._dir.name) / "state.sqlite3"))
+
+    def tearDown(self) -> None:
+        self._dir.cleanup()
+
+    def test_it_is_a_taste_the_store_accepts_and_the_feed_weighs_down(self) -> None:
+        from vocab.channel_taste import MACHINE
+        from watchability import SET_ASIDE, taste_weight
+        self.app.taste.set("UC1", MACHINE)
+        self.assertEqual(self.app.taste.of("UC1"), MACHINE)
+        self.assertEqual(taste_weight(MACHINE), SET_ASIDE)
+        self.app.taste.set("UC1", None)
+        self.assertIsNone(self.app.taste.of("UC1"))
+
+    def test_its_sentences_are_a_verdict_on_every_page_that_ranks(self) -> None:
+        from context import MACHINE_COST
+        # Stand in for the catalogue query, as the removal test does.
+        self.app._machine = (self.app.taste.version(), frozenset({"Gesagt von einer Maschine."}))
+        self.app.overrides.mark("Gesagt von einer Maschine.", 0.8)
+        self.app.overrides.mark("Gesagt von einem Menschen.", 0.8)
+        said = self.app.verdicts()
+        self.assertAlmostEqual(said["Gesagt von einer Maschine."], 0.8 * MACHINE_COST)
+        self.assertAlmostEqual(said["Gesagt von einem Menschen."], 0.8)
+        self.assertNotIn("Nie erwähnt.", said)
+

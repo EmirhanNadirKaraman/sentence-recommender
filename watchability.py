@@ -57,10 +57,11 @@ SET_ASIDE = 0.25
 
 
 def taste_weight(taste: str | None) -> float:
-    """The multiplier for what you have said about a channel."""
+    """The multiplier for what you have said about a channel. A channel
+    marked machine-made sits where a set-aside one does: down, not out."""
     if taste == "up":
         return SUBSCRIBED
-    if taste == "down":
+    if taste in ("down", "machine"):
         return SET_ASIDE
     return 1.0
 

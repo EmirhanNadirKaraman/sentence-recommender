@@ -24,6 +24,12 @@ from vocab.aliases import Aliases, heads
 from vocab.compounds import Compounds
 
 
+# What a sentence nobody said is worth beside one somebody did: half. Enough
+# that an equally good spoken sentence wins every pick, not so much that a
+# word only a synthetic channel says goes untaught.
+MACHINE_COST = 0.5
+
+
 class Application:
     """Lazily constructed object graph, shared by every command."""
 
@@ -31,6 +37,7 @@ class Application:
         self.settings = settings or Settings()
         # (blacklist version, the videos it removes) -- see `banned_videos`.
         self._banned: tuple[int, frozenset[str]] | None = None
+        self._machine: tuple[int, frozenset[str]] | None = None
 
     # --- storage ---------------------------------------------------------
 
@@ -115,6 +122,35 @@ class Application:
         """The channels the reader has removed. See `vocab.channel_taste`."""
         from vocab.channel_taste import ChannelBlacklist   # noqa: PLC0415
         return ChannelBlacklist(self.settings.state_path)
+
+    @cached_property
+    def taste(self):
+        """What the reader has said about each channel. See `vocab.channel_taste`."""
+        from vocab.channel_taste import ChannelTaste       # noqa: PLC0415
+        return ChannelTaste(self.settings.state_path)
+
+    def machine_made(self) -> frozenset[str]:
+        """Every sentence of a channel marked machine-made, by text -- what
+        the mark means in the terms the rankings speak.
+
+        Derived once per change of taste, like `banned_videos`: the texts
+        are a catalogue query over the channel's videos, and `verdicts` is
+        asked for on every ranking.
+        """
+        from vocab.channel_taste import MACHINE            # noqa: PLC0415
+        version = self.taste.version()
+        if self._machine is None or self._machine[0] != version:
+            channels = [c for c, t in self.taste.all().items() if t == MACHINE]
+            texts: frozenset[str] = frozenset()
+            if channels:
+                with Database(self.settings.own) as db:
+                    texts = frozenset(text for (text,) in db.rows(
+                        "SELECT DISTINCT s.text FROM corpus_sentence s"
+                        " JOIN video v ON v.video_id = s.video_id"
+                        " JOIN channel c ON c.id = v.channel_id"
+                        " WHERE c.youtube_channel_id = ANY(%s)", (channels,)))
+            self._machine = (version, texts)
+        return self._machine[1]
 
     def banned_videos(self) -> frozenset[str]:
         """Every video of a removed channel -- what the blacklist means in
@@ -493,8 +529,18 @@ class Application:
         Read fresh rather than cached: a reader marking a sentence bad
         expects the next page to stop offering it, and this is one small
         query against a table that holds only what has been judged.
+
+        A channel marked machine-made is a verdict on all of its sentences
+        at once -- `MACHINE_COST` on each, multiplied into whatever else was
+        said -- so a synthetic sentence loses to a spoken one the judge
+        thinks as good, and still shows where nothing spoken says the word.
+        Live on every page that ranks as it reads; a stored plan carries
+        the verdicts it was walked with until the next `build-roadmap`.
         """
-        return self.overrides.verdicts()
+        said = self.overrides.verdicts()
+        for text in self.machine_made():
+            said[text] = said.get(text, 1.0) * MACHINE_COST
+        return said
 
     def beginner_set(self) -> KnownSet:
         """What someone opening this for the first time knows.

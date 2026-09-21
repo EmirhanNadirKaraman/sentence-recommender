@@ -6,10 +6,18 @@ truthful until the next sync and then silently gone. This is a preference,
 not a fact about the channel, so it lives beside the other things you have
 decided — what you know, what you have snoozed, which sentences you hid.
 
-Two states and an absence. Subscribing lifts a channel's videos in the feed;
-setting one aside pushes them down. Down, never out: a channel you would
-rather not watch can still hold the one video that teaches the word you need.
-Weights live in `watchability`, beside the other numbers that decide an order.
+Three states and an absence. Subscribing lifts a channel's videos in the
+feed; setting one aside pushes them down. Down, never out: a channel you
+would rather not watch can still hold the one video that teaches the word
+you need. Weights live in `watchability`, beside the other numbers that
+decide an order.
+
+The third, `machine`, is not a preference but a fact about the material:
+the channel's voice or text is machine-made. It pushes the videos down as
+setting aside does, and — unlike setting aside — its sentences too, on every
+card, deck and plan (`Application.verdicts`): a sentence nobody said is a
+worse example of German than one somebody did, whatever the judge makes of
+its grammar. Reversed in Settings, where every such channel is listed.
 
 Out is a separate decision, and `ChannelBlacklist` holds it. A channel on it
 is gone from every page -- its sentences are dropped wherever the corpus is
@@ -27,7 +35,8 @@ from state import open_state
 
 UP = "up"
 DOWN = "down"
-TASTES = frozenset({UP, DOWN})
+MACHINE = "machine"
+TASTES = frozenset({UP, DOWN, MACHINE})
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS channel_taste (
