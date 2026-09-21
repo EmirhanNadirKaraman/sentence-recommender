@@ -2174,8 +2174,32 @@ corpus at all — but their median position moved from 3,552 to 3,840:
 the doubtful tail is the tail now. Levels unchanged (A1 855 · A2 1,738 ·
 B1 1,049 · B2 129).
 
-Not now: one matcher for fixed expressions from the discovery list (its
-own day — next). Seen on the way and
+**The fixed expressions, done (`c9d756c`, 2026-09-21).** `data/expressions.txt`
+names 45 — `es gibt` and 44 read off the discovery list — and says how
+each is found: words in a row (`auf [gar] keinen fall`, `[es] tut mir *
+leid`) in a pass before the verbs and nouns are read, or words hanging
+from a verb (`spielen :: rolle`, `stehen/stellen :: zur verfügung`) in the
+verb branch where `es gibt` is. The words are consumed and their lemmas
+dropped; the canonicals are registered by being named (beside
+`phrase_table`'s, which a sync could not lose them from) and listed as
+goals by `build-study-list` in a section of their own. Read against the
+judge before the rebuild, on 6,000 judged sentences: 187 matches, every
+one but `die Rede sein`'s (`* rede` took `Meine Rede!`, tightened) on a
+sentence the judge had put at `expression` ≥ .5; 76 of the 149 the judge
+is surest of match nothing yet — `in den Schatten stellen`, `das Wort
+haben`, `im Raum stehen`, `mit ins Boot holen` — lines for the file, no
+code. After the rebuild all 45 occur: `es gibt` 10,994 sentences, `das
+heißt` 1,427, `auf jeden Fall` 941, `und zwar` 679, `eine Rolle spielen`
+522, `tut mir leid` 490. The plan is 3,927 steps (+44), 77,597 readable
+at the end; gain places them — `es gibt` at 19, `auf jeden Fall` 221,
+`das heißt` 241, `tut mir leid` 289, `und zwar` 332, `eine Rolle spielen`
+414 — so where the study list writes them (after the ranked words) does
+not matter. Known: `das heißt` also takes *that is called* (`ein Buch,
+das heißt: …`), and the parser tags that `das` PDS like the marker's,
+300 of 300, so nothing here can tell them apart; `eine Rolle spielen`
+takes the literal role. 1,523 subtitle candidates of the new plan are
+unjudged (the expressions' decks) — `ask-sentences --plan beginner`,
+about $0.11, on a go. Seen on the way and
 left: six cards the gloss cannot fill (`hängen`, `aufheben`, `vereinen`,
 `klopfen`, `reiten`, `strukturieren`) because the model returns two
 answers for three sentences — the third has the word as a noun or a
