@@ -117,3 +117,15 @@ möchte    mögen
 möchten   mögen
 möchtet   mögen
 möcht     mögen
+
+# Read off the reel's unlisted words, 2026-09-21: subjunctives and
+# participles the lookup table also lacks, and two verbs every YouTube
+# channel says at the end.
+müsste    müssen
+müssten   müssen
+solltet   sollen
+gegessen  essen
+verlinke  verlinken
+verlinkt  verlinken
+klickt    klicken
+müsstet   müssen

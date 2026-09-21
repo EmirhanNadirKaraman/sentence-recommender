@@ -136,3 +136,45 @@ weniger	wenig
 solcher	solch
 ander	anderer
 keiner	kein
+
+# Inflected adjective and pronoun forms the lemmatiser hands back as
+# lemmas (read off the reel's unlisted words on 2026-09-21, TODO #27):
+# `nächster` stood at 1,401 occurrences beside the listed `nächst`,
+# `letzter` at 1,140 beside `letzt`, `gute` at 126 beside `gut`. Folded
+# onto the base form the list writes. `gute`, `neue`, `ganze`, `tote` are
+# also the nominalisations — `das Gute`, `der Tote` — and are merged into
+# the adjective on purpose: one word to a learner.
+nächster	nächst
+letzter	letzt
+zweiter	zweit
+dritter	dritt
+vierter	viert
+sogenannter	sogenannt
+besonderer	besonder
+rechter	recht
+oberer	ober
+mancher	manch
+viele	viel
+einige	einig
+gute	gut
+neue	neu
+ganze	ganz
+tote	tot
+weiße	weiß
+# Not `gewiß`: the parser also hands it back for `das Gewissen`, and a
+# fold would put the conscience on the adjective's card. See the header.
+
+# Colloquial spellings and forms the parser did not tag as verbs (so
+# `lemma_overrides` never sees them), each a listed word: `drin` 311
+# times beside `darin`, `grade` 188 beside `gerade`, `glaub` — as in
+# `glaub ich` — tagged an adjective and left as it was.
+grade	gerade
+drin	darin
+dran	daran
+drauf	darauf
+drüber	darüber
+nee	nein
+öfter	oft
+glaub	glauben
+komm	kommen
+eur	euer

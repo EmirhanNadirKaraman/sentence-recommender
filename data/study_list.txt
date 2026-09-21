@@ -4151,6 +4151,10 @@ die Nerven verlieren	die Nerven verlieren
 
 # --- below here: known forms that the ranked list never named ---
 
+zweit	zweit
+dritt	dritt
+viert	viert
+sogenannt	sogenannt
 hereinkommen	hereinkommen
 herauskommen	herauskommen
 gucken	gucken

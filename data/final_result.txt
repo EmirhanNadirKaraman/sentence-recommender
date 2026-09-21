@@ -4094,3 +4094,7 @@ der Zugriff	der Zugriff
 zweifellos	zweifellos
 die Ermittlung	die Ermittlung
 westdeutsch	westdeutsch
+zweit	zweit
+dritt	dritt
+viert	viert
+sogenannt	sogenannt

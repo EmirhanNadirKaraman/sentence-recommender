@@ -37,6 +37,27 @@ _LEMMA_FIXES = (Path(__file__).resolve().parents[1] / "data"
                 / "lemma_fixes.txt")
 
 VERB_TAGS = ("VV", "VA", "VM")
+# What speech is padded with. Not by tag: `hallo`, `danke` and `ach` share
+# the interjection tag and are words a learner is taught.
+FILLERS = frozenset({"oh", "äh", "ähm", "ah", "hm", "hmm", "mh", "mhm", "na", "ne"})
+
+
+def _is_vocabulary(lemma: str) -> bool:
+    """Whether a lemma is a word anyone could learn.
+
+    Names and numbers are free by their tags; these slip past the tags. An
+    abbreviation — `z.B.`, which the parser tags a finite verb, `bzw.`,
+    `Dr.` — a numeral written with a dot (`19.`), a symbol (`€`, the `’s`
+    cut off `für’s`), anything with a digit in it (`CO2`), and the fillers
+    above. Read off the reel's unlisted words on 2026-09-21: 3,253 of the
+    top two hundred's occurrences were the first four kinds, 1,497 the
+    fillers, and each had been a word the reader was told they did not
+    know.
+    """
+    return (not lemma.endswith(".")
+            and any(c.isalpha() for c in lemma)
+            and not any(c.isdigit() for c in lemma)
+            and lemma.lower() not in FILLERS)
 # What a noun is tagged as, for the gate below: a common noun, or a name
 # used as one.
 NOUN_TAGS = frozenset({"NN", "NE"})
@@ -410,7 +431,7 @@ class UnitAnalyzer:
         nothing usable.
         """
         lemma = token.lemma_.strip()
-        if not lemma or lemma == "--":
+        if not lemma or lemma == "--" or not _is_vocabulary(lemma):
             return ""
         # Before the lowercasing, because the capital is the whole distinction:
         # the noun `Treffen` and the verb `treffen` are one word to `.lower()`
