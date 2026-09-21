@@ -67,3 +67,4 @@ out/translate.log
 # since the project started. Ignored for the same reason as the two above:
 # whatever they say that matters is in the database or in the deck.
 out/logs/
+out/ask.log

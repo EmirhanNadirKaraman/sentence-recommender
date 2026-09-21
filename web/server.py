@@ -234,6 +234,8 @@ def _make_handler(viewers: "Viewers"):
                 return viewer.subtitles(query), 200
             if path == "/settings":
                 return viewer.settings(query), 200
+            if path == "/frontier":
+                return viewer.frontier(query), 200
             if path == "/reels":
                 return viewer.reels(query), 200
             if path == "/lists":

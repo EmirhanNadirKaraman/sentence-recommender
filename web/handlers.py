@@ -39,14 +39,15 @@ SCORE_VERSION = 5
 # How many next-best words to keep per video. The panel shows eight;
 # storing more would be paying to remember what nobody reads.
 NEXT_WORDS = 8
-from corpus.quality import well_formed
+from corpus.quality import score as quality, well_formed
 from corpus.sentence import Sentence
 from db import Database
 from roadmap import (
     CorpusIndex, ExampleIndex, KnownSet, RoadmapBuilder, UnitPriority,
 )
 from roadmap.reach import reachable
-from roadmap.examples import DECK_SIZE
+from roadmap.refresh import read_label
+from roadmap.examples import DECK_SIZE, teaching_sentence
 from roadmap.step import RoadmapStep
 from roadmap.videos import VideoRoadmapStore
 from roadmap.store import ALL, RoadmapStore, current_stamp
@@ -109,6 +110,11 @@ class Viewer:
         # of its own from the same rows, so the one in the scope was made
         # and thrown away.
         self._corpora: dict[str, list[Sentence]] = {}
+        # The same sentences as a plan saw them, per plan, and the index
+        # over them with the step it has been replayed to -- see `frontier`.
+        self._frontiers: dict[str, list[Sentence]] = {}
+        self._frontier_at: dict[str, tuple[CorpusIndex, int]] = {}
+        self._frontier_lock = Lock()
         self._priority: UnitPriority | None = None
         # Analysing a new video and re-walking the plans, off the request.
         self._catching = False
@@ -1320,7 +1326,9 @@ class Viewer:
 
         entries = "".join(
             "<div class='entry'>"
-            f"<div class='rail'>{s.position}<span class='kind'>"
+            f"<div class='rail'><a href='/frontier?plan={quote(label, safe='')}"
+            f"&step={s.position}' title='what else was one word away here'>"
+            f"{s.position}</a><span class='kind'>"
             f"{'known' if s.unit in known else ('pattern' if s.unit.is_pattern else 'word')}"
             "</span></div><div class='body'>"
             f"<div class='unit'><a href='/unit/{s.unit.kind}/"
@@ -1726,6 +1734,173 @@ class Viewer:
         )
         return self._page(key, body, "/roadmap", source)
 
+    # --- the frontier -----------------------------------------------------
+
+    def frontier(self, query: dict) -> str:
+        """What could be taught at any step of a plan, not only what was.
+
+        The walk keeps one unit per step and drops the rest of what was one
+        word away. This page puts them back: the state at step N is the
+        plan's seed plus its first N-1 steps, and the frontier is every unit
+        that is the single unknown in some sentence from there -- ranked by
+        how many sentences it alone would unlock, the plan's own pick marked
+        among them.
+
+        The index is kept between requests and only ever moved forward:
+        building one over the corpus is two seconds and replaying a step
+        into it two or three milliseconds, so paging onward costs nothing
+        and jumping back costs a rebuild. Backward is the rarer direction.
+        """
+        from commands.export_deck import DEFAULT_LABEL     # noqa: PLC0415
+
+        labels = sorted(self._store.sources())
+        if not labels:
+            return self._page("Frontier", "<h1>Frontier</h1><p class='empty'>"
+                              "No plan is stored yet.</p>", "/frontier")
+        label = query.get("plan") or ""
+        if label not in labels:
+            label = DEFAULT_LABEL if DEFAULT_LABEL in labels else labels[0]
+        steps = self._store.load(label)
+        total = len(steps)
+        now = next((s.position for s in steps if s.unit not in self.known),
+                   total + 1)
+        try:
+            step = int(query.get("step") or 1)
+        except ValueError:
+            step = 1
+        step = min(max(step, 1), total + 1)
+        kind = query.get("kind") if query.get("kind") in ("word", "pattern") \
+            else ""
+
+        plan = read_label(label)
+        sentences = self._frontier_corpus(label, plan)
+        with self._frontier_lock:
+            index = self._frontier_index(label, plan, sentences, steps, step)
+            found = dict(index.candidates())
+            unlocks = {u: index.unlocks(u) for u in found}
+            readable, known = index.readable, len(index.known)
+        pick = steps[step - 1].unit if step <= total else None
+        goals = frozenset(self.app.goal_units)
+
+        words = sum(1 for u in found if not u.is_pattern)
+        rows = sorted(
+            ((u, positions) for u, positions in found.items()
+             if positions and (not kind or u.is_pattern == (kind == "pattern"))),
+            key=lambda kv: (-len(kv[1]), -unlocks[kv[0]], kv[0].key))
+        pages = max(1, -(-len(rows) // SHOWN_ENTRIES))
+        page = min(max(int(query.get("page") or 1), 1), pages)
+        window = rows[(page - 1) * SHOWN_ENTRIES: page * SHOWN_ENTRIES]
+
+        # One sentence each, chosen as the walk chooses its own: what a
+        # reader or the judge has said about it, then how it reads.
+        examples = self.app.with_english([
+            teaching_sentence((sentences[p] for p in positions), u,
+                              self.app.verdicts(), self.app.judged)
+            for u, positions in window])
+
+        def link(**params) -> str:
+            return self._link("/frontier", "", plan=label, kind=kind, **params)
+
+        entries = "".join(
+            "<div class='entry'>"
+            f"<div class='rail'>{len(positions):,}<span class='kind'>"
+            f"{'pattern' if u.is_pattern else 'word'}</span></div>"
+            "<div class='body'>"
+            f"<div class='unit'><a href='/unit/{u.kind}/"
+            f"{quote(u.key, safe='')}'>{escape(u.key)}</a>"
+            + (" <span class='tag'>the plan's pick</span>" if u == pick else "")
+            + (" <span class='tag'>on your list</span>" if u in goals else "")
+            + "</div>"
+            f"{sentence(said.text, said.translation, said.surface_of(u))}"
+            f"<p class='also'>{len(positions):,} sentence"
+            f"{'' if len(positions) == 1 else 's'} need only this"
+            + (f" · brings {unlocks[u]:,} more to one word away"
+               if unlocks[u] else "")
+            + "</p></div></div>"
+            for (u, positions), said in zip(window, examples)
+        )
+        listing = (f"<div class='ledger'>{entries}</div>" if window
+                   else "<p class='empty'>Nothing is one word away here.</p>")
+
+        where = (f"<h1>Frontier</h1>"
+                 f"<p class='note'>Step {step:,} of {total:,}"
+                 f"{' — after the last step' if step > total else ''} in "
+                 f"<code>{escape(label)}</code>. Knowing "
+                 f"{known:,} units"
+                 f"{' (the function words alone)' if plan.beginner and step == 1 else ''}"
+                 f", {readable:,} sentences read outright and "
+                 f"<strong>{len(found):,}</strong> units are one word away: "
+                 f"{words:,} words, {len(found) - words:,} patterns.</p>")
+        if pick is not None:
+            where += (f"<p class='note'>The plan teaches "
+                      f"<strong>{escape(pick.key)}</strong> here"
+                      + ("." if pick in found else
+                         " — which is not on this frontier against what "
+                         "you know today; the plan was walked from an "
+                         "earlier vocabulary.")
+                      + "</p>")
+        turn = (
+            "<div class='pager'>"
+            + (f"<a href='{link(step=1)}'>first</a>" if step > 1 else "")
+            + (f"<a href='{link(step=step - 1)}'>previous</a>" if step > 1 else "")
+            + f"<span class='quiet'>step {step:,}</span>"
+            + (f"<a href='{link(step=step + 1)}'>next</a>" if step <= total else "")
+            + (f"<a href='{link(step=now)}'>now (step {now:,})</a>"
+               if now != step else "")
+            + "</div>")
+        kinds = "".join(
+            f"<option value='{v}'{' selected' if kind == v else ''}>{name}</option>"
+            for v, name in (("", "words and patterns"), ("word", "words only"),
+                            ("pattern", "patterns only")))
+        plans = "".join(
+            f"<option value='{escape(name)}'{' selected' if name == label else ''}>"
+            f"{escape(name)}</option>" for name in labels)
+        form = ("<form class='bar' method='get' action='/frontier'>"
+                f"<input type='number' name='step' value='{step}' min='1' "
+                f"max='{total + 1}' style='width:7rem'>"
+                f"<select name='kind'>{kinds}</select>"
+                f"<select name='plan'>{plans}</select>"
+                "<button type='submit'>Go</button></form>")
+        pager = ("<div class='pager'>"
+                 + (f"<a href='{link(step=step, page=page - 1)}'>previous</a>"
+                    if page > 1 else "")
+                 + f"<span class='quiet'>page {page} of {pages}</span>"
+                 + (f"<a href='{link(step=step, page=page + 1)}'>next</a>"
+                    if page < pages else "")
+                 + "</div>")
+        return self._page("Frontier", where + turn + form + listing + pager,
+                          "/frontier")
+
+    def _frontier_index(self, label: str, plan, sentences: list[Sentence],
+                        steps: list[RoadmapStep], step: int) -> CorpusIndex:
+        """The plan's index, replayed to just before `step`.
+
+        Reused when the step asked for is at or past where the kept index
+        stands, rebuilt from the seed when it is behind. Called under the
+        frontier lock: the index learns in place, and two requests moving
+        it at once would leave it describing neither step.
+        """
+        kept = self._frontier_at.get(label)
+        if kept is None or kept[1] > step:
+            seed = (self.app.beginner_set() if plan.beginner
+                    else self.app.known_set())
+            kept = (CorpusIndex(sentences, seed), 1)
+        index, at = kept
+        for taken in steps[at - 1:step - 1]:
+            index.learn(taken.unit)
+        self._frontier_at[label] = (index, step)
+        return index
+
+    def _frontier_corpus(self, label: str, plan) -> list[Sentence]:
+        """The sentences a plan was walked over, as the walk saw them."""
+        if label not in self._frontiers:
+            source = "+".join(plan.builds) if plan.builds else ALL
+            sentences = self.corpus_for(source, plan.list_only)
+            if plan.quality_only:
+                sentences = [s for s in sentences if well_formed(s.text)]
+            self._frontiers[label] = sentences
+        return self._frontiers[label]
+
     # --- settings ---------------------------------------------------------
 
     def settings(self, query: dict) -> str:
@@ -1791,6 +1966,8 @@ class Viewer:
             # kept: they describe each video as well as ever, and the feed
             # filters on the way out.
             self._corpora.clear()
+            self._frontiers.clear()
+            self._frontier_at.clear()
             self._scopes.clear()
             self._stuck.clear()
             self._videos.clear()
@@ -2651,6 +2828,8 @@ class Viewer:
                 RoadmapRefresher(self.app).refresh(touching="subtitle")
                 self._sources = None      # a build just changed size
                 self._corpora.clear()     # and what is in memory is stale
+                self._frontiers.clear()
+                self._frontier_at.clear()
                 self._scopes.clear()
                 self._stuck.clear()
                 with self._catching_lock:
