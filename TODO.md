@@ -2166,6 +2166,23 @@ band, keeps the line share as `readable` for the panel's "one word away"
 arithmetic, and shows both. `Mia fliegt zur WM` (74%, A2) leads at .51
 where it led at .033 for being the least-zero of a column of zeros.
 
+**The unlisted words, read and cleaned (`38aec06`), and the analysis on
+every core (`1d90ed4`).** Asked whether to count only listed words: no —
+measured, two thirds of the lines that would call readable hold an
+unknown unlisted word — but the unlisted 14% was read instead. Of the
+top two hundred's occurrences, 42% were not vocabulary: inflections the
+lemmatiser hands back as lemmas (`nächster` beside `nächst`), colloquial
+forms (`drin`, `grade`, `glaub ich`), abbreviations (`z.B.`, tagged a
+verb), numerals, symbols, fillers. Folded or ruled out (`_is_vocabulary`).
+After the rebuild: unlisted occurrences 255,346 → 238,360, readable
+lines 7,129 → 7,573, the plan 3,932 steps with 83,664 readable at the
+end (from 77,597), 73 doubtful steps (from 89), A1 teaching sentences
+865 → 967. Left for the next rebuild: `’s` (a letter in it, so the rule
+lets it through — needs "starts with an apostrophe"), `verbe → verb`,
+and `Russland` (749, a name the tagger calls a noun). The subtitle build
+itself now analyses on eight workers, 990 sentences a second against
+540, so a rebuild is ~10 minutes end to end rather than 30.
+
 **The floor, done (`c2388bf`).** A word whose best sentence is under
 `FLOOR` (.3 on the four) is deferred until a cleaner one is a step away,
 and taught last if none ever is; the page says so. On the rebuilt plan
