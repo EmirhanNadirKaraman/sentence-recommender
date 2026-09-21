@@ -69,6 +69,9 @@ from state import open_state
 #    (physically)" -- the frame's name on the sentence's sense. Now it is
 #    asked about `stehen`, which is what the card teaches (TODO #26, B).
 GLOSS_VERSION = 5
+# The version whose answers still stand where the question did not change
+# — see `GlossStore.senses`.
+STILL_CURRENT = 4
 
 # The bulk translation prompt has its own version, so a change to how the
 # gloss is asked does not throw away three hundred thousand sentences that
@@ -235,8 +238,9 @@ class GlossStore:
     def senses(self, model: str = "") -> dict[tuple[str, str, str], str]:
         """What each word means in each sentence it was glossed against.
 
-        Only rows the current prompt *and* the current model produced.
-        Anything else reads as missing and is asked again.
+        Only rows the current prompt *and* the current model produced --
+        or the prompt before it, where the bump did not change the question
+        for that word. Anything else reads as missing and is asked again.
 
         The model matters as much as the prompt, which cost a page of bad
         cards to learn: asked for a sentence translation, gemma-4-12B
@@ -245,12 +249,20 @@ class GlossStore:
         sentence. Same prompt, same version, different answers, and no way to
         tell them apart in the table without this.
         """
+        # Version 5 changed what `spoken` says for a case frame -- `stehen`
+        # now, not `jemandem stehen` -- and nothing else, so a noun's or an
+        # adverb's answer at version 4 is the answer to the same question.
+        # Without this the bump re-asked all 3,883 cards of the beginner
+        # deck for the 940 that had changed.
+        from vocab.goal_list import CASE_FRAME             # noqa: PLC0415
         with open_state(self._path) as conn:
-            return {(kind, key, text): means for kind, key, text, means in
-                    conn.execute(
-                        "SELECT kind, key, text, means FROM unit_sense"
-                        " WHERE version = ? AND (? = '' OR model = ?)",
-                        (GLOSS_VERSION, model, model))}
+            rows = conn.execute(
+                "SELECT kind, key, text, means, version FROM unit_sense"
+                " WHERE version IN (?, ?) AND (? = '' OR model = ?)"
+                " ORDER BY version",
+                (STILL_CURRENT, GLOSS_VERSION, model, model)).fetchall()
+        return {(kind, key, text): means for kind, key, text, means, version in rows
+                if version == GLOSS_VERSION or not CASE_FRAME.search(key)}
 
     def senses_for_reading(self, model: str = "") -> dict:
         """What a document shows: the newest meaning there is for each
@@ -488,12 +500,18 @@ def missing(cards: Iterable[Card], asked: Iterable[str] = ()) -> list[Card]:
     sentence with English against it, because `translate-sentences` writes
     English for the whole corpus without ever asking what a word means. Given
     nothing, this behaves as it did before.
+
+    A meaning against a sentence is proof it was asked as well: `save`
+    writes the two in one transaction. `asked` knows only the current
+    prompt's sentences, and a meaning `senses` carried over from the prompt
+    before -- see there -- has no sentence in that set; the meaning itself
+    says the question was put and answered.
     """
     asked = frozenset(asked or ())
     return [card for card in cards
             if not any(e.translation for e in card.examples)
             or not any(e.means for e in card.examples)
-            or any(e.text not in asked for e in card.examples)]
+            or any(e.text not in asked and not e.means for e in card.examples)]
 
 
 def run(cards: list[Card], store: GlossStore, client, model: str,

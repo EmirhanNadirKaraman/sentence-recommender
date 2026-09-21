@@ -149,6 +149,35 @@ class MissingTest(unittest.TestCase):
             store.save("lemma", "eins", [("Drei.", "Three.", None)], MODEL)
             self.assertEqual(missing([card], store.asked(MODEL)), [])
 
+    def test_an_answer_from_the_prompt_before_stands_where_the_question_did_not_change(self) -> None:
+        """Version 5 changed what the model is asked about a verb frame and
+        nothing else. A noun answered at version 4 was asked the same
+        question, and a card of such answers is not owed another call --
+        even though `asked` knows nothing of it, the bulk pass having since
+        replaced its English rows."""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "state.sqlite3"
+            store = GlossStore(path)
+            with sqlite3.connect(path) as conn:
+                conn.executemany(
+                    "INSERT INTO unit_sense (kind, key, text, means, version, model)"
+                    " VALUES (?,?,?,?,?,?)",
+                    [("lemma", "die Zeit", "Zeit.", "die Zeit means time.",
+                      GLOSS_VERSION - 1, MODEL),
+                     ("pattern", "jdm. (Dat) stehen", "Steht.",
+                      "jemandem stehen means to stand.", GLOSS_VERSION - 1, MODEL)])
+            store.save_translations({"Zeit.": "Time.", "Steht.": "Stands."}, MODEL)
+            senses, english = store.senses(MODEL), store.sentences(MODEL)
+            self.assertEqual(senses, {("lemma", "die Zeit", "Zeit."): "die Zeit means time."})
+            noun = Card(1, "die Zeit", False,
+                        (Example("Zeit.", english["Zeit."],
+                                 senses.get(("lemma", "die Zeit", "Zeit."))),), None, 1)
+            verb = Card(2, "jdm. (Dat) stehen", True,
+                        (Example("Steht.", english["Steht."],
+                                 senses.get(("pattern", "jdm. (Dat) stehen", "Steht."))),),
+                        None, 1)
+            self.assertEqual(missing([noun, verb], store.asked(MODEL)), [verb])
+
 
 if __name__ == "__main__":
     unittest.main()
