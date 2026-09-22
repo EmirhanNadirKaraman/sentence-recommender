@@ -3737,16 +3737,42 @@ def _words(sentence: Sentence) -> list[list[str]]:
     unit claims the word — a line the filter set aside is not analysed at
     all, and its words still open a popup, with the dictionary and the
     model's gloss of the word as written.
+
+    One unit a word, and a word often wears two: `Freund` is the lemma
+    and part of `etw./jdn. (Akk) haben`'s span. The word's own lemma wins,
+    and the pattern takes what no lemma claims — the article, the
+    preposition — which is where its case shows. A pattern left with
+    nothing that way (`allein, alleine` over `allein`, a frame whose every
+    word is somebody's lemma) takes its own word: the token that says a
+    word of its name. Not a noun's gender pattern, which is worn by the
+    article: where that is contracted away (`zum Strand`) the pattern goes
+    unworn in the line rather than taking the noun from its lemma, which
+    is the word the reader does or does not know. Decided by rule, not by
+    the order the surfaces come in, which differs between the store and
+    the corpus.
     """
     claimed: dict[str, tuple[str, str]] = {}
-    for unit, surface in sentence.surfaces:
+    for unit, surface in sorted(sentence.surfaces, key=lambda pair: pair[0].is_pattern):
         for piece in surface.split():
             claimed.setdefault(_bare(piece), (unit.kind, unit.key))
+    for unit, surface in sentence.surfaces:
+        if not unit.is_pattern or unit.key.split()[0].lower() in ARTICLES:
+            continue
+        pieces = [_bare(piece) for piece in surface.split()]
+        if any(claimed.get(piece) == (unit.kind, unit.key) for piece in pieces):
+            continue
+        named = {_bare(word) for word in unit.key.replace(",", " ").split()}
+        for piece in pieces:
+            if piece in named:
+                claimed[piece] = (unit.kind, unit.key)
     out = []
     for token in sentence.text.split():
         kind, key = claimed.get(_bare(token), ("", ""))
         out.append([token, kind, key])
     return out
+
+
+ARTICLES = frozenset({"der", "die", "das"})
 
 
 def _bare(token: str) -> str:

@@ -194,7 +194,9 @@ def _clock(seconds: float) -> str:
 def known_script(known) -> str:
     """The units the reader knows, for the words the client draws itself:
     the caption and the transcript say whether each word is known the way
-    `render.clickable` does, and a decision on the page moves the word."""
+    `render.clickable` does, and a decision on the page moves the word.
+    It grows with the known set -- 338 units are 7 KB -- on every page
+    with a player."""
     import json                                              # noqa: PLC0415
     units = json.dumps({f"{u.kind}:{u.key}": 1 for u in known},
                        ensure_ascii=False, separators=(",", ":"))

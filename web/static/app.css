@@ -526,9 +526,13 @@ button.w.target { color: var(--target); border-bottom: 1px solid var(--target); 
 /* Colours (Settings): with them on, a word you do not know yet is amber,
    wherever words are drawn -- captions, transcripts, the sentences on the
    cards. A word you know keeps the ink, and so does one no unit claims;
-   the new word being learned keeps its own mark. The class is set on the
-   root before the body paints (`render.layout`). */
+   the new word being learned keeps its own mark. A pattern is grammar,
+   not vocabulary -- every word of it may read fine -- so a word wearing a
+   pattern you have not learned gets the amber underline and keeps the
+   ink. The class is set on the root before the body paints
+   (`render.layout`). */
 .coloured button.w.new { color: var(--new); border-bottom: 1px dotted var(--new); }
+.coloured button.w.new[data-kind='pattern'] { color: inherit; }
 .switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 .switch input { width: 18px; height: 18px; margin: 0; accent-color: var(--target); }
 .stepper .count { white-space: nowrap; }

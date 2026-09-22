@@ -338,11 +338,21 @@ window.__cueTimes = null;
 function wordsHtml(cue) {
   var words = cue.words && cue.words.length
     ? cue.words : cue.text.split(/\s+/).map(function (w) { return [w, '', '']; });
+  var t = targetUnit();
   return words.map(function (w) {
-    return "<button type='button' class='w" + knownness(w[1], w[2]) + "' data-kind='" +
+    var state = t && w[1] === t.kind && w[2] === t.key ? ' target' : knownness(w[1], w[2]);
+    return "<button type='button' class='w" + state + "' data-kind='" +
            escapeAttr(w[1]) + "' data-key='" + escapeAttr(w[2]) + "'>" +
            escapeText(w[0]) + "</button>";
   }).join(' ');
+}
+
+// The word being learned, where the page has one: the card's sentence
+// marks it, and the caption and transcript mark it the same wherever the
+// video says it, so the reader can see it coming.
+function targetUnit() {
+  var b = document.querySelector('.de.lead button.w.target');
+  return b && b.dataset.kind && b.dataset.key ? {kind: b.dataset.kind, key: b.dataset.key} : null;
 }
 
 // Whether a word is known, as a class -- `render.clickable` does the same

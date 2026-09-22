@@ -612,6 +612,50 @@ class SubtitleWordsTest(unittest.TestCase):
         self.assertIn("class='w new' data-kind='lemma' data-key='kurz'>kurz<", html)
         self.assertIn("class='w target' data-kind='pattern' data-key='etw. (Akk) üben'>üben!<", html)
 
+    def test_a_word_wears_its_lemma_and_a_pattern_takes_the_rest_or_its_own_word(self) -> None:
+        """`Freund` is the lemma, not the frame around it; the frame shows
+        on `einen`. A pattern every word of which is somebody's lemma
+        takes the word that says its name -- whichever order the surfaces
+        come in."""
+        from corpus.sentence import Sentence
+        from vocab.entry import Unit
+        from web.handlers import _words
+        have = Unit.pattern("etw./jdn. (Akk) haben")
+        alone = Unit.pattern("allein, alleine")
+        units = frozenset({have, alone, Unit.lemma("haben"), Unit.lemma("freund"),
+                           Unit.lemma("allein")})
+        surfaces = ((have, "habe einen Freund"), (alone, "allein"),
+                    (Unit.lemma("haben"), "habe"), (Unit.lemma("freund"), "Freund"),
+                    (Unit.lemma("allein"), "allein"))
+        want = [["Ich", "", ""], ["habe", "lemma", "haben"],
+                ["einen", "pattern", "etw./jdn. (Akk) haben"], ["Freund", "lemma", "freund"],
+                ["allein.", "pattern", "allein, alleine"]]
+        text = "Ich habe einen Freund allein."
+        self.assertEqual(_words(Sentence(text, units=units, surfaces=surfaces)), want)
+        self.assertEqual(_words(Sentence(text, units=units, surfaces=surfaces[::-1])), want)
+        # A frame whose every word is a lemma's: the verb wears it.
+        come = Unit.pattern("zu etw. (Dat) kommen")
+        line = Sentence("Wir kommen zum Strand.",
+                        units=frozenset({come, Unit.lemma("zu"), Unit.lemma("strand"),
+                                         Unit.lemma("kommen")}),
+                        surfaces=((come, "kommen zum Strand"), (Unit.lemma("zu"), "zum"),
+                                  (Unit.lemma("strand"), "Strand"), (Unit.lemma("kommen"), "kommen")))
+        self.assertEqual(_words(line), [["Wir", "", ""], ["kommen", "pattern", "zu etw. (Dat) kommen"],
+                                        ["zum", "lemma", "zu"], ["Strand.", "lemma", "strand"]])
+        # A noun's gender is worn by its article; contracted away, the
+        # pattern goes unworn and the noun stays the word.
+        beach = Unit.pattern("der Strand")
+        line = Sentence("Wir gehen zum Strand.",
+                        units=frozenset({beach, Unit.lemma("zu"), Unit.lemma("strand"),
+                                         Unit.lemma("gehen")}),
+                        surfaces=((beach, "zum Strand"), (Unit.lemma("zu"), "zum"),
+                                  (Unit.lemma("strand"), "Strand"), (Unit.lemma("gehen"), "gehen")))
+        self.assertEqual(_words(line), [["Wir", "", ""], ["gehen", "lemma", "gehen"],
+                                        ["zum", "lemma", "zu"], ["Strand.", "lemma", "strand"]])
+        line = Sentence("Ein Strand.", units=frozenset({beach, Unit.lemma("strand")}),
+                        surfaces=((beach, "Ein Strand"), (Unit.lemma("strand"), "Strand")))
+        self.assertEqual(_words(line), [["Ein", "pattern", "der Strand"], ["Strand.", "lemma", "strand"]])
+
     def test_a_line_nobody_analysed_is_still_words(self) -> None:
         from corpus.sentence import Sentence
         from web.handlers import _words
