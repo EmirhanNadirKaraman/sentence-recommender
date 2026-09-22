@@ -18,6 +18,7 @@ import io
 import tempfile
 import unittest
 from contextlib import redirect_stdout
+from dataclasses import replace
 from datetime import datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
@@ -133,6 +134,25 @@ class ToolsTest(unittest.TestCase):
                          ["Merk dir das."])
         self.assertEqual((got["readable"], got["total"]), (1, 3))
         self.assertIsNone(got["beside"])
+
+    def test_a_word_met_watching_comes_first(self) -> None:
+        """Of the next few steps, the one heard on the most spaced days is
+        offered before the plan's own first -- when a sentence of its deck
+        needs only it. Heard the same, the plan's order holds."""
+        store = self.app.encounters
+        store.add([(Unit.lemma("sogar"), "Sogar du.", "vid", 1.0)], NOW)
+        self.assertEqual(self.tools.next_up("subtitle")["unit"]["key"], "sogar")
+        store.add([(Unit.lemma("anders"), "Das ist anders.", "vid", 2.0)], NOW)
+        self.assertEqual(self.tools.next_up("subtitle")["unit"]["key"], "anders")
+        store.add([(Unit.lemma("sogar"), "Sogar du.", "vid", 1.0)], NOW + timedelta(days=1))
+        self.assertEqual(self.tools.next_up("subtitle")["unit"]["key"], "sogar")
+        # Its deck no longer readable -- another word in it unknown -- the
+        # heard word waits, and the plan's first is offered.
+        harder = sentence("Sogar du.", Unit.lemma("sogar"), "Sogar", Unit.lemma("du"))
+        RoadmapStore(self.app.settings.state_path).save(
+            [STEPS[0], STEPS[1], replace(STEPS[2], sentence=harder, examples=(harder,))],
+            LABEL, stamp=current_stamp(), total=3)
+        self.assertEqual(self.tools.next_up("subtitle")["unit"]["key"], "anders")
 
     def test_marking_known_moves_the_plan_on(self) -> None:
         """The sequence, not the calls: a long-lived server that kept

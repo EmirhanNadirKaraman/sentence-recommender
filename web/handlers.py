@@ -41,6 +41,11 @@ SCORE_VERSION = 8
 NEXT_WORDS = 8
 from corpus.answers import label
 from vocab.encounters import ENOUGH as ENOUGH_HEARD
+
+# How far into the stored plan the reading page looks for a word it has
+# heard: the next steps whose decks were ranked for roughly what the reader
+# knows now, not the whole plan.
+LOOKAHEAD = 30
 from corpus.levels import video_level
 from corpus.quality import score as quality, well_formed
 from corpus.sentence import Sentence
@@ -734,19 +739,21 @@ class Viewer:
             + "</div></div>"
             + ("<h2>Transcript</h2><ol class='transcript' id='transcript'></ol>"
                if watchable else "")
-            + video.merged_script()
+            + video.merged_script(self.known)
         )
         return self._page("i+1", body, "/", source)
 
-    @staticmethod
-    def _new_thing(step, occurrences: int, kind: str) -> str:
+    def _new_thing(self, step, occurrences: int, kind: str) -> str:
         """The word itself, above the picture, where the page opens: it
         used to sit under the deck, below the fold, and the reader was
-        scrolling past the video to find out what they were learning."""
+        scrolling past the video to find out what they were learning. With
+        it, how often the word was met watching -- which may be why it is
+        the word now."""
         return (f"<p class='de lead new'>{escape(step.unit.key)}</p>"
                 f"<p class='en'>{kind}, appearing in {occurrences:,} sentence"
                 f"{'s' if occurrences != 1 else ''} here and opening {step.gain} "
-                f"more</p>")
+                f"more</p>"
+                + self._heard_html(step.unit))
 
     def _reading(self, step, deck, source, watchable) -> str:
         """Everything below the player that a decision replaces: the deck
@@ -844,31 +851,51 @@ class Viewer:
         known = self.known
         steps = self._store.load(label)
 
-        def first(skip: frozenset[Unit]):
+        def ahead(skip: frozenset[Unit]) -> list:
             # Patterns are grammar, not vocabulary. Some days you want one and
             # not the other, so they can be stepped over without being learned.
-            return next((s for s in steps
-                         if s.unit not in known and s.unit not in skip
-                         and not (only == "word" and s.unit.is_pattern)), None)
+            out = []
+            for s in steps:
+                if (s.unit in known or s.unit in skip
+                        or (only == "word" and s.unit.is_pattern)):
+                    continue
+                out.append(s)
+                if len(out) == LOOKAHEAD:
+                    break
+            return out
 
         # Twice, if the first pass finds nothing. Everything left being set
         # aside is not the same as nothing being left, and "nothing is i+1"
         # would be a lie when the only thing in the way is your own skips.
         # Better to offer a word early than to claim the corpus is exhausted.
-        step = first(self.app.snoozes.asleep()) or first(frozenset())
-        if step is not None:
-            deck = self._store.deck(label, step)
-            # A step with nothing written against it is a step from before the
-            # decks existed. Falling back beats an empty page.
-            if not deck:
-                return None
-            # Everything the reader has said about these sentences since the
-            # roadmap was built. Without this, "drop this sentence" and "fix
-            # its words" — rendered under every slide — would do nothing here
-            # until the next rebuild.
-            deck = self.app.apply_overrides(deck)
-            return (step, deck, self._store.total(label)) if deck else None
-        return None
+        coming = ahead(self.app.snoozes.asleep()) or ahead(frozenset())
+        if not coming:
+            return None
+        # A word met watching comes first: of the next few steps, the one
+        # heard on the most spaced days (`vocab.encounters`), if its deck
+        # still has a sentence that needs only it -- the plan ranked the
+        # deck for a reader who took the steps before it. Only that far
+        # ahead, because the walk's order is the order that pays, and a
+        # word from further on would come with sentences nobody can read.
+        heard = self.app.encounters.rungs()
+        warm = sorted((s for s in coming if s.unit in heard),
+                      key=lambda s: -heard[s.unit].level)
+        for step in warm:
+            deck = self.app.apply_overrides(self._store.deck(label, step))
+            if any(not (x.units - known - {step.unit}) for x in deck):
+                return step, deck, self._store.total(label)
+        step = coming[0]
+        deck = self._store.deck(label, step)
+        # A step with nothing written against it is a step from before the
+        # decks existed. Falling back beats an empty page.
+        if not deck:
+            return None
+        # Everything the reader has said about these sentences since the
+        # roadmap was built. Without this, "drop this sentence" and "fix
+        # its words" — rendered under every slide — would do nothing here
+        # until the next rebuild.
+        deck = self.app.apply_overrides(deck)
+        return (step, deck, self._store.total(label)) if deck else None
 
     def _walked(self, query: dict, source: str, only: str
                 ) -> tuple[RoadmapStep | None, list[Sentence], int, int, int]:
