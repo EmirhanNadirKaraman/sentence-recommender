@@ -49,7 +49,7 @@ sentences, extrapolated). The real command also pulls subtitle rows, runs
 | 7 | `find_best_match` lru_cache thrashing | `maxsize=4096`, **currsize=4096**, hit rate 68.6%; unbounded → 70.4%, **−5.2% on `_units`** | raise maxsize | −1.5% of build-corpus | XS |
 | 8 | `phrase_finder` imported twice | `sys.modules` holds `phrase_finder` *and* `matcher.phrase_finder` as separate objects; only the first is used — two lru_caches, two trigram tables | single import path | correctness+memory, not speed | XS |
 | 9 | `find_expression_rows` is 27 expressions × every token | 1,502,680 `_match_row` calls for 4,000 sentences | index the 27 rows by first literal word (all 27 have one; 18 distinct) | ~3% of build-corpus | S |
-| 10 | 1,240 MB of write-only tables | `sentence_to_phrase` 526 MB + `word_to_sentence` 361 MB + `sentence_to_grammar_rule` 353 MB = 36% of the 3,475 MB DB, read by nothing | drop or move | disk + vacuum, not query time | S |
+| 10 | ~~1,240 MB of write-only tables~~ **WITHDRAWN** | `sentence_to_phrase` 526 MB + `word_to_sentence` 361 MB + `sentence_to_grammar_rule` 353 MB = 36% of the 3,475 MB DB, read by nothing *in this project* | **do not drop** — see the correction below | — | — |
 | 11 | Unguarded `Viewer._corpora` | ~60 concurrent cold requests each started a full load; RSS 1.6 GB, no reply in 300 s | one lock around the cache fill | local single-user, low severity | XS |
 
 ## The language question
@@ -91,8 +91,8 @@ runtime is not the constraint. Not justified by these measurements.
    change (measured 25.7% of the walk), and it sets the baseline any native
    component would have to beat.
 2. **#1 warm corpus** — the only latency a human waits on (10.7 s → 0).
-3. **#3 + #6 config** — `work_mem`, `analysis_processes: 4`. Two lines,
-   both measured.
+3. ~~**#3 + #6 config**~~ — done; see the section below. Items 4, 5, 8 and 9
+   remain open, and 10 is withdrawn.
 
 ## Measured after implementing #1 and #2 (2026-09-22)
 
@@ -275,6 +275,69 @@ made before — so the video just added was missing until a restart. Both, and
   rather than 9.9 s.
 - `perf/reels_flow.py` reproduces the table; it takes a copy of
   `state.sqlite3` as its argument and refuses to run against anything else.
+
+## Items 3, 6, 7 and 10 (2026-09-22)
+
+### 10 — withdrawn, and the audit was wrong to suggest it
+
+"Read by nothing" was true and beside the point. `ingest/video.py:182` calls
+`pipeline.populate` — language-app's own scraper, borrowed rather than
+reimplemented — and that *writes* four of them:
+`sentence_to_grammar_rule` and `word_to_sentence` directly,
+`phrase_blueprint` and `sentence_to_phrase` through `insert_phrases`.
+Migration `85f526a480c5` exists for exactly this and says so: "a missing
+table is not a slow query, it is a crash halfway through a scrape."
+
+Dropping them would break `add-video` and `add-channel`. The 1.2 GB is the
+price of not maintaining a second subtitle parser. Nothing was dropped.
+
+### 3 — `work_mem`, measured
+
+Set on the connection in `DatabaseConfig.dsn_kwargs` rather than in
+`postgresql.conf`: it is this project's query that wants it, and a setting
+carried in the repo is one a second machine gets for free.
+
+| | before (4MB) | after (64MB) |
+|---|---|---|
+| unit join, server `Execution Time` | 2,859 ms, **Batches: 8** | **2,031 ms, Batches: 1** |
+| temp file I/O | 17,151 blocks read + written (134 MB) | **none** |
+| query + fetch, best of 5 | 4,001 ms | **3,087 ms** (−23%) |
+| `CorpusStore.load()`, best of 3, interleaved A/B/A/B | 11.30 s / 11.43 s | **10.21 s / 10.54 s** (−9%) |
+
+The first single measurement of `load()` showed no change and was wrong —
+the saving is ~1 s inside a 10 s operation whose variance is comparable, so
+it only appears when the two are interleaved and repeated.
+
+### 6 — `analysis_processes: 8 → 4`
+
+The old comment justified eight with a measurement against spaCy's own
+`n_process` (990 sent/s vs 540) — that compared this module with the thing
+it replaced, not eight workers with four. Against four, eight loses: best of
+three on 24,000 real sentences, four gave **1,402 sent/s**, six 1,390, eight
+1,236, and eight lost every repeat. Four performance cores and four
+efficiency cores; the second four cost more in contention than they return.
+
+### 7 — `find_best_match` cache, 4096 → 65,536
+
+Single process, 40,000 sentences: at 4,096 the cache held 4,096 entries
+against **21,236 distinct words** and hit 70.9%; at 65,536 it holds them all
+and hits 77.9%, and reading the units off those sentences went **32.3 s to
+26.8 s (−17%)**. Bounded rather than `None` because the key is a corpus word
+and the corpus decides how many there are; unbounded measured no better.
+
+**It does not show in the parallel path.** Interleaved A/B/A at four
+processes: 592, 596, 609 sent/s — noise. spaCy's parser is 71% of analysis
+and is unaffected, so a 17% win on the Python 29% is ~5% overall, inside the
+run-to-run spread. Kept because it is free and real; not claimed as a
+throughput win.
+
+### A caution about all the throughput numbers here
+
+The 4-vs-8 and the 1,402 sent/s figures were taken on a quiet machine. Re-run
+later with VS Code at 71% CPU and a load average near 5, the same benchmark
+gave **~590 sent/s regardless of any setting** — a 2.4x collapse that has
+nothing to do with the code. Any re-measurement of `build-corpus` throughput
+should check `uptime` first, or it will measure the editor.
 
 ## Reproducing
 

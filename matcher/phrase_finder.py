@@ -184,7 +184,14 @@ def trigram_similarity(word1, word2):
     dice = (2.0 * intersection) / (len(trigrams1) + len(trigrams2))
     return dice
 
-@lru_cache(maxsize=4096)
+# Big enough to hold a whole corpus pass. At 4,096 the cache was full and
+# evicting long before a worker finished its share: over 40,000 sentences it
+# held 4,096 entries against 21,236 distinct words and hit 70.9% of the time,
+# where 65,536 holds them all and hits 77.9% — and reading the units off those
+# sentences went 32.3s to 26.8s for it. Bounded rather than `None` because the
+# key is a corpus word and the corpus decides how many there are; unbounded
+# measured no better than this.
+@lru_cache(maxsize=65_536)
 def find_best_match(target_word, threshold=0.6):
     """
     Find the best matching word from the dictionary using trigram similarity.

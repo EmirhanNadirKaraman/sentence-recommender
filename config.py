@@ -98,6 +98,22 @@ class DatabaseConfig:
         return (f"postgresql+psycopg2://{user}:{password}"
                 f"@{self.host}:{self.port}/{self.name}")
 
+    # Raised from the 4MB default, on the connection rather than the server.
+    #
+    # The corpus load joins 3.18M unit rows against 450k sentences, and at
+    # 4MB the hash spills: `EXPLAIN (ANALYZE, BUFFERS)` reported 8 batches
+    # and 17,151 blocks read and written through a temp file, 134 MB of I/O
+    # to answer a query whose hash table needs 19 MB. At 64MB it is one batch
+    # and no temp file, and the server side went 2,859 ms to 2,053 ms —
+    # measured 2026-09-22.
+    #
+    # Here and not in postgresql.conf because it is this project's query that
+    # wants it, not the machine's every query, and because a setting carried
+    # in the repo is one a second machine gets for free. 256MB measured no
+    # better than 64MB, so this is the knee rather than the ceiling; it is
+    # per sort or hash node per connection, and this app keeps a handful.
+    WORK_MEM = "64MB"
+
     def dsn_kwargs(self) -> dict:
         return {
             "dbname": self.name,
@@ -105,6 +121,7 @@ class DatabaseConfig:
             "password": self.password,
             "host": self.host,
             "port": self.port,
+            "options": f"-c work_mem={self.WORK_MEM}",
         }
 
 
@@ -184,10 +201,17 @@ class Settings:
     judge_workers: int = 4        # requests in flight; the limit is 1,200 a minute
 
     # Worker processes for the one-off corpus analysis (`corpus.parallel`):
-    # each parses and reads its sentences' units, so every core counts.
-    # Eight on this machine, measured 2026-09-21: 990 sentences a second
-    # against 540 for four spaCy workers feeding one parent.
-    analysis_processes: int = 8
+    # each parses and reads its sentences' units.
+    #
+    # Four, not eight. This said eight on the strength of a 2026-09-21
+    # measurement against spaCy's own `n_process` — 990 sentences a second
+    # against 540 — which compared this module with the thing it replaced,
+    # not eight workers with four. Compared with four, eight is slower:
+    # best of three on 24,000 real sentences, 2026-09-22, four gave 1,402 a
+    # second, six 1,390 and eight 1,236, and eight lost every repeat. This
+    # machine has four performance cores and four efficiency cores, and the
+    # second four cost more in contention than they return in throughput.
+    analysis_processes: int = 4
 
     # Examples shown per review card.
     examples_per_card: int = 3
