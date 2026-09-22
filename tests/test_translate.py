@@ -123,7 +123,8 @@ class BlocksTest(unittest.TestCase):
         self.assertEqual([len(b) for b in blocks_of(short, 20)], [20, 5])
         long = [" ".join(["Wort"] * 150)] * 3 + ["Kurz."]
         got = blocks_of(long, 20)
-        self.assertEqual([len(b) for b in got], [1, 1, 1, 1])
+        self.assertEqual([len(b) for b in got], [2, 2])       # 300 words, then 151
+        self.assertTrue(all(sum(len(t.split()) for t in b) <= BATCH_WORDS for b in got))
         mixed = [" ".join(["Wort"] * (BATCH_WORDS // 2))] * 3
         self.assertEqual([len(b) for b in blocks_of(mixed, 20)], [2, 1])
 
