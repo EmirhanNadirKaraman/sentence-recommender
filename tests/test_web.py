@@ -719,7 +719,7 @@ class ReviewQueueTest(unittest.TestCase):
             self.assertEqual(app.own.due(now), [])
             page = viewer.review({})
             self.assertNotIn("Yours, to be able to say", page)
-            self.assertIn("merken", page)
+            self.assertIn("<p class='de lead'>merken</p>", page)
             self.assertIn("1 due", page)
 
     def test_a_word_card_asks_for_a_translation_and_shows_the_german_after(self) -> None:
@@ -772,11 +772,58 @@ class ReviewQueueTest(unittest.TestCase):
                                        "action": "skip", "src": "subtitle"})
             self.assertEqual(back, "/review?src=subtitle&not=Ich%20muss%20das%20noch%20sagen.")
             page = viewer.review({"src": "subtitle", "not": "Ich muss das noch sagen."})
-            self.assertIn("merken", page)
+            self.assertIn("<p class='de lead'>merken</p>", page)
             self.assertNotIn("I still have to say this.", page)
             # Still due, and asked again once something else has been.
             self.assertIn("2 due", page)
             self.assertIn("I still have to say this.", viewer.review({"src": "subtitle"}))
+
+    def test_the_claims_standing_are_listed_under_the_card(self) -> None:
+        """Every state of the page says what is on probation: the soonest
+        asked, where each stands on the hearing ladder and how many
+        reviews it has passed. Capped, and in a fixed order — the cards a
+        rebuild mints share a due date, and an unsorted list would come
+        back shuffled."""
+        import tempfile
+        from datetime import datetime, timedelta
+        from vocab.encounters import Rung
+        from vocab.entry import Unit
+        with tempfile.TemporaryDirectory() as tmp:
+            viewer, app = self.viewer(Path(tmp))
+            now = datetime.now()
+            stehen = Unit.pattern("jdm. (Dat) stehen")
+            app.card_store.add(app.scheduler.new_card(Unit.lemma("merken"), now))
+            app.card_store.add(app.scheduler.new_card(stehen, now + timedelta(days=3)))
+            # Twelve more, all due at the same instant, to be cut to ten.
+            same = now + timedelta(days=9)
+            app.card_store.add_many(
+                [app.scheduler.new_card(Unit.lemma(f"wort{n}"), same) for n in range(12)])
+            app.encounters = SimpleNamespace(
+                rungs=lambda: {stehen: Rung(3, now)}, count=lambda unit: 0)
+            page = viewer.review({})
+            self.assertIn("<h2>On probation</h2>", page)
+            self.assertIn("The 10 asked soonest, of 14.", page)
+            rows = page.split("<h2>On probation</h2>")[1]
+            self.assertEqual(rows.count("<tr>"), 11)          # ten and the head
+            # The one whose date has come says so; the rest say when.
+            self.assertIn("<td class='n'>due</td>", rows)
+            self.assertIn(f"<td class='n'>{(now + timedelta(days=3)):%-d %b, %H:%M}</td>", rows)
+            # Heard three of five, confirmed none of five, and a pattern.
+            self.assertIn("jdm. (Dat) stehen<span class='quiet'> · pattern</span>", rows)
+            self.assertIn("<td class='n'>3/5</td><td class='n'>0/5</td>", rows)
+            self.assertIn("<td class='n'>0/5</td><td class='n'>0/5</td>", rows)
+            # Soonest first, and the ten kept are the ten soonest.
+            self.assertLess(rows.index("merken"), rows.index("jdm. (Dat) stehen"))
+            self.assertLess(rows.index("jdm. (Dat) stehen"), rows.index("wort0"))
+            self.assertNotIn("wort9", rows)
+            # The empty state carries it too, and a shelf with nothing on
+            # it says nothing at all.
+            app.card_store.remove(Unit.lemma("merken"))
+            app.card_store.remove(stehen)
+            self.assertIn("<h2>On probation</h2>", viewer.review({}))
+            for n in range(12):
+                app.card_store.remove(Unit.lemma(f"wort{n}"))
+            self.assertNotIn("On probation", viewer.review({}))
 
     def test_a_word_card_is_untouched_by_the_sentence_branch(self) -> None:
         """The two are told apart by what the form carries -- a sentence
