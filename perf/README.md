@@ -26,6 +26,7 @@ and on any checkout.
 | `nlp_clean.py` | the same split unprofiled (the honest one) |
 | `cache2.py` | `find_best_match` lru_cache sizing |
 | `nlp_par2.py` | `analyze_all` at 4/6/8 processes |
+| `gloss_pilot.py` | gloss at 2 vs 6 workers — real calls to the **local** endpoint, answers thrown away |
 | `tts_probe.py` | piper TTS sequential vs a process pool — local, no paid call |
 | `reels_flow.py` | open Next, mark a word, open Reels — takes a **copy** of `state.sqlite3` as its argument |
 | `walk_ab.py` | one production walk: phase timings and a SHA-256 of the plan |

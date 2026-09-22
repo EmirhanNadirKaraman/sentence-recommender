@@ -478,9 +478,28 @@ slots it has already reserved cannot shrink anything; leaving them empty only
 wastes them. So the fix is to ask, not to raise: `client.slots() or 2`, the
 same line `translate-sentences` has.
 
-Not yet measured end to end — that needs a real gloss run against the
-endpoint. The mechanism is the one already measured in
-`translate_sentences.py`, and the slot count is verified.
+**Measured.** 24 real cards (72 sentences) from the stored plan, asked twice
+at each setting, interleaved 2/6/2/6. The answers went to a throwaway store
+so the same cards could be asked four times without touching
+`data/state.sqlite3`; the calls themselves are real, against the local
+endpoint.
+
+| workers | run 1 | run 2 | best | rate |
+|---|---|---|---|---|
+| 2 | 41.3 s | 36.8 s | **36.8 s** | 0.65 cards/s |
+| 6 | 21.6 s | 26.6 s | **21.6 s** | 1.11 cards/s |
+
+**1.70x, and zero failures in 48 cards at six workers** — which is the part
+that mattered, given `deck.gloss.run`'s 40–60% failure rate at four. It does
+not reproduce because the server reserved those six slots itself; the client
+is filling them, not forcing a division.
+
+1.70x and not 3x because per-request latency rises with concurrency on a
+shared backend. Against the chain's measured 82.5 minutes that is roughly
+**49 minutes**. Treat it as a range: the two pairs gave 1.91x and 1.38x, so
+43–60 minutes, on a tunnelled endpoint whose variance is its own.
+
+`perf/gloss_pilot.py` reruns it.
 
 ### TTS is already parallel — withdrawn
 
