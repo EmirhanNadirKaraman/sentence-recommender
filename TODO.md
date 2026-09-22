@@ -2224,3 +2224,87 @@ answers for three sentences — the third has the word as a noun or a
 participle (`das Klopfen`, `relativ strukturiert`, `vereint!`), which the
 matcher counted as the verb and the judge never saw, the sentence being a
 transcript's.
+
+## Knowing a word
+
+### 28. Two systems, passive and active — DONE, 2026-09-22
+
+Until 2026-09-21 a word marked known was known: `known_units` gained a
+row, the plan moved on, and 84,680 step cards nobody reviewed sat in
+`cards` from the first design. What replaced it, in the order it was
+decided, and what each piece is for.
+
+**A mark is a claim on probation (2026-09-21).** "I know this" still
+counts at once — the plan, the reel and the next step move on — but it
+also makes a card due the next day (`SM2Scheduler.claimed`). Five reviews
+passed in a row graduate the word (`CONFIRMATIONS`) and the card is
+deleted; two failed in a row un-mark it (`LAPSES_TO_UNMARK`,
+`Card.lapses`): the decks assumed it was known and it was not, so the
+plan teaches it again. The old step cards were deleted and 175 claims
+made from what was marked; 242 are on probation as this is written.
+
+**The examiner is a person, or Claude.** A review asks for a sentence
+*using* the word, not for the word. On `/review` the local model judges —
+the sentence as a native speaker would put it, one line on what changed,
+right or not — and the grade is yours, because the model read `also` as
+the English word and "corrected" a right sentence, and a wrong grade here
+takes a word off the known list. Over MCP, `due_cards` gives Claude what
+to ask (`spoken`, the meaning, fresh examples the plan never taught the
+word with, the attempts so far, why the card is due) and `grade` takes
+the verdict with what was written, the note and the natural phrasing; the
+`examiner` prompt says how to run it. Every sentence written with a word
+— in the popup, on the review page, in a Claude session — is an attempt
+(`vocab.attempts`), shown at the next review: "last time you wrote …, and
+the note was …" is the difference between being told a word again and
+being told what you keep getting wrong with it.
+
+**Mine.** A sentence you wanted to say, written in English or German, put
+into German by the local model, saved (`vocab.own_sentences`). It is worth
+more than a stranger's sentence as an example of its words, so it joins
+the corpus under the `generated` build with origin `own` (`OWN_BONUS`
+2.0, first on the cards of its words), and it is worth being able to
+produce, so it is scheduled by the same SM-2: shown as English, answered
+in German, graded by you (`/mine`, `due_sentences`, `grade_sentence`).
+
+**The passive half (2026-09-22).** A subtitle line counts as heard when
+the player actually played through it — the caption current while
+playing, for most of a second, on Next, Reels and Watch — and every word
+of a heard line is one encounter, logged with the line, the video and the
+moment (`/api/heard`, a batch every ten seconds and once more on
+leaving; `vocab.encounters`). The word's *heard level* is not the count:
+it climbs a ladder of spaced days, rung one at the first hearing and each
+rung after that only once the ladder's days have passed since the hearing
+that was counted, so ten hearings in one evening are rung one. The days
+are SM-2's own — read off the scheduler, the intervals a card gets when
+every review passes: 1, 2.5, 6.4, 16.6, rungs at the earliest on days 0,
+1, 3.5, 10 and 26 — so the two schedules cannot drift. The level never
+falls, and a review does not reset it: with a reset, rung five would have
+been unreachable inside the card's own intervals for the first three
+weeks, and the passive half would never have fired. Nothing here confirms
+a word. At the top it is *familiar*: first in the reel's panel and the
+study queue, and on the reading page the next few steps of the plan
+(`LOOKAHEAD` 30) are read for the word heard on the most spaced days
+whose deck still has a sentence needing only it — that far and no
+further, because the walk's order is the order that pays, and a word
+from further on comes with sentences nobody can read yet. A claim on
+probation whose word became familiar since its last review — or since
+the claim; hearings before the mark are not news about it — has its
+active test called before its date, once (`srs.scheduler.due_now`).
+
+**Colours (2026-09-22).** Every word drawn — captions, transcripts, the
+sentences on the cards, the watch page's rows, which became word buttons
+for it — is classed `known` or `new` by the reader's units, or neither
+where no unit claims it (a name, a number, a filler: painting those would
+light up most of a line). The stylesheet paints the new ones amber when
+the browser's switch is on, a box on Settings kept in `localStorage` like
+the listening mode and read in the head before the body paints; the word
+being learned keeps its own mark. A word marked known on the page moves
+at once, in the set the caption is drawn from and on every button already
+drawn; undo reloads.
+
+None of it cost anything: the local model, Claude over MCP, and the
+reader's own hours. **Open:** the hearing call is once per word — heard
+more at the top says nothing new — and whether it should keep calling
+after each review is a question for a month of use; the local judge is
+advisory and stays so; the review page shows one card at a time, on
+purpose, and a session of twenty is twenty page loads.
