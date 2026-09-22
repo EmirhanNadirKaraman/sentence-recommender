@@ -47,8 +47,8 @@ sentences, extrapolated). The real command also pulls subtitle rows, runs
 | 5 | `Unit` hashing dominates the walk | `Unit.__hash__` **22,797,527 calls** in 600 steps; tuple keys 2.53x faster, int keys 3.88x | intern units to ints inside the index | walk −20–30% est. | L — `Unit` has a `__reduce__` because it crosses process boundaries, and it flows through the store, SRS and web pages |
 | 6 | `analysis_processes: 8` is past the knee | best-of-3: 4 procs **1,402 sent/s**, 6 procs 1,390, 8 procs 1,236. M1 is exactly 4P+4E; 8 was slowest in all three reps | set 4–6 | −12% on build-corpus | XS |
 | 7 | `find_best_match` lru_cache thrashing | `maxsize=4096`, **currsize=4096**, hit rate 68.6%; unbounded → 70.4%, **−5.2% on `_units`** | raise maxsize | −1.5% of build-corpus | XS |
-| 8 | `phrase_finder` imported twice | `sys.modules` holds `phrase_finder` *and* `matcher.phrase_finder` as separate objects; only the first is used — two lru_caches, two trigram tables | single import path | correctness+memory, not speed | XS |
-| 9 | `find_expression_rows` is 27 expressions × every token | 1,502,680 `_match_row` calls for 4,000 sentences | index the 27 rows by first literal word (all 27 have one; 18 distinct) | ~3% of build-corpus | S |
+| 8 | ~~`phrase_finder` imported twice~~ **WITHDRAWN** | an artifact of the audit's own diagnostic: `perf/nlp_clean.py:15` does `import matcher.phrase_finder`, which is what created the second module object. The real app loads exactly one | none needed | — | — |
+| 9 | `find_expression_rows` is 27 expressions × every token | 1,502,680 `_match_row` calls for 4,000 sentences | **done** — the rows whose first element is a required literal are tried only where that word occurs | measured **−40% on `_units`, −5% on build-corpus**; units byte-identical | S |
 | 10 | ~~1,240 MB of write-only tables~~ **WITHDRAWN** | `sentence_to_phrase` 526 MB + `word_to_sentence` 361 MB + `sentence_to_grammar_rule` 353 MB = 36% of the 3,475 MB DB, read by nothing *in this project* | **do not drop** — see the correction below | — | — |
 | 11 | Unguarded `Viewer._corpora` | ~60 concurrent cold requests each started a full load; RSS 1.6 GB, no reply in 300 s | one lock around the cache fill | local single-user, low severity | XS |
 
@@ -278,6 +278,28 @@ made before — so the video just added was missing until a restart. Both, and
 
 ## Items 3, 6, 7 and 10 (2026-09-22)
 
+### Two of the eleven findings were artifacts
+
+Worth stating rather than quietly deleting the rows. Item 8 was caused by the
+measurement itself, and item 10 by reading "read by nothing" as "unused".
+Both were plausible, both were in the report, and neither survived being
+checked before the code was changed.
+
+### 8 — withdrawn, and the audit measured its own script
+
+`corpus/analyzer.py` puts `matcher/` on `sys.path` and imports
+`phrase_finder` as a top-level module. Nothing in the project imports
+`matcher.phrase_finder`. The audit's own `perf/nlp_clean.py` did, which is
+what put a second module object in `sys.modules` — a second lru_cache and a
+second trigram table that exist only while that script is running. A clean
+`Application()` loads one:
+
+```
+phrase_finder modules loaded by the real app: ['phrase_finder']
+```
+
+Nothing to fix.
+
 ### 10 — withdrawn, and the audit was wrong to suggest it
 
 "Read by nothing" was true and beside the point. `ingest/video.py:182` calls
@@ -330,6 +352,33 @@ processes: 592, 596, 609 sent/s — noise. spaCy's parser is 71% of analysis
 and is unaffected, so a 17% win on the Python 29% is ~5% overall, inside the
 run-to-run spread. Kept because it is free and real; not claimed as a
 throughput win.
+
+### 9 — the expression scan, done
+
+25 of the 27 rows open with a literal word that must be there, so they can
+only begin where that word does. The sentence is indexed once — lowercased
+token to positions — and each row is tried only at its own openings. The two
+rows that open with an optional element still get the full walk, since
+`_match_row` may skip it.
+
+The order is untouched, and the order is what decides the outcome: the first
+expression takes its words out of play before the second is tried. This
+narrows *where* each row is attempted, never which row goes first.
+
+| | old | new |
+|---|---|---|
+| the function alone, 20,000 sentences | 2.603 s | **0.657 s** (3.96x) |
+| `_units()`, 20,000 sentences | 6.50 s | **3.86 s** (−41%) |
+| `build-corpus`, 1 process, 12,000 sentences | 28.42 s | **26.92 s** (−5%) |
+
+Units **identical** over 20,000 real sentences: 210,092 units and the same
+SHA-256 across every sentence's units, its surfaces, and the corpus-wide
+`Evidence` tally the second pass votes on.
+
+−5% and not −41% because spaCy's parser is the other 71% of analysis and is
+untouched. `consumed` is empty on entry in the real path —
+`extract_german_logic` builds it immediately above the call — so the
+narrowing cannot interact with words already claimed.
 
 ### A caution about all the throughput numbers here
 

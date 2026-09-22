@@ -415,15 +415,41 @@ def _match_row(doc, elements, i, k=0):
     return None
 
 
+# Expressions whose first element is a literal word that must be there. Those
+# can only begin where that word does, so the scan below asks the sentence
+# where its words are instead of trying all 27 rows at all 14 tokens. Two of
+# the 27 open with an optional element, which `_match_row` may skip — those
+# can begin anywhere and still get the full walk.
+_ROW_OPENERS: tuple[str | None, ...] = tuple(
+    None if (elements[0][0] is None or elements[0][1]) else elements[0][0]
+    for _, elements in EXPRESSION_ROWS
+)
+
+
 def find_expression_rows(doc, consumed):
-    """Every row expression in the sentence, its words consumed."""
+    """Every row expression in the sentence, its words consumed.
+
+    The order is the order of `EXPRESSION_ROWS`, and it decides the outcome:
+    the first expression takes its words out of play before the second is
+    tried. So this narrows *where* each row is attempted and never which row
+    goes first — same expressions, same positions, same `consumed`.
+
+    It used to try every row from every token, which over 4,000 sentences was
+    1,502,680 calls into `_match_row`.
+    """
     found = []
-    for canonical, elements in EXPRESSION_ROWS:
-        i = 0
-        while i < len(doc):
-            indices = None if i in consumed else _match_row(doc, elements, i)
+    at: dict[str, list[int]] = {}
+    for i, token in enumerate(doc):
+        at.setdefault(token.text.lower(), []).append(i)
+    for (canonical, elements), opener in zip(EXPRESSION_ROWS, _ROW_OPENERS):
+        # `-1` rather than 0: the first position is a legitimate start, and a
+        # match ending at token 0 must still bar it for the next attempt.
+        after = -1
+        for i in (range(len(doc)) if opener is None else at.get(opener, ())):
+            if i <= after or i in consumed:
+                continue
+            indices = _match_row(doc, elements, i)
             if not indices:
-                i += 1
                 continue
             consumed.update(indices)
             found.append({
@@ -434,7 +460,7 @@ def find_expression_rows(doc, consumed):
                 "indices": indices,
                 "expression": indices,
             })
-            i = indices[-1] + 1
+            after = indices[-1]
     return found
 
 
