@@ -44,7 +44,7 @@ sentences, extrapolated). The real command also pulls subtitle rows, runs
 | 2 | Walk rescans whole frontier each step | frontier grows 6,916 → 17,710 units by step 600 while goals plateau at ~3,000. The guard sequence at `roadmap/builder.py:154` costs a measured **2.01 ms/step** more than the same loop over goals alone | maintain a goal-candidate dict incrementally **in `CorpusIndex`** — a per-step `goals & candidates.keys()` still hashes every frontier unit and wins much less | 7.8 s over 3,902 steps = **25.7% of the walk**; 30.5 s → ~23 s (projected) | S |
 | 3 | `work_mem=4MB` spills the hot join | `EXPLAIN ANALYZE`: Batches 8, temp read+written 17,151 blks = **134 MB temp I/O**; exec 2,859 ms → **2,053 ms** at 64MB | `SET work_mem` on the session, or postgresql.conf | −0.6 s per corpus load, −28% server time | XS |
 | 4 | ~~3.18M unit rows shipped to build 310k objects~~ **CLOSED** | re-measured interleaved at `work_mem=64MB`: as-shipped **8.08 s**, `string_agg` **9.36 s** — the variant is 16% *slower*. The original 5.74-vs-7.98 gap was cache warming between two single runs | none | — | — |
-| 5 | `Unit` hashing dominates the walk | `Unit.__hash__` **22,797,527 calls** in 600 steps; tuple keys 2.53x faster, int keys 3.88x | intern units to ints inside the index | walk −20–30% est. | L — `Unit` has a `__reduce__` because it crosses process boundaries, and it flows through the store, SRS and web pages |
+| 5 | `Unit` hashing dominates the walk | `Unit.__hash__` **22,797,527 calls** in 600 steps; tuple keys 2.53x faster, int keys 3.88x | **done** — units numbered inside `CorpusIndex`, `Unit` at the door | measured **walk −43%, 1.76x**; both plans byte-identical | L |
 | 6 | `analysis_processes: 8` is past the knee | best-of-3: 4 procs **1,402 sent/s**, 6 procs 1,390, 8 procs 1,236. M1 is exactly 4P+4E; 8 was slowest in all three reps | set 4–6 | −12% on build-corpus | XS |
 | 7 | `find_best_match` lru_cache thrashing | `maxsize=4096`, **currsize=4096**, hit rate 68.6%; unbounded → 70.4%, **−5.2% on `_units`** | raise maxsize | −1.5% of build-corpus | XS |
 | 8 | ~~`phrase_finder` imported twice~~ **WITHDRAWN** | an artifact of the audit's own diagnostic: `perf/nlp_clean.py:15` does `import matcher.phrase_finder`, which is what created the second module object. The real app loads exactly one | none needed | — | — |
@@ -399,6 +399,40 @@ SHA-256 across every sentence's units, its surfaces, and the corpus-wide
 untouched. `consumed` is empty on entry in the real path —
 `extract_german_logic` builds it immediately above the call — so the
 narrowing cannot interact with words already claimed.
+
+### 5 — units numbered inside the index, done
+
+`CorpusIndex` keys `_by_unit`, `_candidates`, `_pending`, `_goal_candidates`
+and the known set by integer. `Unit` is unchanged — its `__reduce__`, the
+store, the SRS and the web pages never see a number. The numbering stops at
+the door: `candidates()`, `pairs()`, `containing()`, `known` and `granted`
+still speak `Unit` and translate on the way out, which costs nothing because
+their callers ask once, not once a step. `RoadmapBuilder` uses the
+`_ids` variants, because it is the thing asking millions of times.
+
+Each sentence gets a `frozenset[int]` built once, so `_register`'s
+`sentence.units - known` is an integer set difference rather than a
+conversion pretending to be one — measured 2.2x on that line alone. The
+builder resolves per-number arrays for key, kind, weighted priority and
+goal membership in `__init__`, so `_score` is two list indexes where it was
+two dict lookups with `Unit` keys.
+
+| | before | after |
+|---|---|---|
+| walk, 3,932 steps | 15.15 s | **8.63 s** (1.76x, −43%) |
+| index construction | 1.00 s | 1.55 s (the interning pass) |
+| builder `__init__` | 0.59 s | 0.65 s (the arrays) |
+| all three together | 16.74 s | **10.83 s** (−35%) |
+| plain plan SHA-256 | `34383b81…` | `34383b81…` **identical** |
+| `--relax` plan SHA-256 | `c3683dd9…` | `c3683dd9…` **identical** |
+
+The score arithmetic is kept in its original order — `gain + weight *
+priority`, then `+= GOAL_BONUS` — rather than folding the bonus into the
+precomputed term. Floating point is not associative and the score breaks
+ties, so the fold would be a different number and could be a different plan.
+
+Against the walk as it stood before any of this work, measured on the same
+machine within the hour: 47.37 s to 8.63 s.
 
 ### Absolute timings drift across a session; ratios do not
 

@@ -58,6 +58,24 @@ class RoadmapBuilder:
         # walk has to refuse them by name, or it starts teaching `Klausur`
         # to make a sentence readable that the reader never asked to read.
         self._only_goals = only_goals
+        # Everything the scan needs about a unit, by its number, so the
+        # innermost loop never names one. `_score` used to reach a dict with
+        # a `Unit` key twice per candidate — 2.29M times over 800 steps — and
+        # these are list indexes instead.
+        #
+        # The arithmetic is kept in the order it was in: `gain + weight *
+        # priority` and then `+ GOAL_BONUS`, not `gain + (weight * priority +
+        # GOAL_BONUS)`. Floating point is not associative and the score is
+        # compared for ties, so folding the bonus in would be a different
+        # number and could be a different plan.
+        width = index.numbered()
+        units = [index.unit_of(i) for i in range(width)]
+        self._unit_of: list[Unit] = units
+        self._key_of: list[str] = [u.key for u in units]
+        self._kind_of: list[str] = [u.kind for u in units]
+        self._weighted: list[float] = [priority_weight * priority.of(u)
+                                       for u in units]
+        self._is_goal: list[bool] = [u in goals for u in units]
         if only_goals:
             # Refusing them by name once a step meant scanning a frontier of
             # seventeen thousand to reach three thousand goals. The index can
@@ -151,45 +169,50 @@ class RoadmapBuilder:
         the best of the deferred is taught after all — a doubtful sentence
         beats leaving the word untaught, and the page says which it was.
         """
-        skipped: tuple[Unit, set[int], int, float] | None = None
+        skipped: tuple[int, set[int], int, float] | None = None
+        # Translated once a step rather than once a candidate. `exclude` is a
+        # handful of units a reader has set aside; the frontier is thousands.
+        barred = frozenset(self._index.id_of(u) for u in exclude)
         while True:
             # One pass, keeping the best rather than materialising every
             # score: the frontier runs to thousands of units and this is the
             # innermost loop of the whole walk. `key` still breaks ties
             # reproducibly, and `>` keeps the first of equals as `max` did.
-            best: tuple[Unit, set[int], int, float] | None = None
+            best: tuple[int, set[int], int, float] | None = None
             # The goal view holds exactly the frontier units a held walk may
             # teach, so the membership test that used to reject three units
             # in four is gone rather than moved. Both maps iterate in the
             # order units reached the frontier, and a unit reaches it once,
             # so the narrowed one visits goals in the same relative order the
             # full one did — which is what keeps ties breaking as they were.
-            frontier = (self._index.goal_candidates() if self._only_goals
-                        else self._index.candidates())
-            for unit, positions in frontier.items():
-                if not positions or unit in exclude:
+            frontier = (self._index.goal_candidate_ids() if self._only_goals
+                        else self._index.candidate_ids())
+            keys = self._key_of
+            for uid, positions in frontier.items():
+                if not positions or uid in barred:
                     continue
-                if kinds and unit.kind not in kinds:
+                if kinds and self._kind_of[uid] not in kinds:
                     continue
-                gain, score = self._score(unit, positions)
-                if self._deferred.get(unit) == len(positions):
-                    if skipped is None or (score, unit.key) > (skipped[3], skipped[0].key):
-                        skipped = (unit, positions, gain, score)
+                gain, score = self._score(uid, positions)
+                if self._deferred.get(uid) == len(positions):
+                    if skipped is None or (score, keys[uid]) > (skipped[3], keys[skipped[0]]):
+                        skipped = (uid, positions, gain, score)
                     continue
-                if best is None or (score, unit.key) > (best[3], best[0].key):
-                    best = (unit, positions, gain, score)
+                if best is None or (score, keys[uid]) > (best[3], keys[best[0]]):
+                    best = (uid, positions, gain, score)
             if best is None:
                 if skipped is None:
                     return None
                 best = skipped
-                example = self._example(best[0], best[1])
+                example = self._example(self._unit_of[best[0]], best[1])
                 break
-            example = self._example(best[0], best[1])
+            example = self._example(self._unit_of[best[0]], best[1])
             if self._judged is None or self._judged.clean(example.text):
                 break
             # Found doubtful: the next scan files it under `skipped`.
             self._deferred[best[0]] = len(best[1])
-        unit, sentences, gain, score = best
+        uid, sentences, gain, score = best
+        unit = self._unit_of[uid]
         return RoadmapStep(
             position=position,
             unit=unit,
@@ -263,18 +286,20 @@ class RoadmapBuilder:
         The pair is chosen by the same score as any other step, so the
         cheapest wall to climb is the one climbed first.
         """
-        best: tuple[Unit, set[int], int, float] | None = None
-        for unit, positions in self._index.pairs().items():
+        best: tuple[int, set[int], int, float] | None = None
+        keys = self._key_of
+        for uid, positions in self._index.pending_ids().items():
             if not positions:
                 continue
-            if self._only_goals and unit not in self._goals:
+            if self._only_goals and not self._is_goal[uid]:
                 continue
-            gain, score = self._score(unit, positions)
-            if best is None or (score, unit.key) > (best[3], best[0].key):
-                best = (unit, positions, gain, score)
+            gain, score = self._score(uid, positions)
+            if best is None or (score, keys[uid]) > (best[3], keys[best[0]]):
+                best = (uid, positions, gain, score)
         if best is None:
             return None
-        unit, positions, gain, score = best
+        uid, positions, gain, score = best
+        unit = self._unit_of[uid]
         sentence = self._example(unit, positions)
         # The other unknown in that sentence — what learning `unit` alone
         # would have left behind, and the reason this sentence was out of
@@ -296,10 +321,13 @@ class RoadmapBuilder:
             beside=beside,
         )
 
-    def _score(self, unit: Unit, positions: set[int]) -> tuple[int, float]:
-        gain = len(positions) + self._index.unlocks(unit)
-        score = gain + self._weight * self._priority.of(unit)
-        if unit in self._goals:
+    def _score(self, uid: int, positions: set[int]) -> tuple[int, float]:
+        """By number. `_weighted` and `_is_goal` were resolved once in
+        `__init__`; the order of the arithmetic is unchanged, deliberately —
+        see the note there."""
+        gain = len(positions) + self._index.unlocks_id(uid)
+        score = gain + self._weighted[uid]
+        if self._is_goal[uid]:
             score += GOAL_BONUS
         return gain, score
 

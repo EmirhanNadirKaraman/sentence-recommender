@@ -32,15 +32,43 @@ class CorpusIndex:
     def __init__(self, sentences: list[Sentence], known: KnownSet,
                  compounds: Compounds | None = None) -> None:
         self._sentences = sentences
+        # Units are numbered, and the walk runs on the numbers.
+        #
+        # Every map below is asked about a unit millions of times a walk, and
+        # a `Unit` answers with a Python-level `__hash__` however cheap that
+        # method is made — 12.1M calls in 800 steps, and a dict lookup either
+        # side of each. Integers hash in C. Measured on this corpus, the set
+        # difference in `_register` alone is 2.2x faster interned.
+        #
+        # The numbering is an implementation detail and stops at the door:
+        # `candidates`, `pairs`, `containing`, `known` and `granted` all speak
+        # `Unit`, because everything outside this file does. Only
+        # `RoadmapBuilder`, which is the thing doing it millions of times,
+        # reaches for the `_ids` variants.
+        self._id: dict[Unit, int] = {}
+        self._unit: list[Unit] = []
+        self._by_unit: dict[int, set[int]] = defaultdict(set)
+        # One frozenset of ids per sentence, built once. This is what makes
+        # the difference in `_register` an integer operation rather than a
+        # conversion pretending to be one.
+        self._sentence_units: list[frozenset[int]] = []
+        for position, sentence in enumerate(sentences):
+            here = set()
+            for unit in sentence.units:
+                identifier = self._intern(unit)
+                here.add(identifier)
+                self._by_unit[identifier].add(position)
+            self._sentence_units.append(frozenset(here))
+
         # A snapshot, not the caller's object. The index learns as it walks,
         # and writing that back would silently redefine what the caller thinks
         # is known — which is how a measurement here once reported learning
         # more units than were ever unknown.
+        #
+        # Kept twice over: `Compounds` speaks `Unit` and so does everything
+        # that asks what is known, while the walk wants the numbers. The two
+        # are written together in `learn` and nowhere else.
         self._units = set(known.units)
-        self._by_unit: dict[Unit, set[int]] = defaultdict(set)
-        for position, sentence in enumerate(sentences):
-            for unit in sentence.units:
-                self._by_unit[unit].add(position)
 
         # A compound whose parts are all known is already readable, so it is
         # known too -- `Krankenhaus` is not a word to teach someone who has
@@ -58,25 +86,56 @@ class CorpusIndex:
         # which are the ones most likely to grant something.
         # `is None`, not `or`: an empty `Compounds` is falsy, so `or` threw
         # away a caller that deliberately passed one and read the file again.
+        # `self._unit` and not `self._by_unit`: the map is keyed by number
+        # now, and `Compounds` is asked which *words* this corpus holds.
         self._compounds = compounds if compounds is not None else Compounds.over(
-            set(self._by_unit) | self._units)
+            set(self._unit) | self._units)
         self._granted = self._compounds.derivable(self._units)
         self._units |= self._granted
+        self._known: set[int] = {self._intern(u) for u in self._units}
 
-        self._unknown = [len(s.units - self._units) for s in sentences]
-        self._candidates: dict[Unit, set[int]] = defaultdict(set)
+        self._unknown = [len(su - self._known) for su in self._sentence_units]
+        self._candidates: dict[int, set[int]] = defaultdict(set)
         # The same frontier, narrowed to the units a goal-driven walk may
         # actually teach. Empty and unused until `track_goals` asks for it.
         # Declared before the loop below, because `_register` maintains it.
-        self._goals: frozenset[Unit] = frozenset()
-        self._goal_candidates: dict[Unit, set[int]] = {}
-        self._pending: dict[Unit, set[int]] = defaultdict(set)
+        self._goals: frozenset[int] = frozenset()
+        self._goal_candidates: dict[int, set[int]] = {}
+        self._pending: dict[int, set[int]] = defaultdict(set)
         self._readable = 0
         for position, count in enumerate(self._unknown):
             if count == 0:
                 self._readable += 1
             elif count <= 2:
                 self._register(position, count)
+
+    def _intern(self, unit: Unit) -> int:
+        """This unit's number, assigning one if it has never been seen.
+
+        `setdefault` would build the fallback on every call; this pays only
+        when the unit is new, which over a corpus is once in a few dozen.
+        """
+        identifier = self._id.get(unit)
+        if identifier is None:
+            identifier = self._id[unit] = len(self._unit)
+            self._unit.append(unit)
+        return identifier
+
+    def unit_of(self, identifier: int) -> Unit:
+        """The unit a number stands for."""
+        return self._unit[identifier]
+
+    def id_of(self, unit: Unit) -> int:
+        """The number a unit is filed under, or -1 for one this corpus never
+        says. -1 rather than None or a fresh id: callers use it to test
+        membership of maps keyed by number, and a unit that is not here
+        cannot be in any of them."""
+        return self._id.get(unit, -1)
+
+    def numbered(self) -> int:
+        """How many distinct units have a number — the width any array a
+        caller builds alongside this index has to have."""
+        return len(self._unit)
 
     def __len__(self) -> int:
         return len(self._sentences)
@@ -103,7 +162,8 @@ class CorpusIndex:
         return frozenset(self._units)
 
     def known_units_of_kind(self, kind: str) -> set[Unit]:
-        return {u for u in self._by_unit if u.kind == kind}
+        return {u for u in (self._unit[i] for i in self._by_unit)
+                if u.kind == kind}
 
     @property
     def readable(self) -> int:
@@ -122,6 +182,14 @@ class CorpusIndex:
         step, to hand back something the scorer only takes the length of.
         Emptied entries are dropped as they empty, so a caller may still see
         one and should skip it.
+        """
+        return {self._unit[i]: p for i, p in self._candidates.items()}
+
+    def candidate_ids(self) -> dict[int, set[int]]:
+        """`candidates`, by number and without the translation.
+
+        The walk reads this once a step over a frontier of thousands; naming
+        every unit on the way past is most of what the numbering removes.
         """
         return self._candidates
 
@@ -149,10 +217,14 @@ class CorpusIndex:
         same index to a second builder with different goals would repoint the
         view and leave the first walk reading somebody else's.
         """
-        self._goals = goals
+        # Goals this corpus never says have no number and can never reach
+        # the frontier, so they are simply not in the set.
+        self._goals = frozenset(
+            i for i in (self._id.get(u, -1) for u in goals) if i >= 0)
         self._goal_candidates = {
-            unit: positions for unit, positions in self._candidates.items()
-            if unit in goals
+            identifier: positions
+            for identifier, positions in self._candidates.items()
+            if identifier in self._goals
         }
 
     def goal_candidates(self) -> dict[Unit, set[int]]:
@@ -161,6 +233,10 @@ class CorpusIndex:
         Empty unless `track_goals` has been called. Read-only, and emptied
         entries are dropped as they empty, exactly as `candidates` documents.
         """
+        return {self._unit[i]: p for i, p in self._goal_candidates.items()}
+
+    def goal_candidate_ids(self) -> dict[int, set[int]]:
+        """`goal_candidates`, by number. The walk's innermost loop."""
         return self._goal_candidates
 
     def pairs(self) -> dict[Unit, set[int]]:
@@ -174,6 +250,10 @@ class CorpusIndex:
         Read-only, and emptied entries are dropped as they empty, exactly as
         `candidates` documents.
         """
+        return {self._unit[i]: p for i, p in self._pending.items()}
+
+    def pending_ids(self) -> dict[int, set[int]]:
+        """`pairs`, by number."""
         return self._pending
 
     def containing(self, unit: Unit) -> set[int]:
@@ -188,7 +268,7 @@ class CorpusIndex:
         ones `candidates` hands back. `get` rather than indexing, so asking
         about an absent unit does not mint an entry for it.
         """
-        return self._by_unit.get(unit, set())
+        return self._by_unit.get(self._id.get(unit, -1), set())
 
     def unlocks(self, unit: Unit) -> int:
         """Sentences that would drop from two unknowns to one — the lookahead.
@@ -197,7 +277,11 @@ class CorpusIndex:
         step, and a defaultdict would mint an empty set for each one and then
         iterate it forever after.
         """
-        pending = self._pending.get(unit)
+        return self.unlocks_id(self._id.get(unit, -1))
+
+    def unlocks_id(self, identifier: int) -> int:
+        """`unlocks`, by number — asked once per candidate per step."""
+        pending = self._pending.get(identifier)
         return len(pending) if pending else 0
 
     def learn(self, unit: Unit) -> None:
@@ -213,23 +297,27 @@ class CorpusIndex:
         # compound, whose own sentences need the same pass -- but `_register`
         # reads `self._units` as it stands, so an interleaved second unit
         # would file sentences against a frontier that is halfway updated.
+        # The queue carries units rather than numbers because `Compounds`
+        # speaks units, and it is the thing deciding what a part unlocks.
         queue = [unit]
         while queue:
             current = queue.pop()
             if current in self._units:
                 continue
             self._units.add(current)
+            identifier = self._intern(current)
+            self._known.add(identifier)
             granted = self._compounds.unlocked_by(current, self._units)
             self._granted.update(granted)
             queue.extend(granted)
-            for position in self._by_unit[current]:
+            for position in self._by_unit[identifier]:
                 count = self._unknown[position] - 1
                 self._unknown[position] = count
                 if count == 0:
-                    self._drop(self._candidates, current, position)
+                    self._drop(self._candidates, identifier, position)
                     self._readable += 1
                 elif count == 1:
-                    self._drop(self._pending, current, position)
+                    self._drop(self._pending, identifier, position)
                     self._register(position, 1, drop_from_pending=True)
                 elif count == 2:
                     self._register(position, 2)
@@ -242,7 +330,7 @@ class CorpusIndex:
         the surviving unknown must leave the lookahead as it enters the
         frontier.
         """
-        for remaining in self._sentences[position].units - self._units:
+        for remaining in self._sentence_units[position] - self._known:
             if count == 1:
                 if drop_from_pending:
                     self._drop(self._pending, remaining, position)
@@ -258,7 +346,7 @@ class CorpusIndex:
             else:
                 self._pending[remaining].add(position)
 
-    def _drop(self, mapping: dict, unit: Unit, position: int) -> None:
+    def _drop(self, mapping: dict, identifier: int, position: int) -> None:
         """Remove a sentence, and the unit's entry with it once it is empty.
 
         Both maps are walked in full on every step. Left to grow they keep
@@ -270,11 +358,11 @@ class CorpusIndex:
         the two maps hold the same set — but the key has to go from both, and
         putting that here means a future caller cannot forget it.
         """
-        positions = mapping.get(unit)
+        positions = mapping.get(identifier)
         if positions is None:
             return
         positions.discard(position)
         if not positions:
-            del mapping[unit]
+            del mapping[identifier]
             if mapping is self._candidates:
-                self._goal_candidates.pop(unit, None)
+                self._goal_candidates.pop(identifier, None)
