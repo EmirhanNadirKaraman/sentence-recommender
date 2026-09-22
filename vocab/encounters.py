@@ -8,7 +8,9 @@ The first hearing is rung one; the next counts only once `LADDER[1]` days
 have passed since the hearing that was counted, the one after that once
 `LADDER[2]` days have, and so on -- a word heard ten times in one evening
 is at rung one, a word heard on five days spread over a month is at the
-top. The level never falls: at the top the word is familiar, and stays so.
+top. The days are SM-2's own, the intervals a card gets when every review
+passes, so the passive schedule is the active one. The level never falls:
+at the top the word is familiar, and stays so.
 
 Nothing here is knowing. A familiar word is offered first where words are
 offered, and a claim on probation that becomes familiar has its active
@@ -21,6 +23,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from srs.scheduler import CONFIRMATIONS, SM2Scheduler
 from state import open_state
 from vocab.entry import Unit
 
@@ -44,13 +47,27 @@ CREATE TABLE IF NOT EXISTS heard (
 );
 """
 
-# Days that must pass after the hearing that set the level before the next
-# hearing raises it: the first hearing counts at once, the second a day
-# later, then three, seven and fourteen days apart. Reached at the earliest
-# on days 0, 1, 4, 11 and 25.
-LADDER = (0, 1, 3, 7, 14)
-# The top of the ladder: familiar, and the active test is called.
-ENOUGH = len(LADDER)
+# Five for both: the top of the ladder, where the word is familiar and the
+# active test is called, is as many rungs as a claim needs passes.
+ENOUGH = CONFIRMATIONS
+
+
+def _ladder() -> tuple[float, ...]:
+    """Days that must pass after the hearing that set the level before the
+    next hearing raises it: the first counts at once, and then the waits
+    are the intervals SM-2 gives a card that passes every review -- a day,
+    then 2.5, 6.4 and 16.6 days apart, rungs at the earliest on days 0, 1,
+    3.5, 10 and 26. Read off the scheduler so the two never drift."""
+    scheduler = SM2Scheduler()
+    card = scheduler.new_card(Unit.lemma(""), datetime(2000, 1, 1))
+    waits = [0.0]
+    while len(waits) < ENOUGH:
+        waits.append(card.interval_days)
+        card = scheduler.review(card, True, card.due_date)
+    return tuple(waits)
+
+
+LADDER = _ladder()
 
 
 @dataclass(frozen=True)

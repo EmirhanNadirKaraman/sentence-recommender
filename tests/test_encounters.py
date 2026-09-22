@@ -26,8 +26,13 @@ def heard(store: Encounters, unit: Unit, days: float, text: str = "Also gut.") -
 
 
 class LadderTest(unittest.TestCase):
-    def test_the_rungs_come_on_days_0_1_4_11_and_25_at_the_earliest(self) -> None:
-        self.assertEqual(LADDER, (0, 1, 3, 7, 14))
+    def test_the_ladder_is_sm2s_own_schedule(self) -> None:
+        """The waits between counted hearings are the intervals a card
+        gets when every review passes: five for both, and the same days."""
+        self.assertEqual(ENOUGH, 5)
+        self.assertEqual(LADDER, (0, 1, 2.5, 6.375, 16.575))
+
+    def test_the_rungs_come_on_days_0_1_3_5_10_and_26_at_the_earliest(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             store = Encounters(Path(tmp) / "state.sqlite3")
             self.assertEqual(store.rung(ALSO), Rung())
@@ -40,22 +45,22 @@ class LadderTest(unittest.TestCase):
             # the last one: 0.99 did not move the clock.
             heard(store, ALSO, 1)
             self.assertEqual(store.rung(ALSO), Rung(2, DAY0 + timedelta(days=1)))
-            heard(store, ALSO, 3.5)
+            heard(store, ALSO, 3)
             self.assertEqual(store.rung(ALSO).level, 2)
-            heard(store, ALSO, 4)
-            self.assertEqual(store.rung(ALSO), Rung(3, DAY0 + timedelta(days=4)))
+            heard(store, ALSO, 3.5)
+            self.assertEqual(store.rung(ALSO), Rung(3, DAY0 + timedelta(days=3.5)))
+            heard(store, ALSO, 9)
             heard(store, ALSO, 10)
-            heard(store, ALSO, 11)
             self.assertEqual(store.rung(ALSO).level, 4)
-            heard(store, ALSO, 24)
+            heard(store, ALSO, 26)
             self.assertEqual(store.rung(ALSO).level, 4)
-            heard(store, ALSO, 25)
+            heard(store, ALSO, 27)
             top = store.rung(ALSO)
             self.assertEqual((top.level, top.familiar, top.next_from),
                              (ENOUGH, True, None))
             # The top is the top: a year of hearings changes nothing.
             heard(store, ALSO, 400)
-            self.assertEqual(store.rung(ALSO), Rung(ENOUGH, DAY0 + timedelta(days=25)))
+            self.assertEqual(store.rung(ALSO), Rung(ENOUGH, DAY0 + timedelta(days=27)))
             # Every hearing was logged all the same.
             self.assertEqual(store.count(ALSO), 13)
             self.assertEqual(store.rungs(), {ALSO: store.rung(ALSO)})
