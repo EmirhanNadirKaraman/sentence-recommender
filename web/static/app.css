@@ -533,6 +533,9 @@ button.w.target { color: var(--target); border-bottom: 1px solid var(--target); 
    (`render.layout`). */
 .coloured button.w.new { color: var(--new); border-bottom: 1px dotted var(--new); }
 .coloured button.w.new[data-kind='pattern'] { color: inherit; }
+/* Your own sentence, read against the one you kept: the kept one is the
+   verdict block above, what you wrote is plain under it. */
+.de.yours { color: var(--ink-2); margin: 2px 0 14px; }
 .switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 .switch input { width: 18px; height: 18px; margin: 0; accent-color: var(--target); }
 .stepper .count { white-space: nowrap; }

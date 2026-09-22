@@ -2268,7 +2268,11 @@ in German, graded by you (`due_sentences`, `grade_sentence`). Asked on
 `/review` in one queue with the word cards, the longest overdue first
 (2026-09-22): scheduled on `/mine` alone they were asked only when you
 went looking for them, and a spaced schedule nobody is brought back to is
-a list. The German is one click from Google Translate there and on
+a list. Written out from the English and then read against the kept
+German, which is printed above what you typed — the answer is a sentence
+you wrote yourself, so the comparison is the whole test and no model is
+asked anything. It is the one review that works with nothing running but
+the server. The German is one click from Google Translate there and on
 `/mine` — the local model wrote it and nothing else checks it, and your
 own sentences are the one text here that may leave the machine.
 

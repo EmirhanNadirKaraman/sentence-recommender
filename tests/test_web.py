@@ -698,8 +698,19 @@ class ReviewQueueTest(unittest.TestCase):
             self.assertIn("I still have to say this.", page)
             self.assertIn("Yours, to be able to say", page)
             self.assertIn("2 due", page)
+            # The German is not on the page until it has been written out.
+            self.assertNotIn("Ich muss das noch sagen.</p>", page)
+            self.assertIn("name='sentence'", page)
+            what, page = viewer.save_review(
+                {"text": "Ich muss das noch sagen.", "action": "say",
+                 "sentence": "Ich muss das noch sag.", "src": ""})
+            self.assertEqual(what, "page")
+            # The kept sentence above what was written, and neither graded.
+            self.assertIn("<p class='de lead'>Ich muss das noch sagen.</p>", page)
+            self.assertIn("<p class='de yours'>Ich muss das noch sag.</p>", page)
             self.assertIn("translate.google.com", page)
-            # Said: off the queue, and the word card is next.
+            self.assertEqual(app.own.all()[0]["repetitions"], 0)
+            # Had it: off the queue, and the word card is next.
             viewer.save_review({"text": "Ich muss das noch sagen.", "action": "good", "src": ""})
             self.assertEqual(app.own.due(now), [])
             page = viewer.review({})
