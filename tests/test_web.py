@@ -669,13 +669,14 @@ class ReviewQueueTest(unittest.TestCase):
     def viewer(self, tmp: Path):
         from context import Application
         from srs import CardStore, SM2Scheduler
+        from vocab.attempts import Attempts
         from vocab.own_sentences import OwnSentences
         state = tmp / "state.sqlite3"
         app = SimpleNamespace(
             card_store=CardStore(state), own=OwnSentences(state),
             scheduler=SM2Scheduler(),
             encounters=SimpleNamespace(rungs=lambda: {}, count=lambda unit: 0),
-            attempts=SimpleNamespace(of=lambda unit, limit=5: []),
+            attempts=Attempts(state),
             mcp_prompt=lambda unit: {"spoken": unit.key, "meaning": "", "examples": []},
             corpus_store=SimpleNamespace(builds=lambda teachable_only=False: {"subtitle": 1}),
             settings=SimpleNamespace(state_path=state, goal_words=tmp / "study_list.txt"))
@@ -717,6 +718,39 @@ class ReviewQueueTest(unittest.TestCase):
             self.assertNotIn("Yours, to be able to say", page)
             self.assertIn("merken", page)
             self.assertIn("1 due", page)
+
+    def test_a_word_card_asks_for_a_translation_and_shows_the_german_after(self) -> None:
+        """An English sentence the word was said in, then the German above
+        what was written. Nothing is graded by writing it, and no model is
+        asked anything."""
+        import tempfile
+        from datetime import datetime
+        from vocab.entry import Unit
+        with tempfile.TemporaryDirectory() as tmp:
+            viewer, app = self.viewer(Path(tmp))
+            merken = Unit.lemma("merken")
+            app.mcp_prompt = lambda unit: {
+                "spoken": "merken", "meaning": "to note",
+                "examples": [{"text": "Das muss ich mir merken.",
+                              "english": "I have to remember that.", "surface": "merken"}]}
+            app.card_store.add(app.scheduler.new_card(merken, datetime.now()))
+            page = viewer.review({})
+            self.assertIn("I have to remember that.", page)
+            self.assertIn("Say this in German", page)
+            self.assertNotIn("Das muss ich mir merken.<", page)
+            what, page = viewer.save_review(
+                {"kind": "lemma", "key": "merken", "action": "say",
+                 "asked": "Das muss ich mir merken.",
+                 "sentence": "Ich muss mir das merken.", "src": ""})
+            self.assertEqual(what, "page")
+            self.assertIn("Das muss ich mir <span class='target'>merken</span>.", page)
+            self.assertIn("<p class='de yours'>Ich muss mir das merken.</p>", page)
+            self.assertEqual(app.card_store.get(merken).repetitions, 0)
+            self.assertEqual([a["written"] for a in app.attempts.of(merken)],
+                             ["Ich muss mir das merken."])
+            viewer.save_review({"kind": "lemma", "key": "merken", "action": "good", "src": ""})
+            self.assertEqual(app.card_store.get(merken).repetitions, 1)
+            self.assertEqual([a["correct"] for a in app.attempts.of(merken)], [True])
 
     def test_a_word_card_is_untouched_by_the_sentence_branch(self) -> None:
         """The two are told apart by what the form carries -- a sentence

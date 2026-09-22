@@ -1917,22 +1917,28 @@ class Viewer:
     # --- reviewing the claims ---------------------------------------------
 
     def review(self, query: dict, result: dict | None = None) -> str:
-        """The words you claimed to know, tested: one at a time, write a
-        sentence with it, and the schedule does the rest.
+        """The claims you made, tested one at a time: an English sentence
+        to put into German, then the German that was actually said above
+        what you wrote, and your own word for whether you had it.
 
-        The same cards Claude examines over MCP (`due_cards`/`grade`); here
-        the local model judges — the sentence as a native speaker would
-        say it, a line on what changed, and whether the word was used
-        right — and the verdict is graded at once. `result` is what a
-        judgement just returned, shown above the next card. Without the
-        model you grade yourself.
+        A translation has an answer; "use it in a sentence" does not, and
+        that is why the local model used to be asked here — it read `also`
+        as the English word and "corrected" a right sentence, and a wrong
+        verdict takes a word off the known list. Asking for the sentence
+        the word was *said* in gives the answer key for nothing, is
+        instant, and runs with nothing but the server: the model is out of
+        this path. Claude still examines the same cards over MCP, where an
+        open question is worth asking because something can judge it
+        (`due_cards`/`grade`). What you wrote is kept either way
+        (`vocab.attempts`) and shown at the next review.
 
-        Your own sentences are asked here too, on the same schedule and
-        in the same queue, the longest overdue first (`vocab.own_sentences`).
-        They used to be asked on `/mine` alone, which meant they were
-        asked when you went looking for them — a spaced schedule nobody
-        is brought back to is a list. Those are written out and then read
-        against the kept German, which needs no model at all.
+        Your own sentences are asked here too, the same way, on the same
+        schedule and in one queue with the words, the longest overdue
+        first (`vocab.own_sentences`). They used to be asked on `/mine`
+        alone, which meant they were asked when you went looking for them
+        — a spaced schedule nobody is brought back to is a list.
+
+        `result` is the round trip: what was asked and what was written.
         """
         from srs.scheduler import BY_DATE, CONFIRMATIONS, LAPSES_TO_UNMARK  # noqa: PLC0415
         source = self.source(query)
@@ -1953,38 +1959,9 @@ class Viewer:
         due = [first[2]] if first and first[1] == "card" else []
         why = first[3] if first else ""
         verdict = ""
-        if result and result.get("pending"):
-            # The model's opinion, and the grade is yours: it read `also`
-            # as the English word once and "corrected" a right sentence,
-            # and a wrong grade here can take a word off the known list.
-            unit = result["unit"]
-            thinks = result.get("correct")
-            verdict = (
-                "<div class='note said" + ("" if thinks else " bad") + "'>"
-                f"<p><strong>{escape(result['spoken'])}</strong> — the model thinks "
-                f"{'the word is used right' if thinks else 'it is not quite right'}"
-                f"{': ' + escape(result['note']) if result.get('note') else '.'}</p>"
-                + (f"<p class='de'>{escape(result['german'])}</p>"
-                   f"<p class='en'>{escape(result.get('english', ''))}</p>" if result.get("german") else "")
-                + "<form method='post' action='/review' class='actions'>"
-                f"<input type='hidden' name='src' value='{escape(source)}'>"
-                f"<input type='hidden' name='kind' value='{escape(unit.kind)}'>"
-                f"<input type='hidden' name='key' value='{escape(unit.key)}'>"
-                f"<button name='action' value='good'{' class=go' if thinks else ''}>I used it right</button>"
-                f"<button name='action' value='again'{'' if thinks else ' class=go'}>I missed it</button>"
-                "</form>"
-                + ("<form method='post' action='/mine' class='tools'>"
-                   f"<input type='hidden' name='src' value='{escape(source)}'>"
-                   f"<input type='hidden' name='german' value='{escape(result['german'])}'>"
-                   f"<input type='hidden' name='english' value='{escape(result.get('english', ''))}'>"
-                   "<button name='action' value='keep'>Keep the corrected sentence in Mine</button></form>"
-                   if result.get("german") else "")
-                + "</div>")
-            body = (f"<h1>Review</h1>{verdict}")
-            return self._page("Review", body, "/review", source)
-        # A word card's verdict. One of your own sentences carries no
-        # verdict -- writing it decides nothing -- and says so by name.
-        if result and not result.get("own"):
+        # A word card just graded, and only that: writing a sentence out
+        # decides nothing, so that round trip carries no verdict.
+        if result and result.get("outcome"):
             said = {"graduated": "Graduated — five in a row, it is yours for good.",
                     "unmarked": "Two misses in a row: the word is no longer counted as "
                                 "known, and the plan will teach it again.",
@@ -2020,31 +1997,63 @@ class Viewer:
         hint += self._attempts_html(card.unit)
         reason = ("it became familiar watching — the active test is called"
                   if why == "heard" else "its date has come")
-        body = (
-            f"<h1>Review</h1>{verdict}"
-            f"<p class='note'>{due_count:,} due · {total:,} on probation. Write a German "
-            f"sentence using the word; the local model says whether the word is used "
-            "right and how a native speaker would put it.</p>"
-            "<div class='card' id='review-card'>"
-            f"<p class='note'>Use it in a sentence"
-            f"{' — a verb pattern' if card.unit.is_pattern else ''}: "
-            f"{card.repetitions} of {CONFIRMATIONS} confirmed"
-            f"{f', {card.lapses} miss' if card.lapses else ''} · {reason}</p>"
-            f"<p class='de lead'>{escape(asked['spoken'])}</p>"
-            + hint
-            + "<form class='mine' method='post' action='/review'>"
-            f"<input type='hidden' name='src' value='{escape(source)}'>"
-            f"<input type='hidden' name='kind' value='{escape(card.unit.kind)}'>"
-            f"<input type='hidden' name='key' value='{escape(card.unit.key)}'>"
-            "<textarea name='sentence' rows='2' autofocus placeholder='Your sentence'></textarea>"
-            "<div class='actions'>"
-            "<button class='go' name='action' value='check'>Check it</button>"
-            "<button name='action' value='good' title='Without the model: I used it right'>"
-            "I got it</button>"
-            "<button name='action' value='again' title='Without the model: I did not'>"
-            "I missed it</button>"
-            "<button name='action' value='skip'>Skip for now</button>"
-            "</div></form></div>")
+        # The sentence to put into German: one the word is used in, with
+        # its English, and never one the plan taught the word with
+        # (`prompt_for`). Which one is carried through the round trip, so
+        # the answer shown is the question that was asked.
+        wrote = result.get("wrote") if result and result.get("asked") else None
+        ask = next((e for e in asked.get("examples", [])
+                    if e.get("english") and (not result or not result.get("asked")
+                                             or e["text"] == result["asked"])), None)
+        carried = (f"<input type='hidden' name='src' value='{escape(source)}'>"
+                   f"<input type='hidden' name='kind' value='{escape(card.unit.kind)}'>"
+                   f"<input type='hidden' name='key' value='{escape(card.unit.key)}'>"
+                   + (f"<input type='hidden' name='asked' value='{escape(ask['text'])}'>"
+                      if ask else ""))
+        standing = (f"<p class='note'>{card.repetitions} of {CONFIRMATIONS} confirmed"
+                    f"{f', {card.lapses} miss' if card.lapses else ''} · {reason}</p>")
+        if ask:
+            task = ("<p class='note'>Say this in German"
+                    f"{' — the pattern is what is being asked' if card.unit.is_pattern else ''}"
+                    f", using <strong>{escape(asked['spoken'])}</strong></p>"
+                    f"<p class='en lead'>{escape(ask['english'])}</p>")
+            answer = sentence(ask["text"], "", ask.get("surface"), lead=True)
+        else:
+            # No English for any sentence it says: the open question, and
+            # the sentences themselves as the answer to read against.
+            task = ("<p class='note'>Use it in a sentence"
+                    f"{' — a verb pattern' if card.unit.is_pattern else ''}</p>"
+                    f"<p class='de lead'>{escape(asked['spoken'])}</p>")
+            answer = "".join(sentence(e["text"], e.get("english"), e.get("surface"))
+                             for e in asked.get("examples", [])[:2]) \
+                or "<p class='en'>Nothing here says it yet.</p>"
+        if wrote is None:
+            body = (f"<h1>Review</h1>{verdict}"
+                    f"<p class='note'>{due_count:,} due · {total:,} on probation. Put the "
+                    "sentence into German, then read yours against the German that "
+                    "was said — the judgement is yours.</p>"
+                    "<div class='card' id='review-card'>" + standing + task + hint
+                    + "<form class='mine' method='post' action='/review'>" + carried
+                    + "<textarea name='sentence' rows='2' autofocus "
+                    "placeholder='In German'></textarea>"
+                    "<div class='actions'>"
+                    "<button class='go' name='action' value='say'>Check it</button>"
+                    "<button name='action' value='skip'>Skip for now</button>"
+                    "</div></form></div>")
+            return self._page("Review", body, "/review", source)
+        body = (f"<h1>Review</h1>{verdict}"
+                f"<p class='note'>{due_count:,} due · {total:,} on probation.</p>"
+                "<div class='card' id='review-card'>" + standing + task
+                + f"<div class='note said'>{answer}</div>"
+                + "<p class='kind'>what you wrote</p>"
+                + (f"<p class='de yours'>{escape(wrote)}</p>" if wrote
+                   else "<p class='en'>Nothing — you asked to see it.</p>")
+                + hint
+                + "<form class='actions' method='post' action='/review'>" + carried
+                + "<button class='go' name='action' value='good'>I had it</button>"
+                "<button name='action' value='again'>Not yet</button>"
+                "<button name='action' value='skip'>Skip for now</button>"
+                "</form></div>")
         return self._page("Review", body, "/review", source)
 
     def _own_due_html(self, said: dict, due_count: int, total: int, source: str,
@@ -2128,7 +2137,8 @@ class Viewer:
                 f"<ul class='attempts'>{rows}</ul></details>")
 
     def save_review(self, form: dict) -> str | tuple[str, str]:
-        """A decision on the review page: judged by the model, or by you."""
+        """A decision on the review page: the sentence written out, or
+        the grade on what was written. Both are yours."""
         from srs.scheduler import GRADUATED, UNMARKED, verdict  # noqa: PLC0415
         source = form.get("src", "")
         action = (form.get("action") or "").strip()
@@ -2152,16 +2162,17 @@ class Viewer:
         if card is None or action == "skip":
             return back
         result: dict = {"spoken": self.app.mcp_prompt(unit)["spoken"], "unit": unit}
-        if action == "check":
+        if action == "say":
+            # Writing it decides nothing: the page comes back with the
+            # German that was said above what was written, and the grade
+            # is the next click. Kept as an attempt either way -- what you
+            # wrote is what the next review wants to show you.
             written = (form.get("sentence") or "").strip()
-            if not written:
-                return back
-            judged = self._judge(unit, written) or {
-                "correct": None, "german": "",
-                "note": "The local model is not answering; say yourself how it went."}
-            self.app.attempts.add(unit, written, judged.get("german"), judged.get("note"),
-                                  judged.get("english"), None, "review")
-            return ("page", self.review({"src": source}, {**result, **judged, "pending": True}))
+            asked = (form.get("asked") or "").strip()
+            if written:
+                self.app.attempts.add(unit, written, asked or None, None, None, None, "review")
+            return ("page", self.review({"src": source},
+                                        {**result, "asked": asked or True, "wrote": written}))
         correct = action == "good"
         result["correct"] = correct
         self.app.attempts.grade_last(unit, correct)
@@ -2175,35 +2186,6 @@ class Viewer:
             self.app.card_store.save(reviewed)
         result.update(outcome=outcome, due=reviewed.due_date.isoformat())
         return ("page", self.review({"src": source}, result))
-
-    def _judge(self, unit: Unit, written: str) -> dict | None:
-        """The local model on a sentence written with a word: right or not,
-        the natural phrasing, the English."""
-        import json                                          # noqa: PLC0415
-        from deck.spoken import spoken                       # noqa: PLC0415
-        from generation.client import LLMClient              # noqa: PLC0415
-        client = LLMClient(timeout=60)
-        if not client.available:
-            return None
-        # The word with its meaning and a sentence that uses it: without
-        # them the model read `also` as the English word and "corrected"
-        # a right sentence to `auch`.
-        asked = self.app.mcp_prompt(unit)
-        about = f"Word: {spoken(unit.key)}"
-        if asked.get("meaning"):
-            about += f" ({asked['meaning']})"
-        for example in asked.get("examples", [])[:1]:
-            about += f"\nExample of its use: {example['text']}"
-        try:
-            reply = client.complete(JUDGE, f"{about}\nSentence: {written}",
-                                    temperature=0.1, response_format=JUDGE_FORMAT)
-            got = json.loads(reply)
-            return {"correct": bool(got.get("correct")),
-                    "german": str(got.get("german", "")).strip(),
-                    "note": str(got.get("note", "")).strip(),
-                    "english": str(got.get("english", "")).strip()}
-        except Exception:                                    # noqa: BLE001 -- the tunnel, bad JSON
-            return None
 
     # --- the sentences you wrote ------------------------------------------
 
@@ -3781,33 +3763,6 @@ CHECK = (
     "nothing needed changing. \"english\" is the natural English of the "
     "corrected sentence."
 )
-JUDGE = (
-    "A learner of German was asked to write a sentence using a German word, to "
-    "show they know it. The word is given with its meaning and an example of "
-    "its use; it is a German word even where it looks like an English one. "
-    "Reply with JSON and nothing else: {\"correct\": true or "
-    "false, \"german\": ..., \"note\": ..., \"english\": ...}. \"correct\" is "
-    "whether the WORD is used correctly in an ordinary sense of it — the right "
-    "word in the right place, in a form that fits; a slip elsewhere in the "
-    "sentence (an article, an ending, word order) does NOT make it false. "
-    "\"german\" is the sentence as a native speaker would say it, keeping the "
-    "learner's meaning and wording where they were fine. \"note\" is ONE short "
-    "English sentence on what was right or wrong. \"english\" is the natural "
-    "English of the corrected sentence."
-)
-JUDGE_FORMAT = {
-    "type": "json_schema",
-    "json_schema": {
-        "name": "judge",
-        "schema": {
-            "type": "object",
-            "properties": {"correct": {"type": "boolean"}, "german": {"type": "string"},
-                           "note": {"type": "string"}, "english": {"type": "string"}},
-            "required": ["correct", "german", "note", "english"],
-            "additionalProperties": False,
-        },
-    },
-}
 CHECK_FORMAT = {
     "type": "json_schema",
     "json_schema": {

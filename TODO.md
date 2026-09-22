@@ -2243,12 +2243,18 @@ deleted; two failed in a row un-mark it (`LAPSES_TO_UNMARK`,
 plan teaches it again. The old step cards were deleted and 175 claims
 made from what was marked; 242 are on probation as this is written.
 
-**The examiner is a person, or Claude.** A review asks for a sentence
-*using* the word, not for the word. On `/review` the local model judges —
-the sentence as a native speaker would put it, one line on what changed,
-right or not — and the grade is yours, because the model read `also` as
-the English word and "corrected" a right sentence, and a wrong grade here
-takes a word off the known list. Over MCP, `due_cards` gives Claude what
+**The examiner is a person, or Claude.** A review asks you to produce,
+not to recognise. On `/review` (rebuilt 2026-09-22) it is a translation:
+an English sentence the word was actually said in — never one the plan
+taught it with — to be put into German, and then the German that was said
+printed above what you wrote, with the judgement yours. A translation
+has an answer key, which is what the local model used to be asked for and
+was bad at: it read `also` as the English word and "corrected" a right
+sentence, and a wrong verdict takes a word off the known list. So the
+model is out of this path entirely — the review is instant, and it runs
+with nothing but the server, which is what a friend without a GPU has.
+Your own sentences are asked the same way, against the German you kept.
+Over MCP, `due_cards` gives Claude what
 to ask (`spoken`, the meaning, fresh examples the plan never taught the
 word with, the attempts so far, why the card is due) and `grade` takes
 the verdict with what was written, the note and the natural phrasing; the
