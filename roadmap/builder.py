@@ -58,6 +58,13 @@ class RoadmapBuilder:
         # walk has to refuse them by name, or it starts teaching `Klausur`
         # to make a sentence readable that the reader never asked to read.
         self._only_goals = only_goals
+        if only_goals:
+            # Refusing them by name once a step meant scanning a frontier of
+            # seventeen thousand to reach three thousand goals. The index can
+            # keep the narrowed view as it goes instead — see `track_goals`.
+            # Asked for here, after any steps already taken have been learned
+            # by the caller, so the view starts from the frontier as it is.
+            index.track_goals(goals)
         self._relax = relax
         # Video lengths, so a step opens on a clip you might actually watch
         # rather than eighty minutes into a film. A tie-break inside the deck
@@ -151,10 +158,16 @@ class RoadmapBuilder:
             # innermost loop of the whole walk. `key` still breaks ties
             # reproducibly, and `>` keeps the first of equals as `max` did.
             best: tuple[Unit, set[int], int, float] | None = None
-            for unit, positions in self._index.candidates().items():
+            # The goal view holds exactly the frontier units a held walk may
+            # teach, so the membership test that used to reject three units
+            # in four is gone rather than moved. Both maps iterate in the
+            # order units reached the frontier, and a unit reaches it once,
+            # so the narrowed one visits goals in the same relative order the
+            # full one did — which is what keeps ties breaking as they were.
+            frontier = (self._index.goal_candidates() if self._only_goals
+                        else self._index.candidates())
+            for unit, positions in frontier.items():
                 if not positions or unit in exclude:
-                    continue
-                if self._only_goals and unit not in self._goals:
                     continue
                 if kinds and unit.kind not in kinds:
                     continue

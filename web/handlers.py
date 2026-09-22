@@ -42,6 +42,11 @@ NEXT_WORDS = 8
 from corpus.answers import label
 from vocab.encounters import ENOUGH as ENOUGH_HEARD
 
+# How many claims the review page lists under the card: the soonest
+# asked. The page is a card to answer, and the whole shelf under it
+# would be a different page.
+PROBATION_SHOWN = 10
+
 # How far into the stored plan the reading page looks for a word it has
 # heard: the next steps whose decks were ranked for roughly what the reader
 # knows now, not the whole plan.
@@ -107,17 +112,100 @@ class Scope:
 SHOWN_ENTRIES = 60
 
 
+class Once:
+    """A cache whose misses are filled once, however many threads ask at once.
+
+    `ThreadingHTTPServer` answers every request on its own thread, and the
+    caches here are filled by work measured in seconds: a corpus load is ten,
+    a scope another two thirds on top. A plain `if key not in cache` lets
+    every thread that arrives during those ten seconds start its own load.
+    Sixty concurrent cold requests did exactly that — 1.6 GB resident and no
+    reply inside five minutes — which is what this exists to stop.
+
+    One lock per key, not one lock for the cache: asking for the subtitle
+    corpus must not wait on somebody else's transcript load. The guard is held
+    only long enough to hand out a key's lock, never across the work itself.
+
+    A build that raises releases its waiters and caches nothing, so the next
+    caller tries again rather than inheriting a failure nobody can see.
+
+    `clear()` counts generations. A build that finishes after the corpus it
+    read was invalidated is handed back to the caller that asked for it — it
+    is what that request wanted, read after the request began — but it is not
+    stored, so the next reader loads the corpus as it now stands. Without the
+    count, a load that started before an `adopt()` would land in the cache
+    after it and quietly outlive the thing that invalidated it.
+
+    This is a cache in one process. `serve` is one process and every request
+    it answers goes through this object; run two of them and each has its own
+    Viewer, its own dict and its own locks, so each pays its own cold load and
+    holds its own copy in memory. Nothing here is shared across processes and
+    nothing here pretends to be.
+    """
+
+    def __init__(self) -> None:
+        self._values: dict = {}
+        self._locks: dict = {}
+        self._guard = Lock()
+        self._generation = 0
+
+    def get(self, key, make):
+        """The value for `key`, building it at most once across threads.
+
+        `make` is called without the guard held, because it is the slow part
+        and holding a shared lock across it would serialise every key.
+        """
+        found = self._values.get(key)
+        if found is not None:
+            return found
+        with self._guard:
+            lock = self._locks.get(key)
+            if lock is None:
+                lock = self._locks[key] = Lock()
+            generation = self._generation
+        with lock:
+            # Another thread may have finished this key while we waited for
+            # the lock, in which case its answer is the one to use.
+            found = self._values.get(key)
+            if found is not None:
+                return found
+            built = make()
+            with self._guard:
+                if generation == self._generation:
+                    self._values[key] = built
+        return built
+
+    def clear(self) -> None:
+        """Forget everything, and disown any build still running."""
+        with self._guard:
+            self._values.clear()
+            self._generation += 1
+
+    def values(self):
+        return list(self._values.values())
+
+    def __contains__(self, key) -> bool:
+        return key in self._values
+
+    def __len__(self) -> int:
+        return len(self._values)
+
+
 class Viewer:
     def __init__(self, app) -> None:
         self.app = app
         self._known = None
-        self._scopes: dict[str, Scope] = {}
+        # Both of these are filled once per key however many requests arrive
+        # at once — see `Once`. A cold corpus load is ten seconds and a scope
+        # two thirds more, which is long enough for a browser's own parallel
+        # requests to pile up behind it, never mind a reload.
+        self._scopes = Once()
         # The sentences alone, keyed the same way. Held apart from `_scopes`
         # because the blocked list wants them without the index, the builder
         # and the example index that a `Scope` carries — it builds an index
         # of its own from the same rows, so the one in the scope was made
         # and thrown away.
-        self._corpora: dict[str, list[Sentence]] = {}
+        self._corpora = Once()
         # The same sentences as a plan saw them, per plan, and the index
         # over them with the step it has been replayed to -- see `frontier`.
         self._frontiers: dict[str, list[Sentence]] = {}
@@ -436,7 +524,8 @@ class Viewer:
         strict, so nearly every caller passes False.
         """
         key = f"{source}|{'list' if list_only else 'all'}"
-        if key not in self._scopes:
+
+        def build() -> Scope:
             sentences = self.corpus_for(source, list_only)
             # The resolved vocabulary, not a fresh resolution: known_set()
             # re-runs the parser over every word in the files, which is
@@ -444,7 +533,7 @@ class Viewer:
             index = CorpusIndex(sentences, KnownSet(self.known),
                                 self.app.compounds)
             priority = self.priority()
-            self._scopes[key] = Scope(
+            return Scope(
                 sentences=sentences,
                 index=index,
                 # Aimed at the study list, not merely filtered by it: a
@@ -456,7 +545,11 @@ class Viewer:
                 examples=ExampleIndex(sentences),
                 priority=priority,
             )
-        return self._scopes[key]
+
+        # Asking for the scope takes the scope's lock and then the corpus's,
+        # never the other way round, so the two cannot deadlock against each
+        # other.
+        return self._scopes.get(key, build)
 
     def corpus_for(self, source: str, list_only: bool) -> list[Sentence]:
         """The sentences for one corpus and counting mode, loaded once.
@@ -471,17 +564,14 @@ class Viewer:
         whichever page asks first.
         """
         key = f"{source}|{'list' if list_only else 'all'}"
-        if key not in self._corpora:
-            # Not narrowed means strict, not raw: the bare lemma the
-            # analyser yields beside the goal that already teaches it is one
-            # word arriving twice, and counting it as unknown is bookkeeping
-            # rather than vocabulary. Strict renames the one to the other
-            # rather than dropping it, so the word still counts where the
-            # goal is not there to stand in for it. See `Aliases`.
-            self._corpora[key] = self.app.corpus(*self._builds(source),
-                                                 list_only=list_only,
-                                                 strict=not list_only)
-        return self._corpora[key]
+        # Not narrowed means strict, not raw: the bare lemma the analyser
+        # yields beside the goal that already teaches it is one word arriving
+        # twice, and counting it as unknown is bookkeeping rather than
+        # vocabulary. Strict renames the one to the other rather than
+        # dropping it, so the word still counts where the goal is not there
+        # to stand in for it. See `Aliases`.
+        return self._corpora.get(key, lambda: self.app.corpus(
+            *self._builds(source), list_only=list_only, strict=not list_only))
 
     def priority(self) -> UnitPriority:
         """Ranked goals, built once a request rather than once a caller.
@@ -1944,6 +2034,7 @@ class Viewer:
         source = self.source(query)
         now = datetime.now()
         total, _ = self.app.card_store.counts(now)
+        probation = self._probation_html(now)
         called = self.app.due_cards(now, limit=200)
         # One queue, by date: a card whose date has come and a sentence
         # that is overdue are the same kind of claim on the same day. The
@@ -1985,7 +2076,7 @@ class Viewer:
                     f"again a day after you mark it, then further apart; {CONFIRMATIONS} "
                     f"in a row and it graduates, {LAPSES_TO_UNMARK} misses in a row and "
                     "it goes back to the plan.</p>")
-            return self._page("Review", body, "/review", source)
+            return self._page("Review", body + probation, "/review", source)
         if not due:
             # What was just written for this sentence, if the page is
             # coming back from the writing: read against the kept German.
@@ -1995,7 +2086,8 @@ class Viewer:
                 said = next((s for s in self.app.own.due(now)
                              if s["text"] == result["own"]), said)
             return self._page("Review", f"<h1>Review</h1>{verdict}"
-                              + self._own_due_html(said, due_count, total, source, wrote),
+                              + self._own_due_html(said, due_count, total, source, wrote)
+                              + probation,
                               "/review", source)
         card = due[0]
         asked = self.app.mcp_prompt(card.unit)
@@ -2048,7 +2140,7 @@ class Viewer:
                     "<button class='go' name='action' value='say'>Check it</button>"
                     "<button name='action' value='skip'>Not this one</button>"
                     "</div></form></div>")
-            return self._page("Review", body, "/review", source)
+            return self._page("Review", body + probation, "/review", source)
         body = (f"<h1>Review</h1>{verdict}"
                 f"<p class='note'>{due_count:,} due · {total:,} on probation.</p>"
                 "<div class='card' id='review-card'>" + standing + task
@@ -2061,7 +2153,7 @@ class Viewer:
                 + "<button class='go' name='action' value='good'>I had it</button>"
                 "<button name='action' value='again'>Not yet</button>"
                 "</form></div>")
-        return self._page("Review", body, "/review", source)
+        return self._page("Review", body + probation, "/review", source)
 
     def _own_due_html(self, said: dict, due_count: int, total: int, source: str,
                       wrote: str | None = None) -> str:
@@ -2141,6 +2233,53 @@ class Viewer:
             for a in found)
         return (f"<details><summary>What you wrote before ({len(found)})</summary>"
                 f"<ul class='attempts'>{rows}</ul></details>")
+
+    def _probation_html(self, now: datetime) -> str:
+        """The claims standing, soonest asked first: when each comes back,
+        and how far it has come on both halves of knowing a word.
+
+        Passive is the hearing ladder — a word met in a sentence it has
+        not been met in before, days after the one that last counted,
+        climbs it by watching alone (`vocab.encounters`). Active is the
+        reviews passed here. Five of either is the top, and it is the same
+        five on purpose: the ladder is as long as a probation.
+        """
+        from srs.scheduler import CONFIRMATIONS                 # noqa: PLC0415
+        # Sorted here rather than by the query: a rebuild mints its cards
+        # in one go, so hundreds share a due date to the microsecond, and
+        # SQLite may order equal keys differently each time it is asked —
+        # the list would reshuffle between two loads of the same page.
+        cards = sorted(self.app.card_store.all(),
+                       key=lambda c: (c.due_date, c.unit.kind, c.unit.key))
+        if not cards:
+            return ""
+        rungs = self.app.encounters.rungs()
+        shown = cards[:PROBATION_SHOWN]
+
+        def row(card) -> str:
+            heard = rungs.get(card.unit)
+            # The hour as well as the day, for the same reason the heard
+            # line gives it: the next date is often today, and "22 Sep"
+            # would not say whether it has come.
+            when = "due" if card.due_date <= now else f"{card.due_date:%-d %b, %H:%M}"
+            return (f"<tr><td>{escape(card.unit.key)}"
+                    + ("<span class='quiet'> · pattern</span>"
+                       if card.unit.is_pattern else "")
+                    + f"</td><td class='n'>{when}</td>"
+                    f"<td class='n'>{heard.level if heard else 0}/{ENOUGH_HEARD}</td>"
+                    f"<td class='n'>{card.repetitions}/{CONFIRMATIONS}"
+                    + (f"<span class='quiet'> · {card.lapses} miss</span>"
+                       if card.lapses else "")
+                    + "</td></tr>")
+
+        return ("<h2>On probation</h2>"
+                f"<p class='note'>The {len(shown)} asked soonest, of {len(cards):,}. "
+                "<em>Passive</em> is the hearing ladder, climbed by meeting the word "
+                "again while watching; <em>active</em> is the reviews passed here, and "
+                f"{CONFIRMATIONS} of those graduate it.</p>"
+                "<table class='rows'><tr><th>word</th><th class='n'>due</th>"
+                "<th class='n'>passive</th><th class='n'>active</th></tr>"
+                + "".join(row(card) for card in shown) + "</table>")
 
     def save_review(self, form: dict) -> str | tuple[str, str]:
         """A decision on the review page: the sentence written out, or

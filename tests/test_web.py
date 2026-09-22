@@ -17,7 +17,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from web import render, watch
-from web.handlers import Viewer
+from web.handlers import Once, Viewer
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -324,7 +324,10 @@ class LoadedOnceTest(unittest.TestCase):
 
     def viewer(self):
         viewer = Viewer.__new__(Viewer)
-        viewer._corpora = {}
+        # The real thing, not a dict: `corpus_for` hands `Once` a callable to
+        # fill a miss with, and a plain dict's `get` would return the callable
+        # itself. `Once` has its own tests in `test_once.py`.
+        viewer._corpora = Once()
         viewer._priority = None
         self.loads = []
         self.rankings = 0

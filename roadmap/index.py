@@ -65,6 +65,11 @@ class CorpusIndex:
 
         self._unknown = [len(s.units - self._units) for s in sentences]
         self._candidates: dict[Unit, set[int]] = defaultdict(set)
+        # The same frontier, narrowed to the units a goal-driven walk may
+        # actually teach. Empty and unused until `track_goals` asks for it.
+        # Declared before the loop below, because `_register` maintains it.
+        self._goals: frozenset[Unit] = frozenset()
+        self._goal_candidates: dict[Unit, set[int]] = {}
         self._pending: dict[Unit, set[int]] = defaultdict(set)
         self._readable = 0
         for position, count in enumerate(self._unknown):
@@ -119,6 +124,44 @@ class CorpusIndex:
         one and should skip it.
         """
         return self._candidates
+
+    def track_goals(self, goals: frozenset[Unit]) -> None:
+        """Keep a goal-only view of the frontier alongside the full one.
+
+        A walk held to a list scans the frontier every step and throws most
+        of it away: the frontier grows to 17,710 units by step 600 of the
+        subtitle corpus while the goals among them level off around 3,000.
+        Measured, that discarded scan is 2.01 ms a step — 7.8 s across a
+        3,902-step walk, a quarter of it.
+
+        Maintained, not recomputed. `goals & candidates.keys()` once a step
+        would hash every unit on the frontier to build the answer, which is
+        the cost being removed. Instead `_register` and `_drop` file a goal
+        under both maps as it arrives and leaves.
+
+        The two maps share their position sets — `_goal_candidates[u] is
+        _candidates[u]` — so a sentence added to or removed from one is in
+        both already. Only creating and deleting a key has to be mirrored.
+
+        Called by `RoadmapBuilder` when it is held to goals, after any steps
+        already taken have been learned, so the snapshot below is of the
+        frontier as it now stands. One index serves one walk; handing the
+        same index to a second builder with different goals would repoint the
+        view and leave the first walk reading somebody else's.
+        """
+        self._goals = goals
+        self._goal_candidates = {
+            unit: positions for unit, positions in self._candidates.items()
+            if unit in goals
+        }
+
+    def goal_candidates(self) -> dict[Unit, set[int]]:
+        """`candidates()`, narrowed to the tracked goals.
+
+        Empty unless `track_goals` has been called. Read-only, and emptied
+        entries are dropped as they empty, exactly as `candidates` documents.
+        """
+        return self._goal_candidates
 
     def pairs(self) -> dict[Unit, set[int]]:
         """Every unit that is one of exactly *two* unknowns in some sentence.
@@ -203,17 +246,29 @@ class CorpusIndex:
             if count == 1:
                 if drop_from_pending:
                     self._drop(self._pending, remaining, position)
-                self._candidates[remaining].add(position)
+                bucket = self._candidates[remaining]
+                # A unit joins the frontier once and leaves it only by being
+                # learned, so the goal view has to be told only when the
+                # bucket is new. `not bucket` is a truth test on a set the
+                # defaultdict has just made and costs no hash, which keeps
+                # the goal lookup off the hot path.
+                if not bucket and remaining in self._goals:
+                    self._goal_candidates[remaining] = bucket
+                bucket.add(position)
             else:
                 self._pending[remaining].add(position)
 
-    @staticmethod
-    def _drop(mapping: dict, unit: Unit, position: int) -> None:
+    def _drop(self, mapping: dict, unit: Unit, position: int) -> None:
         """Remove a sentence, and the unit's entry with it once it is empty.
 
         Both maps are walked in full on every step. Left to grow they keep
         every unit ever seen on the frontier, so the walk gets slower the
         further it goes precisely because it is making progress.
+
+        An instance method rather than a static one so the goal view empties
+        with the frontier it mirrors. Discarding the position needs no help —
+        the two maps hold the same set — but the key has to go from both, and
+        putting that here means a future caller cannot forget it.
         """
         positions = mapping.get(unit)
         if positions is None:
@@ -221,3 +276,5 @@ class CorpusIndex:
         positions.discard(position)
         if not positions:
             del mapping[unit]
+            if mapping is self._candidates:
+                self._goal_candidates.pop(unit, None)
