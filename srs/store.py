@@ -105,6 +105,14 @@ class CardStore:
             ).fetchall()
         return [self._from_row(row) for row in rows]
 
+    def all(self) -> list[Card]:
+        """Every card, for the rule that reads encounters against them."""
+        with open_state(self._path) as conn:
+            rows = conn.execute(
+                "SELECT card_id, kind, key, due_date, interval_days, ease_factor,"
+                " repetitions, last_review, lapses FROM cards ORDER BY due_date").fetchall()
+        return [self._from_row(row) for row in rows]
+
     def counts(self, now: datetime) -> tuple[int, int]:
         """(total cards, cards due now)."""
         with open_state(self._path) as conn:

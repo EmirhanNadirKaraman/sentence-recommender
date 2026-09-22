@@ -141,6 +141,23 @@ class Application:
         return OwnSentences(self.settings.state_path)
 
     @cached_property
+    def encounters(self):
+        """The words the reader has met watching. See `vocab.encounters`."""
+        from vocab.encounters import Encounters              # noqa: PLC0415
+        return Encounters(self.settings.state_path)
+
+    def due_cards(self, now=None, limit: int = 20) -> list:
+        """The claims to test now, as `(card, reason)`: by date, or called
+        by the word becoming familiar watching (`srs.scheduler.due_now`)."""
+        from datetime import datetime as _dt                 # noqa: PLC0415
+        from srs.scheduler import due_now                    # noqa: PLC0415
+        from vocab.encounters import ENOUGH                  # noqa: PLC0415
+        now = now or _dt.now()
+        cards = self.card_store.all()
+        heard = self.encounters.rungs() if cards else {}
+        return due_now(cards, now, heard, ENOUGH)[:limit]
+
+    @cached_property
     def attempts(self):
         """What the reader wrote with each word. See `vocab.attempts`."""
         from vocab.attempts import Attempts                  # noqa: PLC0415

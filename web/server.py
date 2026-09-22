@@ -185,10 +185,20 @@ def _make_handler(viewers: "Viewers"):
         def do_POST(self) -> None:                # noqa: N802
             length = int(self.headers.get("Content-Length") or 0)
             body = self.rfile.read(length).decode("utf-8")
+            posted = urlparse(self.path).path.rstrip("/")
+            if posted == "/api/heard":
+                # JSON, not a form: the page sends the lines it played
+                # through, a batch at a time and once more on leaving.
+                import json                                  # noqa: PLC0415
+                try:
+                    heard = json.loads(body or "[]")
+                except ValueError:
+                    heard = []
+                self._send_json(viewers.pick({}).heard(heard))
+                return
             # Joined rather than truncated: a set of checkboxes posts one name
             # many times, and keeping only the first silently drops the rest.
             form = {k: "\x00".join(v) for k, v in parse_qs(body).items()}
-            posted = urlparse(self.path).path.rstrip("/")
             viewer = viewers.pick(form)
             try:
                 if posted == "/known":

@@ -601,5 +601,31 @@ class SubtitleWordsTest(unittest.TestCase):
         self.assertEqual(_words(Sentence("Na ja.")), [["Na", "", ""], ["ja.", "", ""]])
 
 
+class HeardTest(unittest.TestCase):
+    """Lines the page played through, posted as the transcript sent them,
+    become one encounter per word per line."""
+
+    def test_each_word_of_a_heard_line_is_met_once(self) -> None:
+        import tempfile
+        from vocab.encounters import Encounters
+        from vocab.entry import Unit
+        with tempfile.TemporaryDirectory() as tmp:
+            store = Encounters(Path(tmp) / "state.sqlite3")
+            viewer = SimpleNamespace(app=SimpleNamespace(encounters=store))
+            got = Viewer.heard(viewer, [
+                {"text": "Lasst uns mal üben!", "video": "vid", "at": 12.5,
+                 "words": [["Lasst", "pattern", "etw. (Akk) üben"],
+                           ["uns", "pattern", "etw. (Akk) üben"], ["mal", "lemma", "mal"],
+                           ["üben!", "pattern", "etw. (Akk) üben"], ["Na", "", ""]]},
+                "not a line", {"text": "Na ja.", "words": []}])
+            self.assertEqual(got, {"heard": 2})
+            self.assertEqual(store.count(Unit.pattern("etw. (Akk) üben")), 1)
+            self.assertEqual(store.lines(Unit.lemma("mal")),
+                             [{"text": "Lasst uns mal üben!", "video": "vid", "at": 12.5,
+                               "last": store.lines(Unit.lemma("mal"))[0]["last"], "times": 1}])
+            self.assertEqual({u: r.level for u, r in store.rungs().items()},
+                             {Unit.pattern("etw. (Akk) üben"): 1, Unit.lemma("mal"): 1})
+
+
 if __name__ == "__main__":
     unittest.main()

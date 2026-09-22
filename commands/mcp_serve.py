@@ -139,11 +139,21 @@ class Tools:
         fail it, but point them out and give the natural phrasing). Then
         call `grade` with the verdict. `confirmations` is passes in a row
         so far (five graduate the word), `lapses` failures in a row (two
-        un-mark it).
+        un-mark it). `due_because` is "date" or "heard": the word became
+        familiar watching -- `heard_level` climbs to five on hearings
+        spaced days apart, which calls the test early, once; `heard` is
+        every time it was met, and `heard_in` lines they actually heard it
+        in, good to ask about.
         """
         out = []
-        for card in self.app.card_store.due(datetime.now(), limit):
+        for card, why in self.app.due_cards(datetime.now(), limit):
             out.append({**_card(card), **self.prompt_for(card.unit),
+                        # Its date, or the top of the hearing ladder since
+                        # the last review -- passive hearing calls the test.
+                        "due_because": why,
+                        "heard": self.app.encounters.count(card.unit),
+                        "heard_level": self.app.encounters.rung(card.unit).level,
+                        "heard_in": [l["text"] for l in self.app.encounters.lines(card.unit, 3)],
                         # What they wrote with it before, newest first: the
                         # note is what they keep getting wrong.
                         "attempts": self.app.attempts.of(card.unit)})

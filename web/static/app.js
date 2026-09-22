@@ -144,6 +144,45 @@ function quietEvents(events) {
   return events;
 }
 
+// Hearing: a subtitle counts as heard when the player has actually played
+// through it -- the caption current while playing, for most of a second
+// -- and then once only. Seeking past a line, or having it in the
+// transcript, is not hearing it. The pages that follow a video call
+// `hearing.tick` every quarter second with what is current; heard lines
+// go to the server a batch at a time and once more on leaving. Every word
+// of a heard line is one encounter of the word (`vocab.encounters`).
+var hearing = (function () {
+  var HEARD_AFTER = 0.8, TICK = 0.25;
+  var playing = {}, heard = {}, queue = [], video = null;
+  function reset(id) { if (id !== video) { video = id; playing = {}; heard = {}; } }
+  function tick(id, index, cue, isPlaying) {
+    if (!id || index < 0 || !cue || !isPlaying) return;
+    reset(id);
+    if (heard[index]) return;
+    playing[index] = (playing[index] || 0) + TICK;
+    if (playing[index] < HEARD_AFTER) return;
+    heard[index] = true;
+    queue.push({text: cue.text, video: id, at: cue.at, words: cue.words || []});
+  }
+  function flush(leaving) {
+    if (!queue.length) return;
+    var body = JSON.stringify(queue.splice(0, queue.length));
+    if (leaving && navigator.sendBeacon) {
+      navigator.sendBeacon('/api/heard', new Blob([body], {type: 'application/json'}));
+      return;
+    }
+    fetch('/api/heard', {method: 'POST', body: body, keepalive: true,
+                         headers: {'Content-Type': 'application/json'}})
+      .catch(function () {});
+  }
+  setInterval(function () { flush(false); }, 10000);
+  window.addEventListener('pagehide', function () { flush(true); });
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') flush(true);
+  });
+  return {tick: tick};
+})();
+
 // The control bar under every player. Whichever page made the player
 // registers it here when it is ready, with a way to ask where the current
 // sentence starts; the bar itself is the same everywhere.
@@ -581,7 +620,11 @@ function cueAt(cues, now) {
       window.__cueTimes = function () { return cues.map(function (c) { return c.at; }); };
       play(showing);
       setInterval(function () {
-        if (player && player.getCurrentTime) follow(player.getCurrentTime());
+        if (!player || !player.getCurrentTime) return;
+        var now = player.getCurrentTime();
+        follow(now);
+        var i = cueAt(cues, now);
+        hearing.tick(video, i, cues[i], player.getPlayerState() === 1);
       }, 250);
     }})});
   };
@@ -757,6 +800,7 @@ function cueAt(cues, now) {
       setInterval(function () {
         if (!player || !player.getCurrentTime) return;
         var i = cueAt(cues, player.getCurrentTime());
+        hearing.tick(s.video, i, cues[i], player.getPlayerState() === 1);
         if (i < 0 || i === marking) return;
         marking = i;
         if (caption) { caption.innerHTML = wordsHtml(cues[i]); caption.dataset.text = cues[i].text; }

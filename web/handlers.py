@@ -40,6 +40,7 @@ SCORE_VERSION = 8
 # storing more would be paying to remember what nobody reads.
 NEXT_WORDS = 8
 from corpus.answers import label
+from vocab.encounters import ENOUGH as ENOUGH_HEARD
 from corpus.levels import video_level
 from corpus.quality import score as quality, well_formed
 from corpus.sentence import Sentence
@@ -953,6 +954,23 @@ class Viewer:
             for c in self.app.with_english(self._cues(video_id))
         ]}
 
+    def heard(self, lines: list) -> dict:
+        """Lines the page played through, each with its words as the
+        transcript sent them: one encounter per word per line."""
+        found = []
+        for line in lines if isinstance(lines, list) else []:
+            if not isinstance(line, dict):
+                continue
+            text = str(line.get("text") or "")
+            units = {Unit(kind, key) for token, kind, key in line.get("words", [])
+                     if kind in ("lemma", "pattern") and key}
+            for unit in units:
+                found.append((unit, text, line.get("video") or None,
+                              float(line["at"]) if line.get("at") is not None else None))
+        if found:
+            self.app.encounters.add(found)
+        return {"heard": len(found)}
+
     def gloss_json(self, query: dict) -> dict:
         """What one word means in one subtitle line, for the popup.
 
@@ -1824,6 +1842,7 @@ class Viewer:
                if readable else f"; none is one word away yet — these {len(deck)} are the nearest")
             + ".</p>"
             + ("<p class='note'>You have marked this known.</p>" if already else "")
+            + self._heard_html(target)
             + self._attempts_html(target)
             + self._audio_toggle()
             + "<div class='card' id='card'>"
@@ -1883,8 +1902,11 @@ class Viewer:
         from srs.scheduler import CONFIRMATIONS, LAPSES_TO_UNMARK  # noqa: PLC0415
         source = self.source(query)
         now = datetime.now()
-        total, due_count = self.app.card_store.counts(now)
-        due = self.app.card_store.due(now, limit=1)
+        total, _ = self.app.card_store.counts(now)
+        called = self.app.due_cards(now, limit=200)
+        due_count = len(called)
+        due = [card for card, _ in called[:1]]
+        why = called[0][1] if called else ""
         verdict = ""
         if result and result.get("pending"):
             # The model's opinion, and the grade is yours: it read `also`
@@ -1936,7 +1958,10 @@ class Viewer:
         asked = self.app.mcp_prompt(card.unit)
         hint = (f"<details><summary>A hint</summary><p class='en'>{escape(asked['meaning'])}</p></details>"
                 if asked.get("meaning") else "")
+        hint += self._heard_html(card.unit)
         hint += self._attempts_html(card.unit)
+        reason = ("it became familiar watching — the active test is called"
+                  if why == "heard" else "its date has come")
         body = (
             f"<h1>Review</h1>{verdict}"
             f"<p class='note'>{due_count:,} due · {total:,} on probation. Write a German "
@@ -1946,7 +1971,7 @@ class Viewer:
             f"<p class='note'>Use it in a sentence"
             f"{' — a verb pattern' if card.unit.is_pattern else ''}: "
             f"{card.repetitions} of {CONFIRMATIONS} confirmed"
-            f"{f', {card.lapses} miss' if card.lapses else ''}</p>"
+            f"{f', {card.lapses} miss' if card.lapses else ''} · {reason}</p>"
             f"<p class='de lead'>{escape(asked['spoken'])}</p>"
             + hint
             + "<form class='mine' method='post' action='/review'>"
@@ -1963,6 +1988,29 @@ class Viewer:
             "<button name='action' value='skip'>Skip for now</button>"
             "</div></form></div>")
         return self._page("Review", body, "/review", source)
+
+    def _heard_html(self, unit: Unit) -> str:
+        """The word's heard level, how often it was met watching, and the
+        last lines."""
+        total = self.app.encounters.count(unit)
+        if not total:
+            return ""
+        rung = self.app.encounters.rung(unit)
+        lines = self.app.encounters.lines(unit)
+        rows = "".join(
+            "<li>" + escape(l["text"])
+            + (f" <span class='kind'>{l['times']}×</span>" if l["times"] > 1 else "")
+            + (f" <a class='link' href='/watch?src={quote(self.source({}))}&kind={quote(unit.kind)}"
+               f"&key={quote(unit.key, safe='')}'>watch</a>" if l["video"] else "")
+            + "</li>"
+            for l in lines)
+        wait = rung.next_from
+        head = (f"Heard level {rung.level} of {ENOUGH_HEARD}"
+                + (" — familiar" if rung.familiar
+                   else f" — the next counts from {wait:%-d %b}" if wait and wait > datetime.now()
+                   else " — the next hearing counts" if rung.level else "")
+                + f" · met {total} time{'s' if total != 1 else ''} watching")
+        return f"<details><summary>{head}</summary><ul class='attempts'>{rows}</ul></details>"
 
     def _attempts_html(self, unit: Unit) -> str:
         """What you wrote with the word before, and what came of it."""
@@ -2233,8 +2281,12 @@ class Viewer:
         row = ranked[here]
         title = row["title"] or row["video"]
         known, asleep = self.known, self.app.snoozes.asleep()
+        heard = self.app.encounters.rungs()
         queue = [Unit(kind, key) for kind, key, _ in row.get("next", [])
                  if Unit(kind, key) not in known and Unit(kind, key) not in asleep]
+        # The familiar first: a word at the top of the hearing ladder is
+        # the one to ask about.
+        queue.sort(key=lambda u: not (u in heard and heard[u].familiar))
         counts = {Unit(kind, key): n for kind, key, n in row.get("next", [])}
         heading = (f"<h1>{escape(title)}</h1>"
                    f"<p class='note'>{row['comprehension']:.0%} of its words you know")
@@ -2697,6 +2749,7 @@ class Viewer:
                     "sentence you cannot read needs two or more.</p>")
 
         goals = frozenset(self.app.goal_units)
+        heard = self.app.encounters.rungs()
         total = max(row["lines"], 1)
         # In lines, like the gain: a row from before the share of lines was
         # stored apart from the share of words says nothing here.
@@ -2705,10 +2758,15 @@ class Viewer:
         # panel lists eight and the gesture is silent about which — swiping
         # blind into a permanent change to your vocabulary is not a thing to
         # ask anyone to do.
+        # A word at the top of the hearing ladder is familiar: the passive
+        # half is done, so it is offered first, whatever it unlocks.
+        order = sorted(gain.most_common(limit),
+                       key=lambda pair: (not (pair[0] in heard and heard[pair[0]].familiar),
+                                         -pair[1]))
         entries = "".join(
             "<div class='entry{}'><div class='rail'>+{:.0%}<span class='kind'>{}</span>"
             "</div><div class='body'><div class='unit'>"
-            "<a href='/unit/{}/{}?src={}&video={}'>{}</a></div>"
+            "<a href='/unit/{}/{}?src={}&video={}'>{}</a>{}</div>"
             "<p class='also'>{} more sentence{} in this video readable"
             "{}</p>{}</div></div>".format(
                 " target" if n == 0 else "",
@@ -2716,11 +2774,15 @@ class Viewer:
                 "on your list" if unit in goals else "extra",
                 unit.kind, quote(unit.key, safe=""), quote(source),
                 quote(row["video"], safe=""),
-                escape(unit.key), count, "" if count == 1 else "s",
+                escape(unit.key),
+                (f" <span class='level' title='heard level: met watching on "
+                 f"{heard[unit].level} spaced days'>heard {heard[unit].level}/{ENOUGH_HEARD}"
+                 "</span>" if unit in heard else ""),
+                count, "" if count == 1 else "s",
                 f" — {at:.0%} to {(at + count / total):.0%} of its lines"
                 if count and at is not None else "",
                 self._word_actions(unit, source, back))
-            for n, (unit, count) in enumerate(gain.most_common(limit)))
+            for n, (unit, count) in enumerate(order))
         best = gain.most_common(1)[0]
         return (f"<h2>Learn next to follow this one</h2>"
                 f"<p class='note'>{len(gain):,} words here are a single step "
@@ -3211,7 +3273,7 @@ class Viewer:
             + f"<div class='pager'>{prev}{nxt}</div>"
             + self._actions(target, source, "/")
             + "<h2>Transcript</h2>"
-            + video.transcript(cues, here, surface)
+            + video.transcript(cues, here, surface, words=_words)
             + video.script()
         )
         return self._page(f"{target.key} on video", body, "/subtitles", source)

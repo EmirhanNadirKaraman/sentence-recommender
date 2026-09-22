@@ -19,9 +19,13 @@ from __future__ import annotations
 
 from dataclasses import replace
 from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
 
 from srs.card import Card
 from vocab.entry import Unit
+
+if TYPE_CHECKING:
+    from vocab.encounters import Rung
 
 
 # A word marked known is a claim on probation (decided 2026-09-21). It counts
@@ -35,6 +39,32 @@ LAPSES_TO_UNMARK = 2
 GRADUATED = "graduated"
 UNMARKED = "unmarked"
 SCHEDULED = "scheduled"
+
+
+BY_DATE = "date"
+BY_HEARING = "heard"
+
+
+def due_now(cards: list[Card], now: datetime, heard: dict[Unit, "Rung"],
+            enough: int) -> list[tuple[Card, str]]:
+    """The cards to test now and the reason each: its date has come, or
+    the word has climbed to rung `enough` of the hearing ladder since the
+    card's last review (`vocab.encounters`) -- passive hearing never
+    confirms a word, it calls the active test, once, when the word
+    becomes familiar (decided 2026-09-22). Date first, then the called,
+    soonest first."""
+    def called(card: Card) -> bool:
+        rung = heard.get(card.unit)
+        if rung is None or rung.level < enough:
+            return False
+        # Since the last review, or since the claim: a word familiar
+        # before it was marked known was heard before there was anything
+        # to test, and the claim is due tomorrow, not now (`claimed`).
+        since = card.last_review or card.due_date - timedelta(days=card.interval_days)
+        return rung.counted_at > since
+    out = [(card, BY_DATE) for card in cards if card.is_due(now)]
+    early = [(card, BY_HEARING) for card in cards if not card.is_due(now) and called(card)]
+    return out + sorted(early, key=lambda pair: pair[0].due_date)
 
 
 def verdict(card: Card) -> str:

@@ -22,6 +22,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
 
+from context import Application
 from commands.mcp_serve import Tools, tutor
 from config import Settings
 from corpus.sentence import Sentence
@@ -31,6 +32,7 @@ from roadmap.store import RoadmapStore, current_stamp
 from srs import CardStore, SM2Scheduler
 from vocab.entry import Unit
 from vocab.attempts import Attempts
+from vocab.encounters import Encounters
 from vocab.own_sentences import OwnSentences
 from vocab.known_store import KnownStore
 from vocab.snooze_store import SnoozeStore
@@ -96,8 +98,10 @@ def stub_app(tmp: Path) -> SimpleNamespace:
         llm_model="",
         own=OwnSentences(state),
         attempts=Attempts(state),
+        encounters=Encounters(state),
     )
     app.known_set = lambda: KnownSet(app.marked_known.units())
+    app.due_cards = lambda now=None, limit=20: Application.due_cards(app, now, limit)
     RoadmapStore(state).save(STEPS, LABEL, stamp=current_stamp(), total=3)
     return app
 
@@ -179,6 +183,30 @@ class ToolsTest(unittest.TestCase):
                            before + timedelta(days=2))
         self.assertEqual(self.tools.due_cards(), [])
         self.assertEqual(store.get(Unit.lemma("merken")).repetitions, 1)
+
+    def test_a_familiar_word_calls_the_test_before_its_date(self) -> None:
+        """Heard on five spaced days since the last review, the claim is
+        due now with the reason, the level and the lines it was heard in;
+        once graded, hearing it more says nothing new."""
+        from srs.card import Card                        # noqa: PLC0415
+        from vocab.encounters import LADDER              # noqa: PLC0415
+        store = self.app.card_store
+        now = datetime.now()
+        # Confirmed once, 26 days ago, and not due for ten more.
+        store.add(Card(Unit.lemma("merken"), now + timedelta(days=10), 40.0, 2.55, 1,
+                       now - timedelta(days=26)))
+        self.assertEqual(self.tools.due_cards(), [])
+        day = now - timedelta(days=sum(LADDER) + 1)
+        for days in LADDER:
+            day += timedelta(days=days)
+            self.app.encounters.add([(Unit.lemma("merken"), "Merk dir das.", "vid", 3.0)], day)
+        (card,) = self.tools.due_cards()
+        self.assertEqual((card["unit"]["key"], card["due_because"], card["heard_level"],
+                          card["heard"], card["heard_in"]),
+                         ("merken", "heard", 5, 5, ["Merk dir das."]))
+        self.tools.grade("merken", correct=True)
+        self.app.encounters.add([(Unit.lemma("merken"), "Merk dir das.", "vid", 3.0)])
+        self.assertEqual(self.tools.due_cards(), [])
 
     def test_marking_known_makes_the_claim_a_card_due_tomorrow(self) -> None:
         """A word marked known is a claim on probation: known at once, and

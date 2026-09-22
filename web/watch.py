@@ -83,17 +83,23 @@ def caption(text: str, translation: str | None, surface: str | None) -> str:
             f"{mark(text, surface)}</p>{english}</div>")
 
 
-def transcript(cues: list, current_index: int, surface: str | None) -> str:
-    """Every cue in the video, the one being spoken marked."""
+def transcript(cues: list, current_index: int, surface: str | None,
+               words=None) -> str:
+    """Every cue in the video, the one being spoken marked. `words`, when
+    given, is a function of a cue returning its `[token, kind, key]` list
+    (`web.handlers._words`), carried on the row for the hearing count."""
+    import json                                              # noqa: PLC0415
     rows = []
     for i, cue in enumerate(cues):
         here = " on" if i == current_index else ""
         body = (mark(cue.text, surface) if i == current_index
                 else escape(cue.text))
         english = escape(cue.translation) if cue.translation else ""
+        carried = (f" data-words=\"{escape(json.dumps(words(cue), ensure_ascii=False))}\""
+                   if words else "")
         rows.append(
             f"<li class='cue{here}' data-at='{cue.timing.start:.2f}' "
-            f"data-en=\"{english}\" id='cue{i}'>"
+            f"data-en=\"{english}\" data-text=\"{escape(cue.text)}\"{carried} id='cue{i}'>"
             f"<span class='at'>{_clock(cue.timing.start)}</span>"
             f"<span class='said'>{body}</span></li>"
         )
@@ -146,8 +152,18 @@ def script() -> str:
         return cues[showing] ? parseFloat(cues[showing].dataset.at) : null;
       };
       window.__cueTimes = function () { return times; };
+      var videoId = new URLSearchParams(location.search).get('video')
+                 || (document.getElementById('player').src.match(/embed[/]([^?]+)/) || [])[1];
       setInterval(function () {
-        if (player && player.getCurrentTime) showCue(player.getCurrentTime());
+        if (!player || !player.getCurrentTime) return;
+        var now = player.getCurrentTime();
+        showCue(now);
+        if (window.hearing && showing >= 0) {
+          var row = cues[showing];
+          hearing.tick(videoId, showing, {text: row.dataset.text || row.querySelector('.said').textContent,
+                                          at: times[showing], words: JSON.parse(row.dataset.words || '[]')},
+                       player.getPlayerState() === 1);
+        }
       }, 250);
     }})});
   };
