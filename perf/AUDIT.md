@@ -523,6 +523,45 @@ This is the fourth suggestion in this document not to survive measurement,
 after 4, 8 and 10 — and the only one that was caught *before* the code was
 written rather than after.
 
+## The corpus build is not reproducible (2026-09-22)
+
+Found while verifying the rebuild that the matcher changes forced. Rebuilding
+`transcript` from unchanged source files, with unchanged code, three times:
+
+```
+477,911   477,983   477,929        unit rows
+ 19,627    19,627    19,627        distinct units
+```
+
+The distinct units are stable; the per-sentence occurrence rows are not,
+varying by about 70 in 478,000 (0.015%). With the seed pinned it is exact:
+
+```
+PYTHONHASHSEED=0 run1: 478,016
+PYTHONHASHSEED=0 run2: 478,016
+```
+
+So a tie somewhere in the analysis is broken by the iteration order of a set
+or dict of strings, which Python salts per process. `find_best_match` was the
+obvious suspect and is not it — it gives the same answers under seeds 1, 2, 3
+and three random ones. The vote in `_normalise` / `_lemma_corrections`, which
+reads `Evidence`'s sets, is the likelier place.
+
+This predates all of today's work and is not caused by it. It does mean:
+
+- two machines building "the same" corpus get slightly different units, and
+  the fingerprint cannot see it — it hashes the rules, not the output;
+- the −586 unit difference across the matcher rebuild is this, not the
+  expression-scan change, whose units were verified identical over 20,000
+  sentences **within one process**. That test was valid for what it tested
+  and says nothing about this axis;
+- `PYTHONHASHSEED=0` in the build environment would make builds comparable,
+  which is worth doing before anyone tries to diff two corpora.
+
+Not fixed here. It is a correctness-of-comparison problem rather than a
+performance one, and it wants the actual tie found rather than the seed
+pinned over it.
+
 ## Reproducing
 
 Scripts are in **`perf/`** (added by this audit, deletable, read-only —
