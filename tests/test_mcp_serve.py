@@ -144,7 +144,7 @@ class ToolsTest(unittest.TestCase):
         self.assertEqual(self.tools.next_up("subtitle")["unit"]["key"], "sogar")
         store.add([(Unit.lemma("anders"), "Das ist anders.", "vid", 2.0)], NOW)
         self.assertEqual(self.tools.next_up("subtitle")["unit"]["key"], "anders")
-        store.add([(Unit.lemma("sogar"), "Sogar du.", "vid", 1.0)], NOW + timedelta(days=1))
+        store.add([(Unit.lemma("sogar"), "Sogar sie.", "vid", 9.0)], NOW + timedelta(days=1))
         self.assertEqual(self.tools.next_up("subtitle")["unit"]["key"], "sogar")
         # Its deck no longer readable -- another word in it unknown -- the
         # heard word waits, and the plan's first is offered.
@@ -219,11 +219,14 @@ class ToolsTest(unittest.TestCase):
         day = now - timedelta(days=sum(LADDER) + 1)
         for days in LADDER:
             day += timedelta(days=days)
-            self.app.encounters.add([(Unit.lemma("merken"), "Merk dir das.", "vid", 3.0)], day)
+            # A sentence of its own each time: the same one is the same
+            # hearing, however long has passed.
+            self.app.encounters.add(
+                [(Unit.lemma("merken"), f"Merk dir das ({days}).", "vid", 3.0)], day)
         (card,) = self.tools.due_cards()
         self.assertEqual((card["unit"]["key"], card["due_because"], card["heard_level"],
-                          card["heard"], card["heard_in"]),
-                         ("merken", "heard", 5, 5, ["Merk dir das."]))
+                          card["heard"], card["heard_in"][:1]),
+                         ("merken", "heard", 5, 5, ["Merk dir das (16.575)."]))
         self.tools.grade("merken", correct=True)
         self.app.encounters.add([(Unit.lemma("merken"), "Merk dir das.", "vid", 3.0)])
         self.assertEqual(self.tools.due_cards(), [])

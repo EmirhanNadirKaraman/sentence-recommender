@@ -2027,7 +2027,6 @@ class Viewer:
         lines = self.app.encounters.lines(unit)
         rows = "".join(
             "<li>" + escape(l["text"])
-            + (f" <span class='kind'>{l['times']}×</span>" if l["times"] > 1 else "")
             + (f" <a class='link' href='/watch?src={quote(self.source({}))}&kind={quote(unit.kind)}"
                f"&key={quote(unit.key, safe='')}'>watch</a>" if l["video"] else "")
             + "</li>"
@@ -2035,9 +2034,12 @@ class Viewer:
         wait = rung.next_from
         head = (f"Heard level {rung.level} of {ENOUGH_HEARD}"
                 + (" — familiar" if rung.familiar
-                   else f" — the next counts from {wait:%-d %b}" if wait and wait > datetime.now()
+                   # The hour as well as the day: the first wait is a day,
+                   # and "from 23 Sep" would not say whether it has passed.
+                   else f" — the next counts from {wait:%-d %b, %H:%M}"
+                   if wait and wait > datetime.now()
                    else " — the next hearing counts" if rung.level else "")
-                + f" · met {total} time{'s' if total != 1 else ''} watching")
+                + f" · heard in {total} sentence{'s' if total != 1 else ''}")
         return f"<details><summary>{head}</summary><ul class='attempts'>{rows}</ul></details>"
 
     def _attempts_html(self, unit: Unit) -> str:

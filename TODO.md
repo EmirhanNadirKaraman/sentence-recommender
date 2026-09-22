@@ -2271,7 +2271,10 @@ the player actually played through it — the caption current while
 playing, for most of a second, on Next, Reels and Watch — and every word
 of a heard line is one encounter, logged with the line, the video and the
 moment (`/api/heard`, a batch every ten seconds and once more on
-leaving; `vocab.encounters`). The word's *heard level* is not the count:
+leaving; `vocab.encounters`) — once a word a sentence, kept by a unique
+index: a line replayed, a video watched twice, a phrase a speaker repeats
+is the same sentence, and meeting a word again means meeting it somewhere
+else. The word's *heard level* is not the count:
 it climbs a ladder of spaced days, rung one at the first hearing and each
 rung after that only once the ladder's days have passed since the hearing
 that was counted, so ten hearings in one evening are rung one. The days

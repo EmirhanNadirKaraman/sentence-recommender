@@ -3,6 +3,11 @@
 A subtitle line counts as heard when the player actually played through it
 (`app.js` decides that, on the pages that follow a video), and every word
 of a heard line is one encounter: the word, the line, the video and when.
+One a word a line, and the line has to be one the word has not been met in
+before -- a line replayed, a video watched twice, a phrase a speaker
+repeats is the same sentence, and meeting a word again means meeting it
+somewhere else. So a word's encounters are the distinct sentences it was
+heard in.
 Every encounter is logged; the word's *heard level* climbs on a ladder.
 The first hearing is rung one; the next counts only once `LADDER[1]` days
 have passed since the hearing that was counted, the one after that once
@@ -95,19 +100,34 @@ class Encounters:
         path.parent.mkdir(parents=True, exist_ok=True)
         with open_state(self._path) as conn:
             conn.executescript(SCHEMA)
+            if not conn.execute("SELECT 1 FROM sqlite_master WHERE type = 'index'"
+                                " AND name = 'ux_encounter_line'").fetchone():
+                # Logged before one a word a line was the rule: the first
+                # hearing of each stands, the repeats go, and from here on
+                # the index is what keeps them out.
+                conn.execute("DELETE FROM encounter WHERE id NOT IN"
+                             " (SELECT min(id) FROM encounter GROUP BY kind, key, text)")
+                conn.execute("CREATE UNIQUE INDEX ux_encounter_line"
+                             " ON encounter (kind, key, text)")
 
     def add(self, heard: list[tuple[Unit, str, str | None, float | None]],
             now: datetime | None = None) -> None:
-        """Many at once: one page sends a batch every few seconds. Every
-        line is logged; each word climbs a rung if its time has come."""
+        """Many at once: one page sends a batch every few seconds. A line
+        the word has been met in before is not an encounter and is
+        dropped; a word met in a new one climbs a rung if its time has
+        come."""
         now = now or datetime.now()
         stamp = now.isoformat(timespec="seconds")
         with open_state(self._path) as conn:
-            conn.executemany(
-                "INSERT INTO encounter (kind, key, text, video_id, at, heard_at)"
-                " VALUES (?, ?, ?, ?, ?, ?)",
-                [(u.kind, u.key, text, video, at, stamp) for u, text, video, at in heard])
-            for unit in {u for u, *_ in heard}:
+            met = set()
+            for unit, text, video, at in heard:
+                done = conn.execute(
+                    "INSERT OR IGNORE INTO encounter (kind, key, text, video_id, at, heard_at)"
+                    " VALUES (?, ?, ?, ?, ?, ?)",
+                    (unit.kind, unit.key, text, video, at, stamp))
+                if done.rowcount:
+                    met.add(unit)
+            for unit in met:
                 row = conn.execute("SELECT level, counted_at FROM heard WHERE kind = ? AND key = ?",
                                    (unit.kind, unit.key)).fetchone()
                 level, counted = row or (0, None)
@@ -136,17 +156,17 @@ class Encounters:
                 for kind, key, level, at in rows}
 
     def count(self, unit: Unit) -> int:
+        """The sentences the word has been heard in, all different."""
         with open_state(self._path) as conn:
             return conn.execute("SELECT count(*) FROM encounter WHERE kind = ? AND key = ?",
                                 (unit.kind, unit.key)).fetchone()[0]
 
     def lines(self, unit: Unit, limit: int = 5) -> list[dict]:
-        """The lines the word was last heard in, newest first, each once."""
+        """The lines the word was last heard in, newest first."""
         with open_state(self._path) as conn:
             rows = conn.execute(
-                "SELECT text, video_id, at, max(heard_at) AS last, count(*) AS times"
-                " FROM encounter WHERE kind = ? AND key = ?"
-                " GROUP BY text ORDER BY last DESC LIMIT ?",
+                "SELECT text, video_id, at, heard_at FROM encounter"
+                " WHERE kind = ? AND key = ? ORDER BY heard_at DESC, id DESC LIMIT ?",
                 (unit.kind, unit.key, limit)).fetchall()
-        return [{"text": t, "video": v, "at": at, "last": last, "times": n}
-                for t, v, at, last, n in rows]
+        return [{"text": t, "video": v, "at": at, "last": last}
+                for t, v, at, last in rows]

@@ -708,7 +708,7 @@ class HeardTest(unittest.TestCase):
             self.assertEqual(store.count(Unit.pattern("etw. (Akk) üben")), 1)
             self.assertEqual(store.lines(Unit.lemma("mal")),
                              [{"text": "Lasst uns mal üben!", "video": "vid", "at": 12.5,
-                               "last": store.lines(Unit.lemma("mal"))[0]["last"], "times": 1}])
+                               "last": store.lines(Unit.lemma("mal"))[0]["last"]}])
             self.assertEqual({u: r.level for u, r in store.rungs().items()},
                              {Unit.pattern("etw. (Akk) üben"): 1, Unit.lemma("mal"): 1})
 

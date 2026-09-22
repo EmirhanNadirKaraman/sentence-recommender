@@ -142,8 +142,8 @@ class Tools:
         un-mark it). `due_because` is "date" or "heard": the word became
         familiar watching -- `heard_level` climbs to five on hearings
         spaced days apart, which calls the test early, once; `heard` is
-        every time it was met, and `heard_in` lines they actually heard it
-        in, good to ask about.
+        how many different sentences it was met in, and `heard_in` lines
+        they actually heard it in, good to ask about.
         """
         out = []
         for card, why in self.app.due_cards(datetime.now(), limit):
