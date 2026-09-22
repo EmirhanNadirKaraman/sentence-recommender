@@ -386,9 +386,12 @@ function escapeAttr(t) { return escapeText(t).replace(/'/g, '&#39;'); }
 
 // The popup under a clicked word: the gloss of the word in that line --
 // stored for the card's own word, asked of the local model for any other
-// and kept -- and dict.cc and DWDS for the word itself. One popup for the
-// whole page; a click on another word refills it, a click elsewhere or
-// Escape closes it.
+// and kept -- and four dictionaries for the word itself, which answer
+// different questions: dict.cc translates, DWDS gives the German sense
+// with corpus evidence, Linguee shows the word in translated sentence
+// pairs, Duden rules on the standard form. One popup for the whole page;
+// a click on another word refills it, a click elsewhere or Escape closes
+// it.
 var glossBox = null;
 
 function closeGloss() {
@@ -428,6 +431,10 @@ function glossPopup(button, lineText) {
     encodeURIComponent(lookup) + "'>dict.cc \u2197</a>" +
     "<a class='link' target='_blank' rel='noopener' href='https://www.dwds.de/wb/" +
     encodeURIComponent(lookup) + "'>DWDS \u2197</a>" +
+    "<a class='link' target='_blank' rel='noopener' href='https://www.linguee.com/" +
+    "german-english/search?query=" + encodeURIComponent(lookup) + "'>Linguee \u2197</a>" +
+    "<a class='link' target='_blank' rel='noopener' href='https://www.duden.de/suchen/" +
+    "dudenonline/" + encodeURIComponent(lookup) + "'>Duden \u2197</a>" +
     (kind ? "<button type='button' class='known'>I know this</button>" : "") +
     "<button type='button' class='use'>Use it in a sentence</button>" +
     "<button type='button' class='close'>Close</button></div>" +

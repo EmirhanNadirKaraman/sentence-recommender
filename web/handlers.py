@@ -1926,15 +1926,31 @@ class Viewer:
         right — and the verdict is graded at once. `result` is what a
         judgement just returned, shown above the next card. Without the
         model you grade yourself.
+
+        Your own sentences are asked here too, on the same schedule and
+        in the same queue, the longest overdue first (`vocab.own_sentences`).
+        They used to be asked on `/mine` alone, which meant they were
+        asked when you went looking for them — a spaced schedule nobody
+        is brought back to is a list.
         """
-        from srs.scheduler import CONFIRMATIONS, LAPSES_TO_UNMARK  # noqa: PLC0415
+        from srs.scheduler import BY_DATE, CONFIRMATIONS, LAPSES_TO_UNMARK  # noqa: PLC0415
         source = self.source(query)
         now = datetime.now()
         total, _ = self.app.card_store.counts(now)
         called = self.app.due_cards(now, limit=200)
-        due_count = len(called)
-        due = [card for card, _ in called[:1]]
-        why = called[0][1] if called else ""
+        # One queue, by date: a card whose date has come and a sentence
+        # that is overdue are the same kind of claim on the same day. The
+        # cards called early by hearing have no date to sort by and wait
+        # behind everything that has one.
+        queue = [(card.due_date, "card", card, why) for card, why in called if why == BY_DATE]
+        queue += [(datetime.fromisoformat(said["due"]), "sentence", said, "")
+                  for said in self.app.own.due(now)]
+        queue.sort(key=lambda row: row[0])
+        queue += [(card.due_date, "card", card, why) for card, why in called if why != BY_DATE]
+        due_count = len(queue)
+        first = queue[0] if queue else None
+        due = [first[2]] if first and first[1] == "card" else []
+        why = first[3] if first else ""
         verdict = ""
         if result and result.get("pending"):
             # The model's opinion, and the grade is yours: it read `also`
@@ -1974,7 +1990,7 @@ class Viewer:
                 "<div class='note said" + ("" if result.get("correct") else " bad") + "'>"
                 f"<p><strong>{escape(result['spoken'])}</strong> — "
                 f"{'right' if result.get('correct') else 'missed'}. {escape(said)}</p></div>")
-        if not due:
+        if first is None:
             body = (f"<h1>Review</h1>{verdict}"
                     f"<p class='empty'>Nothing is due. {total:,} word"
                     f"{'s' if total != 1 else ''} on probation — each is asked "
@@ -1982,6 +1998,10 @@ class Viewer:
                     f"in a row and it graduates, {LAPSES_TO_UNMARK} misses in a row and "
                     "it goes back to the plan.</p>")
             return self._page("Review", body, "/review", source)
+        if not due:
+            return self._page("Review", f"<h1>Review</h1>{verdict}"
+                              + self._own_due_html(first[2], due_count, total, source),
+                              "/review", source)
         card = due[0]
         asked = self.app.mcp_prompt(card.unit)
         hint = (f"<details><summary>A hint</summary><p class='en'>{escape(asked['meaning'])}</p></details>"
@@ -2016,6 +2036,31 @@ class Viewer:
             "<button name='action' value='skip'>Skip for now</button>"
             "</div></form></div>")
         return self._page("Review", body, "/review", source)
+
+    def _own_due_html(self, said: dict, due_count: int, total: int, source: str) -> str:
+        """One of your own sentences, asked for: the English, the German
+        behind a fold, and your word for whether you said it.
+
+        Graded by you and not by the model, as on `/mine`: what is being
+        tested is whether you can produce a sentence you chose to be able
+        to say, and only you know what you had in your head.
+        """
+        return (
+            f"<p class='note'>{due_count:,} due · {total:,} on probation. One of your "
+            "own sentences — say it in German before you open it.</p>"
+            "<div class='card' id='review-card'>"
+            "<p class='note'>Yours, to be able to say</p>"
+            f"<p class='en lead'>{escape(said['english'])}</p>"
+            "<details><summary>Show the German</summary>"
+            f"<p class='de'>{escape(said['text'])}</p>"
+            f"<p class='tools'>{self._translate_link(said['text'])}</p></details>"
+            "<form class='actions' method='post' action='/review'>"
+            f"<input type='hidden' name='src' value='{escape(source)}'>"
+            f"<input type='hidden' name='text' value='{escape(said['text'])}'>"
+            "<button class='go' name='action' value='good'>I said it</button>"
+            "<button name='action' value='again'>Not yet</button>"
+            "<button name='action' value='skip'>Skip for now</button>"
+            "</form></div>")
 
     def _heard_html(self, unit: Unit) -> str:
         """The word's heard level, how often it was met watching, and the
@@ -2064,6 +2109,13 @@ class Viewer:
         action = (form.get("action") or "").strip()
         unit = Unit(form.get("kind", ""), form.get("key", ""))
         back = f"/review?src={quote(source)}"
+        # One of your own sentences, asked here rather than on `/mine`:
+        # it carries its text and no unit, and it is graded by you.
+        text = (form.get("text") or "").strip()
+        if text and not unit.key:
+            if action in ("good", "again"):
+                self.app.own.grade(text, action == "good")
+            return back
         card = self.app.card_store.get(unit) if unit.key else None
         if card is None or action == "skip":
             return back
@@ -2123,6 +2175,21 @@ class Viewer:
 
     # --- the sentences you wrote ------------------------------------------
 
+    @staticmethod
+    def _translate_link(german: str, label: str = "Google Translate") -> str:
+        """A second opinion on the model's German, one click away.
+
+        The local model wrote it and nothing here checks it: the link
+        opens the sentence in Google Translate, German to English, so the
+        reader can see whether it says what they meant before keeping it.
+        The sentence is their own — the one kind of text in this project
+        that may leave the machine — and it goes by their click, not by
+        anything sent from here.
+        """
+        return (f"<a class='link' target='_blank' rel='noopener' "
+                f"href='https://translate.google.com/?sl=de&tl=en&op=translate&text="
+                f"{quote(german, safe='')}'>{escape(label)} &#8599;</a>")
+
     def mine(self, query: dict, draft: dict | None = None) -> str:
         """Your own sentences: write one, have it put into German, keep it;
         then be asked for it again, English first, until you can say it.
@@ -2147,7 +2214,8 @@ class Viewer:
                 "<div class='actions'>"
                 "<button class='go' name='action' value='keep'>Keep it</button>"
                 "<button name='action' value='translate'>Translate again</button>"
-                "</div></form>")
+                + self._translate_link(draft["german"], "Check it on Google Translate")
+                + "</div></form>")
         ask = ""
         if due:
             first = due[0]
@@ -2172,7 +2240,8 @@ class Viewer:
             + "<form class='tools' method='post' action='/mine'>"
             f"<input type='hidden' name='src' value='{escape(source)}'>"
             f"<input type='hidden' name='text' value='{escape(r['text'])}'>"
-            "<button name='action' value='forget'>Forget it</button></form>"
+            "<button name='action' value='forget'>Forget it</button>"
+            + self._translate_link(r["text"]) + "</form>"
             "</div></div>"
             for r in saved)
         body = (
@@ -2180,8 +2249,8 @@ class Viewer:
             "<p class='note'>Sentences you want to be able to say. Write one in "
             "English or German; the local model puts it into German, you read it "
             "over and keep it. A kept sentence joins the corpus as yours — it leads "
-            "the cards of every word in it — and comes back here to be said from "
-            "the English, spaced further apart each time you can.</p>"
+            "the cards of every word in it — and is asked for on Review with the "
+            "words, English first, spaced further apart each time you can say it.</p>"
             + top
             + "<h2>Write one</h2>"
             "<form class='mine' method='post' action='/mine'>"

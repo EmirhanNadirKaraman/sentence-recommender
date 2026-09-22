@@ -662,6 +662,68 @@ class SubtitleWordsTest(unittest.TestCase):
         self.assertEqual(_words(Sentence("Na ja.")), [["Na", "", ""], ["ja.", "", ""]])
 
 
+class ReviewQueueTest(unittest.TestCase):
+    """Word cards and your own sentences are one queue, by date: a
+    sentence three days overdue is asked before a card due an hour ago."""
+
+    def viewer(self, tmp: Path):
+        from context import Application
+        from srs import CardStore, SM2Scheduler
+        from vocab.own_sentences import OwnSentences
+        state = tmp / "state.sqlite3"
+        app = SimpleNamespace(
+            card_store=CardStore(state), own=OwnSentences(state),
+            scheduler=SM2Scheduler(),
+            encounters=SimpleNamespace(rungs=lambda: {}, count=lambda unit: 0),
+            attempts=SimpleNamespace(of=lambda unit, limit=5: []),
+            mcp_prompt=lambda unit: {"spoken": unit.key, "meaning": "", "examples": []},
+            corpus_store=SimpleNamespace(builds=lambda teachable_only=False: {"subtitle": 1}),
+            settings=SimpleNamespace(state_path=state, goal_words=tmp / "study_list.txt"))
+        app.due_cards = lambda now=None, limit=20: Application.due_cards(app, now, limit)
+        viewer = Viewer(app)
+        return viewer, app
+
+    def test_a_sentence_overdue_is_asked_before_a_card_due_today(self) -> None:
+        import tempfile
+        from datetime import datetime, timedelta
+        from vocab.entry import Unit
+        with tempfile.TemporaryDirectory() as tmp:
+            viewer, app = self.viewer(Path(tmp))
+            now = datetime.now()
+            app.own.add("Ich muss das noch sagen.", "I still have to say this.",
+                        now - timedelta(days=3))
+            app.card_store.add(app.scheduler.new_card(Unit.lemma("merken"),
+                                                      now - timedelta(hours=1)))
+            page = viewer.review({})
+            self.assertIn("I still have to say this.", page)
+            self.assertIn("Yours, to be able to say", page)
+            self.assertIn("2 due", page)
+            self.assertIn("translate.google.com", page)
+            # Said: off the queue, and the word card is next.
+            viewer.save_review({"text": "Ich muss das noch sagen.", "action": "good", "src": ""})
+            self.assertEqual(app.own.due(now), [])
+            page = viewer.review({})
+            self.assertNotIn("Yours, to be able to say", page)
+            self.assertIn("merken", page)
+            self.assertIn("1 due", page)
+
+    def test_a_word_card_is_untouched_by_the_sentence_branch(self) -> None:
+        """The two are told apart by what the form carries -- a sentence
+        has text and no unit -- so grading one cannot reach the other."""
+        import tempfile
+        from datetime import datetime, timedelta
+        from vocab.entry import Unit
+        with tempfile.TemporaryDirectory() as tmp:
+            viewer, app = self.viewer(Path(tmp))
+            now = datetime.now()
+            app.own.add("Ich muss das noch sagen.", "I still have to say this.",
+                        now - timedelta(days=3))
+            app.card_store.add(app.scheduler.new_card(Unit.lemma("merken"), now))
+            viewer.save_review({"text": "Ich muss das noch sagen.", "action": "again", "src": ""})
+            self.assertEqual(app.card_store.get(Unit.lemma("merken")).repetitions, 0)
+            self.assertEqual(app.own.all()[0]["repetitions"], 0)
+
+
 class WatchRowsTest(unittest.TestCase):
     """The watch page's transcript is made of word buttons too, each saying
     whether it is known, the spoken line's target marked and only that

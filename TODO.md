@@ -2264,7 +2264,13 @@ more than a stranger's sentence as an example of its words, so it joins
 the corpus under the `generated` build with origin `own` (`OWN_BONUS`
 2.0, first on the cards of its words), and it is worth being able to
 produce, so it is scheduled by the same SM-2: shown as English, answered
-in German, graded by you (`/mine`, `due_sentences`, `grade_sentence`).
+in German, graded by you (`due_sentences`, `grade_sentence`). Asked on
+`/review` in one queue with the word cards, the longest overdue first
+(2026-09-22): scheduled on `/mine` alone they were asked only when you
+went looking for them, and a spaced schedule nobody is brought back to is
+a list. The German is one click from Google Translate there and on
+`/mine` — the local model wrote it and nothing else checks it, and your
+own sentences are the one text here that may leave the machine.
 
 **The passive half (2026-09-22).** A subtitle line counts as heard when
 the player actually played through it — the caption current while
