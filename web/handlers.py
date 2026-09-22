@@ -1073,7 +1073,7 @@ class Viewer:
             + (f" data-video='{escape(s.timing.video_id)}' "
                f"data-at='{s.timing.start:.2f}'" if s.timing else "")
             + ">"
-            f"{sentence(s.text, s.translation, s.surface_of(unit), lead=True, level=self.app.judged.level(s.text), words=_words(s))}"
+            f"{sentence(s.text, s.translation, s.surface_of(unit), lead=True, level=self.app.judged.level(s.text), words=_words(s), known=known)}"
             f"{self._also_new(s, unit, known)}"
             f"{self._sentence_tools(s.text, source, '/')}</div>"
             for i, s in enumerate(options)
@@ -1446,7 +1446,8 @@ class Viewer:
             f"{quote(s.unit.key, safe='')}?src={quote(source)}'>"
             f"{escape(s.unit.key)}</a></div>"
             + (sentence(said.text, said.translation, said.surface_of(s.unit),
-                        level=self.app.judged.level(said.text), words=_words(said))
+                        level=self.app.judged.level(said.text), words=_words(said),
+                        known=known)
                + ("" if self.app.judged.clean(said.text) else
                   "<p class='also'>The judge doubts this sentence; nothing "
                   "cleaner said the word when the walk reached it.</p>")
@@ -1852,7 +1853,7 @@ class Viewer:
             + ("" if already else self._actions(target, source, back, watchable=watchable))
             + ("<h2>Transcript</h2><ol class='transcript' id='transcript'></ol>"
                if watchable else "")
-            + video.merged_script()
+            + video.merged_script(self.known)
         )
         return self._page(key, body, "/roadmap", source)
 
@@ -2253,7 +2254,7 @@ class Viewer:
             + f"<div id='reading' data-api='/api/study'>{card['html']}</div></div>"
             + ("<h2>Transcript</h2><ol class='transcript' id='transcript'></ol>"
                if card["video"] else "")
-            + video.merged_script()
+            + video.merged_script(self.known)
         )
         return self._page(card["title"], body, "/reels", source)
 
@@ -2396,7 +2397,7 @@ class Viewer:
             + (" <span class='tag'>the plan's pick</span>" if u == pick else "")
             + (" <span class='tag'>on your list</span>" if u in goals else "")
             + "</div>"
-            f"{sentence(said.text, said.translation, said.surface_of(u), words=_words(said))}"
+            f"{sentence(said.text, said.translation, said.surface_of(u), words=_words(said), known=self.known)}"
             f"<p class='also'>{len(positions):,} sentence"
             f"{'' if len(positions) == 1 else 's'} need only this"
             + (f" · brings {unlocks[u]:,} more to one word away"
@@ -2536,6 +2537,20 @@ class Viewer:
             if channel not in gone and counts.get(channel))
         body = (
             "<h1>Settings</h1>"
+            "<h2>Colours</h2>"
+            "<p class='note'>Colour the words you do not know yet, wherever "
+            "words are drawn — captions, transcripts, the sentences on the "
+            "cards. Words you know keep the ink, and so do names, numbers and "
+            "fillers, which no unit claims; the word being learned keeps its "
+            "own mark. Kept in this browser, like the listening mode.</p>"
+            "<p><label class='switch'><input type='checkbox' id='colours'> "
+            "Colour the words I do not know</label></p>"
+            # The choice lives in the browser (`render.layout` reads it before
+            # the body paints), so the box is wired here, not posted.
+            "<script>(function(){var b=document.getElementById('colours');"
+            "try{b.checked=localStorage.getItem('colours')==='1'}catch(e){}"
+            "b.onchange=function(){document.documentElement.classList.toggle('coloured',b.checked);"
+            "try{localStorage.setItem('colours',b.checked?'1':'0')}catch(e){}}})()</script>"
             "<h2>Machine-made channels</h2>"
             "<p class='note'>Marked on the reel, under the picture. A "
             "machine-made channel's videos sink in the feed as a set-aside "
@@ -2669,7 +2684,7 @@ class Viewer:
             # video title and goes nowhere near a script body.
             + "<script type='application/json' id='reel-state'>"
             + state.replace("<", "\\u003c") + "</script>"
-            + video.merged_script()
+            + video.merged_script(self.known)
         )
         return self._page("Reels", body, "/reels", source)
 
@@ -3273,7 +3288,7 @@ class Viewer:
             + f"<div class='pager'>{prev}{nxt}</div>"
             + self._actions(target, source, "/")
             + "<h2>Transcript</h2>"
-            + video.transcript(cues, here, surface, words=_words)
+            + video.transcript(cues, here, surface, words=_words, known=self.known)
             + video.script()
         )
         return self._page(f"{target.key} on video", body, "/subtitles", source)

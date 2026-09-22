@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from html import escape
 
-from web.render import mark, stamped
+from web.render import clickable, mark, stamped
 
 # A short lead-in, because a cue's start time is when the word is already
 # being said, and beginning exactly there clips it.
@@ -84,16 +84,20 @@ def caption(text: str, translation: str | None, surface: str | None) -> str:
 
 
 def transcript(cues: list, current_index: int, surface: str | None,
-               words=None) -> str:
+               words=None, known=None) -> str:
     """Every cue in the video, the one being spoken marked. `words`, when
     given, is a function of a cue returning its `[token, kind, key]` list
-    (`web.handlers._words`), carried on the row for the hearing count."""
+    (`web.handlers._words`): the row is then made of word buttons, as the
+    reading page's is, each saying whether it is `known`, and the list is
+    carried on the row for the hearing count."""
     import json                                              # noqa: PLC0415
     rows = []
     for i, cue in enumerate(cues):
         here = " on" if i == current_index else ""
-        body = (mark(cue.text, surface) if i == current_index
-                else escape(cue.text))
+        if words:
+            body = clickable(words(cue), surface if i == current_index else None, known)
+        else:
+            body = mark(cue.text, surface) if i == current_index else escape(cue.text)
         english = escape(cue.translation) if cue.translation else ""
         carried = (f" data-words=\"{escape(json.dumps(words(cue), ensure_ascii=False))}\""
                    if words else "")
@@ -169,7 +173,9 @@ def script() -> str:
   };
 
   cues.forEach(function (cue) {
-    cue.addEventListener('click', function () {
+    cue.addEventListener('click', function (e) {
+      // A word opens its gloss; the rest of the line seeks the video.
+      if (e.target.closest('button.w')) return;
       if (!player || !player.seekTo) return;
       player.seekTo(Math.max(parseFloat(cue.dataset.at) - 0.4, 0), true);
       player.playVideo();
@@ -185,8 +191,21 @@ def _clock(seconds: float) -> str:
     return f"{minutes}:{secs:02d}"
 
 
-def merged_script() -> str:
-    """The tags that pull in the reading page's behaviour.
+def known_script(known) -> str:
+    """The units the reader knows, for the words the client draws itself:
+    the caption and the transcript say whether each word is known the way
+    `render.clickable` does, and a decision on the page moves the word."""
+    import json                                              # noqa: PLC0415
+    units = json.dumps({f"{u.kind}:{u.key}": 1 for u in known},
+                       ensure_ascii=False, separators=(",", ":"))
+    # No `</` can end the script early: a `<` in a key is written as an escape.
+    units = units.replace("<", "\\u003c")
+    return f"<script>window.__known={units};</script>"
+
+
+def merged_script(known=()) -> str:
+    """The tags that pull in the reading page's behaviour, and what the
+    reader knows (`known_script`) for the words it draws.
 
     The script itself is `web/static/app.js`; what is left here is the order
     it has to load in. The IFrame API goes first because `app.js` installs
@@ -201,7 +220,8 @@ def merged_script() -> str:
     be most of the page.
     """
     return (
-        "<script src='https://www.youtube.com/iframe_api'></script>"
+        known_script(known)
+        + "<script src='https://www.youtube.com/iframe_api'></script>"
         f"<script src='{stamped('app.js')}'></script>"
     )
 

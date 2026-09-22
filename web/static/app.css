@@ -9,6 +9,7 @@
   --ink-2:   #5d6d8c;
   --rail:    #c0392b;
   --target:  #4a55a8;
+  --new:     #a85e0a;
   --faint:   #ccd7e8;
   --serif: Literata, Charter, "Iowan Old Style", Georgia, serif;
   --sans: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
@@ -16,7 +17,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --paper: #0f1626; --surface: #161f33; --ink: #dce5f6; --ink-2: #8b9bbd;
-    --rail: #e2685c; --target: #9fabf2; --faint: #263149;
+    --rail: #e2685c; --target: #9fabf2; --new: #f0b064; --faint: #263149;
   }
 }
 * { box-sizing: border-box; }
@@ -521,5 +522,14 @@ form.mine .actions { margin-top: 0; }
 
 /* A word button that is the new word keeps the mark. */
 button.w.target { color: var(--target); border-bottom: 1px solid var(--target); }
+
+/* Colours (Settings): with them on, a word you do not know yet is amber,
+   wherever words are drawn -- captions, transcripts, the sentences on the
+   cards. A word you know keeps the ink, and so does one no unit claims;
+   the new word being learned keeps its own mark. The class is set on the
+   root before the body paints (`render.layout`). */
+.coloured button.w.new { color: var(--new); border-bottom: 1px dotted var(--new); }
+.switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.switch input { width: 18px; height: 18px; margin: 0; accent-color: var(--target); }
 .stepper .count { white-space: nowrap; }
 

@@ -339,9 +339,34 @@ function wordsHtml(cue) {
   var words = cue.words && cue.words.length
     ? cue.words : cue.text.split(/\s+/).map(function (w) { return [w, '', '']; });
   return words.map(function (w) {
-    return "<button type='button' class='w' data-kind='" + escapeAttr(w[1]) +
-           "' data-key='" + escapeAttr(w[2]) + "'>" + escapeText(w[0]) + "</button>";
+    return "<button type='button' class='w" + knownness(w[1], w[2]) + "' data-kind='" +
+           escapeAttr(w[1]) + "' data-key='" + escapeAttr(w[2]) + "'>" +
+           escapeText(w[0]) + "</button>";
   }).join(' ');
+}
+
+// Whether a word is known, as a class -- `render.clickable` does the same
+// for the words the server draws. `window.__known` is the reader's units,
+// served with the page (`watch.known_script`); a word no unit claims is
+// neither, and a page without the set says nothing. The stylesheet only
+// paints these when colours are on (Settings).
+function knownness(kind, key) {
+  if (!kind || !key || !window.__known) return '';
+  return window.__known[kind + ':' + key] ? ' known' : ' new';
+}
+
+// A word marked known on the page is known from then on: in the set the
+// caption and transcript are drawn from, and on every button already drawn.
+// Undo reloads the page, so there is no way back to write.
+function learned(kind, key) {
+  if (!kind || !key) return;
+  if (window.__known) window.__known[kind + ':' + key] = 1;
+  Array.prototype.forEach.call(document.querySelectorAll('button.w.new'), function (b) {
+    if (b.dataset.kind === kind && b.dataset.key === key) {
+      b.classList.remove('new');
+      b.classList.add('known');
+    }
+  });
 }
 
 function escapeText(t) {
@@ -419,7 +444,7 @@ function glossPopup(button, lineText) {
     knownBtn.disabled = true;
     fetch('/known', {method: 'POST', body: body, redirect: 'manual', keepalive: true})
       .catch(function () {})
-      .then(function () { knownBtn.textContent = 'Known'; });
+      .then(function () { knownBtn.textContent = 'Known'; learned(kind, key); });
   };
   var means = glossBox.querySelector('.gloss-means');
   var examples = glossBox.querySelector('.gloss-examples');
@@ -671,7 +696,7 @@ function cueAt(cues, now) {
         // could open on a clip belonging to a sentence further down.
         if (d.video && !stage) { location.reload(); return; }
         play(showing);
-        if (value === 'known') offerUndo(was.kind, was.key, was.src);
+        if (value === 'known') { learned(was.kind, was.key); offerUndo(was.kind, was.key, was.src); }
         busy = false;
       })
       .catch(function () { b.form.submit(); });
@@ -882,7 +907,7 @@ function cueAt(cues, now) {
       .catch(function () {})
       .then(function () {
         busy = false;
-        if (value === 'known') offerUndo(was.kind, was.key, was.src);
+        if (value === 'known') { learned(was.kind, was.key); offerUndo(was.kind, was.key, was.src); }
         go(s.at);            // the word is gone; the panel behind it moved on
       });
   }

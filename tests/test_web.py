@@ -136,7 +136,9 @@ class ShellTest(unittest.TestCase):
         self.assertNotEqual(render.stamped("app.css"), render.stamped("app.js"))
 
     def test_the_title_is_escaped(self) -> None:
-        self.assertNotIn("<script>", render.layout("<script>", "x"))
+        # The head carries a script of its own now (the colours switch), so
+        # the check is the title itself.
+        self.assertIn("<title>&lt;script&gt;</title>", render.layout("<script>", "x"))
 
 
 class MarkTest(unittest.TestCase):
@@ -595,10 +597,50 @@ class SubtitleWordsTest(unittest.TestCase):
         self.assertIn("class='w target' data-kind='pattern' data-key='etw. (Akk) üben'>üben!<", html)
         self.assertIn("<p class='en'>Let us practise.</p>", html)
 
+    def test_with_the_known_set_every_other_word_says_whether_it_is_known(self) -> None:
+        """Known or new, for the colours; the target stays the target, and a
+        word no unit claims is neither."""
+        from vocab.entry import Unit
+        from web.render import clickable
+        words = [["Lasst", "pattern", "etw. (Akk) üben"], ["uns", "", ""],
+                 ["mal", "lemma", "mal"], ["kurz", "lemma", "kurz"],
+                 ["üben!", "pattern", "etw. (Akk) üben"]]
+        html = clickable(words, "Lasst üben", known=frozenset({Unit.lemma("mal")}))
+        self.assertIn("class='w target' data-kind='pattern' data-key='etw. (Akk) üben'>Lasst<", html)
+        self.assertIn("class='w' data-kind='' data-key=''>uns<", html)
+        self.assertIn("class='w known' data-kind='lemma' data-key='mal'>mal<", html)
+        self.assertIn("class='w new' data-kind='lemma' data-key='kurz'>kurz<", html)
+        self.assertIn("class='w target' data-kind='pattern' data-key='etw. (Akk) üben'>üben!<", html)
+
     def test_a_line_nobody_analysed_is_still_words(self) -> None:
         from corpus.sentence import Sentence
         from web.handlers import _words
         self.assertEqual(_words(Sentence("Na ja.")), [["Na", "", ""], ["ja.", "", ""]])
+
+
+class WatchRowsTest(unittest.TestCase):
+    """The watch page's transcript is made of word buttons too, each saying
+    whether it is known, the spoken line's target marked and only that
+    line's; the words ride along on the row for the hearing count."""
+
+    def test_rows_are_words_with_their_knownness(self) -> None:
+        from alignment.timing import Timing
+        from corpus.sentence import Sentence
+        from vocab.entry import Unit
+        from web.handlers import _words
+        kurz, mal = Unit.lemma("kurz"), Unit.lemma("mal")
+        cues = [Sentence("Mal kurz.", units=frozenset({kurz, mal}),
+                         surfaces=((kurz, "kurz"), (mal, "Mal"))).with_timing(Timing("v", 1.0, 2.0)),
+                Sentence("Kurz mal.", units=frozenset({kurz, mal}),
+                         surfaces=((kurz, "Kurz"), (mal, "mal"))).with_timing(Timing("v", 2.0, 3.0))]
+        html = watch.transcript(cues, 1, "Kurz", words=_words, known=frozenset({mal}))
+        self.assertIn("class='w new' data-kind='lemma' data-key='kurz'>kurz.<", html)
+        self.assertIn("class='w known' data-kind='lemma' data-key='mal'>Mal<", html)
+        self.assertIn("class='w target' data-kind='lemma' data-key='kurz'>Kurz<", html)
+        self.assertIn("data-words=\"[[&quot;Mal&quot;, &quot;lemma&quot;, &quot;mal&quot;], "
+                      "[&quot;kurz.&quot;, &quot;lemma&quot;, &quot;kurz&quot;]]\"", html)
+        self.assertIn("<script>window.__known={\"lemma:mal\":1};</script>",
+                      watch.merged_script(frozenset({mal})))
 
 
 class HeardTest(unittest.TestCase):

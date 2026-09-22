@@ -26,6 +26,8 @@ from html import escape
 from urllib.parse import quote
 from pathlib import Path
 
+from vocab.entry import Unit
+
 STATIC = Path(__file__).resolve().parent / "static"
 
 # The stylesheet is a file now rather than a string inlined into every page.
@@ -83,6 +85,10 @@ def layout(title: str, body: str, here: str = "/", source: str = "",
         # Single quotes inside the braces: reusing the outer quote there is
         # also PEP 701, and this file has no other reason to demand 3.12.
         f"<link rel='stylesheet' href='{stamped('app.css')}'>"
+        # Colours on or off is this browser's choice (Settings), read here,
+        # before the body, so the first paint is already the right one.
+        "<script>try{if(localStorage.getItem('colours')==='1')"
+        "document.documentElement.classList.add('coloured')}catch(e){}</script>"
         "</head><body>"
         "<header class='masthead'><div class='inner'>"
         f"<span class='name'>i+1</span>{links}</div></header>"
@@ -117,7 +123,7 @@ def mark(text: str, surface: str | None) -> str:
 
 def sentence(text: str, translation: str | None, surface: str | None = None,
              lead: bool = False, level: str | None = None,
-             words: list[list[str]] | None = None) -> str:
+             words: list[list[str]] | None = None, known=None) -> str:
     """A sentence, its English under it, and the level the judge gave it
     — `B1` — after the German where one is known, so a reader can see why
     a sentence was picked over a harder one, or why this one is hard.
@@ -125,26 +131,41 @@ def sentence(text: str, translation: str | None, surface: str | None = None,
     With `words` — `[token, kind, key]` per token, as `web.handlers._words`
     reads them off a sentence — every word is a button that opens its
     gloss, as a subtitle's words do; the new word's tokens are marked in it
-    as before. Without, the text is plain with the new word marked.
+    as before, and with `known`, the reader's units, every other word says
+    whether it is known (`clickable`). Without, the text is plain with the
+    new word marked.
     """
     size = " lead" if lead else ""
     badge = f" <span class='level' title='the level the judge gave it'>{escape(level)}</span>" \
         if level else ""
-    body = clickable(words, surface) if words else mark(text, surface)
+    body = clickable(words, surface, known) if words else mark(text, surface)
     out = f"<p class='de{size}' data-text='{escape(text)}'>{body}{badge}</p>"
     if translation:
         out += f"<p class='en'>{escape(translation)}</p>"
     return out
 
 
-def clickable(words: list[list[str]], surface: str | None) -> str:
+def clickable(words: list[list[str]], surface: str | None, known=None) -> str:
     """Every word a button carrying its unit; the tokens of `surface` —
-    the new word as the sentence says it — marked as the target."""
+    the new word as the sentence says it — marked as the target.
+
+    With `known`, every other word that wears a unit is classed `known` or
+    `new`, and the stylesheet colours the new ones when the reader has
+    colours on (Settings). A word no unit claims — a name, a number, a
+    filler — is neither: painting those as unknown would light up most of
+    a line. The target is only ever the target: it is the new word, and
+    its mark stays the loudest thing on the line.
+    """
     wanted = {w.strip(".,;:!?„“”\"'()[]…-–—").lower() for w in (surface or "").split()}
     out = []
     for token, kind, key in words:
         bare = token.strip(".,;:!?„“”\"'()[]…-–—").lower()
-        hit = " target" if bare and bare in wanted else ""
-        out.append(f"<button type='button' class='w{hit}' data-kind='{escape(kind)}'"
+        if bare and bare in wanted:
+            state = " target"
+        elif known is not None and kind and key:
+            state = " known" if Unit(kind, key) in known else " new"
+        else:
+            state = ""
+        out.append(f"<button type='button' class='w{state}' data-kind='{escape(kind)}'"
                    f" data-key='{escape(key)}'>{escape(token)}</button>")
     return " ".join(out)
