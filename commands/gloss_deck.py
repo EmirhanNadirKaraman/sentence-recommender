@@ -28,10 +28,15 @@ from generation.client import LLMClient
 from roadmap.store import RoadmapStore
 
 
+# In flight when the server will not say how many it can take — the count
+# `deck.gloss.run` was written against. See the note in `run`.
+DEFAULT_WORKERS = 2
+
+
 class GlossDeckCommand:
     def run(self, app, label: str = DEFAULT_LABEL,
             out: Path = Path("out/deck"), log: Path = Path("out/gloss.log"),
-            workers: int = 2, every: int = 50, limit: int | None = None,
+            workers: int | None = None, every: int = 50, limit: int | None = None,
             examples: int = 3) -> None:
         settings = app.settings
         client = LLMClient(timeout=300)
@@ -40,6 +45,25 @@ class GlossDeckCommand:
                 "no local model configured — set LLM_BASE_URL and LLM_MODEL "
                 "in .env, then check it with `python main.py check-model`")
         model = os.environ.get("LLM_MODEL", "")
+        if workers is None:
+            # Ask the server how many requests it answers at once, exactly as
+            # `translate-sentences` does. This was pinned at two, which is the
+            # right number against a server with two slots and leaves four
+            # idle against one with six — and the endpoint here reports six.
+            #
+            # `deck.gloss.run` records why it is not simply raised: a
+            # llama.cpp server divides its context into one slot per parallel
+            # request and reserves the KV cache for each, so concurrency past
+            # the slot count shrank the room every request had and produced a
+            # 40-60% failure rate. That division happens when the server
+            # starts, though, not when this asks — so filling the slots it
+            # already reserved cannot shrink anything, and leaving them empty
+            # only wastes them. Past the count, `slots()` is the ceiling.
+            #
+            # Measured in `translate_sentences`: one slot answered 1.15
+            # sentences a second and seven answered 12.4.
+            workers = client.slots() or DEFAULT_WORKERS
+        print(f"  {client.describe()} · {workers} in flight", flush=True)
 
         store = RoadmapStore(settings.state_path)
         steps = store.load(label, limit=limit)

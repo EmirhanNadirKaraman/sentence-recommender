@@ -304,8 +304,9 @@ def _parser() -> argparse.ArgumentParser:
                        help="where to re-render the PDF as it goes")
     gloss.add_argument("--log", type=Path, default=Path("out/gloss.log"),
                        help="a text log to tail while it runs")
-    gloss.add_argument("--workers", type=int, default=2,
-                       help="calls in flight; more needs more KV cache")
+    gloss.add_argument("--workers", type=int, default=None,
+                       help="calls in flight (default: one per server slot, "
+                            "or 2 if the server will not say)")
     gloss.add_argument("--every", type=int, default=50,
                        help="re-render the PDF every N cards")
     gloss.add_argument("--examples", type=int, default=3,

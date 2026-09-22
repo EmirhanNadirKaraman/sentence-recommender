@@ -42,3 +42,40 @@ class AnalysisProcessesTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ServerSlotsTest(unittest.TestCase):
+    """The long LLM jobs size their pool from the server, not from a guess.
+
+    A llama.cpp server divides its context into one slot per parallel request
+    when it starts, so the slot count is the ceiling *and* the target: past it
+    a request only queues, and below it the slots sit idle having already been
+    paid for. `gloss-deck` was pinned at two against a six-slot endpoint,
+    which is four idle for the eighty-two minutes the job takes.
+
+    Both commands have to leave the default unset for their own resolution to
+    run at all — an argparse default of 2 silently wins over it.
+    """
+
+    def parser(self):
+        from main import _parser
+        return _parser()
+
+    def test_gloss_deck_asks_the_server(self) -> None:
+        args = self.parser().parse_args(["gloss-deck"])
+        self.assertIsNone(args.workers,
+                          "a CLI default overrides the slot lookup in run()")
+
+    def test_translate_sentences_asks_too(self) -> None:
+        args = self.parser().parse_args(["translate-sentences"])
+        self.assertIsNone(args.workers)
+
+    def test_an_explicit_count_still_wins(self) -> None:
+        self.assertEqual(self.parser().parse_args(
+            ["gloss-deck", "--workers", "3"]).workers, 3)
+
+    def test_the_fallback_is_what_the_pool_was_written_against(self) -> None:
+        """Two, when the server will not say — the count `deck.gloss.run`
+        documents its KV-cache reasoning against."""
+        from commands.gloss_deck import DEFAULT_WORKERS
+        self.assertEqual(DEFAULT_WORKERS, 2)

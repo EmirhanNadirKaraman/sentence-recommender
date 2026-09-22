@@ -454,6 +454,56 @@ gave **~590 sent/s regardless of any setting** — a 2.4x collapse that has
 nothing to do with the code. Any re-measurement of `build-corpus` throughput
 should check `uptime` first, or it will measure the editor.
 
+## The rebuild chain (2026-09-22)
+
+The audit stopped at the interactive app and said the ~110-minute chain was
+"~99% external inference and native media tooling" and therefore not a
+Python problem. That is true and still leaves two questions worth asking of
+the configuration.
+
+### The gloss pool used two of six slots
+
+`translate-sentences` sizes its pool from the server — `workers =
+client.slots() or WORKERS` — and records why: one slot answered 1.15
+sentences a second and seven answered **12.4**. `gloss-deck` was pinned at
+`workers: int = 2`, with an argparse default of 2 over the top of it. The
+endpoint in `.env` reports `total_slots: 6`, so four sat idle for the 82.5
+minutes step 2 of the chain takes (3,888 glosses, 0.79 a second).
+
+`deck.gloss.run` documents why two rather than four: a llama.cpp server
+divides its context into one slot per parallel request and reserves the KV
+cache for each, and concurrency past the slot count produced a 40–60%
+failure rate. That division happens when the *server* starts, though. Filling
+slots it has already reserved cannot shrink anything; leaving them empty only
+wastes them. So the fix is to ask, not to raise: `client.slots() or 2`, the
+same line `translate-sentences` has.
+
+Not yet measured end to end — that needs a real gloss run against the
+endpoint. The mechanism is the one already measured in
+`translate_sentences.py`, and the slot count is verified.
+
+### TTS is already parallel — withdrawn
+
+`deck/speech.py:synthesise` is a plain sequential loop, which looked like
+seven idle cores. It is not: ONNX Runtime threads a single piper inference
+internally, and a process pool makes it **slower**, because each process
+spawns its own thread pool and they contend for the same four performance
+cores.
+
+| | wall | cpu | cores busy | rate |
+|---|---|---|---|---|
+| sequential | 14.83 s | 55.84 s | **3.76** | 3.24 lines/s |
+| pool of 2 | 16.41 s | 88.96 s | 5.42 | 2.93 lines/s (0.90x) |
+| pool of 4 | 22.55 s | 131.63 s | 5.84 | 2.13 lines/s (0.66x) |
+
+48 real lines, `de_DE-thorsten-medium`. The measured 2.44 pieces a second in
+the 26.1-minute chain step is close to the 3.24 here, and that gap is the
+second voice and the disk writes rather than idle silicon. Nothing to do.
+
+This is the fourth suggestion in this document not to survive measurement,
+after 4, 8 and 10 — and the only one that was caught *before* the code was
+written rather than after.
+
 ## Reproducing
 
 Scripts are in **`perf/`** (added by this audit, deletable, read-only —
