@@ -53,6 +53,32 @@ from datetime import datetime
 from pathlib import Path
 
 BATCH = 20
+# A batch is also bounded in words, because the overlay-only rows are the
+# lines the filter set aside for their length -- the median is four words
+# and the longest is 26,059, an unsplit transcript in one row. Twenty of
+# the long ones is more than a server slot's context, and the run stalled
+# on such batches for two minutes at a time, three retries each. Lines
+# longer than `TOO_LONG` are not sent at all: nothing reads a caption that
+# long, and the model cannot answer it inside a slot.
+BATCH_WORDS = 400
+TOO_LONG = 120
+
+
+def blocks_of(todo: list[str], batch: int) -> list[list[str]]:
+    """Batches of at most `batch` lines and about `BATCH_WORDS` words."""
+    out: list[list[str]] = []
+    block: list[str] = []
+    words = 0
+    for text in todo:
+        n = len(text.split())
+        if block and (len(block) >= batch or words + n > BATCH_WORDS):
+            out.append(block)
+            block, words = [], 0
+        block.append(text)
+        words += n
+    if block:
+        out.append(block)
+    return out
 # In flight at once, when the server will not say how many it can take.
 # Measured on 200-sentence pilots against a llama.cpp server with one slot,
 # at twenty per batch: two workers and four both answered 1.15 sentences a
@@ -249,7 +275,11 @@ class TranslateSentencesCommand:
             return
         print(f"  {client.describe()} · {workers} in flight", flush=True)
 
-        blocks = [todo[at:at + batch] for at in range(0, len(todo), batch)]
+        long = [t for t in todo if len(t.split()) > TOO_LONG]
+        if long:
+            todo = [t for t in todo if len(t.split()) <= TOO_LONG]
+            print(f"  {len(long):,} lines over {TOO_LONG} words are not sent", flush=True)
+        blocks = blocks_of(todo, batch)
         trouble = {"said": False, "streak": 0}
 
         def ask(block: list[str]) -> tuple[dict[str, str], int]:

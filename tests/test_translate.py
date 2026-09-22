@@ -116,6 +116,18 @@ class StoreTest(unittest.TestCase):
             self.assertEqual(store.asked(MODEL), {"Satz."})
 
 
+class BlocksTest(unittest.TestCase):
+    def test_a_batch_is_bounded_in_lines_and_in_words(self) -> None:
+        from commands.translate_sentences import BATCH_WORDS, blocks_of
+        short = ["Ja."] * 25
+        self.assertEqual([len(b) for b in blocks_of(short, 20)], [20, 5])
+        long = [" ".join(["Wort"] * 150)] * 3 + ["Kurz."]
+        got = blocks_of(long, 20)
+        self.assertEqual([len(b) for b in got], [1, 1, 1, 1])
+        mixed = [" ".join(["Wort"] * (BATCH_WORDS // 2))] * 3
+        self.assertEqual([len(b) for b in blocks_of(mixed, 20)], [2, 1])
+
+
 class MissingTest(unittest.TestCase):
     def test_a_card_the_bulk_pass_covered_is_still_owed_a_gloss(self) -> None:
         """The bulk pass gives every sentence English and asks about no
