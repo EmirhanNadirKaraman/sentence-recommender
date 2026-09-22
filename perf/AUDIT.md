@@ -203,6 +203,79 @@ The concurrency figures come from starting `main.py serve --port <p>
   means one `Once` per list rather than one overall.
 - Nothing here re-measures items 3–11 of the table above; they are untouched.
 
+## Reels: why it was slow, and what it costs now (2026-09-22)
+
+Reported as "clicking Reels took a long time". Three compounding causes, all
+measured against a copy of `state.sqlite3` on the `subtitle` build.
+
+**1. The reel loaded the corpus a second time.** `_grouped()` called
+`app.corpus(*builds, strict=True)` — byte for byte the call `corpus_for` makes
+and caches. In one process:
+
+```
+scope()      [what '/' does]     9.65s   rss 1315 MB
+corpus_for() again               0.00s   rss 1315 MB
+_grouped()   [what /reels does]  8.88s   rss 1965 MB
+```
+
+Both held 214,098 sentences and **shared not one object**. `_grouped` now
+groups `corpus_for(source, False)`; with the corpus warm it costs **22 ms**.
+
+**2. Marking any word invalidated every stored video score.** `_score_stamp`
+is `fingerprint|SCORE_VERSION|known-version`, and the `known_units` trigger
+bumps the last on every mark.
+
+**3. The incremental repair did not run.** `_rescore_locked` opened with
+`if not self._ranked: return`, so a word marked from Next, Review or over MCP
+moved the stamp and repaired nothing. `_repairable()` now also accepts a
+source whose corpus is already in memory, and the rows are read back with
+`ScoreStore.latest` when the process holds no ranking.
+
+### Measured, same flow, before and after
+
+| | before | after |
+|---|---|---|
+| open `/`, mark a word, **click Reels** | **9.91 s**, rss 1,914 MB | **0.03 s**, rss 1,288 MB |
+| `mark_known` POST latency, most-said word | 5.3 ms | **5.3 ms** (unchanged) |
+| the same mark's background rescore | — (skipped, cache left stale) | 446 ms on the `rescore` thread |
+| fresh process, Reels first, stamp valid | 0.04 s, no corpus loaded | 0.03 s, no corpus loaded |
+
+The mark itself did not get slower: the repair runs on the daemon thread the
+POST already hands off to. What changed is that it now runs at all, so the
+next reel load reads rows instead of rebuilding them.
+
+### A hazard found while writing it
+
+`ScoreStore.latest` reads stored rows *without* checking their stamp, so
+repairing a few videos and restamping would have declared every untouched row
+fresh — including rows computed by an analyser that no longer exists. That is
+the failure `SCORE_VERSION` was added for. `ScoreStore.stamp(source)` now
+exposes the stored stamp and `_rescore_locked` repairs only when the
+fingerprint and scoring version are unchanged; anything else is left for
+`_compute` to rebuild. Two tests cover it.
+
+### A stale cache fixed on the way
+
+`_corpora` was cleared in three places and `_videos` in one. After
+`_catch_up_now` analysed a newly scraped video, the reel kept the grouping it
+made before — so the video just added was missing until a restart. Both, and
+`_video_levels`, `_spoken` and `_unit_videos`, now go through
+`Viewer._forget_corpus()`.
+
+### Limitations
+
+- One run per row; the corpus load inside them varies 8.2–10.7 s as recorded
+  above. The Reels figures (9.91 s vs 0.03 s) are far outside that.
+- Scenario "fresh process, Reels first" does not discriminate between the two
+  versions — the setup pass leaves a valid stamp either way. It is there to
+  show that a valid stamp serves the reel without a corpus at all.
+- The repair is deliberately skipped in a process holding neither a ranking
+  nor a corpus, which is the MCP server. Marks made there still leave the
+  stamp behind and the next reader still recomputes — now at 0.6 s warm
+  rather than 9.9 s.
+- `perf/reels_flow.py` reproduces the table; it takes a copy of
+  `state.sqlite3` as its argument and refuses to run against anything else.
+
 ## Reproducing
 
 Scripts are in **`perf/`** (added by this audit, deletable, read-only —

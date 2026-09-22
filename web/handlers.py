@@ -475,6 +475,16 @@ class Viewer:
                     next(iter(available), ALL))
 
     @staticmethod
+    def _corpus_key(source: str, list_only: bool) -> str:
+        """How `_corpora` and `_scopes` name one corpus.
+
+        Spelled once, because `_rescore_locked` asks whether a corpus is
+        already in memory and a second copy of this expression would answer
+        that question wrongly the moment either one changed.
+        """
+        return f"{source}|{'list' if list_only else 'all'}"
+
+    @staticmethod
     def _builds(source: str) -> tuple[str, ...]:
         return () if source == ALL else tuple(source.split("+"))
 
@@ -523,7 +533,7 @@ class Viewer:
         The default here still reads True, but `counting()` now defaults to
         strict, so nearly every caller passes False.
         """
-        key = f"{source}|{'list' if list_only else 'all'}"
+        key = self._corpus_key(source, list_only)
 
         def build() -> Scope:
             sentences = self.corpus_for(source, list_only)
@@ -563,7 +573,7 @@ class Viewer:
         Keyed exactly as `scope` is, and used by it, so nothing loads twice
         whichever page asks first.
         """
-        key = f"{source}|{'list' if list_only else 'all'}"
+        key = self._corpus_key(source, list_only)
         # Not narrowed means strict, not raw: the bare lemma the analyser
         # yields beside the goal that already teaches it is one word arriving
         # twice, and counting it as unknown is bookkeeping rather than
@@ -2451,8 +2461,7 @@ class Viewer:
             if text and english:
                 self.app.adopt(text, english)
                 # The corpus in memory predates the sentence.
-                self._corpora.clear()
-                self._scopes.clear()
+                self._forget_corpus()
                 self._quiz.clear()
         elif action in ("good", "again") and text:
             self.app.own.grade(text, action == "good")
@@ -2853,15 +2862,11 @@ class Viewer:
             # read, with the channel in it or not. The stored scores are
             # kept: they describe each video as well as ever, and the feed
             # filters on the way out.
-            self._corpora.clear()
+            self._forget_corpus()
             self._frontiers.clear()
             self._frontier_at.clear()
-            self._scopes.clear()
             self._stuck.clear()
-            self._videos.clear()
-            self._video_levels.clear()
             self._ranked.clear()
-            self._unit_videos.clear()
             self._quiz.clear()
         return back
 
@@ -3399,21 +3404,61 @@ class Viewer:
         with self._scoring:
             self._rescore_locked(unit)
 
+    def _repairable(self, source: str) -> bool:
+        """Whether this source's scores can be brought up to date now.
+
+        The stamp carries the known-set version, so marking any word at all
+        makes every stored score stale — and a stale stamp means the next
+        reel load scores every video again. Repairing costs an index of which
+        videos say the word, which costs the corpus.
+
+        So: repair where the corpus is already in memory, and where this
+        process has served a reel and will clearly want one again. Refuse it
+        otherwise, which is what keeps the MCP server out of it — it marks
+        words all day, holds no ranking, and has no business paying for a
+        quarter of a million sentences to update a page it never serves.
+        There the stamp simply stays behind, exactly as it did before, and
+        the next reader recomputes.
+        """
+        return (source in self._ranked
+                or self._corpus_key(source, False) in self._corpora)
+
     def _rescore_locked(self, unit: Unit) -> None:
-        # Nothing ranked in memory means nothing to bring up to date: the
-        # stored rows carry the known-set version in their stamp, so the next
-        # page to read them recomputes. Without this, a process that never
-        # served a video page — the MCP server — resolved the goal list for a
-        # loop that ran zero times.
-        if not self._ranked:
+        # Sources ranked in memory, and any whose stored rows this process
+        # can cheaply repair. The second is why marking a word from Next no
+        # longer costs the reel its whole cache: that page holds the corpus,
+        # so the index the repair needs is already paid for.
+        sources = [s for s in self.sources() if self._repairable(s)]
+        if not sources:
             return
-        known, goals = self.known, frozenset(self.app.goal_units)
+        known = goals = None
         stamp = self._score_stamp()
-        for source, rows in list(self._ranked.items()):
+        for source in sources:
+            # Only a marked word may be repaired. `_score_stamp` is
+            # `fingerprint|SCORE_VERSION|known-version`, and if either of the
+            # first two has moved then every stored row was computed by rules
+            # that no longer apply — patching the handful this word touched
+            # and restamping would declare the rest fresh under an analyser
+            # that never scored them. Left alone, `_compute` rebuilds them.
+            held = self._scores.stamp(source)
+            if held is None or held.rsplit("|", 1)[0] != stamp.rsplit("|", 1)[0]:
+                continue
+            rows = self._ranked.get(source)
+            if rows is None:
+                # Held on disk only: read them back so the stamp can move
+                # forward with the numbers rather than ahead of them.
+                rows = self._scores.latest(source)
+                if not rows:
+                    continue
             touched = self._videos_with(source).get(unit, set())
             if not touched:
                 self._scores.restamp(source, stamp)
                 continue
+            if known is None:
+                # Resolved on the first source that has work, never above the
+                # loop: `known` runs the parser over the vocabulary files
+                # when nothing has asked for it yet.
+                known, goals = self.known, frozenset(self.app.goal_units)
             # Every video, not the filtered view. `_ranked` once held only
             # what cleared the reel's floor, so an update could write rows
             # for videos the list had never heard of — and memory and disk
@@ -3428,9 +3473,15 @@ class Viewer:
             fresh = {v: self._score_video(v, grouped[v], known, goals,
                                           spoken.get(v), levels.get(v), typical)
                      for v in touched if v in grouped}
-            rows = sorted((fresh.get(r["video"], r) for r in rows),
-                          key=lambda r: -r["watch"])
-            self._ranked[source] = rows
+            merged = sorted((fresh.get(r["video"], r) for r in rows),
+                            key=lambda r: -r["watch"])
+            # Only if this process holds a ranking already. `latest` reads
+            # the stored rows without checking their stamp, and `_ranked` is
+            # what every reel load is served from — filling it from here
+            # would put rows into memory that `_compute`, which does check,
+            # had never agreed to serve.
+            if source in self._ranked:
+                self._ranked[source] = merged
             self._scores.update(source, stamp, list(fresh.values()))
 
     def _score_stamp(self) -> str:
@@ -3445,6 +3496,28 @@ class Viewer:
         """
         return (f"{analyser_fingerprint()}|{SCORE_VERSION}"
                 f"|{self.app.marked_known.version()}")
+
+    def _forget_corpus(self) -> None:
+        """Drop the corpus and everything derived from it.
+
+        `_videos` groups the rows `_corpora` holds, and `_video_levels`,
+        `_spoken` and `_unit_videos` are read off that grouping. Clearing the
+        corpus and leaving them was a real bug and not a theoretical one:
+        `_catch_up_now` analyses a newly scraped video, drops the corpus so
+        the new lines are read, and the reel went on showing the grouping it
+        made before — so the video you had just added was not in it until the
+        server was restarted.
+
+        The stored scores are deliberately not touched. They describe each
+        video as well as they ever did, and `_score_stamp` is what decides
+        whether they still describe *you*.
+        """
+        self._corpora.clear()
+        self._scopes.clear()
+        self._videos.clear()
+        self._video_levels.clear()
+        self._spoken.clear()
+        self._unit_videos.clear()
 
     def _grouped(self, source: str) -> dict[str, list]:
         """Sentences by video. Cached: it does not depend on what you know.
@@ -3463,7 +3536,15 @@ class Viewer:
         """
         if source not in self._videos:
             groups: dict[str, list] = defaultdict(list)
-            for sentence in self.app.corpus(*self._builds(source), strict=True):
+            # `corpus_for(source, False)` is this exact call — `strict=True`
+            # over the same builds — and the page that sent the reader here
+            # has almost always paid for it already. Asking the application
+            # directly loaded a second copy of the same quarter of a million
+            # sentences: measured at 8.88s and 650 MB on top of a viewer that
+            # already held them, sharing not one object. The grouping is
+            # still kept, because grouping is not free either; it is the rows
+            # underneath it that are now shared.
+            for sentence in self.corpus_for(source, list_only=False):
                 if sentence.timing:
                     groups[sentence.timing.video_id].append(sentence)
             self._videos[source] = dict(groups)
@@ -3823,10 +3904,9 @@ class Viewer:
                 CorpusUpdater(self.app).catch_up()
                 RoadmapRefresher(self.app).refresh(touching="subtitle")
                 self._sources = None      # a build just changed size
-                self._corpora.clear()     # and what is in memory is stale
+                self._forget_corpus()     # and what is in memory is stale
                 self._frontiers.clear()
                 self._frontier_at.clear()
-                self._scopes.clear()
                 self._stuck.clear()
                 with self._catching_lock:
                     if not self._catch_again:

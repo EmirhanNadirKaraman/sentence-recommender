@@ -26,6 +26,7 @@ and on any checkout.
 | `nlp_clean.py` | the same split unprofiled (the honest one) |
 | `cache2.py` | `find_best_match` lru_cache sizing |
 | `nlp_par2.py` | `analyze_all` at 4/6/8 processes |
+| `reels_flow.py` | open Next, mark a word, open Reels — takes a **copy** of `state.sqlite3` as its argument |
 | `walk_ab.py` | one production walk: phase timings and a SHA-256 of the plan |
 | `track_cost.py` | what `CorpusIndex.track_goals` costs once |
 

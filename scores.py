@@ -93,6 +93,21 @@ class ScoreStore:
                 " ORDER BY watch DESC", (source,)).fetchall()
         return [self._as_row(r) for r in rows]
 
+    def stamp(self, source: str) -> str | None:
+        """What the stored rows were computed against, or None if there are
+        none. `load` answers the question a page asks — do these still
+        describe the reader — and refuses anything else. This answers the
+        narrower one an incremental repair has to ask first: *why* they no
+        longer match. Rows left behind by a word being marked can be patched
+        and restamped; rows left behind by a rebuilt corpus cannot, and
+        restamping those would declare every untouched video fresh under an
+        analyser that never scored it.
+        """
+        with open_state(self._path) as conn:
+            row = conn.execute("SELECT stamp FROM video_score_meta WHERE source = ?",
+                               (source,)).fetchone()
+        return row[0] if row else None
+
     def latest(self, source: str | None = None) -> list[dict]:
         """The stored scores as last written, best first, whoever they were
         scored for. Not for a page -- `load` is, and it refuses a stamp
