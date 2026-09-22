@@ -1955,6 +1955,14 @@ class Viewer:
         queue.sort(key=lambda row: row[0])
         queue += [(card.due_date, "card", card, why) for card, why in called if why != BY_DATE]
         due_count = len(queue)
+        # The one just skipped goes to the back: it is still due, and
+        # "not this one" is the whole of what the button said.
+        passed = query.get("not") or ""
+        if passed and len(queue) > 1:
+            def named(row) -> bool:
+                return (f"{row[2].unit.kind}:{row[2].unit.key}" == passed
+                        if row[1] == "card" else row[2]["text"] == passed)
+            queue = [row for row in queue if not named(row)] + [row for row in queue if named(row)]
         first = queue[0] if queue else None
         due = [first[2]] if first and first[1] == "card" else []
         why = first[3] if first else ""
@@ -2038,7 +2046,7 @@ class Viewer:
                     "placeholder='In German'></textarea>"
                     "<div class='actions'>"
                     "<button class='go' name='action' value='say'>Check it</button>"
-                    "<button name='action' value='skip'>Skip for now</button>"
+                    "<button name='action' value='skip'>Not this one</button>"
                     "</div></form></div>")
             return self._page("Review", body, "/review", source)
         body = (f"<h1>Review</h1>{verdict}"
@@ -2052,7 +2060,6 @@ class Viewer:
                 + "<form class='actions' method='post' action='/review'>" + carried
                 + "<button class='go' name='action' value='good'>I had it</button>"
                 "<button name='action' value='again'>Not yet</button>"
-                "<button name='action' value='skip'>Skip for now</button>"
                 "</form></div>")
         return self._page("Review", body, "/review", source)
 
@@ -2081,7 +2088,7 @@ class Viewer:
                     "placeholder='Say it in German'></textarea>"
                     "<div class='actions'>"
                     "<button class='go' name='action' value='say'>Check it</button>"
-                    "<button name='action' value='skip'>Skip for now</button>"
+                    "<button name='action' value='skip'>Not this one</button>"
                     "</div></form></div>")
         return (head
                 + "<div class='note said'><p class='de lead'>"
@@ -2093,7 +2100,6 @@ class Viewer:
                 + "<form class='actions' method='post' action='/review'>" + carried
                 + "<button class='go' name='action' value='good'>I had it</button>"
                 "<button name='action' value='again'>Not yet</button>"
-                "<button name='action' value='skip'>Skip for now</button>"
                 "</form></div>")
 
     def _heard_html(self, unit: Unit) -> str:
@@ -2144,9 +2150,15 @@ class Viewer:
         action = (form.get("action") or "").strip()
         unit = Unit(form.get("kind", ""), form.get("key", ""))
         back = f"/review?src={quote(source)}"
+        text = (form.get("text") or "").strip()
+        if action == "skip":
+            # "Not this one": carried in the link, because skipping
+            # decides nothing and so changes no date -- and without it the
+            # queue came back in the same order and asked the same thing.
+            passed = f"{unit.kind}:{unit.key}" if unit.key else text
+            return back + f"&not={quote(passed, safe='')}"
         # One of your own sentences, asked here rather than on `/mine`:
         # it carries its text and no unit, and it is graded by you.
-        text = (form.get("text") or "").strip()
         if text and not unit.key:
             if action == "say":
                 # Nothing is decided by writing it: the page comes back
@@ -2159,7 +2171,7 @@ class Viewer:
                 self.app.own.grade(text, action == "good")
             return back
         card = self.app.card_store.get(unit) if unit.key else None
-        if card is None or action == "skip":
+        if card is None:
             return back
         result: dict = {"spoken": self.app.mcp_prompt(unit)["spoken"], "unit": unit}
         if action == "say":

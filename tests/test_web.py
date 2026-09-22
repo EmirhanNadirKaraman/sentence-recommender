@@ -752,6 +752,29 @@ class ReviewQueueTest(unittest.TestCase):
             self.assertEqual(app.card_store.get(merken).repetitions, 1)
             self.assertEqual([a["correct"] for a in app.attempts.of(merken)], [True])
 
+    def test_not_this_one_asks_the_next_instead(self) -> None:
+        """Skipping decides nothing, so it changes no date -- the one
+        passed over is named in the link and goes to the back."""
+        import tempfile
+        from datetime import datetime, timedelta
+        from vocab.entry import Unit
+        with tempfile.TemporaryDirectory() as tmp:
+            viewer, app = self.viewer(Path(tmp))
+            now = datetime.now()
+            app.own.add("Ich muss das noch sagen.", "I still have to say this.",
+                        now - timedelta(days=3))
+            app.card_store.add(app.scheduler.new_card(Unit.lemma("merken"),
+                                                      now - timedelta(hours=1)))
+            back = viewer.save_review({"text": "Ich muss das noch sagen.",
+                                       "action": "skip", "src": "subtitle"})
+            self.assertEqual(back, "/review?src=subtitle&not=Ich%20muss%20das%20noch%20sagen.")
+            page = viewer.review({"src": "subtitle", "not": "Ich muss das noch sagen."})
+            self.assertIn("merken", page)
+            self.assertNotIn("I still have to say this.", page)
+            # Still due, and asked again once something else has been.
+            self.assertIn("2 due", page)
+            self.assertIn("I still have to say this.", viewer.review({"src": "subtitle"}))
+
     def test_a_word_card_is_untouched_by_the_sentence_branch(self) -> None:
         """The two are told apart by what the form carries -- a sentence
         has text and no unit -- so grading one cannot reach the other."""
