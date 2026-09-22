@@ -43,7 +43,7 @@ sentences, extrapolated). The real command also pulls subtitle rows, runs
 | 1 | Cold corpus load repeated per process and per source | cold `/` 10.71 s vs warm 0.068 s; every CLI command pays it; `Viewer._corpora` keyed per source | cache the built corpus (mmap/arrow) or keep one warm process | −10 s per cold start, the only latency a human waits on | M |
 | 2 | Walk rescans whole frontier each step | frontier grows 6,916 → 17,710 units by step 600 while goals plateau at ~3,000. The guard sequence at `roadmap/builder.py:154` costs a measured **2.01 ms/step** more than the same loop over goals alone | maintain a goal-candidate dict incrementally **in `CorpusIndex`** — a per-step `goals & candidates.keys()` still hashes every frontier unit and wins much less | 7.8 s over 3,902 steps = **25.7% of the walk**; 30.5 s → ~23 s (projected) | S |
 | 3 | `work_mem=4MB` spills the hot join | `EXPLAIN ANALYZE`: Batches 8, temp read+written 17,151 blks = **134 MB temp I/O**; exec 2,859 ms → **2,053 ms** at 64MB | `SET work_mem` on the session, or postgresql.conf | −0.6 s per corpus load, −28% server time | XS |
-| 4 | 3.18M unit rows shipped to build 310k objects | transfer-only 2.41 s vs as-shipped 7.98 s; `string_agg` variant 5.74 s | aggregate units server-side | −2.2 s per load | S |
+| 4 | ~~3.18M unit rows shipped to build 310k objects~~ **CLOSED** | re-measured interleaved at `work_mem=64MB`: as-shipped **8.08 s**, `string_agg` **9.36 s** — the variant is 16% *slower*. The original 5.74-vs-7.98 gap was cache warming between two single runs | none | — | — |
 | 5 | `Unit` hashing dominates the walk | `Unit.__hash__` **22,797,527 calls** in 600 steps; tuple keys 2.53x faster, int keys 3.88x | intern units to ints inside the index | walk −20–30% est. | L — `Unit` has a `__reduce__` because it crosses process boundaries, and it flows through the store, SRS and web pages |
 | 6 | `analysis_processes: 8` is past the knee | best-of-3: 4 procs **1,402 sent/s**, 6 procs 1,390, 8 procs 1,236. M1 is exactly 4P+4E; 8 was slowest in all three reps | set 4–6 | −12% on build-corpus | XS |
 | 7 | `find_best_match` lru_cache thrashing | `maxsize=4096`, **currsize=4096**, hit rate 68.6%; unbounded → 70.4%, **−5.2% on `_units`** | raise maxsize | −1.5% of build-corpus | XS |
@@ -353,6 +353,26 @@ and is unaffected, so a 17% win on the Python 29% is ~5% overall, inside the
 run-to-run spread. Kept because it is free and real; not claimed as a
 throughput win.
 
+### 4 — closed, the variant is slower
+
+Re-measured the way the later items were: interleaved, three runs each, at
+the `work_mem` now in force, on a machine at load 1.7.
+
+| | best of 3 | median |
+|---|---|---|
+| as shipped, row at a time | **8.08 s** | 9.05 s |
+| `string_agg`, one row per sentence | 9.36 s | 9.80 s |
+
+Both produce identical units and identical surfaces over all 309,883
+sentences, so the variant was correct — just slower by 1.28 s (16%). The
+original reading (`string_agg` 5.74 s against as-shipped 7.98 s) came from
+`perf/agg.py`, which ran each variant once in sequence; inside that same
+script the *same* query timed 1.78 s and 4.35 s on two runs. The gap was the
+page cache warming up, not the aggregation.
+
+Nothing changed. This is the third of eleven findings not to survive being
+checked, after 8 and 10.
+
 ### 9 — the expression scan, done
 
 25 of the 27 rows open with a literal word that must be there, so they can
@@ -379,6 +399,18 @@ SHA-256 across every sentence's units, its surfaces, and the corpus-wide
 untouched. `consumed` is empty on entry in the real path —
 `extract_german_logic` builds it immediately above the call — so the
 narrowing cannot interact with words already claimed.
+
+### Absolute timings drift across a session; ratios do not
+
+The walk measured 34.57 s before the goal index and 9.97 s after, back to
+back. Re-measured hours later on the same machine at a *lower* load average,
+the same two builds gave 47.37 s and 15.15 s — both about 1.4x slower, same
+plan hash, same 3,932 steps, ratio 3.13x against the 3.47x first reported.
+Nothing had changed but the machine, most likely thermal after an afternoon
+of benchmarking.
+
+Quote the ratio, measure both sides back to back, and treat any absolute
+second in this document as good only for the hour it was taken in.
 
 ### A caution about all the throughput numbers here
 
