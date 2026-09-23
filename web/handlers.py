@@ -107,6 +107,23 @@ class Scope:
     priority: UnitPriority
 
 
+# How the reel may be ordered: the value a link carries, the word the switch
+# shows, the row field it reads, and whether small comes first.
+#
+# `watch` is the default and the only one taste weighs, because taste is part
+# of what "best to watch" means. Ask for a percentage and you get that
+# percentage: scaling 26% by how much you like the channel would answer a
+# question nobody asked. A removed channel is filtered out of every order
+# either way — that is a different thing from a preference.
+ORDERS: tuple[tuple[str, str, str, bool], ...] = (
+    ("watch", "how well it plays", "watch", False),
+    ("readable", "lines I can read", "readable", False),
+    ("words", "words I know", "comprehension", False),
+    ("teaches", "words from my list", "teaches", False),
+    ("level", "easiest first", "level", True),
+)
+ORDER_BY = {value: (field, rising) for value, _, field, rising in ORDERS}
+
 # How many of a list's entries the page draws. Each carries a form of its
 # own, so this is a page-weight limit rather than a taste in page length.
 SHOWN_ENTRIES = 60
@@ -507,6 +524,16 @@ class Viewer:
         """
         return (query.get("count") or "all") == "list"
 
+    def ordering(self, query: dict) -> str:
+        """Which order the reel is in. `watch` unless asked otherwise.
+
+        Validated against `ORDERS` rather than trusted: the value reaches a
+        sort key, and an unknown one would be a page that silently stopped
+        ordering.
+        """
+        asked = (query.get("sort") or "").strip()
+        return asked if asked in ORDER_BY else "watch"
+
     def unblocked(self, query: dict) -> bool:
         """Whether the walk may teach a word that is not on the list.
 
@@ -785,6 +812,20 @@ class Viewer:
             for value, label in offered
         )
         return f"<div class='switch'><span>Counting</span>{links}</div>"
+
+    def _order_switch(self, source: str, here: str) -> str:
+        """How the reel is ordered, offered the way Counting is.
+
+        No `i` in these links: a position means nothing once the order has
+        changed, and carrying it would drop the reader in the middle of a
+        list they have not seen the start of.
+        """
+        links = "".join(
+            f"<a href='{self._link('/reels', source, sort=value)}' "
+            f"class='{'on' if here == value else ''}'>{label}</a>"
+            for value, label, _, _ in ORDERS
+        )
+        return f"<div class='switch'><span>Order</span>{links}</div>"
 
     # --- what is next -----------------------------------------------------
 
@@ -2896,7 +2937,8 @@ class Viewer:
         its place only while someone keeps it honest.
         """
         source = self.source(query)
-        ranked = self._settled(source)
+        order = self.ordering(query)
+        ranked = self._settled(source, order)
         if not ranked:
             # Two different emptinesses, and saying the wrong one sends
             # someone looking for a bug. `transcript` is written prose with
@@ -2919,13 +2961,16 @@ class Viewer:
         if here is None:
             here = min(max(int(query.get("i") or 0), 0), len(ranked) - 1)
         row = ranked[here]
-        args = f"?src={quote(source)}"
+        # The order travels on every link out of here, or a swipe and the
+        # pager would silently reorder the feed under the reader.
+        args = f"?src={quote(source)}" + (
+            f"&sort={quote(order)}" if order != "watch" else "")
         prev = (f"<a class='link' href='/reels{args}&i={here - 1}'>&larr; easier</a>"
                 if here else "<span class='link off'>&larr; easier</span>")
         nxt = (f"<a class='link' href='/reels{args}&i={here + 1}'>harder &rarr;</a>"
                if here + 1 < len(ranked) else "<span class='link off'>harder &rarr;</span>")
 
-        state = json.dumps({"at": here, "total": len(ranked),
+        state = json.dumps({"at": here, "total": len(ranked), "sort": order,
                             "src": source, "video": row["video"]})
         body = (
             f"<h1 id='reel-title'>{escape(row['title'] or row['video'])}</h1>"
@@ -2934,8 +2979,9 @@ class Viewer:
               "your hands full. Swipe up and down to move, right to say you "
               "know a word, left to set it aside — W/S, D and A on a keyboard; "
               "the arrows and space drive the video.</p>"
+            + self._order_switch(source, order)
             + f"<div id='reel-taste'>"
-            + self._taste_control(row["video"], f"/reels?i={here}")
+            + self._taste_control(row["video"], f"/reels{args}&i={here}")
             + "</div>"
             + self._audio_toggle()
             + "<div class='card' id='reel'>"
@@ -2967,21 +3013,24 @@ class Viewer:
         it and the client keeps the player.
         """
         source = self.source(query)
-        ranked = self._settled(source)
+        order = self.ordering(query)
+        ranked = self._settled(source, order)
         if not ranked:
             return {"empty": True}
         here = min(max(int(query.get("i") or 0), 0), len(ranked) - 1)
         row = ranked[here]
+        back = f"/reels?src={quote(source)}" + (
+            f"&sort={quote(order)}" if order != "watch" else "") + f"&i={here}"
         return {
             "at": here,
             "total": len(ranked),
             "video": row["video"],
             "title": row["title"] or row["video"],
             "scoreboard": self._scoreboard(row),
-            "panel": self._to_follow(source, row, back=f"/reels?i={here}"),
+            "panel": self._to_follow(source, row, back=back),
             # Follows the reel, because what you think of a channel is about
             # the channel this one came from, not the one you started on.
-            "taste": self._taste_control(row["video"], f"/reels?i={here}"),
+            "taste": self._taste_control(row["video"], back),
         }
 
     def _scoreboard(self, row: dict) -> str:
@@ -3078,7 +3127,7 @@ class Viewer:
                 f"&src={quote(source)}'>Learn them one by one</a></p>"
                 f"<div class='ledger'>{entries}</div>")
 
-    def _settled(self, source: str) -> list[dict]:
+    def _settled(self, source: str, order: str = "watch") -> list[dict]:
         """The reel's rows once every decision has been scored in.
 
         A marked word is scored on a worker so the POST returns at once,
@@ -3090,9 +3139,10 @@ class Viewer:
         of videos, well under a second, and only when something is queued.
         """
         self._marks.join()
-        return self._watchable(source)
+        return self._watchable(source, order=order)
 
-    def _watchable(self, source: str, floor: int = ENOUGH_LINES) -> list[dict]:
+    def _watchable(self, source: str, floor: int = ENOUGH_LINES,
+                   order: str = "watch") -> list[dict]:
         """Every video with enough in it, best-to-watch first.
 
         `floor` is what the reel refuses to offer; the catalogue lists
@@ -3133,11 +3183,22 @@ class Viewer:
         # Likewise a removed channel: its videos keep their stored score,
         # which describes them as well as ever, and simply are not offered.
         banned = self.app.banned_videos()
-        return sorted(
-            (r for r in rows if r["lines"] >= floor
-             and r["video"] not in banned),
-            key=lambda r: -r["watch"] * taste_weight(
+        field, rising = ORDER_BY.get(order, ORDER_BY["watch"])
+        offered = [r for r in rows
+                   if r["lines"] >= floor and r["video"] not in banned]
+        if field == "watch":
+            return sorted(offered, key=lambda r: -r["watch"] * taste_weight(
                 taste.get(channel.get(r["video"]))))
+        # A video the judge never levelled has no `level`, and a row written
+        # before `readable` was stored has no `readable`. Sorting `None`
+        # against a float raises, so the missing go last in either direction
+        # rather than to whichever end the comparison happens to throw them.
+        def key(row):
+            value = row.get(field)
+            missing = value is None
+            return (missing, (value if rising else -value) if not missing else 0,
+                    -row["watch"])
+        return sorted(offered, key=key)
 
     def _compute(self, source: str) -> list[dict]:
         """Stored scores if they still describe you, otherwise scored afresh."""
@@ -3640,14 +3701,22 @@ class Viewer:
     def _cues(self, video_id: str) -> list[Sentence]:
         """Every line of one video, in the order it is spoken.
 
-        Asked of the database rather than of the corpus. This used to load
-        every sentence of both builds and keep the two hundred with the right
-        video id, which is a full scan and a million interned units for a
-        panel that fires on its own the moment the reading page opens.
+        Narrowed in the query rather than in Python. This used to load every
+        sentence of both builds and keep the two hundred with the right video
+        id, which is a full scan and a million interned units for a panel that
+        fires on its own the moment the reading page opens.
+
+        Through `Application.corpus` and not the store, though, which is the
+        part that was wrong: the store hands back the units as analysed, and
+        only the application renames the ones a goal already teaches. A reader
+        who had learned `die Angst` was shown `Angst` marked new, because the
+        line carried the bare `angst` the alias exists to fold away. Strict,
+        because that is what every other reading of these lines uses and the
+        marks have to agree across the page.
         """
-        cues = [s for s in self.app.corpus_store.load(
+        cues = [s for s in self.app.corpus(
                     "subtitle", "subtitle:llm", "subtitle:auto",
-                    teachable_only=False, video=video_id)
+                    teachable_only=False, strict=True, video=video_id)
                 if s.timing]
         return sorted(cues, key=lambda s: s.timing.start)
 

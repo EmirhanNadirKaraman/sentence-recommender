@@ -17,7 +17,9 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from web import render, watch
-from web.handlers import Once, Viewer
+from threading import Lock
+
+from web.handlers import ORDERS, Once, Viewer
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -310,6 +312,144 @@ class UnblockedTest(unittest.TestCase):
         viewer = self.viewer(set())
         self.assertFalse(viewer.counting({}))
         self.assertFalse(viewer.unblocked({}))
+
+
+class ReelOrderTest(unittest.TestCase):
+    """The reel can be ordered by any of its numbers, not only watchability."""
+
+    def viewer(self, rows):
+        v = Viewer.__new__(Viewer)
+        v._ranked = {"subtitle": rows}
+        v._scoring = Lock()
+        v._taste = SimpleNamespace(all=lambda: {})
+        v._channel_of = lambda: {}
+        v.app = SimpleNamespace(banned_videos=lambda: frozenset())
+        return v
+
+    @staticmethod
+    def row(video, watch=0.1, readable=0.1, comprehension=0.1, teaches=1,
+            level=1.0, lines=99):
+        return {"video": video, "title": video, "lines": lines, "minutes": 5.0,
+                "comprehension": comprehension, "i+1": 1, "teaches": teaches,
+                "watch": watch, "next": [], "level": level, "readable": readable}
+
+    def order(self, rows, mode):
+        return [r["video"] for r in self.viewer(rows)._watchable("subtitle", order=mode)]
+
+    def test_each_mode_ranks_by_its_own_number(self) -> None:
+        rows = [self.row("a", watch=0.1, readable=0.9, comprehension=0.2, teaches=1, level=3.0),
+                self.row("b", watch=0.9, readable=0.1, comprehension=0.5, teaches=9, level=1.0),
+                self.row("c", watch=0.5, readable=0.5, comprehension=0.9, teaches=5, level=2.0)]
+        self.assertEqual(self.order(rows, "watch"), ["b", "c", "a"])
+        self.assertEqual(self.order(rows, "readable"), ["a", "c", "b"])
+        self.assertEqual(self.order(rows, "words"), ["c", "b", "a"])
+        self.assertEqual(self.order(rows, "teaches"), ["b", "c", "a"])
+        self.assertEqual(self.order(rows, "level"), ["b", "c", "a"])  # easiest first
+
+    def test_level_counts_up_and_the_rest_count_down(self) -> None:
+        rows = [self.row("hard", level=5.0), self.row("easy", level=1.0)]
+        self.assertEqual(self.order(rows, "level"), ["easy", "hard"])
+
+    def test_a_row_missing_the_number_goes_last(self) -> None:
+        """An unlevelled video has no `level`, and a row written before
+        `readable` was stored has none either. Sorting None against a float
+        raises; these sink rather than land wherever the comparison throws."""
+        rows = [self.row("has", level=4.0), self.row("none", level=None),
+                self.row("low", level=1.0)]
+        self.assertEqual(self.order(rows, "level"), ["low", "has", "none"])
+        rows = [self.row("has", readable=0.2), self.row("none", readable=None)]
+        self.assertEqual(self.order(rows, "readable"), ["has", "none"])
+
+    def test_only_watchability_is_weighed_by_taste(self) -> None:
+        """Ask for a percentage and you get that percentage. Scaling 26% by
+        how much you like the channel answers a question nobody asked."""
+        rows = [self.row("liked", watch=0.4, readable=0.4),
+                self.row("meh", watch=0.5, readable=0.5)]
+        v = self.viewer(rows)
+        v._taste = SimpleNamespace(all=lambda: {"ch": "down"})   # weight 0.25
+        v._channel_of = lambda: {"meh": "ch"}
+        self.assertEqual([r["video"] for r in v._watchable("subtitle", order="watch")],
+                         ["liked", "meh"])           # taste sank it
+        self.assertEqual([r["video"] for r in v._watchable("subtitle", order="readable")],
+                         ["meh", "liked"])           # the number stands
+
+    def test_a_removed_channel_is_gone_from_every_order(self) -> None:
+        rows = [self.row("keep", readable=0.1), self.row("gone", readable=0.9)]
+        v = self.viewer(rows)
+        v.app = SimpleNamespace(banned_videos=lambda: frozenset({"gone"}))
+        for mode, _, _, _ in ORDERS:
+            self.assertEqual([r["video"] for r in v._watchable("subtitle", order=mode)],
+                             ["keep"], mode)
+
+    def test_an_unknown_order_falls_back_rather_than_breaking(self) -> None:
+        v = Viewer.__new__(Viewer)
+        self.assertEqual(v.ordering({"sort": "'; drop table"}), "watch")
+        self.assertEqual(v.ordering({}), "watch")
+
+    def test_the_swipe_carries_the_order(self) -> None:
+        """Without it every fetch answers from the default ranking and the
+        feed reorders itself under a reader who asked for something else."""
+        js = (ROOT / "web" / "static" / "app.js").read_text(encoding="utf-8")
+        self.assertIn("'&sort=' + encodeURIComponent(s.sort)", js)
+        self.assertEqual(js.count("s.sort && s.sort !== 'watch'"), 2,
+                         "the fetch and the URL it writes back both need it")
+
+
+class TranscriptUnitsTest(unittest.TestCase):
+    """The transcript panel must name units the way the rest of the page does.
+
+    It asked the store directly, and the store hands back the units as
+    analysed. A reader who had learned the goal `die Angst` was shown `Angst`
+    marked new, because the line carried the bare lemma `angst` that the alias
+    exists to fold into the goal. Only `Application.corpus` renames them.
+    """
+
+    def viewer(self):
+        viewer = Viewer.__new__(Viewer)
+        self.asked = {}
+
+        def corpus(*builds, **kw):
+            self.asked = {"builds": builds, **kw}
+            return []
+
+        viewer.app = SimpleNamespace(corpus=corpus)
+        return viewer
+
+    def test_cues_are_resolved_by_the_application(self) -> None:
+        v = self.viewer()
+        v._cues("abc123")
+        self.assertEqual(self.asked.get("video"), "abc123")
+        self.assertTrue(self.asked.get("strict"),
+                        "without strict the bare lemma is never renamed to its goal")
+        self.assertFalse(self.asked.get("teachable_only", True),
+                         "the overlay needs every line, not only the teachable ones")
+
+    def test_it_still_narrows_in_the_query(self) -> None:
+        """`video` must reach the loader. Filtering in Python here is a full
+        scan and a million interned units for a two-hundred-line panel."""
+        v = self.viewer()
+        v._cues("abc123")
+        self.assertIn("video", self.asked)
+
+    def test_the_application_passes_video_to_the_store(self) -> None:
+        from context import Application
+        seen = {}
+
+        class Store:
+            def builds(self):
+                return ("subtitle",)
+
+            def load(self, *builds, **kw):
+                seen.update(kw)
+                return []
+
+        app = Application.__new__(Application)
+        app.__dict__["corpus_store"] = Store()
+        app.__dict__["check_freshness"] = lambda: None
+        app._unit_rule = lambda strict, list_only: None
+        app.apply_overrides = lambda rows, resolve: rows
+        app.corpus("subtitle", video="abc123", strict=True)
+        self.assertEqual(seen.get("video"), "abc123")
 
 
 class PlayerControlsTest(unittest.TestCase):

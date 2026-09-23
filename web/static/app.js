@@ -886,7 +886,11 @@ function cueAt(cues, now) {
   function go(to) {
     if (busy || to < 0 || to >= s.total) return;
     busy = true;
-    fetch('/api/reels?i=' + to + '&src=' + encodeURIComponent(s.src))
+    // The order travels with the swipe. Without it every fetch would answer
+    // from the default ranking and the feed would reorder itself underneath
+    // a reader who had asked for something else.
+    fetch('/api/reels?i=' + to + '&src=' + encodeURIComponent(s.src) +
+          (s.sort && s.sort !== 'watch' ? '&sort=' + encodeURIComponent(s.sort) : ''))
       .then(function (r) { return r.json(); })
       .then(function (d) {
         if (d.empty) return;
@@ -899,7 +903,9 @@ function cueAt(cues, now) {
         // The URL follows so a reload lands where you are, without the
         // navigation that would take the player with it.
         history.replaceState(null, '', '/reels?src=' +
-          encodeURIComponent(s.src) + '&i=' + d.at);
+          encodeURIComponent(s.src) +
+          (s.sort && s.sort !== 'watch' ? '&sort=' + encodeURIComponent(s.sort) : '') +
+          '&i=' + d.at);
         if (d.video !== s.video) {
           s.video = d.video;
           if (ready) player.loadVideoById({videoId: d.video, startSeconds: 0});

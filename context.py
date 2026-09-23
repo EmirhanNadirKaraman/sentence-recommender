@@ -260,7 +260,8 @@ class Application:
     def corpus(self, *builds: str, teachable_only: bool = True,
                list_only: bool = False, strict: bool = False,
                holding: tuple[str, str] | None = None,
-               text: str | None = None):
+               text: str | None = None,
+               video: str | None = None):
         """Cached sentences from the named builds, with reader corrections.
 
         Corrections are applied on the way out rather than baked into the
@@ -292,10 +293,16 @@ class Application:
         # `holding` asks for the sentences saying one word. A page that wants
         # twenty-five of them has no business materialising a hundred and
         # fifteen thousand, which is what it did before the index existed.
+        # `video` narrows to one video's lines, and it is here rather than
+        # only on the store because a caller that skips this method skips the
+        # renaming with it: the transcript panel did, and served `angst` where
+        # the reader had learned `die Angst`, so the word came back marked new
+        # in a sentence they could read. Narrowed in SQL either way — the
+        # panel must not materialise the corpus to show two hundred lines.
         return self.apply_overrides(self.corpus_store.load(
             *(builds or self.corpus_store.builds()),
             teachable_only=teachable_only, holding=holding, text=text,
-            resolve=resolve,
+            video=video, resolve=resolve,
         ), resolve)
 
     @cached_property
