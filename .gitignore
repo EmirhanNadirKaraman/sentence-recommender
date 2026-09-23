@@ -68,3 +68,8 @@ out/translate.log
 # whatever they say that matters is in the database or in the deck.
 out/logs/
 out/ask.log
+
+# Generated media from a brag run: 12 MB of mp4 and jpg per run, and the
+# run writes a fresh dated directory each time. Whatever they show is in
+# the video, not in the repository.
+brag-output*/
