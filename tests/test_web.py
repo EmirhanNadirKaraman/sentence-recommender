@@ -312,6 +312,76 @@ class UnblockedTest(unittest.TestCase):
         self.assertFalse(viewer.unblocked({}))
 
 
+class PlayerControlsTest(unittest.TestCase):
+    """The control bar, and the two things a phone needs from it.
+
+    Source-read like `routes()` above: these are a button, a CSS rule and a
+    key binding that live in three different files and only work together.
+    Each is silent when it breaks — the caption simply stops hiding, or the
+    page simply stops scrolling — so they are pinned here rather than noticed
+    later on a phone.
+    """
+
+    def css(self) -> str:
+        return (ROOT / "web" / "static" / "app.css").read_text(encoding="utf-8")
+
+    def js(self) -> str:
+        return (ROOT / "web" / "static" / "app.js").read_text(encoding="utf-8")
+
+    def test_the_bar_offers_the_english_toggle(self) -> None:
+        from web.watch import controls
+        bar = controls()
+        self.assertIn("data-act='english'", bar)
+        self.assertIn("id='english'", bar)
+        self.assertIn("(H)", bar)          # the key is documented where Q, E and T are
+
+    def test_h_is_bound_and_bound_only_here(self) -> None:
+        js = self.js()
+        self.assertIn("key === 'h') toggleEnglish();", js)
+        self.assertEqual(js.count("=== 'h'"), 1, "something else claimed H")
+
+    def test_the_toggle_survives_a_reload(self) -> None:
+        """A way of working, not a per-video choice — so it is stored, and
+        stored as 'off' rather than 'on': absent means on."""
+        js = self.js()
+        self.assertIn("'i1-english'", js)
+        self.assertIn("localStorage.getItem(ENGLISH) !== '0'", js)
+
+    def test_the_class_goes_on_the_body(self) -> None:
+        """The caption is rewritten on every line, so a class set on it would
+        be discarded with it."""
+        self.assertIn("document.body.classList.toggle('no-en', !english)", self.js())
+        self.assertIn("body.no-en #caption-en { display: none; }", self.css())
+
+    def test_hiding_english_leaves_the_german(self) -> None:
+        css = self.css()
+        self.assertNotIn("body.no-en #caption ", css)
+        self.assertNotIn("body.no-en .de", css)
+
+    def test_the_toggle_does_not_wait_for_the_player(self) -> None:
+        """It is a reading preference; the frame may still be loading."""
+        js = self.js()
+        before = js.index("if (b.dataset.act === 'english')")
+        after = js.index("var p = live();\n    if (!p) return;")
+        self.assertLess(before, after)
+
+    def test_only_the_picture_and_the_deck_refuse_a_touch(self) -> None:
+        """`.stage` used to be in this list with no gesture handler of its
+        own, which made the caption a band that neither swiped nor scrolled.
+        The handler is bound to `.player`; the deck has a drag of its own."""
+        css = self.css()
+        self.assertIn(".card .player, .card .deck {", css)
+        self.assertNotIn(".card .player, .card .stage, .card .deck {", css)
+        self.assertIn("reel.querySelector('.player')", self.js())
+
+    def test_the_caption_still_refuses_a_text_selection(self) -> None:
+        """Dropping `touch-action` must not drop the selection guard: a long
+        press that starts selecting cancels a drag that began on the picture."""
+        css = self.css()
+        stage = css[css.index(".card .stage {"):]
+        self.assertIn("user-select: none", stage[:200])
+
+
 class LoadedOnceTest(unittest.TestCase):
     """`corpus_for` and `priority`, which exist so a page pays each once.
 

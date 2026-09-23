@@ -170,6 +170,10 @@ a.go:hover { border-color: var(--target); background: var(--target); }
 .stage .en { background: var(--surface); border-left: 3px solid var(--target);
   padding: 0 14px 10px; border-radius: 0 0 4px 0; margin: 0; min-height: 1.2em; }
 .stage .de:empty, .stage .en:empty { min-height: 0; padding-top: 0; padding-bottom: 0; }
+/* H, or the button in the control bar. Only the subtitle's own English goes:
+   the roadmap's glosses and a card's example sentences are the page's
+   content, not the thing you are trying not to read while listening. */
+body.no-en #caption-en { display: none; }
 #reel .stage .de { font-size: 24px; }
 
 /* Per-sentence corrections. Quiet: these are for the exception, not the
@@ -222,9 +226,20 @@ a.go:hover { border-color: var(--target); background: var(--target); }
    video, the scoreboard and the eight words under it — which is most of a
    phone screen, and `touch-action: none` there meant a drag anywhere in it
    scrolled nothing. The page could not be read to the bottom. Swipe on the
-   video; read and scroll everywhere else. */
-.card .player, .card .stage, .card .deck {
+   video; read and scroll everywhere else.
+   `.stage` was still in this list and should not have been: the only gesture
+   handler is bound to `.player` (`app.js`: `reel.querySelector('.player')`),
+   so the caption and its English under the picture took no swipe and, with
+   the touch refused, scrolled nothing either — a dead band across the middle
+   of the phone. The picture and the deck keep it because each has a drag of
+   its own to protect. */
+.card .player, .card .deck {
   touch-action: none;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+/* The caption still must not start a text selection mid-swipe — a long press
+   that begins selecting cancels the drag — but a finger may scroll it. */
+.card .stage {
   user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
 }
 .card { user-select: none; -webkit-user-select: none; }

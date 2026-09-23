@@ -51,7 +51,14 @@ def player(video_id: str, start: float) -> str:
 def controls() -> str:
     """The bar under every player. `app.js` binds it to whichever player
     the page made (`window.__player`) and asks the page where the current
-    sentence starts (`window.__sentenceStart`)."""
+    sentence starts (`window.__sentenceStart`).
+
+    `English` hides the translation under the caption without hiding the
+    German, which is the state you want once a video is nearly followable:
+    the line is there to be understood, and having read it already is not the
+    same as having understood it. Sticky, like auto-pause, because it is a
+    way of working rather than a per-video choice.
+    """
     return (
         "<div class='controls' id='controls'>"
         "<button type='button' data-act='prev' title='The subtitle before (Q)'>&#8249; line</button>"
@@ -65,6 +72,8 @@ def controls() -> str:
         "<button type='button' data-act='mute' id='mute'>Sound off</button>"
         "<button type='button' data-act='autopause' id='autopause' "
         "title='Pause after every subtitle (T)'>Auto-pause off</button>"
+        "<button type='button' data-act='english' id='english' "
+        "title='Hide or show the English (H)'>English on</button>"
         "<button type='button' data-act='full' title='Full screen'>&#x26F6;</button>"
         "<span class='clock' id='clock'></span>"
         "</div>"

@@ -198,6 +198,12 @@ window.__cueTimes = null;
   var AUTOPAUSE = 'i1-autopause';
   var autopause = false;
   try { autopause = localStorage.getItem(AUTOPAUSE) === '1'; } catch (_) {}
+  // The subtitle's English, on unless it has been turned off before. Default
+  // on because a reader who does not want it knows to press H, while one who
+  // needs it would not know it was missing.
+  var ENGLISH = 'i1-english';
+  var english = true;
+  try { english = localStorage.getItem(ENGLISH) !== '0'; } catch (_) {}
   var lastCue = -1;
   function live() {
     var p = window.__player;
@@ -236,11 +242,33 @@ window.__cueTimes = null;
     try { localStorage.setItem(AUTOPAUSE, autopause ? '1' : '0'); } catch (_) {}
     showAutopause();
   }
+  // The class is on `body`, not on the caption, because the caption is
+  // replaced wholesale every time the line changes and a class set on it
+  // would be thrown away with it.
+  function showEnglish() {
+    document.body.classList.toggle('no-en', !english);
+    var b = document.getElementById('english');
+    if (b) {
+      b.textContent = 'English ' + (english ? 'on' : 'off');
+      b.classList.toggle('on', english);
+      b.setAttribute('aria-pressed', english ? 'true' : 'false');
+    }
+  }
+  function toggleEnglish() {
+    english = !english;
+    try { localStorage.setItem(ENGLISH, english ? '1' : '0'); } catch (_) {}
+    showEnglish();
+  }
   showAutopause();
+  showEnglish();
   bar.addEventListener('click', function (e) {
     var b = e.target.closest('button[data-act]');
+    if (!b) return;
+    // Before the player guard: hiding the English is a reading preference and
+    // works whether or not the frame has finished loading.
+    if (b.dataset.act === 'english') { toggleEnglish(); return; }
     var p = live();
-    if (!b || !p) return;
+    if (!p) return;
     var act = b.dataset.act;
     if (act === 'toggle') {
       if (p.getPlayerState() === 1) p.pauseVideo(); else p.playVideo();
@@ -298,8 +326,9 @@ window.__cueTimes = null;
   // The keys YouTube's own player answers to, answered here, because the
   // frame cannot see them: arrows seek five seconds and turn the volume,
   // space and k play or pause, j and l seek ten, m mutes, f goes full
-  // screen. The pages' own keys -- another sentence, another video, the
-  // decisions -- are WASD, so the two sets never fight.
+  // screen. T is the auto-pause and H hides the English under the caption.
+  // The pages' own keys -- another sentence, another video, the decisions --
+  // are WASD, so the two sets never fight.
   document.addEventListener('keydown', function (e) {
     var el = document.activeElement;
     if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ||
@@ -325,6 +354,7 @@ window.__cueTimes = null;
     else if (key === 'q') step(p, -1);
     else if (key === 'e') step(p, 1);
     else if (key === 't') toggleAutopause();
+    else if (key === 'h') toggleEnglish();
     else return;
     e.preventDefault();
   });
