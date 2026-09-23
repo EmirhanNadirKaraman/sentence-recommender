@@ -10,6 +10,10 @@ wired to a chat and video app whose events do not exist here.
 An incorrect answer resets the interval but only nudges the ease, so a word
 missed once comes back tomorrow without being permanently marked difficult.
 
+Dates are jittered by a few per cent, intervals never (`_due`): cards
+claimed in one go would otherwise come back in one go for as long as
+they live.
+
 Intervals are capped.  Growth is geometric, so a card answered correctly forty
 times running reaches an interval that `timedelta` cannot represent, and the
 review session crashes rather than scheduling it.  Ten years is already past
@@ -19,6 +23,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from datetime import datetime, timedelta
+from random import Random
 from typing import TYPE_CHECKING
 
 from srs.card import Card
@@ -85,6 +90,10 @@ class SM2Scheduler:
     MAX_EASE = 3.0
     MIN_EASE = 1.3
     MAX_INTERVAL_DAYS = 3650.0
+    # How far a due date may be nudged either way, and the interval
+    # below which it is not nudged at all -- see `_due`.
+    FUZZ = 0.05
+    FUZZ_FLOOR = 2.5
 
     def new_card(self, unit: Unit, now: datetime) -> Card:
         """A card due immediately — a newly taught unit is reviewed the same day."""
@@ -101,6 +110,40 @@ class SM2Scheduler:
         the reader has the sentence in front of them this minute."""
         return replace(self.new_card(unit, now),
                        due_date=now + timedelta(days=self.INITIAL_INTERVAL))
+
+    def _due(self, unit: Unit, interval: float, repetitions: int,
+             now: datetime) -> datetime:
+        """When a card at this interval comes back, nudged off the exact day.
+
+        Claims made in one go are minted off one `now` -- 173 of them in
+        one evening here -- and a shared interval times a shared ease
+        keeps that batch whole for as long as it lives: everything learned
+        together is asked together, for good. A few per cent either way
+        breaks it up, and each review nudges again from where the last one
+        left it, so the spread widens as the intervals do.
+
+        The nudge is on the date and never on `interval_days`. The
+        interval is what the next interval is computed from, so jitter
+        there would compound into the schedule; and `vocab.encounters`
+        lays the hearing ladder out by reading the intervals a perfect run
+        of reviews gives, so a jittered interval would set the passive
+        ladder drifting from the active schedule it is built to match.
+
+        Drawn from the unit and the passes behind it rather than from
+        chance, so the same history always schedules the same day: a card
+        keeps its date when the page is loaded twice, and a test can say
+        where it lands.
+
+        Below `FUZZ_FLOOR` nothing is nudged. A day and a half of schedule
+        spreads over hours, which buys nothing the review order does not
+        already give -- and a missed card should come back tomorrow, not
+        tomorrow give or take.
+        """
+        if interval < self.FUZZ_FLOOR:
+            return now + timedelta(days=interval)
+        spread = Random(f"{unit.kind}:{unit.key}:{repetitions}").uniform(
+            -self.FUZZ, self.FUZZ)
+        return now + timedelta(days=interval * (1 + spread))
 
     def review(self, card: Card, correct: bool, now: datetime) -> Card:
         if correct:
@@ -121,6 +164,6 @@ class SM2Scheduler:
             ease_factor=ease,
             repetitions=repetitions,
             lapses=lapses,
-            due_date=now + timedelta(days=interval),
+            due_date=self._due(card.unit, interval, repetitions, now),
             last_review=now,
         )

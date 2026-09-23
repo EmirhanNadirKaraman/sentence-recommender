@@ -35,7 +35,11 @@ class SM2SchedulerTest(unittest.TestCase):
         self.assertAlmostEqual(first.interval_days, 2.5)
         self.assertAlmostEqual(second.interval_days, 2.5 * 2.55)
         self.assertEqual(second.repetitions, 2)
-        self.assertEqual(second.due_date, NOW + timedelta(days=second.interval_days))
+        # The date is the interval nudged by a few per cent; the interval
+        # itself is exact.
+        drift = second.due_date - (NOW + timedelta(days=second.interval_days))
+        self.assertLessEqual(abs(drift.total_seconds()),
+                             second.interval_days * 86400 * SM2Scheduler.FUZZ)
 
     def test_a_miss_resets_the_interval_but_only_nudges_the_ease(self) -> None:
         card = self.scheduler.new_card(Unit.lemma("haus"), NOW)
@@ -61,6 +65,66 @@ class SM2SchedulerTest(unittest.TestCase):
             card = self.scheduler.review(card, correct=True, now=NOW)
         self.assertEqual(card.interval_days, SM2Scheduler.MAX_INTERVAL_DAYS)
         self.assertGreater(card.due_date, NOW)
+
+
+    def test_cards_claimed_together_stop_coming_back_together(self) -> None:
+        """A batch is minted off one `now` and grows by one ease, so
+        without a nudge every card in it is asked on the same day for as
+        long as it lives."""
+        units = [Unit.lemma(f"wort{n}") for n in range(20)]
+        dates = set()
+        for unit in units:
+            card = self.scheduler.new_card(unit, NOW)
+            for _ in range(3):
+                card = self.scheduler.review(card, correct=True, now=NOW)
+            dates.add(card.due_date)
+        self.assertEqual(len(dates), len(units))
+        # Nudged, not rescheduled: still within a few per cent of the day
+        # the interval asks for.
+        exact = NOW + timedelta(days=2.5 * 2.55 * 2.6)
+        for date in dates:
+            self.assertLessEqual(abs((date - exact).total_seconds()),
+                                 (exact - NOW).total_seconds() * SM2Scheduler.FUZZ)
+
+    def test_the_same_history_always_lands_on_the_same_day(self) -> None:
+        """Drawn from the unit and its passes, not from chance -- two
+        loads of the page must not move a card that was not reviewed."""
+        def schedule() -> datetime:
+            card = self.scheduler.new_card(Unit.lemma("haus"), NOW)
+            for _ in range(3):
+                card = self.scheduler.review(card, correct=True, now=NOW)
+            return card.due_date
+        self.assertEqual(schedule(), schedule())
+        self.assertEqual(schedule(), SM2Scheduler().review(
+            self.scheduler.review(
+                self.scheduler.review(
+                    self.scheduler.new_card(Unit.lemma("haus"), NOW),
+                    correct=True, now=NOW),
+                correct=True, now=NOW),
+            correct=True, now=NOW).due_date)
+
+    def test_a_missed_card_comes_back_tomorrow_exactly(self) -> None:
+        """The reset a miss gives is the one interval under the floor:
+        tomorrow, not tomorrow give or take. Every interval a pass gives
+        starts at 2.5 days and is nudged."""
+        card = self.scheduler.new_card(Unit.lemma("haus"), NOW)
+        first = self.scheduler.review(card, correct=True, now=NOW)
+        self.assertNotEqual(first.due_date, NOW + timedelta(days=2.5))
+        missed = self.scheduler.review(first, correct=False, now=NOW)
+        self.assertEqual(missed.interval_days, 1.0)
+        self.assertEqual(missed.due_date, NOW + timedelta(days=1.0))
+
+    def test_the_hearing_ladder_is_not_jittered_with_it(self) -> None:
+        """`vocab.encounters` reads the intervals a perfect run gives to
+        lay out its rungs. The nudge is on the date, so the ladder that
+        the passive half climbs still matches the active schedule."""
+        from vocab.encounters import LADDER
+        card = self.scheduler.new_card(Unit.lemma("x"), NOW)
+        waits = [0.0]
+        while len(waits) < len(LADDER):
+            waits.append(card.interval_days)
+            card = self.scheduler.review(card, correct=True, now=card.due_date)
+        self.assertEqual(list(LADDER), waits)
 
 
 class PromptBuilderTest(unittest.TestCase):

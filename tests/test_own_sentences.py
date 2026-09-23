@@ -6,7 +6,10 @@ import unittest
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from srs.scheduler import SM2Scheduler
 from vocab.own_sentences import OwnSentences
+
+FUZZ = SM2Scheduler.FUZZ
 
 
 class OwnSentencesTest(unittest.TestCase):
@@ -24,10 +27,15 @@ class OwnSentencesTest(unittest.TestCase):
                          ["I have to renew my visa."])
         self.own.grade("Ich muss mein Visum verlängern.", True, self.now)
         self.assertEqual(self.own.due(self.now), [])
-        self.assertEqual(self.own.due(self.now + timedelta(days=3)),
-                         [{"text": "Ich muss mein Visum verlängern.",
-                           "english": "I have to renew my visa.",
-                           "due": (self.now + timedelta(days=2.5)).isoformat()}])
+        said = self.own.due(self.now + timedelta(days=3))
+        self.assertEqual([(d["text"], d["english"]) for d in said],
+                         [("Ich muss mein Visum verlängern.", "I have to renew my visa.")])
+        # Two and a half days out, nudged off the exact hour like any
+        # other card: sentences kept in one sitting come back spread out
+        # (`srs.scheduler._due`).
+        asked = datetime.fromisoformat(said[0]["due"]) - self.now
+        self.assertAlmostEqual(asked.total_seconds() / 86400, 2.5, delta=2.5 * FUZZ)
+        self.assertNotEqual(asked, timedelta(days=2.5))
         self.assertEqual(self.own.all()[0]["repetitions"], 1)
 
     def test_not_said_comes_back_tomorrow(self) -> None:
