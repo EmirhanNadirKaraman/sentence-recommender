@@ -1,0 +1,143 @@
+# Words whose only i+1 sentences are inside long videos.
+#
+# Two tab-separated columns, as data/study_list.txt has them: the word as
+# it is usually written, then the form the matcher speaks.
+#
+# Every one of these is said somewhere — and said *alone*, so it is
+# teachable — but the shortest recording that teaches it runs over
+# 20 minutes. Watching all of them is 31% of a 193-hour plan for
+# 127 words. A short video saying any of these is worth more than
+# its length suggests.
+#
+# Not the same as `hunt --absent-only`, which chases goals the corpus
+# never says at all. These it says; it says them expensively.
+#
+# Generated 2026-09-23 by experiments/video_order.py. Longest first.
+
+sowie	sowie
+der Studiengang	der Studiengang
+die Fakultät	die Fakultät
+der Katalog	der Katalog
+jdn./etw. (Akk) vernehmen	jdn./etw. (Akk) vernehmen
+die Fusion	die Fusion
+einst	einst
+der Architekt	der Architekt
+das Wiedersehen	das Wiedersehen
+das Glied	das Glied
+der Engel	der Engel
+das Grundstück	das Grundstück
+jds./etw. (Gen) sich enthalten	jds./etw. (Gen) sich enthalten
+die Ausführung	die Ausführung
+hocken	hocken
+gewiss	gewiss
+die Galerie	die Galerie
+der Ehegatte	der Ehegatte
+der Hügel	der Hügel
+ferner	ferner
+schreiten	schreiten
+die Eintragung	die Eintragung
+etw. (Akk) / sich in etw. spiegeln	etw. (Akk) / sich in etw. spiegeln
+jds./etw. (Gen) bedürfen	jds./etw. (Gen) bedürfen
+bezüglich	bezüglich
+eilen	eilen
+ruhen	ruhen
+die Mitteilung	die Mitteilung
+sanft	sanft
+die Fotografie	die Fotografie
+berufstätig	berufstätig
+herrlich	herrlich
+jdm./etw. (Dat) lauschen	jdm./etw. (Dat) lauschen
+die Wange	die Wange
+der Träger	der Träger
+einschließlich	einschließlich
+die Spalte	die Spalte
+die Schauspielerin	die Schauspielerin
+der Koch	der Koch
+die Nerven verlieren	die Nerven verlieren
+nacken	nacken
+zum Teufel	zum Teufel
+entlang	entlang
+die Scheidung	die Scheidung
+der Salon	der Salon
+der Rock	der Rock
+das Ensemble	das Ensemble
+optisch	optisch
+der Maler	der Maler
+die Malerei	die Malerei
+das Heft	das Heft
+die Abbildung	die Abbildung
+meinetwegen	meinetwegen
+der Befund	der Befund
+das Gewehr	das Gewehr
+die Differenzierung	die Differenzierung
+aus etw. (Dat) resultieren	aus etw. (Dat) resultieren
+das Gewebe	das Gewebe
+der Deutscher	der Deutscher
+jdm. (Dat) etw. (Akk) servieren	jdm. (Dat) etw. (Akk) servieren
+konventionell	konventionell
+beträchtlich	beträchtlich
+die Medien	die Medien
+sich (Dat) etw. (Akk) notieren	sich (Dat) etw. (Akk) notieren
+das Bad	das Bad
+die Bearbeitung	die Bearbeitung
+künstlerisch	künstlerisch
+unverzüglich	unverzüglich
+die Fassade	die Fassade
+etw. (Akk) einlegen	etw. (Akk) einlegen
+jdm. (Dat) etw. (Akk) braten	jdm. (Dat) etw. (Akk) braten
+ästhetisch	ästhetisch
+das Dunkel	das Dunkel
+die GmbH	die GmbH
+die Sekretärin	die Sekretärin
+etw. (Akk) schwingen	etw. (Akk) schwingen
+jdn./etw. (Akk) ausnehmen	jdn./etw. (Akk) ausnehmen
+an jdm./etw. (Dat) verzweifeln	an jdm./etw. (Dat) verzweifeln
+die Verhaltensweise	die Verhaltensweise
+etw. (Akk) / sich vermindern	etw. (Akk) / sich vermindern
+die Zuordnung	die Zuordnung
+der Bestand	der Bestand
+der Gipfel	der Gipfel
+das Griechisch	das Griechisch
+die Erhaltung	die Erhaltung
+das Marketing	das Marketing
+an jdm./etw. (Dat) vorübergehen	an jdm./etw. (Dat) vorübergehen
+das TV	das TV
+etw. (Akk) reinigen	etw. (Akk) reinigen
+das Gelände	das Gelände
+etw. (Akk) reiten	etw. (Akk) reiten
+der Flur	der Flur
+die Wüste	die Wüste
+aids	aids
+etw. (Akk) biegen	etw. (Akk) biegen
+die Leistungsfähigkeit	die Leistungsfähigkeit
+gänzlich	gänzlich
+der Leib	der Leib
+die Zeichnung	die Zeichnung
+jdm. (Dat) etw. (Akk) vortragen	jdm. (Dat) etw. (Akk) vortragen
+die Zunge	die Zunge
+sich (Dat) etw. (Akk) / sich (Akk) sich ausziehen	sich (Dat) etw. (Akk) / sich (Akk) sich ausziehen
+der Hörer	der Hörer
+mühsam	mühsam
+das Tuch	das Tuch
+die Flüssigkeit	die Flüssigkeit
+der Backofen	der Backofen
+die Messung	die Messung
+jdn./etw. (Akk) erregen	jdn./etw. (Akk) erregen
+der Betracht	der Betracht
+hinsichtlich	hinsichtlich
+die Daten	die Daten
+der Teufel	der Teufel
+medial	medial
+heuer	heuer
+das Präparat	das Präparat
+das Heim	das Heim
+das Praktikum	das Praktikum
+das Rathaus	das Rathaus
+die Fragestellung	die Fragestellung
+etw. (Akk) anordnen	etw. (Akk) anordnen
+jdn. (Akk) zu etw. / etw. (Akk) veranlassen	jdn. (Akk) zu etw. / etw. (Akk) veranlassen
+regelrecht	regelrecht
+die Bekämpfung	die Bekämpfung
+der Grenzwert	der Grenzwert
+die Partie	die Partie
+das Forum	das Forum
