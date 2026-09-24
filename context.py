@@ -38,7 +38,8 @@ class Application:
 
     def __init__(self, settings: Settings | None = None) -> None:
         self.settings = settings or Settings()
-        # (blacklist version, the videos it removes) -- see `banned_videos`.
+        # ((blacklist version, removals version), the videos they hide)
+        # -- see `banned_videos`.
         self._banned: tuple[int, frozenset[str]] | None = None
         self._machine: tuple[int, frozenset[str]] | None = None
         self._own_texts: frozenset[str] | None = None
@@ -129,6 +130,12 @@ class Application:
         return ChannelBlacklist(self.settings.state_path)
 
     @cached_property
+    def removals(self):
+        """The single videos the reader has taken off their pages."""
+        from vocab.channel_taste import VideoRemovals      # noqa: PLC0415
+        return VideoRemovals(self.settings.state_path)
+
+    @cached_property
     def taste(self):
         """What the reader has said about each channel. See `vocab.channel_taste`."""
         from vocab.channel_taste import ChannelTaste       # noqa: PLC0415
@@ -210,15 +217,18 @@ class Application:
         return self._machine[1]
 
     def banned_videos(self) -> frozenset[str]:
-        """Every video of a removed channel -- what the blacklist means in
-        the terms the corpus speaks.
+        """Every video the reader will not be shown: the ones on a removed
+        channel, and the ones removed singly.
 
         Derived once per change rather than per call: the channel-to-video
         map is a catalogue query, and this is asked on every corpus load.
         The blacklist's version says whether the last answer still stands,
         so a page never carries a channel the reader has just restored.
         """
-        version = self.blacklist.version()
+        # Both versions, because either can move on its own and a cache key
+        # that watched one would serve a video the reader had just removed
+        # -- or keep hiding one they had just brought back.
+        version = (self.blacklist.version(), self.removals.version())
         if self._banned is None or self._banned[0] != version:
             channels = list(self.blacklist.all())
             videos: frozenset[str] = frozenset()
@@ -228,7 +238,7 @@ class Application:
                         "SELECT v.video_id FROM video v"
                         " JOIN channel c ON c.id = v.channel_id"
                         " WHERE c.youtube_channel_id = ANY(%s)", (channels,)))
-            self._banned = (version, videos)
+            self._banned = (version, videos | frozenset(self.removals.all()))
         return self._banned[1]
 
     @cached_property

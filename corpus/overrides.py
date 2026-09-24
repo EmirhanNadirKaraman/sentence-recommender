@@ -33,6 +33,13 @@ CREATE TABLE IF NOT EXISTS hidden_sentences (
     text     TEXT PRIMARY KEY,
     hidden   TEXT NOT NULL
 );
+-- Sentences the reader liked. Not a verdict and not a hiding: those two say
+-- whether a sentence is a good example, and this says nothing about quality
+-- at all. It is a bookmark, so nothing ranks on it and nothing filters by it.
+CREATE TABLE IF NOT EXISTS starred_sentences (
+    text     TEXT PRIMARY KEY,
+    starred  TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS sentence_units_override (
     text     TEXT NOT NULL,
     kind     TEXT NOT NULL,
@@ -123,6 +130,27 @@ class SentenceOverrides:
         with open_state(self._path) as conn:
             return {row[0] for row in
                     conn.execute("SELECT text FROM hidden_sentences")}
+
+    # --- keeping one ------------------------------------------------------
+
+    def star(self, text: str) -> None:
+        """Keep a sentence to come back to. Starring one already starred
+        changes nothing, not even the date, so the list keeps its order."""
+        with open_state(self._path) as conn:
+            conn.execute(
+                "INSERT OR IGNORE INTO starred_sentences (text, starred)"
+                " VALUES (?, ?)", (text, datetime.now().isoformat()))
+
+    def unstar(self, text: str) -> None:
+        with open_state(self._path) as conn:
+            conn.execute("DELETE FROM starred_sentences WHERE text = ?", (text,))
+
+    def starred(self) -> dict[str, str]:
+        """Text -> when it was starred, newest first."""
+        with open_state(self._path) as conn:
+            return {row[0]: row[1] for row in conn.execute(
+                "SELECT text, starred FROM starred_sentences"
+                " ORDER BY starred DESC, text")}
 
     # --- how good a sentence is ------------------------------------------
 

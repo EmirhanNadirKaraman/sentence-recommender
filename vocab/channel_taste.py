@@ -12,7 +12,15 @@ would rather not watch can still hold the one video that teaches the word
 you need. Weights live in `watchability`, beside the other numbers that
 decide an order.
 
-The third, `machine`, is not a preference but a fact about the material:
+The third and fourth are not preferences but facts about the material, and
+`human` exists only so that the third can be answered "no" and stay answered.
+Judging five hundred channels is a sitting, not a reflex, and without somewhere
+to record "listened, it is a person" the Channels page cannot tell a channel
+nobody has checked from one that passed. It weighs nothing -- neutral is what
+an unjudged channel already gets -- and that is the point: it changes the
+page's memory, never the order.
+
+`machine` is the one that does something:
 the channel's voice or text is machine-made. It pushes the videos down as
 setting aside does, and — unlike setting aside — its sentences too, on every
 card, deck and plan (`Application.verdicts`): a sentence nobody said is a
@@ -36,7 +44,12 @@ from state import open_state
 UP = "up"
 DOWN = "down"
 MACHINE = "machine"
-TASTES = frozenset({UP, DOWN, MACHINE})
+HUMAN = "human"
+TASTES = frozenset({UP, DOWN, MACHINE, HUMAN})
+# The two that answer "is this machine-made?" rather than "do I want more of
+# this?". Kept apart because a page that asks one question should offer one
+# pair of answers, and because `up` and `down` survive a verdict on the voice.
+VERDICTS = (MACHINE, HUMAN)
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS channel_taste (
@@ -64,6 +77,26 @@ BEGIN UPDATE channel_taste_version SET version = version + 1 WHERE id = 1; END;
 CREATE TRIGGER IF NOT EXISTS channel_taste_cleared
 AFTER DELETE ON channel_taste
 BEGIN UPDATE channel_taste_version SET version = version + 1 WHERE id = 1; END;
+
+CREATE TABLE IF NOT EXISTS video_removed (
+    video_id TEXT PRIMARY KEY,
+    decided  TEXT NOT NULL
+);
+-- Versioned like the others, and for the same reason: `banned_videos` caches
+-- what the removals come to and has to know when that answer is stale.
+CREATE TABLE IF NOT EXISTS video_removed_version (
+    id      INTEGER PRIMARY KEY CHECK (id = 1),
+    version INTEGER NOT NULL
+);
+INSERT OR IGNORE INTO video_removed_version (id, version) VALUES (1, 0);
+
+CREATE TRIGGER IF NOT EXISTS video_removed_added
+AFTER INSERT ON video_removed
+BEGIN UPDATE video_removed_version SET version = version + 1 WHERE id = 1; END;
+
+CREATE TRIGGER IF NOT EXISTS video_removed_restored
+AFTER DELETE ON video_removed
+BEGIN UPDATE video_removed_version SET version = version + 1 WHERE id = 1; END;
 
 CREATE TABLE IF NOT EXISTS channel_blacklist (
     channel_id TEXT PRIMARY KEY,
@@ -142,6 +175,61 @@ class ChannelTaste:
                     " VALUES (?, ?, ?) ON CONFLICT(channel_id) DO UPDATE SET"
                     " taste = excluded.taste, decided = excluded.decided",
                     (channel_id, taste, datetime.now().isoformat(" ", "seconds")))
+
+
+class VideoRemovals:
+    """The single videos you have taken off your pages, and when.
+
+    A channel is the usual unit -- one decision covers everything it will
+    ever post -- but a channel you want is not a channel without a dud in
+    it, and until now the only way to be rid of one video was to lose the
+    other ninety-nine with it.
+
+    Here and not in the catalogue's own `video_blacklist`, which is a
+    different list despite the name: that one is the scraper's, it says what
+    never to fetch, and all 357 of its rows name videos the catalogue does
+    not hold. This is a preference, so it sits beside the other things you
+    have decided, and a re-scrape cannot quietly undo it.
+    """
+
+    def __init__(self, path: Path) -> None:
+        self._path = path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open_state(self._path) as conn:
+            conn.executescript(SCHEMA)
+
+    def version(self) -> int:
+        with open_state(self._path) as conn:
+            row = conn.execute(
+                "SELECT version FROM video_removed_version WHERE id = 1"
+            ).fetchone()
+        return row[0] if row else 0
+
+    def all(self) -> dict[str, str]:
+        """Video id -> when it was removed, oldest first."""
+        with open_state(self._path) as conn:
+            return {row[0]: row[1] for row in conn.execute(
+                "SELECT video_id, decided FROM video_removed"
+                " ORDER BY decided, video_id")}
+
+    def add(self, video_id: str) -> None:
+        """Remove one video. Removing one already removed changes nothing --
+        not even the date, so the list keeps saying when you decided."""
+        if not video_id:
+            return
+        with open_state(self._path) as conn:
+            conn.execute(
+                "INSERT OR IGNORE INTO video_removed (video_id, decided)"
+                " VALUES (?, ?)",
+                (video_id, datetime.now().isoformat(" ", "seconds")))
+
+    def remove(self, video_id: str) -> None:
+        """Bring one back."""
+        if not video_id:
+            return
+        with open_state(self._path) as conn:
+            conn.execute("DELETE FROM video_removed WHERE video_id = ?",
+                         (video_id,))
 
 
 class ChannelBlacklist:

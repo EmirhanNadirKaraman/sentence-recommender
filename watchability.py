@@ -7,6 +7,11 @@ because `main.py` happened to load the commands first.
 """
 from __future__ import annotations
 
+# Named rather than spelled, so adding a taste cannot leave this file quietly
+# weighing it at 1.0. `vocab.channel_taste` imports only `state`, so this does
+# not reopen the loop the docstring above warns about.
+from vocab.channel_taste import DOWN, MACHINE
+
 # What a video should be to watch without touching anything. Long enough to
 # settle into, short enough to finish on a run; the corpus median is 11.1
 # minutes, so this is where the material already is.
@@ -58,12 +63,19 @@ SET_ASIDE = 0.25
 
 def taste_weight(taste: str | None) -> float:
     """The multiplier for what you have said about a channel. A channel
-    marked machine-made sits where a set-aside one does: down, not out."""
+    marked machine-made sits where a set-aside one does: down, not out.
+
+    `human` is deliberately 1.0 and not `SUBSCRIBED`: it records that the
+    voice was listened to and found real, which is the absence of a fault
+    rather than a reason to lift the channel over one nobody has judged yet.
+    Falling through to the default would do the same thing silently; it is
+    named here so that nobody later reads the omission as an oversight.
+    """
     if taste == "up":
         return SUBSCRIBED
-    if taste in ("down", "machine"):
+    if taste in (DOWN, MACHINE):
         return SET_ASIDE
-    return 1.0
+    return 1.0                        # no opinion, or `human`
 
 
 def length_band(minutes: float | None) -> float:

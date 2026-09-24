@@ -177,9 +177,16 @@ class RemovalTest(unittest.TestCase):
         self._dir.cleanup()
 
     def _ban(self, *videos: str) -> None:
-        """Stand in for the catalogue's channel-to-video map."""
+        """Stand in for the catalogue's channel-to-video map.
+
+        The cache is seeded rather than the query run, so the key has to be
+        the one `banned_videos` will compare against -- both versions, since
+        single-video removals move on their own and a key watching only the
+        channel list would let a removal go unnoticed.
+        """
         self.app.blacklist.add("UC1")
-        self.app._banned = (self.app.blacklist.version(), frozenset(videos))
+        self.app._banned = ((self.app.blacklist.version(),
+                             self.app.removals.version()), frozenset(videos))
 
     def test_nothing_removed_changes_nothing(self) -> None:
         self.assertEqual(self.app.apply_overrides(self.said), self.said)
