@@ -39,3 +39,23 @@ lingua-language-detector>=2.0
 # extra is `mcp dev`, which runs a server file under its own interpreter,
 # and this one has to run under .venv's (see the note on spaCy above).
 mcp>=2.2
+
+# Experiment 04's `laya` arm only: the open-weight System One model, run on
+# this machine against the same rows Jev was scored on. Measured at chance
+# (AUC 0.46–0.51 across its three checkpoints); kept so the arm reruns.
+# Its checkpoints live in ~/.cache/huggingface/hub/models--convaiinnovations--laya
+# (2.2 GB) and can be deleted with the package.
+laya>=0.3.4
+
+# Nothing in this repository imports it: `config.py` has its own `load_dotenv`,
+# twelve lines that read KEY=VALUE without overriding a real environment
+# variable. It is here for the scraper next door. `ingest/video.py` defers an
+# `import pipeline`, which resolves to
+# `../language-app/subtitle-scraper/pipeline.py`, and that file imports the
+# real package.
+#
+# Deferred is why this went unnoticed: the import is inside a property, so a
+# checkout can run the server, the walks and the whole test suite without ever
+# reaching it, and only `add-video` and `add-channel` fail -- with a
+# ModuleNotFoundError naming a package this project appears not to use.
+python-dotenv>=1.0
