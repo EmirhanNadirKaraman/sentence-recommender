@@ -73,3 +73,9 @@ out/ask.log
 # run writes a fresh dated directory each time. Whatever they show is in
 # the video, not in the repository.
 brag-output*/
+
+# Experiment output: regenerable from `experiments/` and large (29 MB and
+# growing). The `.md` writeups beside them stay tracked -- those are the
+# reading of the results, which no rerun reproduces.
+experiment_results/*.csv
+experiment_results/*.svg

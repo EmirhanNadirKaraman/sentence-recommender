@@ -46,6 +46,13 @@ from watchability import ENOUGH_LINES
 OUT = Path("experiment_results")
 SUMMARY = "07-video-order.csv"
 
+# Below this, a word's cheapest way in is not a sitting and there is nothing
+# to hunt for. Most of the list is already well under it -- 3,344 of 3,634
+# words have a source under a quarter of an hour -- so without this bar the
+# hunt flag says yes to a four-minute word and the list it produces is the
+# whole corpus. Thirty minutes is where one video is an evening's decision.
+HUNT_FLOOR = 30.0
+
 # When a sentence teaches, given how many of its units are unknown and how
 # many words it runs to.
 #
@@ -204,7 +211,7 @@ def episodes(sentences, rate: float, floor: int = ENOUGH_LINES,
 
 def shelf(app, seed, with_episodes: bool = True,
           episode_floor: int = ENOUGH_LINES, drop_machine: bool = False,
-          drop_seg: bool = False):
+          drop_seg: bool = False, max_minutes: float | None = None):
     """Everything worth planning over, and what each holds and costs.
 
     Keys are `("v", video_id)` or `("e", transcript path)`, so the two kinds
@@ -240,6 +247,18 @@ def shelf(app, seed, with_episodes: bool = True,
                                    floor=episode_floor, drop_seg=drop_seg)
         grouped.update(more)
         cost.update(more_cost)
+
+    # Nobody sits through a two-hour film to learn one word, and the plans
+    # have been full of them: `sowie` cost 204 minutes because its only
+    # unblocked sentence was inside a feature. A cap says what is actually
+    # watchable. `target` is untouched -- it is computed over the whole
+    # corpus above, before anything is dropped -- so a word whose only
+    # source is too long is reported unmet rather than quietly leaving the
+    # list, which is the only way the two arms stay comparable.
+    if max_minutes is not None:
+        grouped = {k: v for k, v in grouped.items()
+                   if cost.get(k, 0.0) <= max_minutes}
+        cost = {k: v for k, v in cost.items() if k in grouped}
 
     says: dict = {}
     for k, ss in grouped.items():
@@ -691,6 +710,11 @@ def hunt(app, seed, gate: str = "i+1", k: int = 5, drop_machine: bool = True,
             # worth saying outright rather than leaving in two columns for
             # the reader to subtract.
             "videos_saying_it": len(said_in.get(unit, ())),
+            # Three ways a word can be expensive and hunting still not help,
+            # and the last of them is why this column once said yes to 1,885
+            # words: it only asked whether a shorter video *could* replace
+            # the last step, never whether the last step was long enough to
+            # be worth replacing.
             "worth_hunting": (
                 "no — gated by what comes first"
                 if floor_of.get(unit, 0.0) > cheap + 1e-6 else
@@ -699,6 +723,8 @@ def hunt(app, seed, gate: str = "i+1", k: int = 5, drop_machine: bool = True,
                 # answer, not another video.
                 "no — common, but its sentences carry off-list words"
                 if len(said_in.get(unit, ())) >= 8 and len(holds) <= 2 else
+                f"no — its shortest source is already {cheap:.0f} min"
+                if cheap < HUNT_FLOOR else
                 "yes"),
             "note": ("only one source" if len(holds) == 1 else
                      "every source is long" if cheap >= 60 else ""),
@@ -724,8 +750,7 @@ def hunt(app, seed, gate: str = "i+1", k: int = 5, drop_machine: bool = True,
         f"with no source · {len(forced):,} behind an hour or more")
     say(f"  {worse:,} cost more than their own video says, because of what "
         f"has to come first")
-    worth = [r for r in rows if r["worth_hunting"].startswith("yes")
-             and (r["shortest_minutes"] or 0) >= 30]
+    worth = [r for r in rows if r["worth_hunting"].startswith("yes")]
     common = sum(1 for r in rows if "off-list words" in r["worth_hunting"])
     say(f"  {len(worth):,} are worth hunting for right now — a shorter video "
         f"replaces the whole cost")
@@ -1168,6 +1193,43 @@ def chunks(app, seed, k: int = 5, sizes=(1, 10, 50), say=print) -> list[dict]:
                  f"Greedy against an ILP with a wider window (K={k})",
                  "hours watched", "% of corpus occurrences readable")
     say(f"    -> {where}")
+    return rows
+
+
+def caps(app, seed, k: int = 5, limits=(None, 60, 30, 20), say=print) -> list[dict]:
+    """What a ceiling on video length costs, and what it buys.
+
+    The plans have been full of feature films watched for one word -- `sowie`
+    at 204 minutes, `das Wiedersehen` at 113 -- and nobody sits through those.
+    A cap is the honest version of the question, and the trade is not obvious:
+    it takes hours out of the shelf but takes words out of reach with them.
+
+    `target` is fixed across the arms. A word whose only source is longer than
+    the cap is reported unmet, which is the whole point -- shrink the goal set
+    with the shelf and every arm answers a different question.
+    """
+    rows = []
+    for limit in limits:
+        t = time.perf_counter()
+        _, grouped, cost, says, reach, target = shelf(
+            app, seed, with_episodes=True, drop_machine=True, drop_seg=True,
+            max_minutes=limit)
+        supply = chances(grouped, target, reach, "i+1")
+        r = walk(grouped, cost, says, target, supply, seed, k, "i+1",
+                 rewatch=True)
+        # Words with no teaching sentence left at all: the cap did not make
+        # them dearer, it made them impossible.
+        lost = sum(1 for w in target if not supply.get(w))
+        lab = "no cap" if limit is None else f"<= {limit} min"
+        rows.append({"cap": lab, "k": k, "hours": round(r["hours"], 1),
+                     "videos": r["videos"], "viewings": r["viewings"],
+                     "words_met": r["met"], "words_total": len(target),
+                     "no_source_left": lost,
+                     "shelf_hours": round(sum(cost.values()) / 60)})
+        say(f"  {lab:10} {r['hours']:>7.1f} h · {r['videos']:>4} videos · "
+            f"{r['met']:,}/{len(target):,} met · {lost:,} with no source left "
+            f"({time.perf_counter() - t:.0f}s)")
+    write(rows, f"07-length-cap-k{k}.csv")
     return rows
 
 
@@ -1814,6 +1876,9 @@ def main() -> None:
     app = Application()
     if what == "costs":
         costs(app, app.known_set())
+    elif what == "caps":
+        caps(app, app.known_set(),
+             int(sys.argv[2]) if len(sys.argv) > 2 else 5)
     elif what == "chunks":
         chunks(app, app.known_set(),
                int(sys.argv[2]) if len(sys.argv) > 2 else 5)
@@ -1845,6 +1910,7 @@ def main() -> None:
     else:
         raise SystemExit("usage: video_order.py costs|stepping|"
                          "depth [K] | queue [K] | hunt | curves [K] | chunks [K] | "
+                         "caps [K] | "
                          "sweep [episode-floor] [nomachine]")
 
 
