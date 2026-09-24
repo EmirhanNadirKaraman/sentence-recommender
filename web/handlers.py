@@ -15,11 +15,13 @@ that way.
 """
 from __future__ import annotations
 
+import csv
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import datetime
 import json
 from html import escape
+from pathlib import Path
 from queue import Queue
 from threading import Lock, Thread
 from urllib.parse import quote
@@ -29,7 +31,8 @@ from vocab.search import UnitSearch
 from vocab.word_lists import WordListStore
 from fingerprint import analyser_fingerprint
 from scores import ScoreStore
-from vocab.channel_taste import MACHINE, TASTES, ChannelTaste
+from vocab.channel_taste import (HUMAN, MACHINE, TASTES, VERDICTS,
+                                 ChannelTaste)
 from watchability import ENOUGH_LINES, taste_weight, watchability
 
 # Bump when scoring changes: the stored rows are only valid for
@@ -107,26 +110,47 @@ class Scope:
     priority: UnitPriority
 
 
-# How the reel may be ordered: the value a link carries, the word the switch
-# shows, the row field it reads, and whether small comes first.
+# The orders a list of videos can be put in. One table, because the reel and
+# the catalogue ask the same questions of the same rows and used to answer
+# them from two sort helpers that had already drifted: the catalogue offered
+# the plan and the two rates, the reel offered the two percentages, and
+# neither knew about the other's.
 #
-# `watch` is the default and the only one taste weighs, because taste is part
-# of what "best to watch" means. Ask for a percentage and you get that
-# percentage: scaling 26% by how much you like the channel would answer a
-# question nobody asked. A removed channel is filtered out of every order
-# either way — that is a different thing from a preference.
-ORDERS: tuple[tuple[str, str, str, bool], ...] = (
-    ("watch", "how well it plays", "watch", False),
-    ("readable", "lines I can read", "readable", False),
-    ("words", "words I know", "comprehension", False),
-    ("teaches", "words from my list", "teaches", False),
-    ("level", "easiest first", "level", True),
+# `watch` is the only one taste weighs, because taste is part of what "best to
+# watch" means. Ask for a percentage and you get that percentage: scaling 26%
+# by how much you like the channel would answer a question nobody asked. A
+# removed channel is filtered out of every order either way — that is a
+# different thing from a preference.
+ORDERS: tuple[tuple[str, str], ...] = (
+    ("watch", "easiest to follow"),
+    ("plan", "in order, each building on the last"),
+    ("readable", "lines I can read"),
+    ("words", "words I know"),
+    ("density", "most to learn per minute"),
+    ("teaching", "most of your list per minute"),
+    ("level", "simplest German"),
 )
-ORDER_BY = {value: (field, rising) for value, _, field, rising in ORDERS}
+ORDER_NAMES = frozenset(value for value, _ in ORDERS)
 
 # How many of a list's entries the page draws. Each carries a form of its
 # own, so this is a page-weight limit rather than a taste in page length.
 SHOWN_ENTRIES = 60
+
+# Where `experiments/video_order.py` writes its orders, and how much of one
+# to put on a page. The longest is 2,689 viewings; all of it at once is a
+# megabyte of table for a list nobody reads past the top of.
+PLANS = Path(__file__).resolve().parents[1] / "experiment_results"
+PLAN_PAGE = 100
+
+# The knobs a saved order varies, in the order its filename spells them and
+# the page offers them. Named once because they are read in four places --
+# the key built from a filename, the key built from a query, the dropdowns,
+# and the list of what else exists -- and a knob added to some of those and
+# not the rest is a page that quietly answers a different question.
+KNOBS = ("gate", "k", "floor", "machine", "seg")
+DEFAULTS = {"gate": "i1", "k": "1", "floor": "40",
+            "machine": "yes", "seg": "yes"}
+Knobs = tuple[str, str, str, str, str]
 
 
 class Once:
@@ -272,6 +296,10 @@ class Viewer:
         self._worker: Thread | None = None
         self._scores = ScoreStore(app.settings.state_path)
         self._taste = ChannelTaste(app.settings.state_path)
+        self._samples: dict | None = None
+        self._listing: list | None = None
+        self._plan_files: dict = {}
+        self._stars: set | None = None
         # Video -> the channel that published it, and channel -> its name.
         # Keyed by YouTube's id rather than the catalogue's integer, which
         # `sync-catalogue` refills wholesale: a preference pinned to a row
@@ -531,8 +559,10 @@ class Viewer:
         sort key, and an unknown one would be a page that silently stopped
         ordering.
         """
-        asked = (query.get("sort") or "").strip()
-        return asked if asked in ORDER_BY else "watch"
+        # `sort` is the name; `by` is what the catalogue's links have always
+        # said, and old ones still work.
+        asked = (query.get("sort") or query.get("by") or "").strip()
+        return asked if asked in ORDER_NAMES else "watch"
 
     def unblocked(self, query: dict) -> bool:
         """Whether the walk may teach a word that is not on the list.
@@ -756,7 +786,23 @@ class Viewer:
 
     def _page(self, title: str, body: str, here: str = "/",
               source: str = "") -> str:
-        """`layout`, with this viewer's goal list carried into every link."""
+        """`layout`, with this viewer's goal list carried into every link.
+
+        And with `app.js` where the body needs it. `layout` carries no
+        behaviour of its own -- every page that wants any pulls the script in
+        for itself -- which is fine while the pages needing it are the ones
+        with a player on them and someone remembers. The star broke that: it
+        is drawn by `render.sentence`, so it appears on any page that draws a
+        sentence, and three of them shipped with a star that did nothing
+        because the page had never needed a script before.
+
+        So the condition is asked of the body rather than of the page. Only
+        when the script is absent, because the pages with a player already
+        load it through `watch.merged_script` and running it twice would
+        double every listener -- two star toggles cancelling to nothing.
+        """
+        if "class='star" in body and "app.js" not in body:
+            body += f"<script src='{stamped('app.js')}'></script>"
         return layout(title, body, here, source, self.list_name())
 
     def list_switch(self, query: dict, page: str) -> str:
@@ -813,7 +859,15 @@ class Viewer:
         )
         return f"<div class='switch'><span>Counting</span>{links}</div>"
 
-    def _order_switch(self, source: str, here: str) -> str:
+    def _plan_for(self, source: str, order: str) -> dict[str, int]:
+        """The stored video walk, read only when the order asks for it.
+
+        Empty when nothing has been built — `_ordered` then falls through to
+        `watch`, which is the true order rather than a silent shuffle.
+        """
+        return self._video_plan.order(source) if order == "plan" else {}
+
+    def _order_switch(self, path: str, source: str, here: str) -> str:
         """How the reel is ordered, offered the way Counting is.
 
         No `i` in these links: a position means nothing once the order has
@@ -821,9 +875,9 @@ class Viewer:
         list they have not seen the start of.
         """
         links = "".join(
-            f"<a href='{self._link('/reels', source, sort=value)}' "
+            f"<a href='{self._link(path, source, sort=value)}' "
             f"class='{'on' if here == value else ''}'>{label}</a>"
-            for value, label, _, _ in ORDERS
+            for value, label in ORDERS
         )
         return f"<div class='switch'><span>Order</span>{links}</div>"
 
@@ -875,6 +929,9 @@ class Viewer:
             + self._audio_toggle()
             + "<div class='card' id='card'>"
             + self._stage(deck)
+            + (self._drop_video(self._first_video(deck),
+                                f"/?src={quote(source)}", live=True)
+               if self._first_video(deck) else "")
             + "<div id='reading'>"
             + self._reading(step, deck, source, watchable)
             + "</div></div>"
@@ -1097,6 +1154,12 @@ class Viewer:
                 f"read</h1>")
 
     @staticmethod
+    def _first_video(deck: list[Sentence]) -> str:
+        """The video the stage opens on, which is the one on screen first."""
+        first = next((x for x in deck if x.timing), None)
+        return first.timing.video_id if first else ""
+
+    @staticmethod
     def _stage(deck: list[Sentence]) -> str:
         """The player, opened on the first sentence the deck will show.
 
@@ -1241,7 +1304,7 @@ class Viewer:
             + (f" data-video='{escape(s.timing.video_id)}' "
                f"data-at='{s.timing.start:.2f}'" if s.timing else "")
             + ">"
-            f"{sentence(s.text, s.translation, s.surface_of(unit), lead=True, level=self.app.judged.level(s.text), words=_words(s), known=known)}"
+            f"{sentence(s.text, s.translation, s.surface_of(unit), lead=True, level=self.app.judged.level(s.text), words=_words(s), known=known, starred=self.is_starred(s.text))}"
             f"{self._also_new(s, unit, known)}"
             f"{self._sentence_tools(s.text, source, '/')}</div>"
             for i, s in enumerate(options)
@@ -1376,6 +1439,59 @@ class Viewer:
         self._scopes.clear()          # the corpus in memory is now out of date
         self._stuck.clear()
         return target
+
+    def is_starred(self, text: str) -> bool:
+        """Whether this sentence is kept. Cached, because it is asked once
+        per sentence drawn and a deck is eight of them."""
+        if self._stars is None:
+            self._stars = set(self.app.overrides.starred())
+        return text in self._stars
+
+    def star_sentence(self, form: dict) -> dict:
+        """Keep a sentence, or let it go. Answers JSON: the control is on
+        every page and a reload to move a bookmark would lose the reader's
+        place on all of them."""
+        text = form.get("text", "")
+        if not text:
+            return {"ok": False}
+        kept = not self.is_starred(text)
+        if kept:
+            self.app.overrides.star(text)
+        else:
+            self.app.overrides.unstar(text)
+        self._stars = None
+        return {"ok": True, "starred": kept,
+                "total": len(self.app.overrides.starred())}
+
+    def starred(self, query: dict) -> str:
+        """The sentences kept, newest first.
+
+        Nothing ranks or filters on a star -- it is a bookmark and not a
+        verdict, so the hidden list and the judge's marks are untouched by
+        it. The English is whatever has already been glossed; nothing is
+        asked of a model to fill this page.
+        """
+        source = self.source(query)
+        kept = self.app.overrides.starred()
+        if not kept:
+            return self._page("Starred", "<h1>Starred</h1><p class='empty'>"
+                              "Nothing kept yet. The star sits after a "
+                              "sentence wherever one is drawn to be read — "
+                              "on Next, Review, Mine and the word pages.</p>",
+                              "/starred", source)
+        english = self.app.glosses.english_for(list(kept), self.app.llm_model)
+        rows = "".join(
+            "<li class='kept'>"
+            + sentence(text, english.get(text),
+                       level=self.app.judged.level(text), starred=True)
+            + f"<p class='note'>kept {escape(when[:10])}</p></li>"
+            for text, when in kept.items())
+        body = (f"<h1>Starred</h1><p class='tally'><b>{len(kept):,}</b> "
+                "sentence" + ("s" if len(kept) != 1 else "") + " kept</p>"
+                "<p class='lede'>Newest first. The star toggles here too, so "
+                "this is also where one comes off.</p>"
+                f"<ul class='keeps'>{rows}</ul>")
+        return self._page("Starred", body, "/starred", source)
 
     def hide_sentence(self, form: dict) -> str:
         text = form.get("text", "")
@@ -1614,6 +1730,7 @@ class Viewer:
             f"{quote(s.unit.key, safe='')}?src={quote(source)}'>"
             f"{escape(s.unit.key)}</a></div>"
             + (sentence(said.text, said.translation, said.surface_of(s.unit),
+                        starred=self.is_starred(said.text),
                         level=self.app.judged.level(said.text), words=_words(said),
                         known=known)
                + ("" if self.app.judged.clean(said.text) else
@@ -2016,6 +2133,8 @@ class Viewer:
             + self._audio_toggle()
             + "<div class='card' id='card'>"
             + self._stage(deck)
+            + (self._drop_video(self._first_video(deck), back, live=True)
+               if self._first_video(deck) else "")
             + self._deck(deck, target, source)
             + "</div>"
             + ("" if already else self._actions(target, source, back, watchable=watchable))
@@ -2452,7 +2571,8 @@ class Viewer:
             f"{'due' if r['due'] <= _now_iso() else _in_days(r['due'])}"
             f"<span class='kind'>{r['repetitions']}× said</span></div>"
             "<div class='body'>"
-            + sentence(r["text"], r["english"])
+            + sentence(r["text"], r["english"],
+                       starred=self.is_starred(r["text"]))
             + "<form class='tools' method='post' action='/mine'>"
             f"<input type='hidden' name='src' value='{escape(source)}'>"
             f"<input type='hidden' name='text' value='{escape(r['text'])}'>"
@@ -2710,7 +2830,7 @@ class Viewer:
             + (" <span class='tag'>the plan's pick</span>" if u == pick else "")
             + (" <span class='tag'>on your list</span>" if u in goals else "")
             + "</div>"
-            f"{sentence(said.text, said.translation, said.surface_of(u), words=_words(said), known=self.known)}"
+            f"{sentence(said.text, said.translation, said.surface_of(u), words=_words(said), known=self.known, starred=self.is_starred(said.text))}"
             f"<p class='also'>{len(positions):,} sentence"
             f"{'' if len(positions) == 1 else 's'} need only this"
             + (f" · brings {unlocks[u]:,} more to one word away"
@@ -2825,6 +2945,25 @@ class Viewer:
                    f"<th></th></tr>{''.join(row(c, d) for c, d in gone.items())}"
                    "</table>" if gone
                    else "<p class='empty'>No channel is removed.</p>")
+        dropped = self.app.removals.all()
+        seen = self._titles()
+
+        def video_row(video_id: str, since: str) -> str:
+            return ("<tr><td>"
+                    f"<a href='/video?id={quote(video_id, safe='')}'>"
+                    f"{escape(seen.get(video_id) or video_id)}</a></td>"
+                    f"<td class='n'>{escape(since[:10])}</td>"
+                    "<td><form method='post' action='/remove-video'>"
+                    f"<input type='hidden' name='video' value='{escape(video_id)}'>"
+                    "<input type='hidden' name='action' value='restore'>"
+                    f"<input type='hidden' name='back' value='/settings?src={quote(source)}'>"
+                    "<button type='submit'>Restore</button></form></td></tr>")
+
+        singles = ("<table class='rows'><tr><th>video</th>"
+                   "<th class='n'>removed</th><th></th></tr>"
+                   + "".join(video_row(v, d) for v, d in dropped.items())
+                   + "</table>" if dropped
+                   else "<p class='empty'>No single video is removed.</p>")
         synthetic = [c for c, t in self._taste.all().items() if t == MACHINE]
 
         def machine_row(channel: str) -> str:
@@ -2872,6 +3011,12 @@ class Viewer:
             "somebody did, but it still shows where nothing spoken says the "
             "word. Stored plans pick it up at the next rebuild.</p>"
             + machine
+            + "<h2>Removed videos</h2>"
+            "<p class='note'>One video at a time, for when a channel is worth "
+            "watching and one of its videos is not. Removed on the Channels "
+            "page, under the sample. It leaves every page the way a removed "
+            "channel's videos do, and its channel keeps everything else.</p>"
+            + singles
             + "<h2>Removed channels</h2>"
             "<p class='note'>A removed channel is gone from every page: its "
             "sentences leave the roadmap, the decks and the examples, and "
@@ -2911,6 +3056,38 @@ class Viewer:
             self._quiz.clear()
         return back
 
+    def remove_video(self, form: dict) -> str:
+        """Take one video off every page, or bring it back.
+
+        A channel is the usual unit and a blunt one: a channel worth watching
+        is not a channel without a dud in it, and removing the channel to be
+        rid of one video loses the other ninety-nine with it. This is the
+        finer cut, and it is the one the Channels page needs -- the sample
+        there is a video chosen for you, so the answer to a bad sample should
+        be to drop that video, not to condemn the channel it came from.
+        """
+        video = (form.get("video") or "").strip()
+        action = (form.get("action") or "remove").strip()
+        back = form.get("back") or "/channels"
+        if video and action in ("remove", "restore"):
+            if action == "remove":
+                self.app.removals.add(video)
+            else:
+                self.app.removals.remove(video)
+            # Same reasoning as `set_blacklist`: everything held was built
+            # from the corpus as it was read. The samples go too, because
+            # that map is what chose the video just removed and would go on
+            # offering it.
+            self._forget_corpus()
+            self._frontiers.clear()
+            self._frontier_at.clear()
+            self._stuck.clear()
+            self._ranked.clear()
+            self._quiz.clear()
+            self._samples = None
+            self._listing = None
+        return back
+
     def _channel_video_counts(self) -> dict[str, int]:
         """Channel id -> how many of its videos the catalogue holds."""
         with Database(self.app.settings.own) as db:
@@ -2919,6 +3096,411 @@ class Viewer:
                 " FROM channel c LEFT JOIN video v ON v.channel_id = c.id"
                 " WHERE c.youtube_channel_id IS NOT NULL"
                 " GROUP BY c.youtube_channel_id"))
+
+    # --- the planned order, as a playlist ----------------------------------
+
+    def _plans_on_disk(self) -> dict[Knobs, str]:
+        """The saved orders, keyed by their knobs, valued by file stem.
+
+        Read off the filenames rather than listed here, so a run that writes
+        a new one appears without this file being touched. The names carry
+        the knobs the experiment varies and nothing else does, which is why
+        they can be taken apart again: `07-plan-i1-k5-floor10` is the i+1
+        gate, five encounters, episodes down to ten lines.
+        """
+        out: dict[Knobs, str] = {}
+        for path in sorted(PLANS.glob("07-plan-*.csv")) + \
+                sorted(PLANS.glob("07-cover-*.csv")):
+            # 07 plan gate kN [floorN] [nomachine] [noseg]
+            bits = path.stem.split("-")
+            floor = next((b[5:] for b in bits if b.startswith("floor")), "40")
+            out[(bits[2], bits[3].lstrip("k"), floor,
+                 "no" if "nomachine" in bits else "yes",
+                 "no" if "noseg" in bits else "yes")] = path.stem
+        return out
+
+    @staticmethod
+    def _plan_words(knob: str, value: str) -> str:
+        """One knob's setting, said in words rather than in a filename."""
+        return {
+            "gate": {"i1": "i+1 sentences only", "any": "any encounter",
+                     "open": "i+1, off-list words allowed",
+                     "i2": "up to 2 unknowns", "i3": "up to 3 unknowns",
+                     "10pct": "unknowns ≤ 10% of the line",
+                     "15pct": "unknowns ≤ 15% of the line",
+                     "20pct": "unknowns ≤ 20% of the line"},
+            "k": {"0": "minimum cover, solved exactly", "1": "met once",
+                  "5": "met five times"},
+            "floor": {"40": "episodes of 40+ lines",
+                      "10": "episodes of 10+ lines"},
+            "machine": {"yes": "machine-made channels kept",
+                        "no": "machine-made channels dropped"},
+            "seg": {"yes": "Super Easy German kept",
+                    "no": "Super Easy German dropped"},
+        }.get(knob, {}).get(value, value)
+
+    def _plan_picker(self, offered: dict, chosen: dict, source: str) -> str:
+        """One dropdown per knob, offering only settings something was run at.
+
+        Built from the keys on disk rather than from a list here, so a knob
+        the experiment grows appears by being run. Every combination of the
+        offered settings is *selectable* and not every one exists -- the page
+        says which are missing rather than the form hiding the question.
+        """
+        def one(knob: str, at: int) -> str:
+            seen = sorted({key[at] for key in offered})
+            options = "".join(
+                f"<option value='{escape(v)}'"
+                f"{' selected' if v == chosen[knob] else ''}>"
+                f"{escape(self._plan_words(knob, v))}</option>"
+                for v in seen)
+            return f"<select name='{knob}'>{options}</select>"
+
+        return ("<form class='bar plan-pick' method='get' action='/plan'>"
+                f"<input type='hidden' name='src' value='{escape(source)}'>"
+                + "".join(one(knob, at) for at, knob in enumerate(KNOBS))
+                + "<button type='submit'>Show</button></form>")
+
+    def plan(self, query: dict) -> str:
+        """Watch the corpus in the order the experiment worked out.
+
+        The Reels tab has an `in order` ranking of its own, walked over the
+        videos this app can play and stored in `video_roadmap`. This is the
+        other thing: `experiments/video_order.py` plans over videos *and*
+        Easy German episodes, under gates the app does not offer — every
+        encounter rather than only i+1 ones, five meetings rather than one,
+        a minimum cover solved by CBC rather than walked greedily — and
+        writes the answer to `experiment_results/`. Those orders had nowhere
+        to be watched from, which made them numbers in a CSV rather than
+        something to do on a Tuesday.
+
+        Read from disk on each load, so re-running an experiment changes the
+        page with no rebuild and no stored copy to fall out of step.
+        """
+        source = self.source(query)
+        offered = self._plans_on_disk()
+        if not offered:
+            return self._page("Plan", "<h1>No plan yet</h1><p class='empty'>"
+                              "Run <code>experiments/video_order.py</code> "
+                              "first — it writes the orders this page reads."
+                              "</p>", "/plan", source)
+        # One dropdown per knob rather than one list of every combination:
+        # sixteen names each spelling out all three settings is a wall to
+        # read, and it hides that they are three independent questions.
+        chosen = {knob: (query.get(knob) or DEFAULTS[knob]) for knob in KNOBS}
+        key = tuple(chosen[knob] for knob in KNOBS)
+        picker = self._plan_picker(offered, chosen, source)
+        if key not in offered:
+            # Not every combination was run -- there is no minimum cover for
+            # the off-list gate, and the floor-10 sweep stopped before K=5 of
+            # it. Saying which is missing beats falling back to a neighbour
+            # and letting the numbers be read as the answer to another
+            # question, which is the mistake this whole experiment keeps
+            # punishing.
+            # Links, not a list of names to go and re-pick by hand. Every
+            # one of these is a run that exists, and the reader got here by
+            # asking for one that does not -- so the useful thing is the
+            # nearest door, open.
+            def door(combination) -> str:
+                where = "&".join(f"{knob}={quote(value)}" for knob, value
+                                 in zip(KNOBS, combination))
+                differs = sum(1 for knob, value in zip(KNOBS, combination)
+                              if chosen[knob] != value)
+                said = " · ".join(
+                    (f"<b>{escape(self._plan_words(knob, value))}</b>"
+                     if chosen[knob] != value
+                     else escape(self._plan_words(knob, value)))
+                    for knob, value in zip(KNOBS, combination))
+                return (differs, f"<li><a href='/plan?{where}&src="
+                                 f"{quote(source)}'>{said}</a></li>")
+
+            near = [door(c) for c in offered if c[0] == chosen["gate"]]
+            near.sort()                    # closest to what was asked, first
+            return self._page("Plan", "<h1>Watch it in order</h1>" + picker
+                              + "<p class='empty'>That combination was not "
+                                "run. The nearest that were, with what "
+                                "differs in bold:</p><ul class='near'>"
+                              + "".join(row for _, row in near)
+                              + "</ul>", "/plan", source)
+        which = offered[key]
+        rows = self._plan_rows(which)
+        total = sum(float(r["minutes"] or 0) for r in rows)
+        videos = len({r["where"] for r in rows if r["kind"] == "video"})
+
+        start = max(int(query.get("from") or 0), 0)
+        page = rows[start:start + PLAN_PAGE]
+        here = ("/plan?" + "&".join(f"{k}={quote(v)}" for k, v in chosen.items())
+                + f"&src={quote(source)}")
+
+        def line(row: dict) -> str:
+            name = row["name"] or row["where"]
+            if row["kind"] == "video":
+                seen = row["where"].rsplit("v=", 1)[-1]
+                what = (f"<a href='/video?id={quote(seen, safe='')}"
+                        f"&src={quote(source)}'>{escape(name[:64])}</a>"
+                        + self._wrote_it(seen))
+            else:
+                # An episode is a transcript with no video behind it in the
+                # catalogue. It is watched on the channel, so the honest
+                # thing is to say so and point at the search rather than
+                # dress it as something this app can play.
+                what = (f"{escape(name[:64])} <a class='link' rel='noreferrer' "
+                        "href='https://www.youtube.com/results?search_query="
+                        f"{quote('Easy German ' + name, safe='')}'>on YouTube"
+                        "</a>")
+            taught = row.get("words") or ""
+            return ("<tr>"
+                    f"<td class='n'>{escape(row['position'])}</td>"
+                    f"<td>{what}"
+                    + ("<span class='tag'>again</span>" if row.get("repeat") else "")
+                    + ("<span class='tag'>stepping stone</span>"
+                       if row.get("stepping_stone") else "")
+                    + "</td>"
+                    f"<td class='n'>{float(row['minutes'] or 0):.0f} min</td>"
+                    f"<td class='n'>{float(row['cumulative_hours'] or 0):.1f} h</td>"
+                    f"<td class='n' title='{escape(taught[:400])}'>"
+                    f"{row.get('words_completed') or '—'}</td></tr>")
+
+        back = (f"<a class='link' href='{here}&from={max(start - PLAN_PAGE, 0)}'>"
+                "&larr; earlier</a>" if start else
+                "<span class='link off'>&larr; earlier</span>")
+        on = (f"<a class='link' href='{here}&from={start + PLAN_PAGE}'>"
+              "later &rarr;</a>" if start + PLAN_PAGE < len(rows) else
+              "<span class='link off'>later &rarr;</span>")
+        body = ("<h1>Watch it in order</h1>"
+                "<p class='lede'>The order the experiment worked out: each "
+                "one is worth the most given everything before it, so watched "
+                "top to bottom nothing is wasted. Click a video to play it "
+                "with its subtitles. Easy German episodes have no video in "
+                "the catalogue — they are watched on the channel.</p>"
+                + picker
+                + f"<p class='tally'><b>{len(rows):,}</b> viewings · "
+                f"<b>{videos:,}</b> videos · <b>{total / 60:,.0f}</b> hours · "
+                f"showing {start + 1:,}&ndash;{min(start + PLAN_PAGE, len(rows)):,}"
+                "</p>"
+                "<table class='rows'><tr><th class='n'>#</th><th>watch</th>"
+                "<th class='n'>length</th><th class='n'>elapsed</th>"
+                "<th class='n'>words</th></tr>"
+                + "".join(line(r) for r in page) + "</table>"
+                f"<div class='pager'>{back}{on}</div>")
+        return self._page("Plan", body, "/plan", source)
+
+    def _plan_rows(self, stem: str) -> list[dict]:
+        """One saved order, parsed once and kept."""
+        if stem not in self._plan_files:
+            path = PLANS / f"{stem}.csv"
+            with path.open(encoding="utf-8") as handle:
+                self._plan_files[stem] = list(csv.DictReader(handle))
+        return self._plan_files[stem]
+
+    # --- one video, on purpose ---------------------------------------------
+
+    def _catalogue(self) -> list[tuple[str, str, float | None]]:
+        """Every video the catalogue holds, as (id, title, minutes)."""
+        if self._listing is None:
+            with Database(self.app.settings.own) as db:
+                self._listing = [
+                    (v, t or v, (d / 60.0) if d else None)
+                    for v, t, d in db.rows(
+                        "SELECT video_id, title, duration FROM video"
+                        " ORDER BY title, video_id")]
+        return self._listing
+
+    def video_page(self, query: dict) -> str:
+        """Watch one video, chosen by name, with its subtitles under it.
+
+        The reel answers "what should I watch next" and will not offer a
+        video with too few lines to be a lesson. That is right for a feed and
+        wrong for a person who has a particular video in mind, and until now
+        there was nowhere to say which one: the catalogue's links went to
+        `/reels?video=`, which finds its position in the *reel* -- so any
+        video the reel declines to carry landed on whatever happened to be
+        first instead. A silent wrong answer, and the reason this exists.
+
+        No floor here, and no ranking. Anything in the catalogue with lines
+        can be opened, which is what a catalogue is for.
+        """
+        source = self.source(query)
+        wanted = (query.get("id") or query.get("video") or "").strip()
+        listing = self._catalogue()
+        if not wanted:
+            # The catalogue is the menu -- it already lists every video, with
+            # the numbers that help you choose and now a box to search it.
+            # A second list here would be the same page with less on it.
+            return self.subtitles(query)
+
+        titles = {v: t for v, t, _ in listing}
+        if wanted not in titles:
+            return self._page("Video", "<h1>Not in the catalogue</h1>"
+                              "<p class='empty'>Nothing here has that id. "
+                              "<a href='/video'>Pick one from the list</a>, or "
+                              "add it on the <a href='/subtitles'>Videos</a> "
+                              "page.</p>", "/video", source)
+        cues = self.app.with_english(self._cues(wanted))
+        if not cues:
+            return self._page(titles[wanted], f"<h1>{escape(titles[wanted])}</h1>"
+                              "<p class='empty'>This one is in the catalogue "
+                              "but has no analysed lines in this corpus — try "
+                              "another build, or another video.</p>",
+                              "/video", source)
+        here = f"/video?id={quote(wanted, safe='')}&src={quote(source)}"
+        # In the reel too? Then say so and link there, rather than leaving
+        # two pages about one video with no road between them.
+        ranked = self._watchable(source)
+        at = next((n for n, r in enumerate(ranked) if r["video"] == wanted), None)
+        also = (f"<p class='note'><a class='link' href='/reels?src={quote(source)}"
+                f"&i={at}'>Open this in the reel</a> — number {at + 1:,} of "
+                f"{len(ranked):,} there.</p>" if at is not None else
+                "<p class='note'>The reel does not carry this one: it has "
+                f"fewer than {ENOUGH_LINES} lines, or its channel is set "
+                "aside.</p>")
+        body = (f"<h1>{escape(titles[wanted])}</h1>{self._wrote_it(wanted)}"
+                + also
+                + f"<div id='reel-taste'>{self._taste_control(wanted, here)}</div>"
+                + self._audio_toggle()
+                + "<div class='card' id='reel'>"
+                + video.stage(wanted, 0)
+                + "</div>"
+                + video.transcript(cues, 0, None, words=_words,
+                                   known=self.known)
+                + video.merged_script(self.known))
+        return self._page(titles[wanted], body, "/video", source)
+
+    # --- channels ---------------------------------------------------------
+
+    def _channel_samples(self) -> dict[str, tuple[str, str, str]]:
+        """Channel id -> one of its videos, as (id, title, thumbnail).
+
+        One video, because the page exists to be got through: five hundred
+        channels judged by ear is a sitting, and a wall of choices per
+        channel would make it a longer one. The median-length video is the
+        sample rather than the first or the longest -- a channel's outlier is
+        a bad thing to judge it by, and its middle is what you would actually
+        be watching.
+        """
+        if self._samples is None:
+            with Database(self.app.settings.own) as db:
+                rows = db.rows(
+                    "SELECT c.youtube_channel_id, v.video_id, v.title,"
+                    " v.thumbnail_url FROM video v JOIN channel c"
+                    " ON v.channel_id = c.id"
+                    " WHERE c.youtube_channel_id IS NOT NULL"
+                    " ORDER BY c.youtube_channel_id, v.duration, v.video_id")
+            gone = self.app.banned_videos()
+            by_channel: dict[str, list] = {}
+            for channel, video, title, thumb in rows:
+                if video in gone:
+                    continue        # removed; offering it again is the bug
+                by_channel.setdefault(channel, []).append(
+                    (video, title or video, thumb or ""))
+            self._samples = {c: v[len(v) // 2] for c, v in by_channel.items()}
+        return self._samples
+
+    def channels(self, query: dict) -> str:
+        """One channel at a time, played large enough to judge by ear.
+
+        The verdict is already carried -- `machine` has always been a taste,
+        and `Application.verdicts` drops the sentences of a channel wearing
+        it from every card, deck and plan. What was missing was a way to
+        *reach* the question: it sat behind a single video on Reels, so
+        judging the corpus meant finding one video per channel by hand.
+
+        A grid of thumbnails was the first try and was the wrong shape. You
+        cannot tell a synthetic voice from a still, so every card had to be
+        played anyway, and a page of five hundred was a page of five hundred
+        decisions to make before any of them. This is the same page the rest
+        of the app is: one thing, big, with the two answers under it.
+
+        **Absence is not a verdict.** A channel nobody has judged is treated
+        as human, because that is what most channels are -- so the queue here
+        is a list of things to confirm, not a gate every channel waits behind.
+        `Human` records that you listened and found a person; it changes no
+        order, and the corpus reads the same before and after it.
+        """
+        source = self.source(query)
+        names = self._channel_titles()
+        counts = self._channel_video_counts()
+        samples = self._channel_samples()
+        said = self._taste.all()
+        gone = set(self.app.blacklist.all())
+
+        # Unjudged first and the biggest first among them, so a sitting
+        # settles as much of the corpus as it can before it tires. Channels
+        # with nothing scraped come last: there is nothing to play, and
+        # nothing of theirs in the corpus for a verdict to act on yet.
+        live = sorted((c for c in names if c not in gone),
+                      key=lambda c: (said.get(c) in VERDICTS,
+                                     c not in samples,
+                                     -counts.get(c, 0), names.get(c) or c))
+        if not live:
+            return self._page("Channels", "<h1>Channels</h1><p class='empty'>"
+                              "No channel in the catalogue.</p>",
+                              "/channels", source)
+        judged = sum(1 for c in live if said.get(c) in VERDICTS)
+        machine = sum(1 for c in live if said.get(c) == MACHINE)
+        here = min(max(int(query.get("i") or 0), 0), len(live) - 1)
+        channel = live[here]
+        verdict = said.get(channel)
+
+        args = f"?src={quote(source)}"
+        # Back to the top rather than to this row: marking one re-sorts it
+        # to the end, so position zero is always the next thing to judge and
+        # the page advances itself. Browsing is what the pager is for.
+        after = f"/channels{args}"
+        stay = f"/channels{args}&i={here}"
+        prev = (f"<a class='link' href='/channels{args}&i={here - 1}'>"
+                "&larr; previous</a>" if here
+                else "<span class='link off'>&larr; previous</span>")
+        nxt = (f"<a class='link' href='/channels{args}&i={here + 1}'>"
+               "skip &rarr;</a>" if here + 1 < len(live)
+               else "<span class='link off'>skip &rarr;</span>")
+
+        def button(value: str, label: str, hint: str) -> str:
+            on = " class='on'" if verdict == value else ""
+            return (f"<button name='taste' value='{value}'{on} title='{hint}'"
+                    f" aria-pressed='{'true' if verdict == value else 'false'}'>"
+                    f"{label}</button>")
+
+        if channel in samples:
+            sample, title, _ = samples[channel]
+            picture = (video.player(sample, 0)
+                       + f"<p class='note vid'>{escape(title)}"
+                       + self._wrote_it(sample) + "</p>"
+                       # Back to this channel and not to the top: removing a
+                       # sample is not a verdict on the channel, so the next
+                       # thing wanted is its next video. `here` is a position
+                       # and the ordering does not move when a video goes, so
+                       # it still points at this channel.
+                       + self._drop_video(sample, stay))
+        else:
+            picture = ("<p class='empty'>No video of this channel has been "
+                       "scraped, so there is nothing to play and nothing of "
+                       "theirs in the corpus. A verdict still counts when "
+                       "they arrive.</p>")
+        said_now = ("<p class='note'>You have called this one "
+                    f"<b>{escape(verdict)}</b>. Pressing it again takes that "
+                    "back.</p>" if verdict in VERDICTS else "")
+        body = (f"<h1>{escape(names.get(channel) or channel)}</h1>"
+                f"<p class='note'>{counts.get(channel, 0):,} videos in the "
+                f"catalogue · {here + 1:,} of {len(live):,} · "
+                f"<b>{machine:,}</b> called machine, "
+                f"<b>{judged:,}</b> listened to</p>"
+                "<p class='lede'>Play a little and say whether a person is "
+                "speaking. Anything you do not mark counts as human, so this "
+                "is a list to get through, not a gate — <b>Machine</b> is the "
+                "answer that does something: it drops that channel's "
+                "sentences from every card, deck and plan.</p>"
+                + said_now
+                + "<div class='card judging'>" + picture + "</div>"
+                + "<form class='verdict big' method='post' action='/taste'>"
+                + f"<input type='hidden' name='channel' value='{escape(channel)}'>"
+                + f"<input type='hidden' name='back' value='{escape(after)}'>"
+                + button(MACHINE, "Machine", "A synthetic voice or text")
+                + button(HUMAN, "Human", "A person is speaking")
+                + "</form>"
+                + f"<div class='pager'>{prev}{nxt}</div>"
+                + video.merged_script(self.known))
+        return self._page("Channels", body, "/channels", source)
 
     # --- reels ------------------------------------------------------------
 
@@ -2938,7 +3520,10 @@ class Viewer:
         """
         source = self.source(query)
         order = self.ordering(query)
-        ranked = self._settled(source, order)
+        plan = self._plan_for(source, order)
+        if order == "plan" and not plan:
+            order = "watch"          # nothing built yet; say the true order
+        ranked = self._settled(source, order, plan)
         if not ranked:
             # Two different emptinesses, and saying the wrong one sends
             # someone looking for a bug. `transcript` is written prose with
@@ -2958,6 +3543,13 @@ class Viewer:
         wanted = query.get("video") or ""
         here = next((n for n, r in enumerate(ranked) if r["video"] == wanted), None) \
             if wanted and not query.get("i") else None
+        if here is None and wanted and not query.get("i"):
+            # Asked for by name and not in the reel. This used to fall
+            # through to the line below and open video zero -- the reader
+            # clicked one title in the catalogue and got a different film,
+            # with nothing on the page saying so. The reel's floor is not a
+            # reason to refuse the video, only to show it somewhere else.
+            return self.video_page({"id": wanted, "src": source})
         if here is None:
             here = min(max(int(query.get("i") or 0), 0), len(ranked) - 1)
         row = ranked[here]
@@ -2965,10 +3557,23 @@ class Viewer:
         # pager would silently reorder the feed under the reader.
         args = f"?src={quote(source)}" + (
             f"&sort={quote(order)}" if order != "watch" else "")
-        prev = (f"<a class='link' href='/reels{args}&i={here - 1}'>&larr; easier</a>"
-                if here else "<span class='link off'>&larr; easier</span>")
-        nxt = (f"<a class='link' href='/reels{args}&i={here + 1}'>harder &rarr;</a>"
-               if here + 1 < len(ranked) else "<span class='link off'>harder &rarr;</span>")
+        # Anchors either way, marked rather than swapped for text, because
+        # the reel moves without reloading: `go` in `app.js` steps the feed
+        # in place, so a pager built once from `here` is wrong the moment
+        # you swipe. It used to be exactly that -- three videos down, and
+        # "easier" still pointed at the position the page had loaded at.
+        # `data-act` lets the script rebind both copies to wherever the
+        # feed actually is, and the href keeps them working before it runs.
+        def step_link(act: str, to: int, label: str) -> str:
+            dead = " off" if not 0 <= to < len(ranked) else ""
+            return (f"<a class='link{dead}' data-act='{act}' "
+                    f"href='/reels{args}&i={max(to, 0)}'>{label}</a>")
+
+        def pager() -> str:
+            return ("<div class='pager reel-pager'>"
+                    + step_link("easier", here - 1, "&larr; easier")
+                    + step_link("harder", here + 1, "harder &rarr;")
+                    + "</div>")
 
         state = json.dumps({"at": here, "total": len(ranked), "sort": order,
                             "src": source, "video": row["video"]})
@@ -2979,11 +3584,15 @@ class Viewer:
               "your hands full. Swipe up and down to move, right to say you "
               "know a word, left to set it aside — W/S, D and A on a keyboard; "
               "the arrows and space drive the video.</p>"
-            + self._order_switch(source, order)
+            + self._order_switch("/reels", source, order)
             + f"<div id='reel-taste'>"
             + self._taste_control(row["video"], f"/reels{args}&i={here}")
             + "</div>"
             + self._audio_toggle()
+            # Once above the picture and once below it. On a phone the video
+            # fills the screen, so a pager only at the bottom is a scroll
+            # away exactly when it is wanted.
+            + pager()
             + "<div class='card' id='reel'>"
             # `stage`, not `player`: it carries the caption line under the
             # picture, and a feed of muted autoplaying video with nothing
@@ -2993,7 +3602,7 @@ class Viewer:
             + f"<div id='reel-panel'>"
             + self._to_follow(source, row, back=f"/reels?i={here}")
             + "</div></div>"
-            + f"<div class='pager'>{prev}{nxt}</div>"
+            + pager()
             # State as data, never interpolated into code: the title is a
             # video title and goes nowhere near a script body.
             + "<script type='application/json' id='reel-state'>"
@@ -3014,7 +3623,10 @@ class Viewer:
         """
         source = self.source(query)
         order = self.ordering(query)
-        ranked = self._settled(source, order)
+        plan = self._plan_for(source, order)
+        if order == "plan" and not plan:
+            order = "watch"
+        ranked = self._settled(source, order, plan)
         if not ranked:
             return {"empty": True}
         here = min(max(int(query.get("i") or 0), 0), len(ranked) - 1)
@@ -3127,7 +3739,8 @@ class Viewer:
                 f"&src={quote(source)}'>Learn them one by one</a></p>"
                 f"<div class='ledger'>{entries}</div>")
 
-    def _settled(self, source: str, order: str = "watch") -> list[dict]:
+    def _settled(self, source: str, order: str = "watch",
+                 plan: dict[str, int] | None = None) -> list[dict]:
         """The reel's rows once every decision has been scored in.
 
         A marked word is scored on a worker so the POST returns at once,
@@ -3139,10 +3752,11 @@ class Viewer:
         of videos, well under a second, and only when something is queued.
         """
         self._marks.join()
-        return self._watchable(source, order=order)
+        return self._watchable(source, order=order, plan=plan)
 
     def _watchable(self, source: str, floor: int = ENOUGH_LINES,
-                   order: str = "watch") -> list[dict]:
+                   order: str = "watch",
+                   plan: dict[str, int] | None = None) -> list[dict]:
         """Every video with enough in it, best-to-watch first.
 
         `floor` is what the reel refuses to offer; the catalogue lists
@@ -3179,26 +3793,12 @@ class Viewer:
         # out of the cached number means saying so costs no rescore at all --
         # and the stamp, which exists to say whether a stored score still
         # describes you, does not have to learn about it.
-        taste, channel = self._taste.all(), self._channel_of()
-        # Likewise a removed channel: its videos keep their stored score,
-        # which describes them as well as ever, and simply are not offered.
+        # A removed channel: its videos keep their stored score, which
+        # describes them as well as ever, and simply are not offered.
         banned = self.app.banned_videos()
-        field, rising = ORDER_BY.get(order, ORDER_BY["watch"])
-        offered = [r for r in rows
-                   if r["lines"] >= floor and r["video"] not in banned]
-        if field == "watch":
-            return sorted(offered, key=lambda r: -r["watch"] * taste_weight(
-                taste.get(channel.get(r["video"]))))
-        # A video the judge never levelled has no `level`, and a row written
-        # before `readable` was stored has no `readable`. Sorting `None`
-        # against a float raises, so the missing go last in either direction
-        # rather than to whichever end the comparison happens to throw them.
-        def key(row):
-            value = row.get(field)
-            missing = value is None
-            return (missing, (value if rising else -value) if not missing else 0,
-                    -row["watch"])
-        return sorted(offered, key=key)
+        banned_out = [r for r in rows
+                      if r["lines"] >= floor and r["video"] not in banned]
+        return self._ordered(banned_out, order, plan)
 
     def _compute(self, source: str) -> list[dict]:
         """Stored scores if they still describe you, otherwise scored afresh."""
@@ -3257,6 +3857,28 @@ class Viewer:
                     " WHERE youtube_channel_id IS NOT NULL"))
         return self._channel_names
 
+    def _drop_video(self, video_id: str, back: str, live: bool = False) -> str:
+        """The button that takes one video off every page.
+
+        A channel is the blunt unit -- removing one to be rid of a single
+        video loses the rest with it -- so this is the finer cut, and it
+        belongs wherever a video is on screen rather than only where the
+        channel is being judged.
+
+        `live` is for the reading page, where the deck steps between
+        sentences from different videos without reloading: the id is written
+        once by the server and then kept current by `app.js`, which knows
+        which slide is showing. Everywhere else the page and the video
+        change together and the value is right as rendered.
+        """
+        return ("<form class='drop' method='post' action='/remove-video'"
+                + (" id='drop-video'" if live else "") + ">"
+                f"<input type='hidden' name='video' value='{escape(video_id)}'>"
+                f"<input type='hidden' name='back' value='{escape(back)}'>"
+                "<button type='submit' title='Take this video off every page. "
+                "The channel keeps the rest. Undo it in Settings.'>"
+                "Remove this video</button></form>")
+
     def _taste_control(self, video_id: str, back: str) -> str:
         """Say you want more of this channel, or less.
 
@@ -3294,7 +3916,8 @@ class Viewer:
                 "<input type='hidden' name='action' value='remove'>"
                 "<button type='submit' title='Take every video of this channel "
                 "off every page. Undo it in Settings.'>Remove channel</button>"
-                "</form>")
+                "</form>"
+                + self._drop_video(video_id, back))
 
     def set_taste(self, form: dict) -> str:
         """Record what you said about a channel, or take it back."""
@@ -3729,19 +4352,50 @@ class Viewer:
         # was called here unconditionally and was the one thing on a warm page
         # that still needed a database — for a number `video_score` already
         # holds, which is how /reels renders it without asking anyone.
-        ranked = self._watchable(source, floor=1)
-        order = query.get("by") or "watch"
-        plan = self._video_plan.order(source) if order == "plan" else {}
+        order = self.ordering(query)
+        plan = self._plan_for(source, order)
         if order == "plan" and not plan:
             order = "watch"          # nothing built yet; say the true order
-        ranked = self._ordered(ranked, order, plan)
-        # Reels is indexed by the watchability order, so a link from a
-        # re-sorted table has to name the video rather than its row here.
-        by_video = {r["video"]: n for n, r in
-                    enumerate(self._ordered(ranked, "watch"))}
+        # Sorted once, by the same helper the reel uses. This used to rank by
+        # watchability inside `_watchable` and then sort the result again.
+        ranked = self._watchable(source, floor=1, order=order, plan=plan)
+        needle = (query.get("q") or "").strip()
+        found = ""
+        if needle:
+            # A link first, a title second. Pasting the URL of the video you
+            # are looking at is the shortest way to ask for it, and it is
+            # also the one thing a substring search on titles cannot answer.
+            # The pattern rather than `AddVideoCommand._identify`, which
+            # raises `SystemExit` on anything that is not a link -- a
+            # reasonable thing for a command-line to do and fatal here, where
+            # "not a link" is the ordinary case and means "search titles".
+            # `SystemExit` is a `BaseException`, so it walked straight past
+            # `except Exception` and killed the connection mid-reply.
+            from commands.add_video import VIDEO_ID          # noqa: PLC0415
+            match = VIDEO_ID.search(needle)
+            asked = match.group(1) if match else ""
+            folded = needle.casefold()
+            hit = [r for r in ranked if r["video"] == asked] if asked else []
+            ranked = hit or [r for r in ranked
+                             if folded in (r["title"] or "").casefold()]
+            found = (f"<p class='tally'><b>{len(ranked):,}</b> "
+                     f"{'match' if len(ranked) != 1 else 'match'} for "
+                     f"&ldquo;{escape(needle)}&rdquo; · "
+                     f"<a class='link' href='/subtitles?src={quote(source)}'>"
+                     f"show all</a></p>"
+                     if ranked else
+                     f"<p class='empty'>Nothing in the catalogue matches "
+                     f"&ldquo;{escape(needle)}&rdquo;. Paste a YouTube link "
+                     f"to add it below, or "
+                     f"<a class='link' href='/subtitles?src={quote(source)}'>"
+                     f"show all</a>.</p>")
         rows = "".join(
-            f"<tr><td><a href='/reels?src={quote(source)}"
-            f"&i={by_video.get(r['video'], 0)}'>"
+            # To `/video` and not into the reel: the catalogue lists videos
+            # the reel's floor refuses, and sending those to `/reels?video=`
+            # opened whatever was first instead. One destination that works
+            # for every row, which links on into the reel where there is one.
+            f"<tr><td><a href='/video?id={quote(r['video'], safe='')}"
+            f"&src={quote(source)}'>"
             f"{escape((r['title'] or r['video'])[:58])}</a>"
             f"{self._wrote_it(r['video'])}</td>"
             f"<td class='n'>{r['comprehension']:.0%}</td>"
@@ -3762,17 +4416,9 @@ class Viewer:
                  f"<th class='n'>teaches</th><th class='n'>cues</th>"
                  f"<th class='n'>length</th></tr>{rows}</table>" if rows
                  else "<p class='empty'>No aligned subtitles yet.</p>")
-        picker = "".join(
-            f"<a href='{self._link('/subtitles', source, by=value if value != 'watch' else '')}'"
-            f" class='{'on' if order == value else ''}'>{label_}</a>"
-            for value, label_ in (("watch", "easiest to follow"),
-                                  ("level", "simplest German"),
-                                  ("density", "most to learn per minute"),
-                                  ("teaching", "most of your list per minute"),
-                                  ("plan", "in order, each building on the last"))
-        )
+        picker = self._order_switch("/subtitles", source, order)
         body = ("<h1>Videos</h1>"
-                f"<div class='switch'><span>Best first</span>{picker}</div>"
+                f"{picker}"
                 "<p class='note'><em>Words</em> is the share of its words "
                 "you already know, <em>level</em> is what the judge makes "
                 "of thirty of its lines, and <em>watch</em> combines the two "
@@ -3785,8 +4431,17 @@ class Viewer:
                 "ranking, where each video is scored against what the ones "
                 "before it taught you, so it does not change as you watch."
                 "</p>"
+                + "<form class='find' method='get' action='/subtitles'>"
+                + f"<input type='hidden' name='src' value='{escape(source)}'>"
+                + (f"<input type='hidden' name='sort' value='{escape(order)}'>"
+                   if order != "watch" else "")
+                + f"<input name='q' value='{escape(needle)}' "
+                  "placeholder='a title, or paste a YouTube link'>"
+                + "<button type='submit'>Find</button></form>"
+                + found
                 + self._add_video_form(query)
-                + f"<h2>{len(ranked)} in the catalogue</h2>" + table)
+                + (f"<h2>{len(ranked)} in the catalogue</h2>" if not needle else "")
+                + table)
         return self._page("Videos", body, "/subtitles", source)
 
     @staticmethod
@@ -3802,11 +4457,15 @@ class Viewer:
 
     def _ordered(self, rows: list[dict], order: str,
                  plan: dict[str, int] | None = None) -> list[dict]:
-        """The catalogue, best first by whichever question was asked.
+        """The rows, best first by whichever question was asked.
 
-        `watch` and the two rates disagree almost completely — they are not
-        two views of one ranking but answers to different questions, and the
-        page says so rather than presenting one as the truth.
+        `watch` and the rates disagree almost completely — they are not two
+        views of one ranking but answers to different questions, and the page
+        says so rather than presenting one as the truth.
+
+        The reel and the catalogue both come through here. They used to sort
+        themselves, with different lists of orders, which is how the reel came
+        to have no way of asking for the plan.
         """
         if order == "plan" and plan:
             # Videos the walk left out teach nothing at this point, so they go
@@ -3814,16 +4473,30 @@ class Viewer:
             return sorted(rows, key=lambda r: plan.get(r["video"], 10 ** 9))
         if order == "density":
             return sorted(rows, key=self._density, reverse=True)
-        if order == "level":
-            # Unlevelled last, not first: a video nothing is known about is
-            # not a simple one.
-            return sorted(rows, key=lambda r: (r.get("level") is None,
-                                               r.get("level") or 0.0, -r["watch"]))
         if order == "teaching":
             return sorted(rows, key=lambda r: (r["teaches"] / r["minutes"]
                                                if r.get("minutes") else 0.0),
                           reverse=True)
-        return sorted(rows, key=lambda r: -r["watch"])
+        if order in ("level", "readable", "words"):
+            field = {"level": "level", "readable": "readable",
+                     "words": "comprehension"}[order]
+            rising = order == "level"       # simplest German first; the rest most first
+            # A video the judge never levelled has no `level`, and a row
+            # written before `readable` was stored has none either. Sorting
+            # None against a float raises, so the missing go last in either
+            # direction rather than to whichever end the comparison throws
+            # them. Unlevelled last, not first: a video nothing is known about
+            # is not a simple one.
+            def key(row):
+                value = row.get(field)
+                missing = value is None
+                return (missing,
+                        (value if rising else -value) if not missing else 0,
+                        -row["watch"])
+            return sorted(rows, key=key)
+        taste, channel = self._taste.all(), self._channel_of()
+        return sorted(rows, key=lambda r: -r["watch"] * taste_weight(
+            taste.get(channel.get(r["video"]))))
 
     @staticmethod
     def _add_video_form(query: dict) -> str:

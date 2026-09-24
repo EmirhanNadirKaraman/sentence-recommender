@@ -43,9 +43,11 @@ def stamped(name: str) -> str:
     return f"/static/{name}?v={digest}"
 
 NAV = (("/", "Next"), ("/reels", "Reels"), ("/review", "Review"), ("/mine", "Mine"),
+       ("/starred", "Starred"),
        ("/roadmap", "Roadmap"),
        ("/quiz", "Quiz"), ("/blocked", "Blocked"), ("/lists", "Lists"),
        ("/frontier", "Frontier"), ("/subtitles", "Videos"),
+       ("/plan", "Plan"), ("/channels", "Channels"),
        ("/settings", "Settings"))
 
 
@@ -123,7 +125,8 @@ def mark(text: str, surface: str | None) -> str:
 
 def sentence(text: str, translation: str | None, surface: str | None = None,
              lead: bool = False, level: str | None = None,
-             words: list[list[str]] | None = None, known=None) -> str:
+             words: list[list[str]] | None = None, known=None,
+             starred: bool | None = None) -> str:
     """A sentence, its English under it, and the level the judge gave it
     — `B1` — after the German where one is known, so a reader can see why
     a sentence was picked over a harder one, or why this one is hard.
@@ -134,12 +137,27 @@ def sentence(text: str, translation: str | None, surface: str | None = None,
     as before, and with `known`, the reader's units, every other word says
     whether it is known (`clickable`). Without, the text is plain with the
     new word marked.
+
+    `starred` adds the keep-this control, in the state given. It lives here
+    rather than at the eight call sites because "every page" is what was
+    asked for, and a control added page by page is a control that misses
+    one. `None` leaves it off, for the places where a sentence is furniture
+    rather than something to come back to — a quiz answer, a worked example.
+
+    A button and not a form: a sentence is rendered inside a form on several
+    of those pages, and a nested form is invalid HTML that browsers silently
+    unnest, which would post the wrong thing. `app.js` sends it instead.
     """
     size = " lead" if lead else ""
     badge = f" <span class='level' title='the level the judge gave it'>{escape(level)}</span>" \
         if level else ""
     body = clickable(words, surface, known) if words else mark(text, surface)
-    out = f"<p class='de{size}' data-text='{escape(text)}'>{body}{badge}</p>"
+    keep = "" if starred is None else (
+        f"<button type='button' class='star{' on' if starred else ''}'"
+        f" data-act='star' aria-pressed='{'true' if starred else 'false'}'"
+        f" title='Keep this sentence (F)'>&#9733;</button>")
+    out = (f"<p class='de{size}' data-text='{escape(text)}'>"
+           f"{body}{badge}{keep}</p>")
     if translation:
         out += f"<p class='en'>{escape(translation)}</p>"
     return out

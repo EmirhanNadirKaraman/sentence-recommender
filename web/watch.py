@@ -74,7 +74,7 @@ def controls() -> str:
         "title='Pause after every subtitle (T)'>Auto-pause off</button>"
         "<button type='button' data-act='english' id='english' "
         "title='Hide or show the English (H)'>English on</button>"
-        "<button type='button' data-act='full' title='Full screen'>&#x26F6;</button>"
+        "<button type='button' data-act='full' title='Full screen (V)'>&#x26F6;</button>"
         "<span class='clock' id='clock'></span>"
         "</div>"
     )

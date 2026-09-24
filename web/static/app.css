@@ -377,6 +377,12 @@ body.audio .mode { color: var(--ink); text-decoration-color: var(--rail);
 
 .pager { display: flex; gap: 18px; align-items: baseline; margin-top: 30px;
   font-size: 14px; color: var(--ink-2); }
+/* The reel carries two, above the picture and below it, so neither gets the
+   standing gap: on a phone the video already fills the screen and 30px of
+   air above it is 30px of the video pushed off. Roomier targets, though --
+   these are meant for a thumb. */
+.reel-pager { margin: 12px 0; gap: 22px; }
+.reel-pager a { padding: 6px 0; }
 .quiet { color: var(--ink-2); }
 /* A machine wrote these captions. Quiet, because it is a provenance note
    and not a warning: the material is usable, it is simply not hand-written. */
@@ -555,3 +561,53 @@ button.w.target { color: var(--target); border-bottom: 1px solid var(--target); 
 .switch input { width: 18px; height: 18px; margin: 0; accent-color: var(--target); }
 .stepper .count { white-space: nowrap; }
 
+
+/* The search box on Videos, and anywhere else a page filters itself. */
+.find { display: flex; gap: 10px; margin: 0 0 18px; max-width: 640px; }
+.find input[name='q'] { flex: 1; min-width: 0; }
+.tally { color: var(--ink-2); margin: 0 0 18px; }
+.tally b { color: var(--ink); }
+
+/* Channels: one channel at a time, the two answers under it. The page is
+   shaped like the rest of the app deliberately -- a grid of thumbnails was
+   the first try, and you cannot hear a voice in a still, so every card had
+   to be played anyway. */
+.verdict.big { display: flex; gap: 12px; margin: 18px 0 8px; max-width: 520px; }
+.verdict.big button { flex: 1; padding: 14px 0; font-size: 15px; }
+/* The one that does something is the one that should look like it does. */
+.verdict.big button[value='machine'].on { border-color: var(--target);
+                                          color: var(--target); }
+.note.vid { color: var(--ink-2); margin-top: 10px; }
+/* Smaller than a player you are watching, because here you are sampling:
+   a few seconds is enough to hear whether a person is speaking, and the
+   two answers have to be on screen while you do it. Full width and the
+   buttons sit below the fold, which turns a one-press job into a scroll. */
+.judging .player { max-width: 460px; padding-bottom: min(56.25%, 259px); }
+.judging .controls { max-width: 460px; }
+
+/* The plan picker names fifteen orders, which is more than a row holds.
+   The other switches on the site are three or four positions and fit. */
+.switch.wrap { flex-wrap: wrap; gap: 8px 16px; }
+
+/* The remove button under the Channels sample. Quiet: it is the rare answer
+   next to the two that are not, and it should not read as a third verdict. */
+.drop { display: inline; margin-left: 10px; }
+.drop button { font-size: 12px; padding: 3px 8px; color: var(--ink-2); }
+
+/* The star after a sentence. Quiet until it is on: it is a bookmark, not a
+   judgement, and it should not compete with the word being learned. */
+.star { border: 0; background: none; cursor: pointer; padding: 0 6px;
+        font-size: 15px; line-height: 1; color: var(--rule);
+        vertical-align: baseline; }
+.star:hover { color: var(--ink-2); }
+.star.on { color: var(--target); }
+.star[disabled] { opacity: .5; cursor: default; }
+/* The Starred page: one kept sentence per row. */
+.keeps { list-style: none; padding: 0; margin: 0; }
+.kept { padding: 14px 0; border-bottom: 1px solid var(--rule); }
+.kept .note { margin: 4px 0 0; font-size: 12px; }
+
+/* The near misses on the Plan page: what differs from what was asked is in
+   bold, so the one dropdown to change is visible without reading the rest. */
+.near { list-style: none; padding: 0; margin: 14px 0 0; }
+.near li { padding: 6px 0; font-size: 14px; }

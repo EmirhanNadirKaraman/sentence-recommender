@@ -211,10 +211,14 @@ def _make_handler(viewers: "Viewers"):
                     self._redirect(viewer.answer_quiz(form))
                 elif posted == "/taste":
                     self._redirect(viewer.set_taste(form))
+                elif posted == "/remove-video":
+                    self._redirect(viewer.remove_video(form))
                 elif posted == "/blacklist":
                     self._redirect(viewer.set_blacklist(form))
                 elif posted == "/hide":
                     self._redirect(viewer.hide_sentence(form))
+                elif posted == "/api/star":
+                    self._send_json(viewer.star_sentence(form))
                 elif posted == "/api/try":
                     self._send_json(viewer.try_json(form))
                 elif posted == "/review":
@@ -260,6 +264,14 @@ def _make_handler(viewers: "Viewers"):
                 return viewer.settings(query), 200
             if path == "/frontier":
                 return viewer.frontier(query), 200
+            if path == "/starred":
+                return viewer.starred(query), 200
+            if path == "/plan":
+                return viewer.plan(query), 200
+            if path == "/video":
+                return viewer.video_page(query), 200
+            if path == "/channels":
+                return viewer.channels(query), 200
             if path == "/reels":
                 return viewer.reels(query), 200
             if path == "/lists":

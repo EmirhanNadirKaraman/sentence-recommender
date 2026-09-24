@@ -172,6 +172,10 @@ class OrderingTest(unittest.TestCase):
 
     def order(self, by: str, plan: dict | None = None) -> list[str]:
         viewer = Viewer.__new__(Viewer)      # no Application needed
+        # `_ordered` weighs taste into `watch` since the reel and the
+        # catalogue were merged onto it; no opinions here.
+        viewer._taste = SimpleNamespace(all=lambda: {})
+        viewer._channel_of = lambda: {}
         return [r["video"] for r in viewer._ordered(self.rows(), by, plan)]
 
     def test_watchability_favours_what_you_already_follow(self) -> None:
@@ -377,7 +381,7 @@ class ReelOrderTest(unittest.TestCase):
         rows = [self.row("keep", readable=0.1), self.row("gone", readable=0.9)]
         v = self.viewer(rows)
         v.app = SimpleNamespace(banned_videos=lambda: frozenset({"gone"}))
-        for mode, _, _, _ in ORDERS:
+        for mode, _ in ORDERS:
             self.assertEqual([r["video"] for r in v._watchable("subtitle", order=mode)],
                              ["keep"], mode)
 
@@ -391,8 +395,12 @@ class ReelOrderTest(unittest.TestCase):
         feed reorders itself under a reader who asked for something else."""
         js = (ROOT / "web" / "static" / "app.js").read_text(encoding="utf-8")
         self.assertIn("'&sort=' + encodeURIComponent(s.sort)", js)
-        self.assertEqual(js.count("s.sort && s.sort !== 'watch'"), 2,
-                         "the fetch and the URL it writes back both need it")
+        # Three URLs the reel builds for itself: the fetch, the address it
+        # writes back, and the pager links it rebuilds as the feed moves.
+        # Every one of them has to carry the order, or following it answers
+        # from the default ranking and the feed reorders under the reader.
+        self.assertEqual(js.count("s.sort && s.sort !== 'watch'"), 3,
+                         "the fetch, the URL it writes back and the pager")
 
 
 class TranscriptUnitsTest(unittest.TestCase):
@@ -1105,3 +1113,346 @@ class HeardTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class AskedForOneVideoTest(unittest.TestCase):
+    """A video asked for by name is the video you get.
+
+    The catalogue lists every video with a line in it; the reel refuses any
+    with fewer than forty. Its `?video=` lookup searched the reel's rows and
+    silently fell through to index zero when it missed — so clicking one of
+    the 349 titles below that floor opened an unrelated film, with nothing on
+    the page saying it had.
+    """
+
+    def viewer(self, rows):
+        v = Viewer.__new__(Viewer)
+        v._ranked = {"subtitle": rows}
+        v._scoring = Lock()
+        v._taste = SimpleNamespace(all=lambda: {})
+        v._channel_of = lambda: {}
+        v._marks = SimpleNamespace(join=lambda: None)
+        v.app = SimpleNamespace(banned_videos=lambda: frozenset())
+        v.source = lambda query: "subtitle"
+        v.ordering = lambda query: "watch"
+        v._plan_for = lambda source, order: {}
+        v.corpus_for = lambda source, list_only: []
+        v.video_page = lambda query: f"one-video:{query['id']}"
+        return v
+
+    @staticmethod
+    def row(video):
+        return {"video": video, "title": video, "lines": 99, "minutes": 5.0,
+                "comprehension": 0.5, "i+1": 1, "teaches": 1, "watch": 0.5,
+                "next": [], "level": 1.0, "readable": 0.5}
+
+    def test_a_video_the_reel_lacks_opens_on_its_own_page(self) -> None:
+        v = self.viewer([self.row("inreel")])
+        self.assertEqual(v.reels({"video": "thin"}), "one-video:thin")
+
+    def test_a_video_the_reel_has_still_opens_in_the_reel(self) -> None:
+        v = self.viewer([self.row("inreel")])
+
+        def refuse(query):
+            raise AssertionError("delegated a video the reel carries")
+
+        v.video_page = refuse
+        with self.assertRaises(Exception) as caught:      # renders no further
+            v.reels({"video": "inreel"})
+        self.assertNotIsInstance(caught.exception, AssertionError)
+
+    def test_a_position_still_wins_over_a_name(self) -> None:
+        """`?video=` is how a page sends the reader back; `?i=` is the pager.
+        With both, the pager is the one that was just clicked."""
+        v = self.viewer([self.row("a"), self.row("b")])
+        v.video_page = lambda query: self.fail("delegated with an i= given")
+        with self.assertRaises(Exception) as caught:
+            v.reels({"video": "thin", "i": "1"})
+        self.assertNotIsInstance(caught.exception, AssertionError)
+
+
+class CatalogueSearchTest(unittest.TestCase):
+    """The Videos page takes a title or a pasted link."""
+
+    def test_a_plain_word_is_not_parsed_as_an_id(self) -> None:
+        """`AddVideoCommand._identify` raises `SystemExit` on anything that is
+        not a link, which is a `BaseException` and walked straight past the
+        handler's `except Exception`, killing the connection. The pattern
+        itself answers the same question without raising."""
+        from commands.add_video import VIDEO_ID
+        self.assertIsNone(VIDEO_ID.search("Mia"))
+        self.assertEqual(
+            VIDEO_ID.search("https://www.youtube.com/watch?v=uP_ernGddlA")
+            .group(1), "uP_ernGddlA")
+        self.assertEqual(VIDEO_ID.search("youtu.be/uP_ernGddlA").group(1),
+                         "uP_ernGddlA")
+
+    def test_the_catalogue_links_to_the_video_page(self) -> None:
+        src = (ROOT / "web" / "handlers.py").read_text(encoding="utf-8")
+        self.assertIn("<tr><td><a href='/video?id=", src,
+                      "the catalogue must open a video on its own page")
+
+
+class ChannelVerdictTest(unittest.TestCase):
+    """Judging a channel machine-made or human is a verdict, not a taste."""
+
+    def test_human_weighs_nothing(self) -> None:
+        """It records that the voice was listened to. Lifting the channel for
+        having passed would rank it over one nobody has judged yet."""
+        from watchability import taste_weight
+        self.assertEqual(taste_weight("human"), 1.0)
+        self.assertEqual(taste_weight(None), 1.0)
+        self.assertEqual(taste_weight("machine"), taste_weight("down"))
+
+    def test_both_verdicts_are_storable(self) -> None:
+        from vocab.channel_taste import HUMAN, MACHINE, TASTES, VERDICTS
+        self.assertLessEqual(set(VERDICTS), TASTES)
+        self.assertEqual(set(VERDICTS), {MACHINE, HUMAN})
+
+
+class ReelStepTest(unittest.TestCase):
+    """Moving through the reel without deciding anything."""
+
+    def js(self) -> str:
+        return (ROOT / "web" / "static" / "app.js").read_text(encoding="utf-8")
+
+    def test_o_and_p_step_the_feed(self) -> None:
+        """W/S sit by the decisions under the left hand; O/P are the same
+        two moves under the right, so neither hand has to travel."""
+        js = self.js()
+        self.assertIn("e.key === 's' || e.key === 'p'", js)
+        self.assertIn("e.key === 'w' || e.key === 'o'", js)
+
+    def test_o_and_p_are_not_taken_by_the_player(self) -> None:
+        """The player answers its own keys on the same page. Two handlers
+        claiming one key is a keypress that does two things."""
+        js = self.js()
+        for key in ("'o'", "'p'"):
+            self.assertNotIn(f"key === {key})", js.split("// --- the quiz")[0]
+                             .split("document.addEventListener('keydown'")[1],
+                             f"the player handler also claims {key}")
+
+    def test_the_pager_is_rebuilt_as_the_feed_moves(self) -> None:
+        """It is rendered once from the position the page loaded at, and the
+        feed moves without reloading — so three videos down, `easier` pointed
+        at where the reader had been rather than where they were."""
+        js = self.js()
+        self.assertIn("repaintPagers()", js)
+        self.assertIn(".reel-pager a[data-act]", js)
+
+    def test_both_pagers_are_rendered(self) -> None:
+        """One above the picture and one below: on a phone the video fills
+        the screen, so a pager only at the bottom is a scroll away exactly
+        when it is wanted."""
+        src = (ROOT / "web" / "handlers.py").read_text(encoding="utf-8")
+        reel = src.split("def reels(self, query: dict)")[1].split("def reels_json")[0]
+        self.assertEqual(reel.count("+ pager()"), 2)
+
+
+class RemoveOneVideoTest(unittest.TestCase):
+    """A channel worth watching is not a channel without a dud in it."""
+
+    def store(self):
+        import tempfile
+        from vocab.channel_taste import VideoRemovals
+        self._dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._dir.cleanup)
+        return VideoRemovals(Path(self._dir.name) / "state.sqlite3")
+
+    def test_removing_and_restoring_round_trips(self) -> None:
+        store = self.store()
+        self.assertEqual(store.all(), {})
+        store.add("abc12345678")
+        self.assertIn("abc12345678", store.all())
+        store.remove("abc12345678")
+        self.assertEqual(store.all(), {})
+
+    def test_the_version_moves_on_every_change(self) -> None:
+        """`banned_videos` caches what the removals come to, so a version
+        that did not move would keep serving a video just removed."""
+        store = self.store()
+        first = store.version()
+        store.add("abc12345678")
+        second = store.version()
+        self.assertGreater(second, first)
+        store.remove("abc12345678")
+        self.assertGreater(store.version(), second)
+
+    def test_removing_the_same_one_twice_keeps_the_date(self) -> None:
+        store = self.store()
+        store.add("abc12345678")
+        when = store.all()["abc12345678"]
+        store.add("abc12345678")
+        self.assertEqual(store.all()["abc12345678"], when)
+
+    def test_banned_videos_watches_both_versions(self) -> None:
+        """Channel removals and single removals move independently. A cache
+        key that watched one would miss the other entirely."""
+        src = (ROOT / "context.py").read_text(encoding="utf-8")
+        banned = src.split("def banned_videos")[1].split("def ")[0]
+        self.assertIn("self.removals.version()", banned)
+        self.assertIn("self.blacklist.version()", banned)
+        self.assertIn("self.removals.all()", banned)
+
+    def test_the_sample_skips_a_removed_video(self) -> None:
+        """Otherwise the Channels page answers `remove this one` by offering
+        it again, which reads as the button not working."""
+        src = (ROOT / "web" / "handlers.py").read_text(encoding="utf-8")
+        samples = src.split("def _channel_samples")[1].split("    def ")[0]
+        self.assertIn("banned_videos()", samples)
+        self.assertIn("continue", samples)
+
+    def test_the_route_is_posted_to(self) -> None:
+        self.assertIn("/remove-video", routes())
+
+
+class DropVideoEverywhereTest(unittest.TestCase):
+    """The remove button belongs wherever a video is on screen."""
+
+    def handlers(self) -> str:
+        return (ROOT / "web" / "handlers.py").read_text(encoding="utf-8")
+
+    def test_one_helper_renders_it(self) -> None:
+        """Three pages had it; two copies of a form that posts a removal is
+        two places for the back link to be wrong."""
+        src = self.handlers()
+        self.assertEqual(src.count("action='/remove-video'"), 2,
+                         "one in `_drop_video`, one in the Settings restore row")
+        self.assertGreaterEqual(src.count("self._drop_video("), 4,
+                                "taste control, channels, next, word page")
+
+    def test_the_reading_deck_keeps_the_id_current(self) -> None:
+        """The deck steps between sentences from different videos without
+        reloading, so a value written once by the server is right for the
+        first slide and wrong for every one after it."""
+        js = (ROOT / "web" / "static" / "app.js").read_text(encoding="utf-8")
+        self.assertIn("getElementById('drop-video')", js)
+        self.assertIn("input[name='video']", js)
+        # and it goes away when the slide has no video to remove
+        self.assertIn("drop.hidden = !id", js)
+
+    def test_only_the_stepping_deck_asks_for_the_live_id(self) -> None:
+        """Reels and the channels page render one video per load, so their
+        value is right as written and an id would just collide."""
+        src = self.handlers()
+        self.assertEqual(src.count("live=True"), 2, "the two decks")
+        self.assertIn("id='drop-video'", src)
+
+
+class StarredSentenceTest(unittest.TestCase):
+    """Keeping a sentence to come back to."""
+
+    def store(self):
+        import tempfile
+        from corpus.overrides import SentenceOverrides
+        self._dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._dir.cleanup)
+        return SentenceOverrides(Path(self._dir.name) / "state.sqlite3")
+
+    def test_starring_round_trips(self) -> None:
+        store = self.store()
+        self.assertEqual(store.starred(), {})
+        store.star("Das ist gut.")
+        self.assertIn("Das ist gut.", store.starred())
+        store.unstar("Das ist gut.")
+        self.assertEqual(store.starred(), {})
+
+    def test_starring_twice_keeps_the_date(self) -> None:
+        """The page is newest-first, so a second press must not reorder it."""
+        store = self.store()
+        store.star("Das ist gut.")
+        when = store.starred()["Das ist gut."]
+        store.star("Das ist gut.")
+        self.assertEqual(store.starred()["Das ist gut."], when)
+
+    def test_a_star_is_not_a_verdict(self) -> None:
+        """It is a bookmark. Nothing should rank or filter on it, and in
+        particular it must not touch what the reader has hidden."""
+        store = self.store()
+        store.star("Das ist gut.")
+        self.assertEqual(store.hidden(), set())
+        self.assertEqual(store.verdicts(), {})
+
+    def test_the_renderer_draws_it_only_when_asked(self) -> None:
+        """A sentence is furniture on some pages -- a quiz answer being
+        revealed -- and a star there is clutter, not a feature."""
+        self.assertNotIn("class='star", render.sentence("Hallo.", None))
+        self.assertIn("aria-pressed='false'",
+                      render.sentence("Hallo.", None, starred=False))
+        self.assertIn("aria-pressed='true'",
+                      render.sentence("Hallo.", None, starred=True))
+
+    def test_it_is_a_button_and_not_a_form(self) -> None:
+        """Sentences are drawn inside forms on several pages, and a nested
+        form is invalid HTML that browsers silently unnest -- which would
+        post the wrong thing."""
+        drawn = render.sentence("Hallo.", None, starred=False)
+        self.assertIn("type='button'", drawn)
+        self.assertNotIn("<form", drawn)
+
+    def test_a_page_that_draws_a_star_loads_the_script(self) -> None:
+        """`layout` carries no behaviour, so each page pulls `app.js` in for
+        itself -- and three pages shipped a star that did nothing because
+        they had never needed a script before. The guard is in `_page`, so
+        the next page to draw one cannot repeat it."""
+        src = (ROOT / "web" / "handlers.py").read_text(encoding="utf-8")
+        page = src.split("def _page(")[1].split("    def ")[0]
+        self.assertIn("class='star", page)
+        self.assertIn("app.js", page)
+        # and never twice: the pages with a player already load it
+        self.assertIn('"app.js" not in body', page)
+
+    def test_the_toggle_updates_every_copy_on_the_page(self) -> None:
+        """The reel panel and the deck can both be showing one sentence.
+        Two stars disagreeing about it is worse than neither moving."""
+        js = (ROOT / "web" / "static" / "app.js").read_text(encoding="utf-8")
+        self.assertIn("/api/star", js)
+        self.assertIn('.de[data-text]', js)
+
+    def test_the_routes_exist(self) -> None:
+        self.assertIn("/starred", routes())
+        self.assertIn("/api/star", routes())
+
+
+class KeepKeyTest(unittest.TestCase):
+    """F keeps the sentence being read."""
+
+    def js(self) -> str:
+        return (ROOT / "web" / "static" / "app.js").read_text(encoding="utf-8")
+
+    def test_f_no_longer_goes_full_screen(self) -> None:
+        """It was full screen, following YouTube. Full screen keeps its
+        button in the bar and moves to V, so it loses a shortcut rather than
+        the ability — but two handlers on one key would be a keypress that
+        does two things, so the old branch has to be gone, not shadowed."""
+        js = self.js()
+        self.assertNotIn("key === 'f'", js)
+        self.assertIn("key === 'v'", js)
+        self.assertIn("requestFullscreen", js)
+
+    def test_f_works_where_there_is_no_player(self) -> None:
+        """Mine, Roadmap, Frontier and Starred draw sentences with no video
+        anywhere near them, and the player's key handler gives up early when
+        there is no player — so this cannot live inside it."""
+        js = self.js()
+        keep = js.split("// F keeps the sentence being read")[1]
+        self.assertIn("e.key !== 'f'", keep)
+        self.assertNotIn("var p = live()", keep)
+
+    def test_it_picks_the_sentence_on_screen(self) -> None:
+        """The deck holds nine slides and hides eight. A hidden element has
+        no offsetParent, which is the whole test — without it F would keep
+        whichever sentence happened to be first in the DOM."""
+        keep = self.js().split("// F keeps the sentence being read")[1]
+        self.assertIn("offsetParent !== null", keep)
+        self.assertIn(".de.lead button.star", keep)
+
+    def test_typing_an_f_does_not_keep_anything(self) -> None:
+        keep = self.js().split("// F keeps the sentence being read")[1]
+        self.assertIn("INPUT", keep)
+        self.assertIn("isContentEditable", keep)
+
+    def test_the_key_is_named_where_it_is_offered(self) -> None:
+        """A shortcut nobody is told about is a shortcut nobody uses."""
+        self.assertIn("(F)", (ROOT / "web" / "render.py").read_text(encoding="utf-8"))
+        self.assertIn("(V)", (ROOT / "web" / "watch.py").read_text(encoding="utf-8"))

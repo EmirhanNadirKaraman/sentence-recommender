@@ -325,10 +325,11 @@ window.__cueTimes = null;
 
   // The keys YouTube's own player answers to, answered here, because the
   // frame cannot see them: arrows seek five seconds and turn the volume,
-  // space and k play or pause, j and l seek ten, m mutes, f goes full
+  // space and k play or pause, j and l seek ten, m mutes, v goes full
   // screen. T is the auto-pause and H hides the English under the caption.
   // The pages' own keys -- another sentence, another video, the decisions --
-  // are WASD, so the two sets never fight.
+  // are WASD, O/P step the reel and F keeps a sentence, so the two sets
+  // never fight.
   document.addEventListener('keydown', function (e) {
     var el = document.activeElement;
     if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ||
@@ -347,7 +348,9 @@ window.__cueTimes = null;
     else if (key === 'j') p.seekTo(Math.max(p.getCurrentTime() - 10, 0), true);
     else if (key === 'l') p.seekTo(p.getCurrentTime() + 10, true);
     else if (key === 'm') { if (p.isMuted()) p.unMute(); else p.mute(); }
-    else if (key === 'f') {
+    // V, not F: F keeps a sentence now, and full screen is also a button in
+    // the bar, so it loses a shortcut rather than the ability.
+    else if (key === 'v') {
       var frame = document.getElementById('player');
       if (frame && frame.requestFullscreen) frame.requestFullscreen();
     }
@@ -654,6 +657,17 @@ function cueAt(cues, now) {
     var el = slides[i];
     if (!el) return;
     var id = el.dataset.video;
+    // The remove button names a video, and this deck steps between
+    // sentences from different ones without reloading -- so the server's
+    // value is right for the first slide only and has to follow from here.
+    // Gone entirely when the slide has no video: there is nothing to remove,
+    // and a button that removed whatever was showing a moment ago would be
+    // worse than no button.
+    var drop = document.getElementById('drop-video');
+    if (drop) {
+      drop.hidden = !id;
+      if (id) drop.querySelector("input[name='video']").value = id;
+    }
     if (!id) {
       // Hidden is not stopped: the stage is display:none and the iframe
       // inside it plays on, so a transcript sentence after a video one
@@ -883,6 +897,36 @@ function cueAt(cues, now) {
 
   showCues(s.video);
 
+  // The pager is rendered from the position the page loaded at, and the
+  // feed moves without reloading -- so after a swipe its links pointed at
+  // where you had been, not where you are. Both copies are rebuilt from
+  // `s.at` instead, which is the only thing that knows.
+  function repaintPagers() {
+    var links = document.querySelectorAll('.reel-pager a[data-act]');
+    for (var i = 0; i < links.length; i++) {
+      var a = links[i];
+      var to = s.at + (a.dataset.act === 'harder' ? 1 : -1);
+      var dead = to < 0 || to >= s.total;
+      a.classList.toggle('off', dead);
+      a.setAttribute('aria-disabled', dead ? 'true' : 'false');
+      a.href = '/reels?src=' + encodeURIComponent(s.src) +
+        (s.sort && s.sort !== 'watch' ? '&sort=' + encodeURIComponent(s.sort) : '') +
+        '&i=' + Math.max(to, 0);
+    }
+  }
+
+  // Clicked rather than followed: the link is the fallback for before this
+  // script runs, and stepping in place keeps the player alive where
+  // navigating would reload it and lose the second you were at.
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('.reel-pager a[data-act]');
+    if (!a) return;
+    e.preventDefault();
+    if (!a.classList.contains('off')) {
+      go(s.at + (a.dataset.act === 'harder' ? 1 : -1));
+    }
+  });
+
   function go(to) {
     if (busy || to < 0 || to >= s.total) return;
     busy = true;
@@ -900,6 +944,7 @@ function cueAt(cues, now) {
         panel.innerHTML = d.panel;
         if (taste) taste.innerHTML = d.taste || '';
         if (counter) counter.textContent = d.at + 1;
+        repaintPagers();
         // The URL follows so a reload lands where you are, without the
         // navigation that would take the player with it.
         history.replaceState(null, '', '/reels?src=' +
@@ -1027,8 +1072,12 @@ function cueAt(cues, now) {
     if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ||
                el.tagName === 'SELECT' || el.isContentEditable)) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
-    if (e.key === 's') { go(s.at + 1); e.preventDefault(); }
-    if (e.key === 'w') { go(s.at - 1); e.preventDefault(); }
+    // W/S sit under the left hand beside A/D, which are the decisions;
+    // O/P sit under the right, for skipping through the feed without
+    // deciding anything. Both do the same thing, and having the pair on
+    // each side means neither hand has to leave where it is.
+    if (e.key === 's' || e.key === 'p') { go(s.at + 1); e.preventDefault(); }
+    if (e.key === 'w' || e.key === 'o') { go(s.at - 1); e.preventDefault(); }
     if (e.key === 'd') { decide('known'); e.preventDefault(); }
     if (e.key === 'a') { decide('pass'); e.preventDefault(); }
   });
@@ -1160,3 +1209,66 @@ function cueAt(cues, now) {
     if (e.key === 's') { answer('skip'); e.preventDefault(); }
   });
 })();
+
+
+// The star after a sentence, wherever one is drawn. Posted rather than
+// followed: the control is on every page, and a reload to move a bookmark
+// would lose the reader's place on all of them -- mid-deck, mid-reel,
+// halfway down the review queue.
+document.addEventListener('click', function (e) {
+  var star = e.target.closest("button.star[data-act='star']");
+  if (!star) return;
+  var holder = star.closest('.de');
+  var text = holder && holder.dataset.text;
+  if (!text || star.disabled) return;
+  star.disabled = true;
+  fetch('/api/star', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: 'text=' + encodeURIComponent(text)
+  })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (!d.ok) return;
+      // Every copy of this sentence on the page, not just the one clicked:
+      // the reel panel and the deck can both be showing it, and two stars
+      // disagreeing about one sentence is worse than neither moving.
+      var same = document.querySelectorAll(".de[data-text]");
+      for (var i = 0; i < same.length; i++) {
+        if (same[i].dataset.text !== text) continue;
+        var b = same[i].querySelector("button.star");
+        if (!b) continue;
+        b.classList.toggle('on', d.starred);
+        b.setAttribute('aria-pressed', d.starred ? 'true' : 'false');
+      }
+    })
+    .catch(function () {})
+    .then(function () { star.disabled = false; });
+});
+
+
+// F keeps the sentence being read. Its own listener rather than a branch in
+// the player's, because that one gives up when there is no player on the
+// page -- and Mine, Roadmap, Frontier and Starred all draw sentences with no
+// video anywhere near them.
+//
+// "Being read" is the first star the reader can actually see: the deck hides
+// every slide but one, and a hidden element has no offsetParent, so that is
+// the whole test. The lead sentence wins where a page has one, since that is
+// the sentence the page is about rather than an example under it.
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'f' && e.key !== 'F') return;
+  var el = document.activeElement;
+  if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ||
+             el.tagName === 'SELECT' || el.isContentEditable)) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  var shown = function (b) { return b.offsetParent !== null; };
+  var lead = [].filter.call(
+    document.querySelectorAll(".de.lead button.star[data-act='star']"), shown);
+  var any = [].filter.call(
+    document.querySelectorAll("button.star[data-act='star']"), shown);
+  var pick = lead[0] || any[0];
+  if (!pick) return;
+  pick.click();
+  e.preventDefault();
+});
