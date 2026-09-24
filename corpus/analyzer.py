@@ -477,11 +477,47 @@ class UnitAnalyzer:
             # is correctable; being wrong in that direction is the point.
             if lemma != surface and not self.verb_lemmas.is_lemma(lemma):
                 return surface
-        # Last, and on every path that reaches here: a lemma the parser
-        # invented outright. The verb branch above has its own repair, keyed
-        # on the surface; this is keyed on the invented lemma itself, which
-        # is what lets it apply to a noun without touching a word that has a
-        # real reading. See `data/lemma_fixes.txt`.
+        # Everything above this line is the verb branch. The invented-lemma
+        # guard inside it -- "neither the surface nor a lemma any lexicon
+        # knows" -- is the general shape of the failure, but it only ever ran
+        # for verbs, so a noun kept whatever the edit-tree model produced:
+        # `Verben` came back as `verbe`, `Atomen` as `atoma`, `Chromosomen`
+        # as `chromosome`, each its own unit.
+        #
+        # The same test, for the rest. It fires only when *both* are true:
+        # the parser's lemma is one no lexicon knows, and the table has a
+        # reading for this surface. The second condition is what makes it
+        # safe in a compounding language -- `Abendkurse` is not in the
+        # table's 355k entries and `abendkurs` is not among its 90k lemmas,
+        # so a correct compound lemma is never second-guessed for being
+        # unusual. `Themen` is in the table and `thema` is a known lemma, so
+        # nothing fires there either.
+        #
+        # Unlike the verb branch this does not fall back to the surface.
+        # There, an identity lemma is what the override table and the
+        # corpus-majority pass are built to repair; here there is no such
+        # repair for nouns, and handing back `atomen` in place of `atoma`
+        # would trade one invented unit for another.
+        # Not for verbs. The branch above already decides them, on measured
+        # grounds -- it keeps `gehört` as `gehören` where the table says
+        # `hören`, a different verb -- so a verb that reached here was let
+        # through on purpose. Applied to verbs as well, this undid exactly
+        # that: `gehören` became `hören`, `gefallen` became `fallen`.
+        if (not token.tag_.startswith(VERB_TAGS)
+                and lemma != surface
+                and not self.verb_lemmas.is_lemma(lemma)):
+            # As written and lowercased, in that order. The table keys German
+            # nouns as they are written -- `Verben`, not `verben` -- and the
+            # verb branch above never noticed because a verb form is lower
+            # case either way. Asked with the lowered surface alone this fired
+            # for nothing at all.
+            from_table = (self.verb_lemmas.get(token.text, "")
+                          or self.verb_lemmas.get(surface, ""))
+            if from_table and from_table != surface:
+                return from_table
+        # Last: a lemma the parser invented that no table can reach, keyed on
+        # the invented lemma itself so it applies to a noun without touching
+        # a word that has a real reading. See `data/lemma_fixes.txt`.
         return self.lemma_fixes.get(lemma, lemma)
 
     # --- second pass -----------------------------------------------------

@@ -178,3 +178,66 @@ nee	nein
 glaub	glauben
 komm	kommen
 eur	euer
+
+# The edit-tree model has a second failure beside the dropped -n above: it
+# predicts "replace -en with -a" and produces a lemma no German word has.
+# Found by scanning for lemmas ending in a bare lowercase -a whose only
+# surface was the same string in -en.
+#
+# Not every -a is wrong, which is why this list is hand-checked and shorter
+# than the scan. `Thema/Themen` and `Firma/Firmen` really do end in -a, so
+# `alltagsthema`, `tagesthema`, `top-thema`, `wirtschaftsthema`,
+# `zukunftsthema`, `lgbt-thema` and `internetfirma` are correct and absent.
+# `afrikata` and `archaea` are left out because I could not settle what they
+# should be: a wrong correction here is worse than none, since it merges two
+# words that were only ever one.
+#
+# The singular cannot be derived from the plural by rule -- Konto/Konten,
+# Mechanismus/Mechanismen, Name/Namen, Zeichen/Zeichen all differ -- and the
+# corpus cannot arbitrate either, because it carries the same damage and one
+# broken lemma will happily confirm another. Three attempts at automating it
+# produced three wrong lists; these are checked one at a time.
+anti-aging-maßnahma	anti-aging-maßnahme
+anti-krebs-mechanisma	anti-krebs-mechanismus
+antriebsforma	antriebsform
+atoma	atom
+bankguthaba	bankguthaben
+bestandskonta	bestandskonto
+checksumma	checksumme
+chromosoma	chromosom
+corona-maßnahma	corona-maßnahme
+dateinama	dateiname
+demonstrativpronoma	demonstrativpronomen
+drohna	drohne
+druckschrauba	druckschraube
+energieprogramma	energieprogramm
+eu-abkomma	eu-abkommen
+forschungsunterlaga	forschungsunterlage
+fragezeicha	fragezeichen
+gedächtnisproblema	gedächtnisproblem
+handyspiela	handyspiel
+heroinabgabestella	heroinabgabestelle
+linksextrema	linksextrem
+matheproblema	matheproblem
+restsymptoma	restsymptom
+schädelforma	schädelform
+schöpfungsmotora	schöpfungsmotor
+social-media-plattforma	social-media-plattform
+stammesnama	stammesname
+stämma	stamm
+südjema	südjemen
+theorema	theorem
+unaufmerksama	unaufmerksam
+wahlmanipulationa	wahlmanipulation
+zwangsmaßnahma	zwangsmaßnahme
+
+# One more of a different shape: an umlauted plural reduced to a stem that
+# is not a word.
+bäd	bad
+
+# `tran <- trans` was here and has been taken out. `der Tran` is a real
+# German word -- fish oil -- so the lemma is not invented, and the rule at
+# the top of this file says a real word must be left alone: the parser is
+# then choosing between two readings and a table cannot know which was meant.
+# In this corpus `tran` only ever comes from the surface `trans`, so the fix
+# would have been right today and wrong the first time anyone said `Tran`.
