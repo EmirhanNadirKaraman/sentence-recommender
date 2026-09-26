@@ -87,6 +87,35 @@ HUNT_FLOOR = 30.0
 FREQUENCY = "frequency"
 FLAT = "flat"
 
+# How much a video's own readability counts when it is being chosen. `walk`
+# takes an exponent: 0 is the rate alone, which every plan before this used,
+# and 1 weighs a video by the share of its lines the reader can already read
+# whole. The floor keeps a video with nothing readable in it from scoring zero
+# — some words are only ever said in hard places, and the plan still has to
+# reach them, just later and against better alternatives.
+EASE_FLOOR = 0.01
+
+# What the plans people actually watch are built with. Measured by
+# `curriculum` over i+1 at K=5 with the machine-made channels and Super Easy
+# German out, on the same shelf, same words met (3,394 of 3,622) every time:
+#
+#     ease  hours   videos   first twenty viewings readable
+#      0    632.1    1,435    12.9%
+#      0.5  631.5    1,390    17.6%
+#      1    638.3    1,392    21.9%
+#      2    708.5    1,393    26.1%
+#
+# One is the knee. Half is free -- cheaper than the rate alone, and forty-five
+# fewer videos -- and two costs seventy-six hours for four more points. One
+# buys nine points for six hours, which is one per cent of the plan, and it
+# is what moves the opening from a political explainer readable nine lines in
+# a hundred to material written for learners.
+#
+# Only the plans. `depth`, `curves` and `chunks` ask what a gate or a chunk
+# size is worth and their recorded numbers were taken at zero; changing the
+# question under them would make this file's own history incomparable.
+EASE = 1.0
+
 GATES: dict = {
     "i+1": lambda unknown, words: unknown == 1,
     "i+2": lambda unknown, words: unknown <= 2,
@@ -240,7 +269,7 @@ def shelf(app, seed, with_episodes: bool = True,
         if s.timing:
             grouped.setdefault(("v", s.timing.video_id), []).append(s)
     grouped = {k: ss for k, ss in grouped.items()
-               if len(ss) >= ENOUGH_LINES and k[1] in minutes}
+               if len(ss) >= episode_floor and k[1] in minutes}
     cost = {k: minutes[k[1]] for k in grouped}
     if with_episodes:
         more, more_cost = episodes(sentences, speaking_rate(app, minutes),
@@ -310,8 +339,18 @@ def chances(grouped, target, reach, gate: str) -> dict:
 
 def walk(grouped, cost, says, target, supply, seed, k: int, gate: str,
          rewatch: bool, order: list | None = None,
-         weight: str = FREQUENCY) -> dict:
+         weight: str = FREQUENCY, ease: float = 0.0,
+         plenty: int = 0, thin_k: int = 0,
+         learnable: frozenset | None = None) -> dict:
     """Greedy: the video giving the most unmet encounters per minute.
+
+    `ease` weighs that rate by how much of the video the reader can follow.
+    At 0 it does nothing and the walk is the one every earlier plan ran. The
+    rate alone opened the plan with an eleven-minute political explainer
+    whose lines are readable nine in a hundred: its qualifying lines really
+    are easy, and they are buried in ten minutes that are not. Readability is
+    measured against `have` as it grows, so a hard video is not banned, only
+    made to wait until it is no longer hard.
 
     A word stays unknown until its Kth encounter, so under the i+1 gate it
     goes on blocking the sentences it appears in until then. That is what
@@ -325,7 +364,22 @@ def walk(grouped, cost, says, target, supply, seed, k: int, gate: str,
     the walk is minutes. That is how a finished experiment gets its per-word
     costs without being run again.
     """
-    need = {w: min(k, len(supply.get(w, ()))) or 1 for w in target}
+    # Counted here rather than inside the `worth` block below, because `need`
+    # wants it too and walking every sentence twice is seconds wasted.
+    common = frequency(grouped, target) if plenty or weight != FLAT else {}
+    # Two-tier K. `plenty` is how many sentences on the shelf must say a word
+    # before it counts as common, and `thin_k` is what such a word is asked for
+    # instead of `k`.
+    #
+    # The case for it: K exists so a word is met often enough to stick, and the
+    # plan is charged for arranging those meetings. The arranging only does
+    # work where the word is otherwise scarce. Measured over the K=5 plan, the
+    # median word appears in twenty-two i+1 lines across the plan and is
+    # *taught* by five of them; `die Regierung` appears in four hundred and
+    # eighty. Insisting on five deliberate meetings of a word that will be read
+    # four hundred times anyway buys nothing, and is paid for in video length.
+    need = {w: min(thin_k if plenty and common.get(w, 0) >= plenty else k,
+                   len(supply.get(w, ()))) or 1 for w in target}
     have = set(seed.units)
     seen: dict = {w: set() for w in target}
     # What each word cost. A viewing's minutes are split across the words it
@@ -360,13 +414,39 @@ def walk(grouped, cost, says, target, supply, seed, k: int, gate: str,
     if weight == FLAT:
         worth = lambda unit: 1.0                              # noqa: E731
     else:
-        common = frequency(grouped, target)
         worth = lambda unit: float(common[unit])              # noqa: E731
+
+    # `ease` of 0 makes this exactly 1.0 for every video, so the baseline is
+    # reproduced rather than approximated.
+    def sway(share: float) -> float:
+        return (share + EASE_FLOOR) ** ease
+
+    # What the gate is allowed to see as unknown. Given a set, a unit outside
+    # it does not count -- which is the question this exists to ask: a word
+    # the corpus can never teach blocks every sentence it appears in, for
+    # ever, and there is no version of the plan where that block is lifted.
+    # `reach` is the set to pass: the study words this corpus can reach.
+    #
+    # Measured over the shelf: 35,430 lines are i+1 today and another 39,390
+    # would be if the unreachable ones did not count, so the pool it opens is
+    # roughly double. What it costs is that a line shown to the reader may
+    # hold a word they do not know and will not be taught.
+    def unknown(units):
+        missing = units - have
+        return missing & learnable if learnable is not None else missing
 
     def useful(video):
         texts: dict = {}
+        lines = readable = 0
         for s in grouped[video]:
-            missing = s.units - have
+            missing = unknown(s.units)
+            lines += 1
+            # Strict, whatever the gate is allowed to see: a line holding a
+            # word the reader does not know is not one they can follow, and
+            # `ease` weighs videos by what can be followed. Counting it the
+            # lenient way would let the leniency flatter itself.
+            if not s.units - have:
+                readable += 1
             # Everything the gate lets through is learned, not just the
             # first: a rule that admits two unknowns and then teaches one of
             # them is not the rule being tested, it is i+1 with extra steps.
@@ -376,7 +456,8 @@ def walk(grouped, cost, says, target, supply, seed, k: int, gate: str,
                 if w in target and len(seen[w]) < need[w] and s.text not in seen[w]:
                     texts.setdefault(w, set()).add(s.text)
         return (sum(worth(w) * len(t) for w, t in texts.items()),
-                sum(len(t) for t in texts.values()), texts)
+                sum(len(t) for t in texts.values()), texts,
+                readable / lines if lines else 0.0)
 
     queue = list(order) if order is not None else None
     score = {} if queue is not None else {v: useful(v) for v in grouped}
@@ -389,9 +470,10 @@ def walk(grouped, cost, says, target, supply, seed, k: int, gate: str,
             best = queue.pop(0)
             score[best] = useful(best)
         else:
-            best = max(pool, key=lambda v: (score[v][0] / (cost.get(v) or 1e9),
+            best = max(pool, key=lambda v: (score[v][0] * sway(score[v][3])
+                                            / (cost.get(v) or 1e9),
                                             score[v][0], str(v)))
-        rate, gain, texts = score[best]
+        rate, gain, texts, share = score[best]
         if not gain:
             break
         minutes = cost.get(best, 0.0)
@@ -410,7 +492,7 @@ def walk(grouped, cost, says, target, supply, seed, k: int, gate: str,
         spent += minutes
         views += 1
         uniq.add(best)
-        picks.append({"item": best, "minutes": minutes,
+        picks.append({"item": best, "minutes": minutes, "followable": share,
                       "encounters": gain, "completed": len(finished),
                       "again": best not in uniq or views > len(uniq),
                       "words": sorted(w.key for w in finished)})
@@ -530,24 +612,35 @@ def depth(app, seed, k: int = 1, say=print) -> list[dict]:
 
 
 def one_walk(app, seed, gate: str, k: int, drop_machine: bool,
-             drop_seg: bool, shelved=None, say=print) -> dict:
+             drop_seg: bool, shelved=None, say=print,
+             ease: float = EASE, episode_floor: int = ENOUGH_LINES,
+             noise: bool = False) -> dict:
     """One arm, written out as a plan and a per-word cost file.
 
     `shelved` is passed in when a caller runs several arms over the same
     shelf: building it is forty seconds and the walk itself is often less,
     so re-reading the corpus per arm would be most of the cost.
+
+    `episode_floor` reaches both the shelf and the filename. It used to reach
+    neither — the shelf took the default and `suffix` was handed the constant
+    — which was invisible while only `sweep` varied the floor and built its
+    own shelf, and wrong the moment anything else asked for a floor-10 run:
+    it would have walked the floor-40 shelf and written the answer under the
+    floor-40 name, over a file that meant something else.
     """
     if shelved is None:
         shelved = shelf(app, seed, with_episodes=True,
+                        episode_floor=episode_floor,
                         drop_machine=drop_machine, drop_seg=drop_seg)
     _, grouped, cost, says, reach, target = shelved
     with Database(app.settings.own) as database:
         titles = dict(database.rows("SELECT video_id, title FROM video"))
     t = time.perf_counter()
     supply = chances(grouped, target, reach, gate)
-    r = walk(grouped, cost, says, target, supply, seed, k, gate, rewatch=True)
+    r = walk(grouped, cost, says, target, supply, seed, k, gate, rewatch=True,
+             ease=ease, learnable=frozenset(reach) if noise else None)
     name = (f"07-plan-{slug(gate)}-k{k}"
-            f"{suffix(ENOUGH_LINES, drop_machine, drop_seg)}.csv")
+            f"{suffix(episode_floor, drop_machine, drop_seg, noise)}.csv")
     write_plan(r["picks"], titles, name)
     write_words(
         hardest(r["charge"], r["alone"], target, supply, supply,
@@ -570,7 +663,8 @@ def one_walk(app, seed, gate: str, k: int, drop_machine: bool,
             # The scoring is named in the row, because the file holds runs
             # from before it changed and a row that does not say which one it
             # is cannot be told from a row that does.
-            "note": ("frequency-weighted; machine-made dropped"
+            "note": (f"frequency-weighted; readability-weighted at ease {ease:g}"
+                     "; machine-made dropped"
                      + ("; super easy german dropped" if drop_seg else "")
                      + f"; {sum(1 for w in target if len(supply.get(w, ())) >= k):,}"
                        f" words have {k}+ chances")}
@@ -605,6 +699,59 @@ def queue(app, seed, k: int = 5, say=print) -> list[dict]:
         # long time to hold results in a process that might not finish.
         with (OUT / SUMMARY).open("a", newline="", encoding="utf-8") as handle:
             csv.DictWriter(handle, fieldnames=list(rows[-1])).writerows(rows[-1:])
+    return rows
+
+
+# The exponents walked. 0 is the plan as it has always been chosen, and is
+# here so the comparison is against a run of this same code rather than
+# against a number remembered from a file.
+EASES = (0.0, 0.5, 1.0, 2.0)
+
+
+def curriculum(app, seed, k: int = 5, say=print) -> list[dict]:
+    """What weighing a video by its own readability costs in hours.
+
+    The plan has always chosen on encounters per minute and nothing else, so
+    it opened with an eleven-minute political explainer whose lines are
+    readable nine in a hundred — 125 minutes of the first twelve videos
+    carrying 21 minutes of followable line. This walks the one arm that
+    matters, i+1 at K=5 with the machine-made channels and Super Easy German
+    out, at each exponent, and reports both halves of the trade: the hours,
+    and how much of the first twenty viewings the reader can actually follow.
+    """
+    t = time.perf_counter()
+    shelved = shelf(app, seed, with_episodes=True, drop_machine=True,
+                    drop_seg=True)
+    _, grouped, cost, says, reach, target = shelved
+    eps = sum(1 for x in grouped if x[0] == "e")
+    say(f"  shelf: {len(grouped) - eps:,} videos + {eps:,} episodes · "
+        f"{len(target):,} words ({time.perf_counter() - t:.0f}s)")
+    supply = chances(grouped, target, reach, "i+1")
+    with Database(app.settings.own) as database:
+        titles = dict(database.rows("SELECT video_id, title FROM video"))
+
+    rows = []
+    for ease in EASES:
+        t = time.perf_counter()
+        r = walk(grouped, cost, says, target, supply, seed, k, "i+1",
+                 rewatch=True, ease=ease)
+        first = [p["followable"] for p in r["picks"][:20]]
+        name = (f"07-plan-i1-k{k}-nomachine-noseg"
+                f"{'' if not ease else f'-ease{ease:g}'}.csv")
+        write_plan(r["picks"], titles, name)
+        opener = r["picks"][0]
+        rows.append({"ease": ease, "hours": round(r["hours"], 1),
+                     "videos": r["videos"], "viewings": r["viewings"],
+                     "words_met": r["met"], "words_total": len(target),
+                     "first20_followable": round(statistics.mean(first), 4),
+                     "first_followable": round(opener["followable"], 4),
+                     "plan": name})
+        say(f"  ease {ease:>4}: {r['hours']:>7.1f} h · {r['videos']:>4} videos · "
+            f"{r['met']:,}/{len(target):,} met · first 20 are "
+            f"{statistics.mean(first) * 100:4.1f}% readable "
+            f"({time.perf_counter() - t:.0f}s)")
+        say(f"    -> {name}")
+    write(rows, f"07-curriculum-k{k}.csv")
     return rows
 
 
@@ -1706,7 +1853,7 @@ def write_plan(picks, titles, name) -> Path:
         writer.writerow(["position", "kind", "name", "where", "minutes",
                          "cumulative_hours", "repeat", "stepping_stone",
                          "encounters", "words_completed", "off_list_gained",
-                         "words"])
+                         "words", "followable"])
         for n, pick in enumerate(picks, 1):
             kind, what, where = watch_at(pick["item"], titles)
             cumulative += pick["minutes"]
@@ -1715,7 +1862,8 @@ def write_plan(picks, titles, name) -> Path:
                              "yes" if pick["item"] in seen else "",
                              "yes" if pick.get("stepping_stone") else "",
                              pick["encounters"], pick["completed"],
-                             pick.get("spare", ""), " ".join(pick["words"])])
+                             pick.get("spare", ""), " ".join(pick["words"]),
+                             round(pick.get("followable", 0.0), 4)])
             seen.add(pick["item"])
     return path
 
@@ -1750,16 +1898,358 @@ def stepping(app, seed, ks=(1, 5), say=print) -> list[dict]:
     return rows
 
 
-def suffix(floor: int, drop_machine: bool, drop_seg: bool = False) -> str:
+def per_video_chances(grouped, target, reach, gate: str) -> dict:
+    """Video -> word -> the distinct texts in it that could ever teach the word.
+
+    `chances` asks the same question of the whole shelf at once. This keeps
+    the answer split by video, which is what a covering problem needs: how
+    much of a word's requirement one video can supply on its own.
+    """
+    allow = GATES[gate]
+    out: dict = {}
+    for video, ss in grouped.items():
+        here: dict = {}
+        for s in ss:
+            blocked = s.units - reach
+            words = len(s.text.split())
+            for w in s.units & target:
+                if allow(len(blocked - {w}) + 1, words):
+                    here.setdefault(w, set()).add(s.text)
+        if here:
+            out[video] = here
+    return out
+
+
+def bound(app, seed, k: int = 5, gate: str = "i+1", drop_machine: bool = True,
+          drop_seg: bool = True, say=print) -> list[dict]:
+    """How short any plan could possibly be. A floor, not a plan.
+
+    The scheduling problem is shortest path over the states of what you know,
+    and there are 2**|target| of them, so it is not going to be solved. That
+    does not stop us bounding it, and a bound is what says whether the greedy
+    walk is worth improving at all.
+
+    Relax three things, each of which only ever makes the answer cheaper:
+
+    * **Order.** A sentence counts for a word if it could *ever* teach it --
+      `reach`, everything learnable already learned. The real walk only gets
+      the sentence when the rest of it is known by then.
+    * **Rewatching.** A video is bought once. The walk pays its full length
+      every viewing, and a third of its viewings are repeats.
+    * **Distinctness across videos.** A line said in two videos is counted in
+      both, so buying either satisfies the requirement twice.
+
+    Any real plan's set of distinct videos satisfies the constraints below --
+    it met every word with K distinct texts, each in some video it watched,
+    each of them in this supply. So the cheapest feasible set costs no more
+    than that plan's distinct videos, which cost no more than the plan. The
+    optimum is a lower bound, and the LP relaxation of it is a lower bound on
+    that.
+
+    What it cannot say is that any plan achieves it: nothing here knows
+    whether the chosen videos can be *ordered* so the sentences land while
+    their words are still the only unknown. It brackets the answer from
+    below, which is the half that was missing.
+    """
+    import pulp                                        # noqa: PLC0415 — heavy
+
+    t = time.perf_counter()
+    _, grouped, cost, _, reach, target = shelf(
+        app, seed, with_episodes=True, drop_machine=drop_machine,
+        drop_seg=drop_seg)
+    say(f"  shelf: {len(grouped):,} items · {len(target):,} words "
+        f"({time.perf_counter() - t:.0f}s)")
+
+    t = time.perf_counter()
+    gives = per_video_chances(grouped, target, reach, gate)
+    need = {}
+    for w in target:
+        total = len({x for v in gives for x in gives[v].get(w, ())})
+        if total:
+            need[w] = min(k, total)
+    say(f"  supply: {len(gives):,} items say something · "
+        f"{len(need):,} words are reachable at all "
+        f"({time.perf_counter() - t:.0f}s)")
+
+    # Continuous, not binary: the LP relaxation is itself a lower bound on the
+    # integer optimum, and it is the one that finishes. The integer problem is
+    # a weighted set-multicover over eighteen hundred videos.
+    t = time.perf_counter()
+    problem = pulp.LpProblem("bound", pulp.LpMinimize)
+    pick = {v: pulp.LpVariable(f"v{i}", lowBound=0, upBound=1)
+            for i, v in enumerate(sorted(gives, key=str))}
+    problem += pulp.lpSum(cost.get(v, 0.0) * pick[v] for v in pick)
+    for w, want in need.items():
+        problem += pulp.lpSum(len(gives[v].get(w, ())) * pick[v]
+                              for v in pick if w in gives[v]) >= want
+    problem.solve(pulp.PULP_CBC_CMD(msg=False))
+    status = pulp.LpStatus[problem.status]
+    hours = pulp.value(problem.objective) / 60 if status == "Optimal" else None
+    say(f"  LP bound: {status}"
+        + (f" · at least {hours:,.1f} h" if hours else "")
+        + f" ({time.perf_counter() - t:.0f}s)")
+
+    rows = [{"gate": gate, "k": k, "words": len(need),
+             "lower_bound_hours": round(hours, 1) if hours else "",
+             "status": status,
+             "note": "LP relaxation of a set-multicover; order, rewatching and"
+                     " cross-video repeats all relaxed away"}]
+    write(rows, f"07-bound-{slug(gate)}-k{k}"
+                f"{suffix(ENOUGH_LINES, drop_machine, drop_seg)}.csv")
+    return rows
+
+
+SIGHT_FIELDS = ("kind", "key", "sightings", "teaching_it", "teaching_it_distinct",
+                "in_gated_lines", "viewings_with_it", "items_with_it",
+                "credited", "needed", "first_hour", "last_hour", "spread_hours")
+
+
+def sightings(app, seed, gate: str = "i+1", k: int = 5,
+              drop_machine: bool = True, drop_seg: bool = True,
+              say=print) -> list[dict]:
+    """How often each word is actually *seen* if the whole plan is watched.
+
+    Not the same question as how often it is taught. The walk credits a word
+    only for a line where it is the last unknown, and stops at K of them --
+    that is the bill it is paying. But the plan is hours of German, and every
+    other line goes past the reader's eyes too. A word can be credited five
+    times and seen two hundred, or credited five times and seen five.
+
+    Which of those it is decides what K is for. If the common words are seen
+    hundreds of times anyway, K is doing nothing for them and everything for
+    the tail, and the number is worth knowing before it is tuned again.
+
+    Counted per viewing, not per video: watching a video twice shows its
+    lines twice, and a third of the plan is rewatching.
+    """
+    t = time.perf_counter()
+    _, grouped, cost, says, reach, target = shelf(
+        app, seed, with_episodes=True, drop_machine=drop_machine,
+        drop_seg=drop_seg)
+    name = (f"07-plan-{slug(gate)}-k{k}"
+            f"{suffix(ENOUGH_LINES, drop_machine, drop_seg)}.csv")
+    path = OUT / name
+    if not path.exists():
+        say(f"  no plan at {name} — walk it first")
+        return []
+
+    # Back from the row to the shelf key `watch_at` made it from.
+    order = []
+    with path.open(encoding="utf-8") as handle:
+        for row in csv.DictReader(handle):
+            where = row["where"]
+            order.append(("v", where.rsplit("v=", 1)[-1])
+                         if row["kind"] == "video" else ("e", where))
+    known = [x for x in order if x in grouped]
+    say(f"  {len(order):,} viewings in {name}, {len(known):,} still on the shelf"
+        f" ({time.perf_counter() - t:.0f}s)")
+
+    t = time.perf_counter()
+    supply = chances(grouped, target, reach, gate)
+    allow = GATES[gate]
+    need = {w: min(k, len(supply.get(w, ()))) or 1 for w in target}
+    have = set(seed.units)
+    credited: dict = {w: set() for w in target}
+
+    seen = {w: 0 for w in target}          # every time it goes past, gate or no
+    teach = {w: 0 for w in target}         # lines where it was the only unknown
+    teach_texts: dict = {w: set() for w in target}
+    within = {w: 0 for w in target}        # lines the gate admitted, holding it
+    views = {w: 0 for w in target}         # viewings that show it at least once
+    items: dict = {w: set() for w in target}
+    first: dict = {}
+    last: dict = {}
+    spent = 0.0
+    for item in known:
+        here: dict = {}
+        fresh: dict = {}
+        for line in grouped[item]:
+            words = line.units & target
+            for w in words:
+                here[w] = here.get(w, 0) + 1
+            # The gate, against what is known at this point in the plan and
+            # not against `reach`: `chances` asks what could ever teach a word
+            # and this asks what did, on the evening it was watched.
+            missing = line.units - have
+            if not missing or not allow(len(missing), len(line.text.split())):
+                continue
+            for w in words:
+                within[w] += 1
+            for w in missing & target:
+                teach[w] += 1
+                teach_texts[w].add(line.text)
+                if len(credited[w]) < need[w] and line.text not in credited[w]:
+                    fresh.setdefault(w, set()).add(line.text)
+        spent += cost.get(item, 0.0)
+        for w, n in here.items():
+            seen[w] += n
+            views[w] += 1
+            items[w].add(item)
+            first.setdefault(w, spent / 60)
+            last[w] = spent / 60
+        # Graduated a viewing at a time, as `walk` does: a word learned from
+        # this video was still unknown for every line of it.
+        for w, texts in fresh.items():
+            credited[w] |= texts
+            if len(credited[w]) >= need[w]:
+                have.add(w)
+    say(f"  counted ({time.perf_counter() - t:.0f}s)")
+
+    # The same order through `walk` itself. If these disagree, this function is
+    # measuring something the plan is not.
+    t = time.perf_counter()
+    replay = walk(grouped, cost, says, target, supply, seed, k, gate,
+                  rewatch=True, order=list(known))
+    drift = sum(1 for w in target
+                if len(credited[w]) != replay["got"].get(w, 0))
+    say(f"  replayed ({time.perf_counter() - t:.0f}s) · "
+        f"{drift:,} words where this pass and the walk disagree")
+
+    rows = []
+    for w in sorted(target, key=lambda u: (-seen[u], u.kind, u.key)):
+        rows.append({"kind": w.kind, "key": w.key, "sightings": seen[w],
+                     "viewings_with_it": views[w], "items_with_it": len(items[w]),
+                     "teaching_it": teach[w],
+                     "teaching_it_distinct": len(teach_texts[w]),
+                     "in_gated_lines": within[w],
+                     "credited": replay["got"].get(w, 0),
+                     "needed": replay["need"].get(w, 0),
+                     "first_hour": round(first[w], 1) if w in first else "",
+                     "last_hour": round(last[w], 1) if w in last else "",
+                     "spread_hours": (round(last[w] - first[w], 1)
+                                      if w in first else "")})
+    OUT.mkdir(parents=True, exist_ok=True)
+    out = OUT / name.replace("plan-", "sightings-")
+    with out.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=SIGHT_FIELDS)
+        writer.writeheader()
+        writer.writerows(rows)
+
+    chances_had = sorted(teach.values())
+    say(f"  {gate} lines that could teach a word: "
+        f"{sum(chances_had):,} in all · median {statistics.median(chances_had):,.0f}"
+        f" · max {max(chances_had):,}")
+    for edge in (0, 5, 20):
+        say(f"    {sum(1 for n in chances_had if n <= edge):>5,} words with "
+            f"{edge if edge else 'no'} such line{'s' if edge else ''}"
+            + (" at all" if not edge else " or fewer"))
+    counts = sorted(seen.values())
+    never = sum(1 for n in counts if not n)
+    quant = statistics.quantiles(counts, n=10) if len(counts) > 10 else []
+    say(f"  {len(counts):,} words · {sum(counts):,} sightings in all · "
+        f"{never:,} never seen")
+    say(f"  median {statistics.median(counts):,.0f} · "
+        f"mean {statistics.mean(counts):,.1f} · max {max(counts):,}")
+    if quant:
+        say("  deciles: " + " ".join(f"{q:,.0f}" for q in quant))
+    for edge, label in ((5, "seen 5 times or fewer"), (20, "20 or fewer"),
+                        (100, "100 or fewer")):
+        say(f"    {sum(1 for n in counts if n <= edge):>5,} {label}")
+    say(f"    -> {out.name}")
+    return rows
+
+
+# (how common a word must be to be thinned, what it is asked for instead).
+# The first is the control: no thinning at all.
+THINNINGS = ((0, 5), (400, 2), (400, 1), (200, 2), (200, 1), (100, 1))
+
+
+def thinning(app, seed, k: int = 5, gate: str = "i+1", drop_machine: bool = True,
+             drop_seg: bool = True, say=print) -> list[dict]:
+    """What dropping K for words you will see anyway is worth.
+
+    K is a floor on deliberate meetings, and a floor only binds where the
+    word is scarce. Over the K=5 plan the median word already turns up in
+    twenty-two i+1 lines and 510 words turn up in five or fewer -- so the
+    floor is doing its job for a few hundred words and charging for the rest.
+
+    Both halves are reported, because only one of them is the saving. The
+    hours are what is bought. `kept_exposure` is what it costs: for the words
+    that were thinned, how many i+1 lines still hold them once the plan is
+    walked. If that stays where it was, the meetings were being arranged for
+    words that did not need arranging.
+    """
+    t = time.perf_counter()
+    _, grouped, cost, says, reach, target = shelf(
+        app, seed, with_episodes=True, drop_machine=drop_machine,
+        drop_seg=drop_seg)
+    supply = chances(grouped, target, reach, gate)
+    common = frequency(grouped, target)
+    allow = GATES[gate]
+    say(f"  shelf: {len(grouped):,} items · {len(target):,} words "
+        f"({time.perf_counter() - t:.0f}s)")
+
+    def exposure(order, need) -> dict:
+        """Walking that order, how many gate-admitted lines hold each word.
+
+        The same simulation the walk runs, with the counting the walk has no
+        reason to do: it stops at K because that is its bill, and this is
+        about everything that goes past afterwards.
+        """
+        have = set(seed.units)
+        got: dict = {w: set() for w in target}
+        within = {w: 0 for w in target}
+        for item in order:
+            fresh: dict = {}
+            for line in grouped[item]:
+                missing = line.units - have
+                if not missing or not allow(len(missing), len(line.text.split())):
+                    continue
+                for w in line.units & target:
+                    within[w] += 1
+                for w in missing & target:
+                    if len(got[w]) < need[w] and line.text not in got[w]:
+                        fresh.setdefault(w, set()).add(line.text)
+            for w, texts in fresh.items():
+                got[w] |= texts
+                if len(got[w]) >= need[w]:
+                    have.add(w)
+        return within
+
+    rows = []
+    for plenty, thin_k in THINNINGS:
+        t = time.perf_counter()
+        r = walk(grouped, cost, says, target, supply, seed, k, gate,
+                 rewatch=True, ease=EASE, plenty=plenty, thin_k=thin_k)
+        thinned = [w for w in target if plenty and common.get(w, 0) >= plenty]
+        need = {w: min(thin_k if plenty and common.get(w, 0) >= plenty else k,
+                       len(supply.get(w, ()))) or 1 for w in target}
+        held = exposure([p["item"] for p in r["picks"]], need)
+        mine = sorted(held[w] for w in thinned) or [0]
+        rows.append({"plenty": plenty, "thin_k": thin_k if plenty else k,
+                     "thinned_words": len(thinned),
+                     "hours": round(r["hours"], 1), "videos": r["videos"],
+                     "viewings": r["viewings"], "words_met": r["met"],
+                     "words_total": len(target),
+                     "kept_exposure_median": round(statistics.median(mine), 1),
+                     "kept_exposure_min": mine[0],
+                     "thinned_under_5": sum(1 for n in mine if n < 5)})
+        say(f"  {'no thinning' if not plenty else f'{plenty}+ says -> K={thin_k}':>24}"
+            f": {r['hours']:>7.1f} h · {r['met']:,}/{len(target):,} met · "
+            f"{len(thinned):,} thinned, still in a median of "
+            f"{statistics.median(mine):,.0f} i+1 lines "
+            f"({time.perf_counter() - t:.0f}s)")
+    write(rows, f"07-thinning-{slug(gate)}-k{k}"
+                f"{suffix(ENOUGH_LINES, drop_machine, drop_seg)}.csv")
+    return rows
+
+
+def suffix(floor: int, drop_machine: bool, drop_seg: bool = False,
+           noise: bool = False) -> str:
     """What a run's files are called, beyond the gate and K.
 
     The default shelf carries no suffix at all, so the first runs keep the
     names they were written under and the page that reads them needs no
     special case for "the original one".
+
+    `noise` is the gate that stops counting words the corpus can never teach
+    -- see `walk`'s `learnable`. Last in the name, so every earlier run keeps
+    the name it was written under.
     """
     return (("" if floor == ENOUGH_LINES else f"-floor{floor}")
             + ("-nomachine" if drop_machine else "")
-            + ("-noseg" if drop_seg else ""))
+            + ("-noseg" if drop_seg else "")
+            + ("-noise" if noise else ""))
 
 
 def sweep(app, seed, floor: int = ENOUGH_LINES, drop_machine: bool = False,
@@ -1890,9 +2380,18 @@ def main() -> None:
     elif what == "queue":
         k = int(sys.argv[2]) if len(sys.argv) > 2 else 5
         queue(app, app.known_set(), k)
-    elif what == "queue":
+    elif what == "thinning":
         k = int(sys.argv[2]) if len(sys.argv) > 2 else 5
-        queue(app, app.known_set(), k)
+        thinning(app, app.known_set(), k)
+    elif what == "sightings":
+        k = int(sys.argv[2]) if len(sys.argv) > 2 else 5
+        sightings(app, app.known_set(), k=k)
+    elif what == "bound":
+        k = int(sys.argv[2]) if len(sys.argv) > 2 else 5
+        bound(app, app.known_set(), k)
+    elif what == "curriculum":
+        k = int(sys.argv[2]) if len(sys.argv) > 2 else 5
+        curriculum(app, app.known_set(), k)
     elif what == "depth":
         k = int(sys.argv[2]) if len(sys.argv) > 2 else 1
         depth(app, app.known_set(), k)
