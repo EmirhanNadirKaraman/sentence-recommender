@@ -79,3 +79,15 @@ brag-output*/
 # reading of the results, which no rerun reproduces.
 experiment_results/*.csv
 experiment_results/*.svg
+
+# Retired plans, moved aside rather than deleted when the floor-40 runs were
+# dropped from the Plan page. Generated, like the plans beside them.
+experiment_results/archive/
+experiment_results/.Rapp.history
+
+# Channel listings and URL lists, written by hand-run scripts to answer a
+# question once. `data/episode_videos.json` is the one the app reads and is
+# kept; these are the workings behind it.
+out/*.tsv
+out/*.txt
+out/*.json
