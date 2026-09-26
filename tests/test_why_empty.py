@@ -12,85 +12,56 @@ means "I could not look" — which is never settled. So the log filled with
 654 videos it had in fact inspected perfectly well, and every channel import
 re-fetched all of them.
 
-These tests stub `yt_dlp`, so they assert the reasoning rather than YouTube.
+It no longer looks at all. It reads the track list `add` already holds, so
+there is no second request to fail, and a refused first one is `Throttled`
+before it gets here — see `tests/test_captions.py`.
 """
 from __future__ import annotations
 
-import sys
-import types
 import unittest
 
-from config import Settings
 from ingest.attempts import SETTLED, AttemptLog
+from ingest.captions import Track, Tracks
 from ingest.video import VideoIngestor
 
 
-class _FakeYDL:
-    def __init__(self, info: dict) -> None:
-        self._info = info
-
-    def __enter__(self) -> "_FakeYDL":
-        return self
-
-    def __exit__(self, *_: object) -> bool:
-        return False
-
-    def extract_info(self, url: str, download: bool = False) -> dict:
-        return self._info
+def offered(*tracks: tuple[str, bool]) -> Tracks:
+    return Tracks(video_id="vid", tracks=tuple(
+        Track(language=code, machine=machine, url=f"https://yt.test/{code}")
+        for code, machine in tracks))
 
 
 class WhyEmptyTest(unittest.TestCase):
-    def _answer(self, info: dict) -> str:
-        """What `_why_empty` says when YouTube reports `info`."""
-        fake = types.ModuleType("yt_dlp")
-        fake.YoutubeDL = lambda _opts: _FakeYDL(info)   # type: ignore[attr-defined]
-        original = sys.modules.get("yt_dlp")
-        sys.modules["yt_dlp"] = fake
-        self.addCleanup(
-            lambda: sys.modules.__setitem__("yt_dlp", original)
-            if original is not None else sys.modules.pop("yt_dlp", None))
-        return VideoIngestor(Settings(), None)._why_empty("vid", "de")
-
-    def test_it_can_reach_its_own_settings(self) -> None:
-        """The regression. A `@staticmethod` reading `self` raised NameError
-        into its own `except`, so this returned "could not be inspected" for
-        every video ever asked about."""
-        answer = self._answer({"subtitles": {}, "automatic_captions": {}})
-        self.assertNotIn("could not be inspected", answer)
+    def _answer(self, *tracks: tuple[str, bool]) -> str:
+        return VideoIngestor._why_empty(offered(*tracks), "de")
 
     def test_an_auto_only_video_is_settled(self) -> None:
-        answer = self._answer(
-            {"subtitles": {}, "automatic_captions": {"de": [{}]}})
+        answer = self._answer(("de", True))
         self.assertIn("auto-generated", answer)
         self.assertIn(AttemptLog.classify(answer), SETTLED)
 
     def test_a_video_with_other_languages_says_which(self) -> None:
-        answer = self._answer(
-            {"subtitles": {"en": [{}], "fr": [{}]}, "automatic_captions": {}})
-        self.assertIn("en", answer)
+        answer = self._answer(("en", False), ("fr", False), ("en", True))
+        self.assertIn("en, fr", answer)
         self.assertIn(AttemptLog.classify(answer), SETTLED)
+
+    def test_machine_german_is_named_before_other_languages(self) -> None:
+        """The German is there, only not typed by anyone — the more useful
+        thing to be told, and the reason `--auto` exists."""
+        answer = self._answer(("en", False), ("de", True))
+        self.assertIn("auto-generated", answer)
 
     def test_a_video_with_nothing_at_all_is_settled(self) -> None:
-        answer = self._answer({"subtitles": {}, "automatic_captions": {}})
+        answer = self._answer()
+        self.assertIn("at all", answer)
         self.assertIn(AttemptLog.classify(answer), SETTLED)
 
-    def test_a_failure_to_inspect_is_not_settled(self) -> None:
-        """Still the right answer when the look genuinely throws — that is
-        the case the message was written for."""
-        fake = types.ModuleType("yt_dlp")
-
-        def boom(_opts):
-            raise RuntimeError("The page needs to be reloaded")
-
-        fake.YoutubeDL = boom                      # type: ignore[attr-defined]
-        original = sys.modules.get("yt_dlp")
-        sys.modules["yt_dlp"] = fake
-        self.addCleanup(
-            lambda: sys.modules.__setitem__("yt_dlp", original)
-            if original is not None else sys.modules.pop("yt_dlp", None))
-        answer = VideoIngestor(Settings(), None)._why_empty("vid", "de")
-        self.assertIn("could not be inspected", answer)
-        self.assertNotIn(AttemptLog.classify(answer), SETTLED)
+    def test_a_hand_written_track_with_no_lines_is_settled(self) -> None:
+        """A track that parses and says nothing will say nothing tomorrow.
+        An answer that did not parse is weather, and never reaches here."""
+        answer = self._answer(("de-DE", False))
+        self.assertIn("hold no lines", answer)
+        self.assertIn(AttemptLog.classify(answer), SETTLED)
 
 
 if __name__ == "__main__":

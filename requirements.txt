@@ -3,7 +3,8 @@ alembic>=1.13                  # this project's own Postgres schema
 sqlalchemy>=2.0                # alembic needs it; nothing else here does
 spacy>=3.8
 spacy-lookups-data>=1.0        # German lemma table; see corpus/analyzer.py
-requests>=2.31                 # the local model client
+requests>=2.31                 # the local model client, and captions:
+                               # see ingest/captions.py
 
 # The German model is not on PyPI.  The *medium* model, not the small one:
 # the vendored matcher comes from language-app, which requires `md` or larger

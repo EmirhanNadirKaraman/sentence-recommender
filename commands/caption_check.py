@@ -11,13 +11,12 @@ through the same corrector and analyser, and compare the *unit sets* — units
 are what the roadmap consumes, so a caption that loses one is a caption that
 cannot teach it.
 
-Which track counts as "the machine one" matters. YouTube offers auto
+Which track counts as "the machine one" matters. yt-dlp offers auto
 captions in 150-odd languages for a popular video, and all but one are
-machine translations of the ASR. `de-orig` is the original-language
-transcript; a bare `de` beside a hundred others is a translation into
-German, and measuring that would answer a question nobody asked. So
-`de-orig` wins where it exists, and a bare `de` is accepted only when the
-video's own audio is German.
+machine translations of the ASR — measuring one of those would answer a
+question nobody asked. The player API that `ingest.captions` asks lists
+no translations, so the machine track in German is YouTube's transcript of
+what it heard as German, and a video it heard as English has none.
 """
 from __future__ import annotations
 
@@ -27,12 +26,9 @@ from alignment import SubtitleAligner
 from corpus import MergeCorrector
 from corpus.quality import well_formed
 from db import Database
-# One implementation of "which track is the machine one, and does it
-# punctuate". It lives beside the ingest path that acts on the answer; this
-# command only measures.
-from ingest.auto_captions import (             # noqa: F401 — re-exported
-    ORIGINAL, PUNCTUATED, machine_track, punctuation_rate,
-)
+# One implementation of "which track is the machine one". It lives beside
+# the ingest path that acts on the answer; this command only measures.
+from ingest.captions import list_tracks
 
 PAUSE = 1.5
 
@@ -63,15 +59,19 @@ class CaptionCheckCommand:
         for number, video in enumerate(wanted, start=1):
             head = f"  [{number}/{len(wanted)}] {video}"
             try:
-                track, lines = machine_track(video)
+                offered = list_tracks(video)
+                machine = offered.machine(settings.language)
+                lines = offered.read(machine) if machine else []
             except Exception as error:            # noqa: BLE001 — one bad video
                 print(f"{head}  failed: {type(error).__name__}", flush=True)
                 time.sleep(pause)
                 continue
             if not lines:
-                print(f"{head}  no original-language auto track", flush=True)
+                print(f"{head}  no {settings.language} machine track",
+                      flush=True)
                 time.sleep(pause)
                 continue
+            track = machine.label
 
             auto = aligner.align(lines, corrector.correct(lines))
             auto = app.analyzer.analyze_all(auto)

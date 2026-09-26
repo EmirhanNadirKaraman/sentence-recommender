@@ -425,9 +425,10 @@ exception is visible at the call site, and it commits only once the whole
 video has landed.
 
 `add-video` borrows language-app's own scraper rather than reimplementing it,
-by path (`ingest/video.py` holds the path). It needs `yt-dlp`, `langdetect`,
-`python-dotenv` and `scrapetube` on top of the usual requirements. After a
-video lands, rebuild this project's cache to see it:
+by path (`ingest/video.py` holds the path) — all but the caption fetch, which
+asks YouTube's player API directly (`ingest/captions.py`). It needs
+`yt-dlp`, `langdetect`, `python-dotenv` and `scrapetube` on top of the usual
+requirements. After a video lands, rebuild this project's cache to see it:
 
 ```
 python main.py add-video https://www.youtube.com/watch?v=...

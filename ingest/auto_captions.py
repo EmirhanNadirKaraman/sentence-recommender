@@ -11,24 +11,15 @@ comparison is against zero, and TODO item 7 recorded the same conclusion in
 its own words: auto captions are "usable where nothing else exists". This is
 the path for those, and the gate below is what decides "usable".
 
-Nothing here reaches `transcript_fetcher.fetch_with_retries`. That function
-reads `info["subtitles"]` and deliberately never looks at
-`info["automatic_captions"]` — upstream product policy, and not ours to
-quietly invert from the outside. So the machine track is fetched here, in
-the open, and marked `transcript_source='auto'` wherever it lands.
+language-app's fetcher reads hand-written tracks only and never the machine
+one — upstream product policy, and not ours to quietly invert from the
+outside. Nothing here goes through it any more: `ingest.captions` lists a
+video's tracks and says which are machine ones, and a machine track reaches
+the catalogue only past this gate and marked `transcript_source='auto'`.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
-
-from corpus.sentence import RawLine
-
-# Which caption track counts as "the machine one". YouTube offers auto
-# captions in 150-odd languages for a popular video and all but one are
-# machine translations of the ASR — `de-orig` is the original transcript, and
-# a bare `de` beside a hundred others is a translation into German. Measuring
-# a translation would answer a question nobody asked.
-ORIGINAL = ("de-orig", "de-DE", "de")
 
 # A machine track is usable only if it punctuates. `MergeCorrector` finds
 # sentence boundaries by punctuation, so a track without any becomes one
@@ -100,18 +91,6 @@ class Unfetchable(Outcome):
 
     def __init__(self, message: str) -> None:
         super().__init__(message, "unfetchable")
-
-
-class Throttled(RuntimeError):
-    """The caption endpoint refused the request.
-
-    An ordinary exception rather than one of the `Outcome` family, because
-    this is raised by the download and the download has callers that are not
-    ingesting anything. `caption-check` skips a bad video with `except
-    Exception`, and `SystemExit` is a `BaseException` — raising one from here
-    would end that command on the first throttled video instead of the video.
-    Whoever is writing to the catalogue turns this into `Unfetchable`.
-    """
 
 
 @dataclass(frozen=True)
@@ -212,169 +191,3 @@ def judge(lines, floor: int = MIN_LINES) -> Judgement:
     if german < GERMAN:
         return Judgement("not-german", len(lines), punctuation, german)
     return Judgement("ok", len(lines), punctuation, german)
-
-
-def machine_track(video_id: str, options: dict | None = None
-                  ) -> tuple[str, list[RawLine]] | tuple[None, None]:
-    """The ASR track for one video, as raw lines — or nothing.
-
-    `options` are yt-dlp's. The default is cookieless, which is what
-    `caption-check` wants: it uses a client that needs no n-challenge, and
-    attaching cookies without `js_runtimes` and `remote_components` answers
-    every video with "The page needs to be reloaded". A caller that has the
-    full set — `ingest.options.scrape` builds it — passes it in.
-    """
-    import yt_dlp                                # noqa: PLC0415
-
-    options = options or {"quiet": True, "no_warnings": True,
-                          "skip_download": True}
-    # The download happens inside the same `with`, on the same instance, so
-    # the caption request carries the session the metadata request used.
-    with yt_dlp.YoutubeDL(options) as ydl:
-        info = ydl.extract_info(
-            f"https://www.youtube.com/watch?v={video_id}", download=False)
-        return track_from_info(info, video_id, ydl)
-
-
-# The caption endpoint throttles separately from the metadata one, and
-# harder. A survey at one video every 1.5s drew HTTP 429 from it on the
-# forty-seventh while yt-dlp's own requests were still being answered, so the
-# two cannot be paced together.
-DOWNLOAD_TRIES = 3
-DOWNLOAD_BACKOFF = 5.0
-
-
-def _payload(url: str, opener) -> dict:
-    """One caption track's json3, or an explanation that is not a verdict.
-
-    `opener` is the `YoutubeDL` instance that fetched the metadata, and it
-    has to be that one. This asked `requests.get` at first — an anonymous
-    request with no cookie jar and a default user agent, which is the shape
-    Google throttles hardest. A survey of one channel drew HTTP 429 from the
-    caption endpoint on its forty-seventh video while yt-dlp's own requests
-    were still being answered, and that is the whole story: the two are not
-    the same client, and only one of them was signed in.
-    `transcript_fetcher.py:242` reaches for the same handle for the same
-    reason.
-
-    Using the live instance rather than building a second one also avoids
-    re-reading the browser's cookie database once per video, and keeps the
-    gap small between a caption URL being issued and being used — they are
-    signed and time-limited.
-
-    A failure here is never a verdict. Parsing a throttle's HTML "Sorry..."
-    page as JSON was the bug this replaces: it raised `JSONDecodeError:
-    Expecting value: line 1 column 1`, a message about the parser's
-    disappointment that says nothing about the video, and anything reading it
-    as "this track is unusable" would write off a good video for having been
-    asked about too quickly.
-    """
-    import json as jsonlib                       # noqa: PLC0415
-    import time                                  # noqa: PLC0415
-
-    last: Exception | None = None
-    for attempt in range(DOWNLOAD_TRIES):
-        try:
-            body = opener.urlopen(url).read()
-            if isinstance(body, bytes):
-                body = body.decode("utf-8")
-            return jsonlib.loads(body)
-        except Exception as error:               # noqa: BLE001 — all weather
-            # yt-dlp raises on an HTTP error rather than returning a status,
-            # so there is no code to branch on — and an interstitial is
-            # served with a 200 as readily as with a 429, so a status would
-            # not settle it anyway. Upstream treats the whole class alike.
-            last = error
-            if attempt < DOWNLOAD_TRIES - 1:
-                time.sleep(DOWNLOAD_BACKOFF * (2 ** attempt))
-    raise Throttled(
-        f"the caption track could not be downloaded after {DOWNLOAD_TRIES} "
-        f"attempts ({type(last).__name__}) — the request is being refused, "
-        "which says nothing about the video.") from last
-
-
-def track_from_info(info: dict, video_id: str, opener
-                    ) -> tuple[str, list[RawLine]] | tuple[None, None]:
-    """The chosen track out of metadata already fetched.
-
-    Split from `machine_track` so the ingest path, which needs the same
-    metadata for the title and the channel, does not fetch it twice.
-    `opener` is that fetch's own `YoutubeDL`; see `_payload`.
-    """
-    autos = info.get("automatic_captions") or {}
-    audio = (info.get("language") or "").lower()
-
-    chosen = None
-    for key in ORIGINAL:
-        if key not in autos:
-            continue
-        # A bare `de` among many languages is the translation pipeline.
-        if key == "de" and "de-orig" not in autos and not audio.startswith("de"):
-            continue
-        chosen = key
-        break
-    if not chosen:
-        return None, None
-
-    entry = next((e for e in autos[chosen] if e.get("ext") == "json3"), None)
-    if not entry:
-        return None, None
-    payload = _payload(entry["url"], opener)
-
-    timed: list[tuple[float, float, str]] = []
-    for event in payload.get("events") or []:
-        segments = event.get("segs") or []
-        text = "".join(s.get("utf8", "") for s in segments).strip()
-        if not text:
-            continue
-        timed.append(((event.get("tStartMs") or 0) / 1000,
-                      (event.get("dDurationMs") or 0) / 1000,
-                      text))
-
-    lines = [
-        RawLine(
-            sentence_id=-(number + 1),          # negative: never a real row
-            video_id=video_id,
-            start_time=start,
-            duration=_cue_length(timed, number, duration,
-                                 info.get("duration")),
-            content=text,
-            # Empty: the column exists because `sentence` has one, and
-            # neither the corrector nor the aligner reads it.
-            tokens=(),
-        )
-        for number, (start, duration, text) in enumerate(timed)
-    ]
-    return chosen, lines
-
-
-# A cue with no length of its own, and no next cue to borrow one from.
-LAST_CUE = 2.0
-
-
-def _cue_length(timed: list, number: int, duration: float,
-                whole: float | None) -> float:
-    """How long one caption line lasts, when the track does not say.
-
-    Manual json3 carries `dDurationMs` on every event — forty cached tracks,
-    not one missing value. ASR json3 is a different shape and need not, and a
-    zero here is not a cosmetic default: `RawLine.duration` is what
-    `SubtitleAligner` matches sentences against, so a track of zero-length
-    cues gives every sentence a zero-length span and the overlay and the clip
-    links both point at an instant.
-
-    It also reaches `video.duration`, which `pipeline.populate` computes as
-    the last line's start plus its length — and that feeds both
-    `watchability` and the `i+1/min` column, where understating a video's
-    length makes it look denser than it is.
-
-    So a missing length is taken from the start of the next line, which is
-    what it means, and the last line falls back to what is left of the video.
-    """
-    if duration > 0:
-        return duration
-    if number + 1 < len(timed):
-        return max(0.0, timed[number + 1][0] - timed[number][0])
-    if whole:
-        return max(0.0, whole - timed[number][0])
-    return LAST_CUE

@@ -25,7 +25,7 @@ from __future__ import annotations
 import time
 
 from ingest.attempts import AttemptLog
-from ingest.options import scrape
+from ingest.captions import list_tracks
 from ingest.video import VideoIngestor
 
 PAUSE = 1.0
@@ -50,8 +50,6 @@ class SampleChannelCommand:
 
     def run(self, app, channel: str, sample: int = 12,
             language: str = "de", pause: float = PAUSE) -> None:
-        import yt_dlp                            # noqa: PLC0415 — heavy
-
         from ingest import ChannelLister         # noqa: PLC0415
 
         lister = ChannelLister()
@@ -92,26 +90,23 @@ class SampleChannelCommand:
         print(f"  probing {len(picks)} spread evenly across the {len(pool):,}"
               f" {what}\n", flush=True)
 
-        opts = scrape(app.settings)
-        opts.update(quiet=True, no_warnings=True)
         have, failed = 0, 0
         for index, video_id in enumerate(picks, start=1):
+            # The list ingest itself reads, and the rule ingest itself
+            # applies: a sample is a prediction of what `add-channel` would
+            # take, and a probe asking a different question predicts nothing.
             try:
-                with yt_dlp.YoutubeDL(opts) as ydl:
-                    info = ydl.extract_info(
-                        f"https://www.youtube.com/watch?v={video_id}",
-                        download=False)
+                offered = list_tracks(video_id)
             except Exception as error:           # noqa: BLE001 — one bad video
                 failed += 1
                 print(f"  {index:>3}. {video_id}  could not read: "
                       f"{type(error).__name__}")
                 continue
-            manual = sorted(info.get("subtitles") or {})
-            wanted = [m for m in manual if m.startswith(language)]
-            have += bool(wanted)
-            mark = ",".join(wanted) if wanted else "—"
+            track = offered.manual(language)
+            have += track is not None
+            mark = track.language if track else "—"
             print(f"  {index:>3}. {video_id}  {mark:<10} "
-                  f"{(info.get('title') or '')[:46]}")
+                  f"{offered.title[:46]}")
             if index < len(picks):
                 time.sleep(pause)
 
@@ -120,7 +115,7 @@ class SampleChannelCommand:
         if not read:
             raise SystemExit(
                 "every probe failed — that is the request being refused, not "
-                "the channel being empty. Check cookies_browser and try again.")
+                "the channel being empty. Wait a while and try again.")
         rate = have / read
         print(f"{have} of {read} probed have hand-written {language} "
               f"subtitles ({rate:.0%})")

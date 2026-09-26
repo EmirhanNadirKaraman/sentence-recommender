@@ -291,7 +291,9 @@ languages and all but one are machine translations of the ASR. `de-orig` is
 the original transcript; a bare `de` beside a hundred others is a
 translation into German. The command takes `de-orig` where it exists, and a
 bare `de` only when the video's own audio is German — which correctly
-refused the Indonesian and Dutch videos in a sample of ten.
+refused the Indonesian and Dutch videos in a sample of ten. (Since item 29
+the list is the player's own, which holds no translations at all, and the
+rule has gone with the problem it solved.)
 
 **Thirty videos, twenty-three with an original-language track, and every
 one of the twenty-three is worse than its hand-written counterpart:**
@@ -396,7 +398,8 @@ Ahead of all three, the track has to be the original transcript: `de-orig`,
 or a bare `de` only when the audio is German. A bare `de` beside a hundred
 other languages is YouTube *translating* the speech, and six of an even
 spread of twenty-four lingoni videos are exactly that — English-audio lessons
-whose "German captions" are machine-translated English.
+whose "German captions" are machine-translated English. (Item 29: the
+player's list offers those six `a.en` and nothing German.)
 
 **Sampling, again.** Six videos off the head of the listing said half the
 channel was usable. An even spread of twenty-four said one. `sample-channel`
@@ -419,10 +422,11 @@ mixed under it; the per-video `auto` mark and the switch are the filter.
 The caption endpoint throttles separately from the metadata one and harder.
 Downloading a track with `requests.get` — anonymous, no cookie jar — drew
 HTTP 429 on the forty-seventh video of a survey while yt-dlp's own requests
-were still being answered. The download now goes through the same
-`YoutubeDL` instance that fetched the metadata, which is what
-`transcript_fetcher.py:242` does and for the same reason. A refusal there is
-weather: `Throttled` becomes `unfetchable`, which never settles.
+were still being answered — a URL issued to yt-dlp's client, fetched as
+python-requests. Since 2026-09-25 the list and the track both come from the
+player API, asked as its iOS app asks (item 29), and 473 videos at the same
+1.5 s drew no refusal at all. A refusal is still weather: `Throttled`
+becomes `unfetchable`, which never settles.
 
 ### 8. Backfill `channel_id` on the videos that lack it — DONE
 
@@ -2327,3 +2331,84 @@ more at the top says nothing new — and whether it should keep calling
 after each review is a question for a month of use; the local judge is
 advisory and stays so; the review page shows one card at a time, on
 purpose, and a session of twenty is twenty page loads.
+
+## Fetching
+
+### 29. Captions from the player API, not yt-dlp — DONE, 2026-09-25
+
+Every caption question — which tracks a video has, what one says, why there
+is none — now goes through `ingest.captions`: one POST to YouTube's player
+API as its iOS app asks, one GET for the chosen track as json3. The
+transport is youtube-caption-extractor's
+(github.com/devhims/youtube-caption-extractor, 1.10.2) — its three client
+profiles, its endpoint, its order of fallbacks — ported rather than
+installed, because it is a Node package and nothing else here is. `add-video`,
+`add-videos`, `add-channel`, `hunt`, `caption-check` and `sample-channel` all
+read the same list. yt-dlp keeps the metadata, the channel listings and the
+search; language-app's `get_transcript` is no longer called, so its
+`transcript_cache` is neither read nor written from here.
+
+**What was not taken is its choice of track.** `getSubtitles` reads `.de`,
+then `a.de` — the machine track — then any `de`, then the first track in any
+language, and does not say which it read. Of the 443 videos below that hold
+a hand-written German track, it would have returned the machine track for
+114, a quarter: every `de-DE` or named track (`.de.XwLwiJMB_Xs`) sitting
+beside an `a.de`. Of the 30 with none, 14 would have come back with ASR as
+though it were subtitles. The choice stays language-app's rule — hand-written,
+`de` before `de-*` — and a machine track only under `--auto`, past the gate.
+
+**Measured, dry, at one video every 1.5 s** — the pace that drew a 429 on
+the forty-seventh video before:
+
+```
+   30  catalogued videos           30 identical to language-app's cache,
+                                      line for line: text, start, duration
+   30  settled `no-subtitles`      30 still have no hand-written German
+  413  stuck on HTTP 429           413 read — 97,436 lines; 46 are under
+                                      the 20-line floor and will be refused
+    0  refusals of any kind in the 473; median 0.32 s a video
+```
+
+The 413 are the attempt log's `HTTPError: HTTP Error 429` rows: yt-dlp had
+found a hand-written track and was refused the download. Upstream's comment
+in `transcript_fetcher.py` records "413 HTTP 429s" from one cookies-first
+harvest, since reordered to try cookieless first, so today's clean read
+could have been the reorder and the weeks since. Asked both ways, then,
+interleaved on 60 of them at the same pace:
+
+```
+  yt-dlp, cookieless   35 read, then "Sign in to confirm you're not a
+                       bot" on all 25 after — median 1.23 s
+  player API           60 read, those 25 included     — median 0.32 s
+  both answered        35 of 35 the same track and line count
+```
+
+In `fetch_with_retries` a bot check falls back to the Opera cookies, which
+this did not try — the signed-in path which, tried first, drew upstream's
+413.
+
+**The list is cleaner than yt-dlp's.** It holds no translations — a bare
+`de` beside a hundred others was yt-dlp's name for one — so `ORIGINAL` is
+gone. Six of an even spread of twenty-four lingoni lessons speak English and
+list only `a.en`. But `a.de` is YouTube's guess at the language, not a
+fact: two more of that spread list it over lessons 40% and 54% German, so the
+German-share test stays.
+
+**What is still yt-dlp's, and so still refused.** `add` fetches the
+metadata first — title, thumbnail, channel, category — with
+`fetch_video_metadata`, one yt-dlp extraction a video with the cookies. The
+iOS answer carries all of it but the category: of the three clients only
+MWEB returned a `microformat`. An import made two yt-dlp extractions a video
+with a hand-written track and three without; it now makes one, and a run's
+first refusal will come from that one.
+
+**When it breaks.** The client version strings rot. The library's nightly
+canary opens an issue on its repository when its hosted copy stops getting
+answers, and its fix is to bump them; its latest release, or yt-dlp's recent
+commits, are where to copy them from (`ingest.captions.CLIENTS`). A refusal from every client is `Throttled`, a
+429 still says "HTTP 429", and `add-videos` still stops after five in a row.
+
+**Open:** the 413 are not imported — that is a write to the catalogue and a
+catch-up and roadmap refresh after it, and waits for a go. They are not
+settled, so the next `add-videos` or `add-channel` that lists them retries
+them.

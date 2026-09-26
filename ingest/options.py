@@ -26,13 +26,13 @@ def scrape(settings: Settings | None = None, **extra) -> dict:
         # the web client, which answers "The page needs to be reloaded" until
         # the n-challenge is solved, and solving it needs a JS runtime.
         #
-        # With only the cookie, `_why_empty` could never inspect a video and
-        # so said "could not be inspected" — which classifies as
-        # `unfetchable`, which is deliberately never settled. So a video with
-        # no hand-written subtitles was re-fetched by every later run,
-        # forever, instead of being written off once: a second pass over a
-        # channel spent its first 34 videos re-asking questions the first
-        # pass had already failed to answer.
+        # With only the cookie, `_why_empty` (which asked yt-dlp then) could
+        # never inspect a video and so said "could not be inspected" — which
+        # classifies as `unfetchable`, which is deliberately never settled.
+        # So a video with no hand-written subtitles was re-fetched by every
+        # later run, forever, instead of being written off once: a second
+        # pass over a channel spent its first 34 videos re-asking questions
+        # the first pass had already failed to answer.
         options.update({
             "cookiesfrombrowser": (browser,),
             "js_runtimes": {"node": {}},
