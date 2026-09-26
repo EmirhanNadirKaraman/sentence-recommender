@@ -25,7 +25,8 @@ from state import open_state
 
 # Outcomes worth never repeating. Anything else — a timeout, a bot check, an
 # error nobody has classified — is treated as weather and tried again.
-SETTLED = frozenset({"no-subtitles", "unavailable", "not-wanted-language"})
+SETTLED = frozenset({"no-subtitles", "unavailable", "not-wanted-language",
+                     "too-long"})
 
 # The same question asked by the machine-caption path, where the answer is
 # different in one decisive place: `no-subtitles` means "no *hand-written*
@@ -163,7 +164,8 @@ class AttemptLog:
         if "no such video" in low or "unavailable" in low:
             return "unavailable"
         if "could not be inspected" in low:
-            # `_why_empty` says this when its own look at the video threw.
+            # `_why_empty` said this when its own yt-dlp look at the video
+            # threw, before it read the track list `add` already holds.
             # The sentence mentions subtitles, but it is explicitly a refusal
             # to say why — and YouTube throttles a burst of requests with
             # "The page needs to be reloaded", which arrives here looking

@@ -1,30 +1,38 @@
 """Adding a YouTube video to the catalogue.
 
 Wraps language-app's own scraper rather than reimplementing it. That package
-already knows how to fetch a transcript, detect its language, segment it into
-sentences and fill every bridge table, and reimplementing that would be a
-second parser of the same subtitles, drifting from the first.
+already knows how to segment a transcript into sentences and fill every
+bridge table, and reimplementing that would be a second parser of the same
+subtitles, drifting from the first.
 
 It writes wherever it is pointed, and it is pointed at our database. The keys
 it leaves for the database to assign are why migration 9863bcf8177b exists:
 every statement omits the primary key and reads it back.
 
-The coupling is deliberate and narrow: four functions from
-`subtitle-scraper/pipeline.py`, reached by path. If that repository moves,
-this is the file to change.
+The coupling is deliberate and narrow: three functions from
+`subtitle-scraper/pipeline.py` — the metadata, the channel row and the
+write — reached by path. If that repository moves, this is the file to
+change.
 
-One thing it does not borrow is the machine track. `fetch_with_retries`
-reads `info["subtitles"]` and never `info["automatic_captions"]` — upstream
-product policy, stated in a comment there — so `accept_auto` fetches that
-track here instead of quietly inverting someone else's decision from the
-outside. What it writes is marked `transcript_source='auto'`, and
-`corpus.source.BUILD_SOURCES` keeps it out of the hand-written builds.
+What it no longer borrows is the caption fetch. `get_transcript` goes
+through yt-dlp, and 413 videos in the attempt log stopped at the end of it:
+the track download, refused with HTTP 429 after yt-dlp had found a
+hand-written German track. `ingest.captions` asks YouTube's player API
+directly, as its iOS app does, and on 2026-09-25 read all 413 of those
+tracks at one video every 1.5 seconds without a single refusal. Its json3
+parse is a second parser of the same subtitles — what the first paragraph
+warns against — so it was measured against the first: thirty catalogued
+videos, identical to language-app's cache line for line.
+
+The policy is still upstream's: a hand-written track, never a machine one
+passed off as one. The machine track is taken only under `accept_auto`,
+marked `transcript_source='auto'`, which `corpus.source.BUILD_SOURCES`
+keeps out of the hand-written builds.
 """
 from __future__ import annotations
 
-from ingest.options import scrape
-from ingest.auto_captions import (
-    Refused, Throttled, Unfetchable, judge, track_from_info)
+from ingest.auto_captions import Refused, Unfetchable, judge
+from ingest.captions import Throttled, Tracks, list_tracks, snippets
 
 import sys
 from dataclasses import dataclass
@@ -103,7 +111,7 @@ class VideoIngestor:
 
     def add(self, video_id: str, language: str | None = None,
             wanted: tuple[str, ...] = (),
-            accept_auto: bool = False) -> Ingested:
+            accept_auto: bool = False, max_minutes: float = 0) -> Ingested:
         """Scrape one video and write it, or raise saying why not.
 
         `wanted` are the words the hunt went looking for. Nothing checked
@@ -145,9 +153,27 @@ class VideoIngestor:
                 f"{video_id}: metadata could not be fetched — the video may be"
                 f" gone, or the request may have been refused.{hint}")
 
-        transcript, detected, dialect, source = pipeline.get_transcript(
-            video_id, wanted_lang
-        )
+        # One list for every question below — which track, whether a machine
+        # one exists, and why there is nothing — where each of those used to
+        # be its own yt-dlp extraction. A refusal propagates as `Throttled`,
+        # a plain exception whose "HTTP 429" `add-videos` counts towards
+        # stopping the run, exactly as the refused downloads it replaces did.
+        offered = list_tracks(video_id)
+        # Length before the track, because the player's answer already carries
+        # it (`Tracks.length`) and downloading the captions is the expensive,
+        # rate-limited half. A cap here costs nothing to apply.
+        #
+        # Settled, not weather: a two-hour video will still be two hours
+        # tomorrow, so `AttemptLog` should not offer it again.
+        if max_minutes and offered.length and offered.length > max_minutes * 60:
+            refusal = SystemExit(
+                f"{video_id}: {offered.length / 60:.0f} minutes, over the "
+                f"{max_minutes:g} minute cap.")
+            refusal.outcome = "too-long"
+            raise refusal
+        track = offered.manual(wanted_lang)
+        transcript = snippets(offered.read(track)) if track else []
+        source = "manual"
         if transcript and len(transcript) < MIN_LINES:
             # A caption track with a couple of lines is a title card or a
             # music video, not material. Refused before the write, because
@@ -161,10 +187,11 @@ class VideoIngestor:
             # is considered, and `machine_transcript` raises rather than
             # returning empty when the gate refuses it, so a bad track is
             # never confused with an absent one.
-            transcript, detected, dialect, source = self.machine_transcript(
-                video_id, wanted_lang)
+            transcript, _, _, source = self.machine_transcript(
+                video_id, wanted_lang, offered)
         if not transcript:
-            raise SystemExit(f"{video_id}: {self._why_empty(video_id, wanted_lang)}")
+            raise SystemExit(
+                f"{video_id}: {self._why_empty(offered, wanted_lang)}")
         if wanted and not self._says(transcript, wanted):
             raise SystemExit(
                 f"{video_id}: says none of {', '.join(wanted)} — off target.")
@@ -187,26 +214,35 @@ class VideoIngestor:
                 title=meta["title"],
                 thumbnail_url=meta["thumbnail_url"],
                 transcript=transcript,
-                language=detected,
-                dialect=dialect,
+                # The language asked for, in both columns. `get_transcript`
+                # returned the code it matched — always the plain one, since
+                # `de` catches `de-DE` by prefix before `de-DE` is tried — so
+                # every German row holds `de` in each, and still will.
+                language=wanted_lang,
+                dialect=wanted_lang,
                 nlp=self._analyzer.matcher.nlp,
                 sentence_types=sentence_types,
                 category=meta.get("category", "other"),
-                channel_id=self._channel(cursor, meta, detected),
+                channel_id=self._channel(cursor, meta, wanted_lang),
                 transcript_source=source,
             )
 
         return Ingested(video_id=video_id, title=meta["title"],
-                        language=detected, lines=len(transcript), source=source)
+                        language=wanted_lang, lines=len(transcript),
+                        source=source)
 
 
-    def machine_transcript(self, video_id: str, language: str):
+    def machine_transcript(self, video_id: str, language: str,
+                           offered: Tracks | None = None):
         """The ASR track for a video with no hand-written one, if it is good.
 
-        Returns what `pipeline.get_transcript` returns, so the caller cannot
-        tell the two apart — snippets, language, dialect, source — with
-        `source` fixed at `auto`, which is what reaches
-        `video.transcript_source` and what every build filters on afterwards.
+        Returns what `add` builds from a hand-written track — snippets,
+        language, dialect, source — with `source` fixed at `auto`, which is
+        what reaches `video.transcript_source` and what every build filters
+        on afterwards.
+
+        `offered` is the track list `add` already holds. The dry-run survey
+        has none, and it is asked for here.
 
         The language is the one that was asked for rather than langdetect's
         verdict on the first twenty snippets. That is not a shortcut: the
@@ -216,51 +252,27 @@ class VideoIngestor:
         German in English. A video that opens "Hallo und willkommen" and
         then runs twelve minutes in English passes a check on its first
         twenty lines.
-
-        `dialect` is the plain language code, not the caption track's key.
-        Every row in the catalogue holds `de` there; `de-orig` is YouTube's
-        name for "the track that was not translated", which is not a dialect
-        and would be the only value of its kind in the column.
         """
-        import yt_dlp                            # noqa: PLC0415 — heavy
-
-        # One `YoutubeDL` for both halves. The caption download has to go
-        # through the instance that fetched the metadata — see `_payload` —
-        # and a second one would re-read the browser's cookies per video.
         try:
-            with yt_dlp.YoutubeDL(scrape(self._settings)) as ydl:
-                info = ydl.extract_info(
-                    f"https://www.youtube.com/watch?v={video_id}",
-                    download=False)
-                track, lines = track_from_info(info, video_id, ydl)
+            offered = offered or list_tracks(video_id)
+            track = offered.machine(language)
+            lines = offered.read(track) if track else []
         except Throttled as error:
-            # The metadata came back and the track did not. Named rather than
-            # left to `classify`, which reads "caption" and settles a video
-            # as having none — the exact confusion that once wrote off nine
-            # videos nobody had checked.
+            # Named rather than left to `classify`, which reads the wording —
+            # the confusion that once wrote off nine videos nobody had
+            # checked. Every refusal the list or the download can meet
+            # arrives as this one exception.
             raise Unfetchable(f"{video_id}: {error}") from error
-        except Exception as error:               # noqa: BLE001 — say which
-            # Weather, not a verdict: this is the same request that comes
-            # back "the page needs to be reloaded" under throttling. Left
-            # unclassified so `AttemptLog` treats it as `unfetchable` and
-            # tries again, rather than writing the video off unchecked.
-            raise SystemExit(
-                f"{video_id}: the machine track could not be inspected — "
-                f"{type(error).__name__}.") from error
         if not lines:
             raise Refused(
-                f"{video_id}: no original-language {language} machine track. "
-                "A bare `de` among a hundred other languages is YouTube "
-                "translating the speech, not transcribing it.",
+                f"{video_id}: no {language} machine track — YouTube's speech "
+                f"recognition did not hear {language} in it.",
                 "auto-no-track")
         verdict = judge(lines, floor=MIN_LINES)
         if not verdict.ok:
             raise Refused(f"{video_id}: {verdict.why()}",
                           f"auto-{verdict.verdict}")
-
-        snippets = [{"text": line.content, "start": line.start_time,
-                     "duration": line.duration} for line in lines]
-        return snippets, language, language, "auto"
+        return snippets(lines), language, language, "auto"
 
     def _channel(self, cursor, meta: dict, language: str) -> int | None:
         """The `channel` row this video belongs to, made if it is not there.
@@ -287,7 +299,8 @@ class VideoIngestor:
             cursor, youtube_id, (meta.get("channel_name") or "").strip(),
             language)
 
-    def _why_empty(self, video_id: str, wanted: str) -> str:
+    @staticmethod
+    def _why_empty(offered: Tracks, wanted: str) -> str:
         """Say which reason it was, rather than listing the possibilities.
 
         Only manually written subtitles are accepted — auto-generated ones
@@ -296,22 +309,20 @@ class VideoIngestor:
         Worth asking: twenty videos in one run were guessed at as
         rate-limiting when every one of them simply had no hand-written
         track.
-        """
-        import yt_dlp                            # noqa: PLC0415 — heavy
 
-        try:
-            with yt_dlp.YoutubeDL(scrape(self._settings)) as ydl:
-                info = ydl.extract_info(
-                    f"https://www.youtube.com/watch?v={video_id}", download=False)
-        except Exception:                        # noqa: BLE001 — say less, not wrong
-            return (f"no {wanted} subtitles came back, and the video could not "
-                    "be inspected to say why.")
-        manual = set(info.get("subtitles") or {})
-        auto = set(info.get("automatic_captions") or {})
-        if wanted in auto and wanted not in manual:
+        Read off the list `add` already holds. This used to be a second
+        yt-dlp extraction of its own, which could fail where the first had
+        not and then had to say "could not be inspected"; now a request
+        refused is refused once, in `list_tracks`, where it is weather.
+        """
+        if offered.manual(wanted):
+            return (f"its hand-written {wanted} subtitles hold no lines at "
+                    "all.")
+        if offered.machine(wanted):
             return (f"only auto-generated {wanted} captions, which are not "
                     "used — they mangle the endings you are learning.")
+        manual = offered.hand_written()
         if manual:
             return (f"no hand-written {wanted} subtitles; it has "
-                    f"{', '.join(sorted(manual)[:4])}.")
-        return f"no hand-written subtitles at all, in any language."
+                    f"{', '.join(manual[:4])}.")
+        return "no hand-written subtitles at all, in any language."

@@ -101,6 +101,11 @@ def _parser() -> argparse.ArgumentParser:
                          help="list what would be fetched, and stop; with "
                               "--auto, fetch and judge each track without "
                               "writing")
+    channel.add_argument("--max-minutes", type=float, default=0,
+                         dest="max_minutes",
+                         help="skip videos longer than this (default: no cap). "
+                              "Read off the player's own answer, so it costs "
+                              "no extra request and saves the caption fetch")
     channel.add_argument("--pause", type=float, default=5.0,
                          help="seconds between videos on the --auto path "
                               "(default 5; the caption endpoint throttles)")
@@ -701,7 +706,7 @@ def main() -> int:
     elif args.command == "add-channel":
         AddVideosCommand().run(app, args.channel, args.language, args.dry_run,
                                args.limit, accept_auto=args.auto,
-                               pause=args.pause)
+                               pause=args.pause, max_minutes=args.max_minutes)
     elif args.command == "quiz":
         QuizCommand().run(app, args.limit, args.source, args.files)
     elif args.command == "difficulty":

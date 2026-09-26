@@ -39,10 +39,10 @@ BUILD_OF = {"manual": "subtitle", "auto": "subtitle:auto"}
 # Seconds between videos. Nothing waited at all until a channel of 882 was
 # attempted: YouTube's caption endpoint answered the forty-seventh with HTTP
 # 429 and everything after it, while the metadata endpoint beside it was
-# still replying. The manual path survived without this because
-# `fetch_with_retries` backs off on its own and a manual track is rare enough
-# that few videos reach the download; `--auto` downloads a track for almost
-# every video it sees.
+# still replying. The manual path survived without this because the
+# download backs off on its own (`ingest.captions`) and a manual track is
+# rare enough that few videos reach it; `--auto` downloads a track for
+# almost every video it sees.
 #
 # Five seconds is chosen against the rate that broke, not against a guess at
 # the limit — one video every 1.5s broke it, so this is what a throttled
@@ -61,7 +61,8 @@ THROTTLE_LIMIT = 5
 class AddVideosCommand:
     def run(self, app, source: str, language: str | None = None,
             dry_run: bool = False, limit: int = 0,
-            accept_auto: bool = False, pause: float = PAUSE) -> None:
+            accept_auto: bool = False, pause: float = PAUSE,
+            max_minutes: float = 0) -> None:
         ids = self._collect(app, source, limit)
         ingestor = VideoIngestor(app.settings, app.analyzer)
         log = AttemptLog(app.settings.state_path)
@@ -118,7 +119,8 @@ class AddVideosCommand:
             print(f"  [{index}/{len(fresh)}] {video_id} … ", end="", flush=True)
             try:
                 landed = ingestor.add(video_id, language,
-                                      accept_auto=accept_auto)
+                                      accept_auto=accept_auto,
+                                      max_minutes=max_minutes)
             except SystemExit as why:
                 refused.append((video_id, str(why)))
                 # The gate says which test a track failed and carries it on
