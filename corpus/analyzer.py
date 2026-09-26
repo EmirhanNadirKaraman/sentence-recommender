@@ -75,6 +75,19 @@ MIN_FUZZY = 1.0
 # one is almost certainly right, and must not be "corrected" — this is the
 # guard that keeps `sein` and `haben` away from the lookup table below.
 INFINITIVE_ENDINGS = ("en", "n")
+# Prefixes that themselves end in `zu`, so the `zu` inside them is not the
+# infinitive marker. See `_without_zu`.
+JOINED_ZU = ("hin", "da", "her", "dar")
+# The separable prefixes, for deciding whether a stem already carries one.
+# Only that: the fold itself reads the prefix off the parse and needs no list.
+SEPARABLE = (
+    "ab", "an", "auf", "aus", "bei", "da", "dar", "durch", "ein", "entgegen",
+    "entlang", "fest", "fort", "gegenüber", "her", "herab", "heran", "herauf",
+    "heraus", "herein", "herum", "herunter", "hervor", "hin", "hinauf",
+    "hinaus", "hinein", "hinter", "hinunter", "hinzu", "los", "mit", "nach",
+    "nieder", "statt", "teil", "über", "um", "unter", "vor", "voran", "voraus",
+    "vorbei", "vorüber", "weg", "weiter", "wieder", "zu", "zurecht", "zurück",
+    "zusammen")
 
 # How decisively a competing lemma must outnumber an apparent failure before
 # the corpus vote overrides it.  See `_lemma_corrections`.
@@ -299,11 +312,47 @@ class UnitAnalyzer:
         # because the vote is keyed on the surface and `steht` must keep
         # meaning `stehen` there; see `_prefixed_corrections`.
         prefix_of: dict[int, object] = {}
+        # The stem the guard below settled on, where it is not the one
+        # `_verb_lemma` gives. Carried rather than recomputed: the check found
+        # that `auf` + `räumen` is a verb, and rebuilding the lemma at the
+        # fold from the noun reading put `aufräum` in the corpus instead.
+        stem_of: dict[int, str] = {}
         for token in doc:
-            if token.pos_ in ("VERB", "AUX"):
-                for child in token.children:
-                    if child.dep_ == "svp":
+            for child in token.children:
+                if child.dep_ != "svp":
+                    continue
+                if token.pos_ in ("VERB", "AUX"):
+                    prefix_of[token.i] = child
+                    continue
+                # The parse says "separable prefix of this token" and then
+                # tags that token as something other than a verb. Imperatives
+                # are where it happens -- `Räum bitte dein Zimmer auf!` has
+                # `Räum` as a NOUN -- and demanding the tag threw the fold
+                # away in a fifth of the cases the parse got right.
+                #
+                # Believe the dependency, but only when the two halves spell
+                # a verb the table knows. Without that the same line would
+                # invent `aufräum` as readily as it recovers `aufräumen`.
+                # Three readings of the stem, weakest last. The tagger has
+                # called this a noun, so its lemma is a noun's: `Räum` gives
+                # `räum`, and `aufräum` is nothing. The table knows some
+                # imperative stems (`mach`, `hör`, `geh`) and not others, and
+                # for those the bare stem plus `-en` is the infinitive.
+                #
+                # Inventing is prevented by what is asked, not by which
+                # reading answered: the *combined* word has to be a verb the
+                # table knows. `aufräumen`, `aufstehen` and `anfangen` all
+                # are; `aufräum` and `aufkomm` are not, and nothing is folded
+                # on a guess that spells nothing.
+                head = token.text.lower()
+                for stem in (self._verb_lemma(token),
+                             self.verb_lemmas.get(head, ""),
+                             head + "en"):
+                    if stem and self.verb_lemmas.is_lemma(
+                            child.lemma_.lower() + stem):
                         prefix_of[token.i] = child
+                        stem_of[token.i] = stem
+                        break
         particles = {child.i for child in prefix_of.values()}
         for token in doc:
             if token.tag_ in PUNCTUATION_TAGS or token.is_punct or token.is_space:
@@ -321,9 +370,13 @@ class UnitAnalyzer:
             surface = token.text
             if token.i in prefix_of:
                 particle = prefix_of[token.i]
-                evidence.prefixed.add((particle.lemma_.lower(), lemma))
-                lemma = particle.lemma_.lower() + lemma
-                surface = f"{token.text} {particle.text}"
+                stem = stem_of.get(token.i, lemma)
+                # Unless the verb already carries a prefix of its own, in
+                # which case gluing this one on spells nothing.
+                if not self._already_prefixed(stem):
+                    evidence.prefixed.add((particle.lemma_.lower(), stem))
+                    lemma = particle.lemma_.lower() + stem
+                    surface = f"{token.text} {particle.text}"
             # `exact`: the capital on a noun that shares its lemma with a
             # verb is the only thing telling them apart, and it is this
             # line that used to drop it.
@@ -405,6 +458,45 @@ class UnitAnalyzer:
             return False
         return True
 
+    def _already_prefixed(self, stem: str) -> bool:
+        """Whether `stem` is itself a complete separable verb.
+
+        The fold reads the particle off the parse and glues it to the verb's
+        lemma, and the model sometimes hands back a lemma that already carries
+        its prefix -- so a second particle was glued on top and the corpus
+        grew `aufanfangen`, `anauffordern`, `anhinweisen`: 283 units that are
+        not words.
+
+        The test is not "starts with a prefix", which would refuse `mit` +
+        `teilen` because `teilen` starts with `teil`. It is "starts with a
+        prefix and the rest is a verb on its own": `teilen` minus `teil` is
+        `en` and nothing, `auffordern` minus `auf` is `fordern` and a verb.
+        """
+        return any(stem.startswith(prefix)
+                   and self.verb_lemmas.is_lemma(stem[len(prefix):])
+                   for prefix in SEPARABLE)
+
+    def _without_zu(self, lemma: str) -> str:
+        """`abzunehmen` -> `abnehmen`, or "" if no split spells a verb.
+
+        The search starts past the first letter, which is what makes
+        `zunehmen` safe: its `zu` is the prefix and not the marker.
+
+        `JOINED_ZU` is the other half of that. `hinzu`, `dazu` and `herzu` are
+        prefixes that end in `zu`, so the first `zu` in `hinzuziehen` is not
+        the marker either -- splitting there gives `hinziehen`, which is a
+        real verb and the wrong one. Skipping those positions leaves
+        `hinzuziehen` alone and still folds `hinzuzufügen`, where the second
+        `zu` is the marker and the first is not.
+        """
+        for at in range(1, len(lemma) - 3):
+            if lemma[at:at + 2] != "zu" or lemma[:at] in JOINED_ZU:
+                continue
+            plain = lemma[:at] + lemma[at + 2:]
+            if self.verb_lemmas.is_lemma(plain):
+                return plain
+        return ""
+
     def _verb_lemma(self, token) -> str:
         """`token`'s lemma, with an inflected verb folded into its infinitive.
 
@@ -456,6 +548,27 @@ class UnitAnalyzer:
             fixed = self.verb_lemmas.override(surface)
             if fixed:
                 return fixed
+            # `abzunehmen` is `abnehmen`. A separable verb writes its
+            # zu-infinitive as one word with the `zu` between prefix and stem,
+            # and the model handles some of them (`einzutragen` does come back
+            # as `eintragen`) and not others -- `abzunehmen`, `abzuhaken`,
+            # `abzudrücken` come back as themselves. Neither guard below
+            # catches that: the invented-lemma test wants a lemma unlike the
+            # surface, and this is the surface; the identity test exempts
+            # anything ending `-en`, and every infinitive does.
+            #
+            # Gated on the table and not on the tag. `VVIZU` names exactly
+            # this form and would be the obvious test, but the tagger does not
+            # always reach for it: a corpus rebuilt on that gate still held
+            # 235 of these, and the ones left were tagged `VVINF` and `VVPP`.
+            # What makes the repair safe is that it only ever runs on a lemma
+            # no lexicon knows, and only takes a split that spells one --
+            # which is also what protects `hinzufügen` and `zunehmen`, whose
+            # `zu` is theirs.
+            if not self.verb_lemmas.is_lemma(lemma):
+                plain = self._without_zu(lemma) or self._without_zu(surface)
+                if plain:
+                    return plain
             if lemma == surface and not surface.endswith(INFINITIVE_ENDINGS):
                 return self.verb_lemmas.get(surface, lemma)
             # The parser is an edit-tree model: it predicts a transformation,
