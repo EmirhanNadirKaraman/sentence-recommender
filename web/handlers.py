@@ -141,16 +141,23 @@ SHOWN_ENTRIES = 60
 # megabyte of table for a list nobody reads past the top of.
 PLANS = Path(__file__).resolve().parents[1] / "experiment_results"
 PLAN_PAGE = 100
+# Enough to read along with; a transcript is prose and some run long.
+MAX_TRANSCRIPT_LINES = 500
 
 # The knobs a saved order varies, in the order its filename spells them and
 # the page offers them. Named once because they are read in four places --
 # the key built from a filename, the key built from a query, the dropdowns,
 # and the list of what else exists -- and a knob added to some of those and
 # not the rest is a page that quietly answers a different question.
-KNOBS = ("gate", "k", "floor", "machine", "seg")
-DEFAULTS = {"gate": "i1", "k": "1", "floor": "40",
-            "machine": "yes", "seg": "yes"}
-Knobs = tuple[str, str, str, str, str]
+KNOBS = ("gate", "k", "floor", "machine", "seg", "noise")
+# The plan worth landing on: i+1 at five encounters, machine-made channels
+# out, and words the corpus can never teach not counted. Measured over the
+# same shelf, that last one takes i+1 from 648.6 h to 210.2 h and from 2,974
+# words met to 3,181 of 3,185 -- it is the only setting on the page that
+# finishes the list, and with it i+1 beats both looser gates.
+DEFAULTS = {"gate": "i1", "k": "5", "floor": "10",
+            "machine": "no", "seg": "no", "noise": "ignored"}
+Knobs = tuple[str, str, str, str, str, str]
 
 
 class Once:
@@ -287,6 +294,9 @@ class Viewer:
         self._unit_videos: dict[str, dict] = {}
         # One scoring pass at a time; the rest wait and find it done.
         self._scoring = Lock()
+        # When the builds were last written, as of whenever these caches were
+        # filled. `_corpus_moved` compares it against the corpus itself.
+        self._corpus_at: str | None = None
         # Marked words waiting to be scored. `_rescore` reaches `_grouped`,
         # which materialises the whole corpus on a cold cache — twenty-three
         # seconds, measured, on the thread answering the POST. Swiping a word
@@ -298,6 +308,7 @@ class Viewer:
         self._taste = ChannelTaste(app.settings.state_path)
         self._samples: dict | None = None
         self._listing: list | None = None
+        self._episodes: dict | None = None
         self._plan_files: dict = {}
         self._stars: set | None = None
         # Video -> the channel that published it, and channel -> its name.
@@ -637,8 +648,21 @@ class Viewer:
         # vocabulary. Strict renames the one to the other rather than
         # dropping it, so the word still counts where the goal is not there
         # to stand in for it. See `Aliases`.
-        return self._corpora.get(key, lambda: self.app.corpus(
-            *self._builds(source), list_only=list_only, strict=not list_only))
+        def load() -> list[Sentence]:
+            # The vintage is read before the rows and kept only if nothing is
+            # held yet, so `_corpus_at` names the oldest corpus in memory.
+            # Reading it afterwards, or letting a later load overwrite it,
+            # would let a build written mid-load pass for one these rows had
+            # seen — and rows scored from a corpus that predates a video, but
+            # stamped with the corpus that has it, are the original bug again.
+            at = self._corpus_stamp()
+            rows = self.app.corpus(*self._builds(source), list_only=list_only,
+                                   strict=not list_only)
+            if self._corpus_at is None:
+                self._corpus_at = at
+            return rows
+
+        return self._corpora.get(key, load)
 
     def priority(self) -> UnitPriority:
         """Ranked goals, built once a request rather than once a caller.
@@ -2454,7 +2478,6 @@ class Viewer:
     def save_review(self, form: dict) -> str | tuple[str, str]:
         """A decision on the review page: the sentence written out, or
         the grade on what was written. Both are yours."""
-        from srs.scheduler import GRADUATED, UNMARKED, verdict  # noqa: PLC0415
         source = form.get("src", "")
         action = (form.get("action") or "").strip()
         unit = Unit(form.get("kind", ""), form.get("key", ""))
@@ -2497,16 +2520,147 @@ class Viewer:
         correct = action == "good"
         result["correct"] = correct
         self.app.attempts.grade_last(unit, correct)
+        result.update(self._grade_card(card, correct))
+        return ("page", self.review({"src": source}, result))
+
+    def _clip_for(self, source: str, unit: Unit):
+        """The best line to hear a word said in: (video id, sentence) or None.
+
+        Best means followable. A word is being tested, so the line around it
+        has to be one the reader can carry -- a clip whose every other word is
+        also unknown tests nothing and teaches nothing. Ranked by how many
+        units in it are still unknown, then by length, so the shortest clear
+        line wins and a twenty-word sentence with one unknown loses to a six
+        word one with none.
+
+        Off `_videos_with`, which is already built for `mark_known`, so this
+        reads a few hundred lines rather than a quarter of a million.
+        """
+        known = self.known
+        grouped = self._grouped(source)
+        best = None
+        for video in self._videos_with(source).get(unit, ()):
+            for line in grouped.get(video, ()):
+                if unit not in line.units or not line.timing:
+                    continue
+                rank = (len(line.units - known - {unit}), len(line.text))
+                if best is None or rank < best[0]:
+                    best = (rank, video, line)
+        return (best[1], best[2]) if best else None
+
+    def hear(self, query: dict) -> str:
+        """The words you claimed, tested by hearing them said.
+
+        `/review` asks you to put an English sentence into German. That is the
+        harder question and the right one for a word you mean to use, but it
+        is a writing session, and a claim can also be confirmed by meeting the
+        word in the wild and knowing it. This is that: the word, the clip it
+        is said in, no translation, and your own word for whether you had it.
+
+        The same queue and the same cards as `/review` -- `due_cards` is asked
+        here too, and `_grade_card` is what moves them -- so answering here
+        counts, and a word answered here is not asked there the same day.
+
+        A card with no clip is passed over rather than shown bare: the clip is
+        the whole question. It stays due, and `/review` will ask it in words.
+        """
+        source = self.source(query)
+        now = datetime.now()
+        called = self.app.due_cards(now, limit=200)
+        queue = [card for card, _ in called]
+        skipped = query.get("not") or ""
+        if skipped and len(queue) > 1:
+            queue = ([c for c in queue if f"{c.unit.kind}:{c.unit.key}" != skipped]
+                     + [c for c in queue if f"{c.unit.kind}:{c.unit.key}" == skipped])
+        clip = None
+        for card in queue:
+            clip = self._clip_for(source, card.unit)
+            if clip:
+                break
+        else:
+            card = None
+        if not queue:
+            return self._page("Hearing", "<h1>Nothing due</h1><p class='empty'>"
+                              "No claim is waiting to be confirmed. Mark a word "
+                              "known and it comes back here tomorrow.</p>",
+                              "/hear", source)
+        if clip is None:
+            return self._page(
+                "Hearing", f"<h1>{len(queue):,} due, none with a clip</h1>"
+                "<p class='empty'>Nothing due is said in any video this app can "
+                "play. <a class='link' href='/review'>Review them in words</a> "
+                "instead.</p>", "/hear", source)
+        clip_video, line = clip
+        title = dict(self._catalogue_titles()).get(clip_video, clip_video)
+        heard = self.app.encounters.count(card.unit)
+        body = (
+            "<h1>Did you know it?</h1>"
+            "<p class='lede'>The word, said where it was said. No English: "
+            "listen, read the line, and say whether you had it. The answer "
+            "moves the same card the Review page moves.</p>"
+            f"<p class='tally'><b>{len(queue):,}</b> due · heard while "
+            f"watching <b>{heard:,}</b> time{'' if heard == 1 else 's'}</p>"
+            f"<h2 class='word'>{escape(card.unit.key)}</h2>"
+            + video.player(clip_video, line.timing.start)
+            + f"<p class='caption'>{escape(line.text)}</p>"
+            f"<p class='quiet'><a class='link' href='/video?id="
+            f"{quote(clip_video, safe='')}&src={quote(source)}'>"
+            f"{escape(title[:64])}</a></p>"
+            "<form class='actions' method='post' action='/hear'>"
+            f"<input type='hidden' name='kind' value='{escape(card.unit.kind)}'>"
+            f"<input type='hidden' name='key' value='{escape(card.unit.key)}'>"
+            f"<input type='hidden' name='src' value='{escape(source)}'>"
+            "<button type='submit' name='action' value='good'>I knew it</button>"
+            "<button type='submit' name='action' value='again'>I did not</button>"
+            "<button type='submit' name='action' value='skip'>Not this one</button>"
+            "</form>")
+        return self._page("Hearing", body, "/hear", source)
+
+    def save_hearing(self, form: dict) -> str:
+        """One answer on `/hear`, and on to the next word."""
+        source = form.get("src", "")
+        action = (form.get("action") or "").strip()
+        unit = Unit(form.get("kind", ""), form.get("key", ""))
+        back = f"/hear?src={quote(source)}"
+        if action == "skip":
+            return back + f"&not={quote(f'{unit.kind}:{unit.key}', safe='')}"
+        card = self.app.card_store.get(unit) if unit.key else None
+        if card is None:
+            return back
+        correct = action == "good"
+        # Kept the same way a written answer is, so the two ways of being
+        # asked leave one history rather than two.
+        self.app.attempts.grade_last(unit, correct)
+        self._grade_card(card, correct)
+        return back
+
+    def _catalogue_titles(self) -> list:
+        """(id, title) for every video, off the listing the catalogue reads."""
+        return [(v, t) for v, t, _ in self._catalogue()]
+
+    def _grade_card(self, card, correct: bool) -> dict:
+        """Record one answer, and say what it did to the claim.
+
+        Five passes graduate a word and it is never asked again; two failures
+        in a row take the mark back, because the plan had been assuming the
+        word was known and it was not (`srs.scheduler`).
+
+        Shared by the two ways of being asked. `/review` asks you to put an
+        English sentence into German; `/hear` plays the word being said and
+        asks whether you knew it. They are different questions about the same
+        claim, and a claim confirmed either way is confirmed -- so they must
+        move the same card, and this is the one place that moves it.
+        """
+        from srs.scheduler import GRADUATED, UNMARKED, verdict  # noqa: PLC0415
         reviewed = self.app.scheduler.review(card, correct, datetime.now())
         outcome = verdict(reviewed)
         if outcome == GRADUATED:
-            self.app.card_store.remove(unit)
+            self.app.card_store.remove(card.unit)
         elif outcome == UNMARKED:
-            self._unmark(unit)
+            self._unmark(card.unit)
         else:
             self.app.card_store.save(reviewed)
-        result.update(outcome=outcome, due=reviewed.due_date.isoformat())
-        return ("page", self.review({"src": source}, result))
+        return {"outcome": outcome, "due": reviewed.due_date.isoformat()}
 
     # --- the sentences you wrote ------------------------------------------
 
@@ -3111,12 +3265,13 @@ class Viewer:
         out: dict[Knobs, str] = {}
         for path in sorted(PLANS.glob("07-plan-*.csv")) + \
                 sorted(PLANS.glob("07-cover-*.csv")):
-            # 07 plan gate kN [floorN] [nomachine] [noseg]
+            # 07 plan gate kN [floorN] [nomachine] [noseg] [noise]
             bits = path.stem.split("-")
             floor = next((b[5:] for b in bits if b.startswith("floor")), "40")
             out[(bits[2], bits[3].lstrip("k"), floor,
                  "no" if "nomachine" in bits else "yes",
-                 "no" if "noseg" in bits else "yes")] = path.stem
+                 "no" if "noseg" in bits else "yes",
+                 "ignored" if "noise" in bits else "blocks")] = path.stem
         return out
 
     @staticmethod
@@ -3131,12 +3286,22 @@ class Viewer:
                      "20pct": "unknowns ≤ 20% of the line"},
             "k": {"0": "minimum cover, solved exactly", "1": "met once",
                   "5": "met five times"},
-            "floor": {"40": "episodes of 40+ lines",
-                      "10": "episodes of 10+ lines"},
+            # No 40 any more. It was never only about episodes either: the
+            # shelf applied the floor to episodes and the constant to videos,
+            # so a floor-10 run kept the floor-40 videos until that was fixed.
+            "floor": {"10": "10+ lines"},
             "machine": {"yes": "machine-made channels kept",
                         "no": "machine-made channels dropped"},
             "seg": {"yes": "Super Easy German kept",
                     "no": "Super Easy German dropped"},
+            # A word the corpus can never teach is unknown for ever, so under
+            # i+1 it blocks every line it is in, permanently. Ignoring those
+            # was measured at 590.7 h -> 246.0 h with 194 more words met and
+            # readability down 2.8 points -- the largest single effect found.
+            # What it costs is that a line may hold a word you do not know
+            # and will not be taught.
+            "noise": {"blocks": "every unknown word counts",
+                      "ignored": "words that can never be taught are ignored"},
         }.get(knob, {}).get(value, value)
 
     def _plan_picker(self, offered: dict, chosen: dict, source: str) -> str:
@@ -3240,11 +3405,16 @@ class Viewer:
                         f"&src={quote(source)}'>{escape(name[:64])}</a>"
                         + self._wrote_it(seen))
             else:
-                # An episode is a transcript with no video behind it in the
-                # catalogue. It is watched on the channel, so the honest
-                # thing is to say so and point at the search rather than
-                # dress it as something this app can play.
-                what = (f"{escape(name[:64])} <a class='link' rel='noreferrer' "
+                # An episode is a transcript with no video in the catalogue,
+                # but the channel numbers its titles and `_episode_videos`
+                # joins the two on that. Where the join lands, the row opens
+                # the player like any other; where it does not, it keeps the
+                # search it always had rather than guessing at an id.
+                found = self._episode_videos().get(row["where"])
+                what = (f"<a href='/video?id={quote(found, safe='')}"
+                        f"&src={quote(source)}'>{escape(name[:64])}</a>"
+                        if found else
+                        f"{escape(name[:64])} <a class='link' rel='noreferrer' "
                         "href='https://www.youtube.com/results?search_query="
                         f"{quote('Easy German ' + name, safe='')}'>on YouTube"
                         "</a>")
@@ -3274,6 +3444,7 @@ class Viewer:
                 "with its subtitles. Easy German episodes have no video in "
                 "the catalogue — they are watched on the channel.</p>"
                 + picker
+                + self._replan_panel(chosen, which, source)
                 + f"<p class='tally'><b>{len(rows):,}</b> viewings · "
                 f"<b>{videos:,}</b> videos · <b>{total / 60:,.0f}</b> hours · "
                 f"showing {start + 1:,}&ndash;{min(start + PLAN_PAGE, len(rows)):,}"
@@ -3285,15 +3456,190 @@ class Viewer:
                 f"<div class='pager'>{back}{on}</div>")
         return self._page("Plan", body, "/plan", source)
 
+    # One rebuild at a time across every word list. The saved orders are one
+    # file per combination of knobs and nothing in the name says which list
+    # they were walked for, so two lists rebuilding at once would write the
+    # same file twice, interleaved. Class-level for that reason and not
+    # because a viewer could not hold it.
+    _replan_lock = Lock()
+    _replanning: dict = {}
+
+    def replan(self, form: dict) -> str:
+        """Walk the chosen order again, against what is known right now.
+
+        The saved plans are written by `experiments/video_order.py` from a
+        terminal, and they go out of date with every word marked: learning a
+        word removes its own K encounters from the bill and unblocks the i+1
+        sentences it was the second unknown in, which is why marking ninety-one
+        units over one evening took the i+1 K=5 plan from 638 hours to 602.
+        Collecting that meant leaving the app and running an experiment, and
+        this is here so it does not.
+
+        Off the request, because the walk is minutes: a corpus load, a shelf,
+        and a greedy pass that rescores every video whenever a word lands.
+        """
+        chosen = {knob: (form.get(knob) or DEFAULTS[knob]) for knob in KNOBS}
+        source = form.get("src", "")
+        back = ("/plan?" + "&".join(f"{k}={quote(v)}" for k, v in chosen.items())
+                + f"&src={quote(source)}")
+        with Viewer._replan_lock:
+            running = Viewer._replanning
+            if running and not running.get("finished"):
+                return back                  # one is already walking; say nothing
+            Viewer._replanning = {"knobs": chosen, "started": datetime.now(),
+                                  "finished": None, "said": [], "error": ""}
+        Thread(target=self._replan_now, args=(chosen,), name="replan",
+               daemon=True).start()
+        return back
+
+    def _replan_now(self, chosen: dict) -> None:
+        """The walk itself. Writes the plan file and the per-word costs.
+
+        It loads its own copy of the corpus rather than the one this process
+        is holding — `shelf` asks the application, which does not cache — so
+        it costs a second quarter of a million sentences while it runs. That
+        is a lot to spend on a page view and nothing to spend on a button
+        somebody pressed, which is the whole reason this is not automatic.
+        """
+        from experiments.video_order import (GATES, one_walk,   # noqa: PLC0415
+                                             slug)
+        said: list[str] = []
+        error = ""
+        try:
+            gate = {slug(name): name for name in GATES}[chosen["gate"]]
+            # Every knob the page offers, or the button rebuilds a different
+            # plan from the one it was pressed on and writes it under that
+            # plan's name. `noise` was missing and did exactly that.
+            one_walk(self.app, self.app.known_set(), gate, int(chosen["k"]),
+                     drop_machine=chosen["machine"] == "no",
+                     drop_seg=chosen["seg"] == "no",
+                     episode_floor=int(chosen["floor"]),
+                     noise=chosen["noise"] == "ignored",
+                     say=lambda line: said.append(line.strip()))
+        except Exception as trouble:                      # noqa: BLE001
+            import traceback                              # noqa: PLC0415
+            print("\n--- recalculating the plan failed ---", flush=True)
+            traceback.print_exception(trouble)
+            error = f"{type(trouble).__name__}: {trouble}"
+        with Viewer._replan_lock:
+            Viewer._replanning = dict(Viewer._replanning, said=said,
+                                      error=error, finished=datetime.now())
+
+    def _replan_panel(self, chosen: dict, stem: str, source: str) -> str:
+        """The button, and whatever the last run had to say.
+
+        A cover is solved rather than walked — CBC over the whole shelf, in
+        `cover`, not `one_walk` — so the button says so instead of offering to
+        rebuild it with the wrong machine.
+        """
+        state = Viewer._replanning
+        mine = state.get("knobs") == chosen
+        if state and not state.get("finished"):
+            for_what = state.get("knobs") or {}
+            which = " · ".join(self._plan_words(k, for_what.get(k, ""))
+                               for k in KNOBS)
+            return ("<p class='tally'>Recalculating "
+                    f"<b>{escape(which)}</b>, started "
+                    f"{state['started']:%H:%M}. A few minutes — this page "
+                    "refreshes itself.</p>"
+                    "<script>setTimeout(function(){location.reload()},20000)"
+                    "</script>")
+        if stem.startswith("07-cover-"):
+            return ("<p class='quiet'>A minimum cover is solved, not walked — "
+                    "rebuild it with <code>experiments/video_order.py</code>.</p>")
+        said = ""
+        if mine and state.get("error"):
+            said = (f"<span class='empty'>Last run failed — "
+                    f"{escape(state['error'])}</span>")
+        elif mine and state.get("finished"):
+            lines = [x for x in state.get("said", []) if "K=" in x]
+            said = ("<span class='quiet'>Recalculated "
+                    f"{state['finished']:%H:%M}"
+                    + (f" — {escape(lines[0].split(':', 1)[-1].strip())}"
+                       if lines else "") + "</span>")
+        return ("<form class='bar' method='post' action='/replan'>"
+                + "".join(f"<input type='hidden' name='{k}' "
+                          f"value='{escape(chosen[k])}'>" for k in KNOBS)
+                + f"<input type='hidden' name='src' value='{escape(source)}'>"
+                + "<button type='submit'>Recalculate from what I know now"
+                  "</button>" + said + "</form>")
+
     def _plan_rows(self, stem: str) -> list[dict]:
-        """One saved order, parsed once and kept."""
-        if stem not in self._plan_files:
-            path = PLANS / f"{stem}.csv"
+        """One saved order, parsed once and read again when it is rebuilt.
+
+        Kept against the file's modification time rather than its name alone.
+        The plans are written by an experiment run from a terminal, outside
+        this process and with no way to tell it — so rebuilding them and
+        finding the page still listing the old order is the staleness
+        `_corpus_moved` exists for, one directory along. A stat call per view
+        of one page is nothing beside parsing two thousand rows.
+        """
+        path = PLANS / f"{stem}.csv"
+        stamp = path.stat().st_mtime_ns
+        held = self._plan_files.get(stem)
+        if held is None or held[0] != stamp:
             with path.open(encoding="utf-8") as handle:
-                self._plan_files[stem] = list(csv.DictReader(handle))
-        return self._plan_files[stem]
+                held = (stamp, list(csv.DictReader(handle)))
+            self._plan_files[stem] = held
+        return held[1]
 
     # --- one video, on purpose ---------------------------------------------
+
+    def _episode_page(self, transcript: Path, video_id: str,
+                      source: str) -> str:
+        """An Easy German episode: the video, and the transcript under it.
+
+        Not the video page proper, because none of what that page is built on
+        exists here -- no catalogue row, no analysed lines, no timings, so no
+        caption that follows the player and no place in the reel. What there
+        is is the text, and reading along is most of the value of a subtitle
+        even when nothing can highlight the line being spoken.
+
+        The text is shown as it sits on disk. It is one of these transcripts
+        that the plan counted when it decided this episode was worth the
+        minutes, so showing anything else would be showing something else.
+        """
+        try:
+            lines = [ln.strip() for ln
+                     in transcript.read_text(encoding="utf-8",
+                                             errors="replace").splitlines()
+                     if ln.strip()]
+        except OSError:
+            lines = []
+        shown = lines[:MAX_TRANSCRIPT_LINES]
+        more = len(lines) - len(shown)
+        body = (f"<h1>{escape(transcript.stem)}</h1>"
+                "<p class='lede'>An Easy German episode. It has no entry in "
+                "the catalogue, so there are no timed subtitles and no place "
+                "in the reel — the transcript is below instead.</p>"
+                + video.player(video_id, 0)
+                + (f"<p class='tally'><b>{len(lines):,}</b> lines of "
+                   "transcript</p>" if lines else
+                   "<p class='empty'>The transcript file could not be read.</p>")
+                + "<div class='transcript'>"
+                + "".join(f"<p>{escape(ln)}</p>" for ln in shown)
+                + (f"<p class='quiet'>…and {more:,} more lines, in "
+                   f"{escape(transcript.name)}</p>" if more > 0 else "")
+                + "</div>")
+        return self._page(transcript.stem, body, "/video", source)
+
+    def _episode_videos(self) -> dict[str, str]:
+        """Transcript path -> the video it was transcribed from.
+
+        An Easy German episode is a transcript with no video in the
+        catalogue, so the Plan page could only ever offer a YouTube search
+        for one. `data/episode_videos.json` joins the two on the episode
+        number the channel puts in its titles, which covers 1,191 of the
+        1,399 transcripts; the rest predate the numbering and keep the
+        search, because a wrong link is worse than none.
+        """
+        if self._episodes is None:
+            path = PLANS.parent / "data" / "episode_videos.json"
+            try:
+                self._episodes = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                self._episodes = {}
+        return self._episodes
 
     def _catalogue(self) -> list[tuple[str, str, float | None]]:
         """Every video the catalogue holds, as (id, title, minutes)."""
@@ -3331,6 +3677,10 @@ class Viewer:
 
         titles = {v: t for v, t, _ in listing}
         if wanted not in titles:
+            episode = next((Path(p) for p, v in self._episode_videos().items()
+                            if v == wanted), None)
+            if episode is not None:
+                return self._episode_page(episode, wanted, source)
             return self._page("Video", "<h1>Not in the catalogue</h1>"
                               "<p class='empty'>Nothing here has that id. "
                               "<a href='/video'>Pick one from the list</a>, or "
@@ -3777,6 +4127,10 @@ class Viewer:
         costs nothing. When it does not, everything is scored once and
         stored; marking a word takes the cheaper path in `mark_known`.
         """
+        # Before `_ranked` is read, because it is served without a lock and
+        # without a stamp: the corpus may have gained a video since this
+        # process last looked at it.
+        self._corpus_moved()
         rows = self._ranked.get(source)
         if rows is None:
             with self._scoring:
@@ -3786,8 +4140,13 @@ class Viewer:
                 # the lock exists to prevent.
                 rows = self._ranked.get(source)
                 if rows is None:
-                    rows = self._compute(source)
-                    self._ranked[source] = rows
+                    rows, at = self._compute(source)
+                    # Kept only if the corpus has not moved under the pass.
+                    # Another thread clearing everything while this scored
+                    # would otherwise have its work undone by this line
+                    # putting the rows it threw away straight back.
+                    if self._corpus_at == at:
+                        self._ranked[source] = rows
         # Taste is applied here and never stored with the score. What you
         # think of a channel is not a property of its videos, so keeping it
         # out of the cached number means saying so costs no rescore at all --
@@ -3800,12 +4159,16 @@ class Viewer:
                       if r["lines"] >= floor and r["video"] not in banned]
         return self._ordered(banned_out, order, plan)
 
-    def _compute(self, source: str) -> list[dict]:
-        """Stored scores if they still describe you, otherwise scored afresh."""
-        stamp = self._score_stamp()
+    def _compute(self, source: str) -> tuple[list[dict], str | None]:
+        """Stored scores if they still describe you, otherwise scored afresh,
+        and the corpus they came from so the caller can tell whether it has
+        moved since — see `_watchable`."""
+        # The live corpus for the question "are the stored rows still good",
+        # because answering it must not need a corpus at all.
+        _, stamp = self._score_stamps()
         rows = self._scores.load(source, stamp)
         if rows is not None:
-            return rows
+            return rows, self._corpus_at
         known, goals = self.known, frozenset(self.app.goal_units)
         spoken = self._spoken_lines(source)
         levels, typical = self._levels(source)
@@ -3813,8 +4176,14 @@ class Viewer:
                                          levels.get(v), typical)
                        for v, s in self._grouped(source).items()),
                       key=lambda r: -r["watch"])
-        self._scores.save(source, stamp, rows)
-        return rows
+        # Stamped with the corpus these rows were read from, which `_grouped`
+        # has just recorded, and not with the live one read above. A build
+        # written while this was scoring then leaves rows that say so and the
+        # next reader recomputes, rather than rows claiming a corpus they
+        # never saw.
+        _, scored_under = self._score_stamps(self._corpus_at)
+        self._scores.save(source, scored_under, rows)
+        return rows, self._corpus_at
 
     def _levels(self, source: str) -> tuple[dict[str, float], float | None]:
         """Video -> the judge's level of it, from a sample of its lines
@@ -4116,16 +4485,17 @@ class Viewer:
         if not sources:
             return
         known = goals = None
-        stamp = self._score_stamp()
+        basis, stamp = self._score_stamps()
         for source in sources:
-            # Only a marked word may be repaired. `_score_stamp` is
-            # `fingerprint|SCORE_VERSION|known-version`, and if either of the
-            # first two has moved then every stored row was computed by rules
-            # that no longer apply — patching the handful this word touched
-            # and restamping would declare the rest fresh under an analyser
-            # that never scored them. Left alone, `_compute` rebuilds them.
+            # Only a marked word may be repaired. If anything in the basis has
+            # moved — the analyser, the scoring code, or the corpus — then the
+            # stored rows were computed by rules that no longer apply, or
+            # against a catalogue that has since gained a video. Patching the
+            # handful this word touched and restamping would declare the rest
+            # fresh under an analyser that never scored them, or complete when
+            # a video is missing from them. Left alone, `_compute` rebuilds.
             held = self._scores.stamp(source)
-            if held is None or held.rsplit("|", 1)[0] != stamp.rsplit("|", 1)[0]:
+            if held is None or held.rsplit("|", 1)[0] != basis:
                 continue
             rows = self._ranked.get(source)
             if rows is None:
@@ -4168,18 +4538,53 @@ class Viewer:
                 self._ranked[source] = merged
             self._scores.update(source, stamp, list(fresh.values()))
 
-    def _score_stamp(self) -> str:
-        """What the stored scores were computed against.
+    def _corpus_stamp(self) -> str:
+        """What state the corpus is in — see `CorpusStore.vintage`.
 
-        The analyser, because a rebuilt corpus says different things; the
-        known-set version, which the database bumps itself whenever a word is
-        marked; and `SCORE_VERSION`, because the scoring code is an input
-        too. Leaving that out already served stale rows once: a change to
-        which videos get scored left nine hundred rows that said seven
-        hundred, under a stamp that still matched.
+        Read live and never cached, because the question it exists to answer is
+        exactly whether the corpus has changed under what is being held.
         """
-        return (f"{analyser_fingerprint()}|{SCORE_VERSION}"
-                f"|{self.app.marked_known.version()}")
+        return self.app.corpus_store.vintage()
+
+    def _score_stamps(self, corpus_at: str | None = None) -> tuple[str, str]:
+        """The basis, and what the stored scores were computed against.
+
+        The basis is the analyser, because a rebuilt corpus says different
+        things; `SCORE_VERSION`, because the scoring code is an input too —
+        leaving that out served stale rows once already, a change to which
+        videos get scored leaving nine hundred rows that said seven hundred
+        under a stamp that still matched; and the state of the corpus, which
+        is its highest sentence id and its build stamps together, because the
+        stamps alone have been observed not to move for an append. The stamp is
+        the basis and the known-set version, which the database bumps itself
+        whenever a word is marked.
+
+        That third part is there because neither of the others can see a video
+        arrive. Adding one changes no rule and marks no word, so a set of rows
+        complete for yesterday's catalogue went on calling itself fresh while
+        holding no row for the new video — and every ranked listing in the app
+        reads these rows, so the video sat in the catalogue, in the corpus,
+        playable by its own URL, and appeared in none of them. Nor did it
+        heal: `_rescore_locked` compares the basis, patches the videos a
+        marked word touched and restamps, so the gap was carried forward
+        under every later known-version.
+
+        Both come from one call because the basis costs a read and the repair
+        path needs each separately: it compares the basis it is handed rather
+        than trimming a field off the stamp, which cannot say which field is
+        which and would have let the corpus part slip straight through.
+
+        `corpus_at` names the corpus to stamp for. A caller that has just read
+        sentences passes the vintage it read them from — `_compute` groups
+        what is in memory, which can be older than what is on disk, and rows
+        stamped with the newer one would be believed after the next restart.
+        Left out, the corpus is asked, which is what a page deciding whether
+        its stored rows are still good must do: not needing a corpus is the
+        whole point of them.
+        """
+        at = self._corpus_stamp() if corpus_at is None else corpus_at
+        basis = f"{analyser_fingerprint()}|{SCORE_VERSION}|{at}"
+        return basis, f"{basis}|{self.app.marked_known.version()}"
 
     def _forget_corpus(self) -> None:
         """Drop the corpus and everything derived from it.
@@ -4193,8 +4598,9 @@ class Viewer:
         server was restarted.
 
         The stored scores are deliberately not touched. They describe each
-        video as well as they ever did, and `_score_stamp` is what decides
-        whether they still describe *you*.
+        video as well as they ever did, and `_score_stamps` is what decides
+        whether they still describe *you* — and, since a video could be added
+        without moving any part of it, whether they describe the corpus.
         """
         self._corpora.clear()
         self._scopes.clear()
@@ -4202,6 +4608,55 @@ class Viewer:
         self._video_levels.clear()
         self._spoken.clear()
         self._unit_videos.clear()
+        # The vintage names the corpus being dropped here, so it goes too.
+        # The next `corpus_for` records the one it reads.
+        self._corpus_at = None
+
+    def _forget_derived(self) -> None:
+        """Forget the corpus, and every ranking and walk read off it.
+
+        `_forget_corpus` drops what is read off the corpus rows. This drops
+        the answers computed from them too, and exists because clearing them
+        by hand missed one: `_ranked` is the list `_watchable` serves before
+        it takes a lock or consults a stamp, and `_catch_up_now` cleared the
+        corpus, the frontiers and the blocked lists without it. So a video
+        added through the page was absent from the reel for the life of the
+        process, even though the corpus underneath it had been reloaded for
+        the express purpose of including it.
+        """
+        self._forget_corpus()
+        self._ranked.clear()
+        self._frontiers.clear()
+        self._frontier_at.clear()
+        self._stuck.clear()
+        self._sources = None
+        self._listing = None
+
+    def _corpus_moved(self) -> None:
+        """Forget all of that if the corpus has been written to since.
+
+        The stamp catches a changed corpus for the rows on disk. Nothing
+        caught it for the ones in memory, and the corpus is changed from
+        outside this process routinely: `add-video` at the terminal appends to
+        a build the running server is holding. That is why adding a video
+        needed a restart to be visible, and why it still was not visible
+        after one — the restart fixed the memory and the stored rows were the
+        other half of it.
+
+        Against the vintage `corpus_for` recorded when it loaded, never one
+        read here: a page that loads the corpus and then asks for a ranking is
+        the ordinary case — `/video` does both — and comparing the corpus with
+        itself would find it unmoved while memory held the older one. The
+        answer then went to disk stamped with a corpus it had never read, and
+        was believed after the next restart.
+
+        Called before `_watchable` looks at `_ranked`, and so outside the
+        scoring lock, which is where `_catch_up_now` has always cleared these.
+        """
+        if self._corpus_at is None:
+            return           # nothing read off a corpus yet, nothing to drop
+        if self._corpus_at != self._corpus_stamp():
+            self._forget_derived()
 
     def _grouped(self, source: str) -> dict[str, list]:
         """Sentences by video. Cached: it does not depend on what you know.
@@ -4351,7 +4806,10 @@ class Viewer:
         # Length comes off the scored row, not from Postgres. `_minutes()`
         # was called here unconditionally and was the one thing on a warm page
         # that still needed a database — for a number `video_score` already
-        # holds, which is how /reels renders it without asking anyone.
+        # holds, which is how /reels renders it without asking anyone. One
+        # read does remain, of `build_meta` and its row per build: no page can
+        # know its cached ranking is complete without asking whether the
+        # corpus has grown since. See `_corpus_moved`.
         order = self.ordering(query)
         plan = self._plan_for(source, order)
         if order == "plan" and not plan:
@@ -4645,11 +5103,9 @@ class Viewer:
             while True:
                 CorpusUpdater(self.app).catch_up()
                 RoadmapRefresher(self.app).refresh(touching="subtitle")
-                self._sources = None      # a build just changed size
-                self._forget_corpus()     # and what is in memory is stale
-                self._frontiers.clear()
-                self._frontier_at.clear()
-                self._stuck.clear()
+                # A build just changed size, so everything held in memory
+                # that was read off it is stale — the ranking included.
+                self._forget_derived()
                 with self._catching_lock:
                     if not self._catch_again:
                         self._catching = False

@@ -7,10 +7,18 @@ that was paid again on every restart, and the pages that want it are the two
 you open first.
 
 So the answers live in the database, stamped with what produced them: the
-analyser fingerprint, and the version the `known_units` trigger maintains.
-Matching stamps mean the numbers still describe you and no corpus is needed
-to show them. Mismatched stamps mean they are recomputed — the cache can be
-wrong about being fresh in only one direction, and it is the safe one.
+analyser fingerprint, the state of the corpus (`CorpusStore.vintage`), and the
+version the `known_units` trigger maintains. Matching stamps mean the numbers
+still describe you and no corpus is needed to show them. Mismatched stamps
+mean they are recomputed — the cache can be wrong about being fresh in only
+one direction, and it is the safe one.
+
+The corpus was not part of that stamp at first, and the direction stopped
+being the safe one. Adding a video changes no analyser rule and marks no
+word, so a set of rows complete for yesterday's catalogue went on calling
+itself fresh while holding no row for the new video — and every ranked
+listing in the app reads these rows, so the video was in the catalogue, in
+the corpus, playable by its own URL, and absent from all of them.
 """
 from __future__ import annotations
 

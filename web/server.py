@@ -211,6 +211,10 @@ def _make_handler(viewers: "Viewers"):
                     self._redirect(viewer.answer_quiz(form))
                 elif posted == "/taste":
                     self._redirect(viewer.set_taste(form))
+                elif posted == "/hear":
+                    self._redirect(viewer.save_hearing(form))
+                elif posted == "/replan":
+                    self._redirect(viewer.replan(form))
                 elif posted == "/remove-video":
                     self._redirect(viewer.remove_video(form))
                 elif posted == "/blacklist":
@@ -264,6 +268,8 @@ def _make_handler(viewers: "Viewers"):
                 return viewer.settings(query), 200
             if path == "/frontier":
                 return viewer.frontier(query), 200
+            if path == "/hear":
+                return viewer.hear(query), 200
             if path == "/starred":
                 return viewer.starred(query), 200
             if path == "/plan":

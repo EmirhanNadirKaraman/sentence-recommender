@@ -327,7 +327,12 @@ class ReelOrderTest(unittest.TestCase):
         v._scoring = Lock()
         v._taste = SimpleNamespace(all=lambda: {})
         v._channel_of = lambda: {}
-        v.app = SimpleNamespace(banned_videos=lambda: frozenset())
+        # `_watchable` asks whether the corpus has been written to since this
+        # ranking was made before it serves it. Here it never is.
+        v._corpus_at = None
+        v.app = SimpleNamespace(
+            banned_videos=lambda: frozenset(),
+            corpus_store=SimpleNamespace(vintage=lambda: "T1"))
         return v
 
     @staticmethod
@@ -380,7 +385,9 @@ class ReelOrderTest(unittest.TestCase):
     def test_a_removed_channel_is_gone_from_every_order(self) -> None:
         rows = [self.row("keep", readable=0.1), self.row("gone", readable=0.9)]
         v = self.viewer(rows)
-        v.app = SimpleNamespace(banned_videos=lambda: frozenset({"gone"}))
+        v.app = SimpleNamespace(
+            banned_videos=lambda: frozenset({"gone"}),
+            corpus_store=SimpleNamespace(vintage=lambda: "T1"))
         for mode, _ in ORDERS:
             self.assertEqual([r["video"] for r in v._watchable("subtitle", order=mode)],
                              ["keep"], mode)
@@ -420,7 +427,10 @@ class TranscriptUnitsTest(unittest.TestCase):
             self.asked = {"builds": builds, **kw}
             return []
 
-        viewer.app = SimpleNamespace(corpus=corpus)
+        viewer._corpus_at = None
+        viewer.app = SimpleNamespace(
+            corpus=corpus,
+            corpus_store=SimpleNamespace(vintage=lambda: "T1"))
         return viewer
 
     def test_cues_are_resolved_by_the_application(self) -> None:
@@ -558,7 +568,13 @@ class LoadedOnceTest(unittest.TestCase):
             self.rankings += 1
             return f"ranking-{self.rankings}"
 
-        viewer.app = SimpleNamespace(corpus=corpus, priority=priority)
+        # `corpus_for` records which corpus it loaded, so a page that reads
+        # the sentences and then asks for a ranking cannot be served a
+        # ranking built from a corpus that has since been written to.
+        viewer._corpus_at = None
+        viewer.app = SimpleNamespace(
+            corpus=corpus, priority=priority,
+            corpus_store=SimpleNamespace(vintage=lambda: "T1"))
         viewer._builds = lambda source: (source,)
         return viewer
 
@@ -1132,7 +1148,10 @@ class AskedForOneVideoTest(unittest.TestCase):
         v._taste = SimpleNamespace(all=lambda: {})
         v._channel_of = lambda: {}
         v._marks = SimpleNamespace(join=lambda: None)
-        v.app = SimpleNamespace(banned_videos=lambda: frozenset())
+        v._corpus_at = None
+        v.app = SimpleNamespace(
+            banned_videos=lambda: frozenset(),
+            corpus_store=SimpleNamespace(vintage=lambda: "T1"))
         v.source = lambda query: "subtitle"
         v.ordering = lambda query: "watch"
         v._plan_for = lambda source, order: {}
@@ -1456,3 +1475,208 @@ class KeepKeyTest(unittest.TestCase):
         """A shortcut nobody is told about is a shortcut nobody uses."""
         self.assertIn("(F)", (ROOT / "web" / "render.py").read_text(encoding="utf-8"))
         self.assertIn("(V)", (ROOT / "web" / "watch.py").read_text(encoding="utf-8"))
+
+
+class RecalculatePlanTest(unittest.TestCase):
+    """The Plan page's button: walk this order again, knowing what I know now.
+
+    The saved plans are files an experiment writes, and every word marked
+    makes them a little wrong — a learned word takes its own K encounters off
+    the bill and unblocks the sentences it was the second unknown in. The
+    button exists so collecting that does not mean leaving the app.
+    """
+
+    def setUp(self) -> None:
+        Viewer._replanning = {}          # class state; do not leak between tests
+        self.addCleanup(lambda: setattr(Viewer, "_replanning", {}))
+
+    def viewer(self):
+        v = Viewer.__new__(Viewer)
+        self.walked = []
+        v._replan_now = self.walked.append
+        return v
+
+    @staticmethod
+    def knobs(**over):
+        from web.handlers import DEFAULTS
+        return dict(DEFAULTS, **over)
+
+    def test_it_starts_one_and_comes_back_to_the_same_plan(self) -> None:
+        v = self.viewer()
+        where = v.replan(self.knobs(gate="i1", k="5", machine="no", seg="no"))
+        for bit in ("gate=i1", "k=5", "machine=no", "seg=no"):
+            self.assertIn(bit, where, "the button lost the knobs it was pressed on")
+        self.assertTrue(Viewer._replanning, "nothing was recorded as running")
+
+    def test_a_second_press_while_one_runs_does_nothing(self) -> None:
+        v = self.viewer()
+        v.replan(self.knobs(k="5"))
+        started = Viewer._replanning["started"]
+        v.replan(self.knobs(k="5"))
+        self.assertEqual(Viewer._replanning["started"], started,
+                         "a second walk was started over the first")
+
+    def test_the_panel_offers_the_button_when_nothing_runs(self) -> None:
+        v = self.viewer()
+        html = v._replan_panel(self.knobs(), "07-plan-i1-k1", "subtitle")
+        self.assertIn("action='/replan'", html)
+        self.assertIn("Recalculate", html)
+
+    def test_the_panel_says_so_while_one_runs(self) -> None:
+        v = self.viewer()
+        v.replan(self.knobs(k="5"))
+        html = v._replan_panel(self.knobs(k="5"), "07-plan-i1-k5", "subtitle")
+        self.assertIn("Recalculating", html)
+        self.assertNotIn("<button", html, "a second press was offered")
+        self.assertIn("location.reload", html, "the page will not come back")
+
+    def test_a_cover_is_not_offered_because_it_is_not_walked(self) -> None:
+        """`cover` solves a minimum cover with CBC. `one_walk` would write a
+        greedy walk over the same filename and call it the same thing."""
+        v = self.viewer()
+        html = v._replan_panel(self.knobs(k="0"), "07-cover-i1-k0", "subtitle")
+        self.assertNotIn("<button", html)
+        self.assertIn("solved, not walked", html)
+
+    def test_a_failed_walk_is_shown_rather_than_swallowed(self) -> None:
+        v = self.viewer()
+        v.replan(self.knobs(k="5"))
+        from datetime import datetime as when
+        Viewer._replanning = dict(Viewer._replanning, finished=when.now(),
+                                  error="ValueError: no such gate")
+        html = v._replan_panel(self.knobs(k="5"), "07-plan-i1-k5", "subtitle")
+        self.assertIn("no such gate", html)
+        self.assertIn("<button", html, "there was no way to try again")
+
+
+class OneWalkFloorTest(unittest.TestCase):
+    """A floor-10 run must not be written under the floor-40 name."""
+
+    def test_the_floor_reaches_the_filename(self) -> None:
+        from experiments.video_order import ENOUGH_LINES, suffix
+        self.assertEqual(suffix(ENOUGH_LINES, True, True), "-nomachine-noseg")
+        self.assertEqual(suffix(10, True, True), "-floor10-nomachine-noseg")
+
+    def test_one_walk_takes_a_floor_at_all(self) -> None:
+        import inspect
+        from experiments.video_order import one_walk
+        self.assertIn("episode_floor",
+                      inspect.signature(one_walk).parameters,
+                      "the floor cannot be asked for, so the page cannot rebuild it")
+
+
+class HearingTest(unittest.TestCase):
+    """`/hear`: a due word, the clip it is said in, and your own verdict.
+
+    The same cards `/review` asks in words. What differs is the question —
+    hearing a word said and knowing it is a different claim from writing an
+    English sentence into German — so both must move one card, which is what
+    `_grade_card` is for.
+    """
+
+    def viewer(self):
+        from types import SimpleNamespace as NS
+        v = Viewer.__new__(Viewer)
+        self.graded = []
+        v._grade_card = lambda card, correct: self.graded.append((card, correct)) or {}
+        v._unmark = lambda unit: ""
+        return v
+
+    @staticmethod
+    def line(text, units, video="vid", start=1.0):
+        from types import SimpleNamespace as NS
+        return NS(text=text, units=frozenset(units),
+                  timing=NS(video_id=video, start=start, end=start + 2))
+
+    def test_the_clip_is_the_most_followable_line(self) -> None:
+        """A clip whose every other word is unknown tests nothing. Fewest
+        unknowns first, then the shortest."""
+        from vocab.entry import Unit
+        want, other, third = Unit.lemma("x"), Unit.lemma("y"), Unit.lemma("z")
+        v = self.viewer()
+        lines = [self.line("long one but all known besides x", {want, other}),
+                 self.line("two unknown here", {want, other, third}),
+                 self.line("short, x", {want, other})]
+        v._grouped = lambda source: {"vid": lines}
+        v._videos_with = lambda source: {want: {"vid"}}
+        type(v).known = property(lambda self: frozenset({other}))
+        try:
+            got = v._clip_for("subtitle", want)
+        finally:
+            del type(v).known
+        self.assertIsNotNone(got)
+        self.assertEqual(got[1].text, "short, x",
+                         "it did not take the shortest fully-known line")
+
+    def test_a_word_said_nowhere_has_no_clip(self) -> None:
+        from vocab.entry import Unit
+        v = self.viewer()
+        v._grouped = lambda source: {}
+        v._videos_with = lambda source: {}
+        type(v).known = property(lambda self: frozenset())
+        try:
+            self.assertIsNone(v._clip_for("subtitle", Unit.lemma("nowhere")))
+        finally:
+            del type(v).known
+
+    def test_an_answer_moves_the_card(self) -> None:
+        from types import SimpleNamespace as NS
+        from vocab.entry import Unit
+        unit = Unit.lemma("haus")
+        card = NS(unit=unit)
+        v = self.viewer()
+        v.app = NS(card_store=NS(get=lambda u: card),
+                   attempts=NS(grade_last=lambda u, ok: None))
+        where = v.save_hearing({"kind": "lemma", "key": "haus",
+                                "action": "good", "src": "subtitle"})
+        self.assertEqual(self.graded, [(card, True)])
+        self.assertIn("/hear", where)
+
+    def test_not_this_one_decides_nothing_and_is_carried(self) -> None:
+        """Skipping changes no date, so the queue would hand back the same
+        word; the link says which one to put behind the rest."""
+        v = self.viewer()
+        where = v.save_hearing({"kind": "lemma", "key": "haus",
+                                "action": "skip", "src": "subtitle"})
+        self.assertEqual(self.graded, [], "a skip graded something")
+        self.assertIn("not=lemma%3Ahaus", where)
+
+    def test_the_button_carries_every_knob(self) -> None:
+        """It rebuilt the plan without the `noise` setting and wrote the
+        result under the selected plan's name, so the page reported numbers
+        from a walk it had not asked for."""
+        import inspect
+        from experiments.video_order import one_walk
+        from web.handlers import KNOBS
+        source = inspect.getsource(Viewer._replan_now)
+        takes = inspect.signature(one_walk).parameters
+        for knob in KNOBS:
+            with self.subTest(knob):
+                self.assertIn(f'chosen["{knob}"]', source,
+                              f"{knob} never reaches the walk")
+        self.assertIn("noise", takes)
+
+    def test_an_episode_row_opens_in_the_app_when_we_know_its_video(self) -> None:
+        """The transcripts carry no video id, so these rows could only ever
+        offer a YouTube search. `data/episode_videos.json` joins them on the
+        episode number the channel puts in its titles."""
+        import json
+        from pathlib import Path
+        found = json.loads(
+            (Path("data") / "episode_videos.json").read_text(encoding="utf-8"))
+        self.assertGreater(len(found), 1000, "the mapping is missing or thin")
+        for path, vid in list(found.items())[:20]:
+            with self.subTest(path):
+                self.assertRegex(vid, r"^[A-Za-z0-9_-]{11}$")
+                self.assertTrue(path.endswith(".txt"))
+
+    def test_every_mapped_transcript_still_exists(self) -> None:
+        """A path that has moved would render a link to a page that reads an
+        empty transcript, which looks like a broken video rather than a
+        renamed file."""
+        import json
+        from pathlib import Path
+        found = json.loads(
+            (Path("data") / "episode_videos.json").read_text(encoding="utf-8"))
+        missing = [p for p in list(found)[:200] if not Path(p).exists()]
+        self.assertEqual(missing, [], "mapped transcripts that are not there")

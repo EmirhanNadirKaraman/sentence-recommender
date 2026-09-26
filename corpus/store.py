@@ -175,6 +175,34 @@ class CorpusStore:
         return {b: stored.get(b, "unrecorded") for b in self.builds()
                 if stored.get(b) != now}
 
+    def vintage(self) -> str:
+        """What state the corpus is in, as one short string.
+
+        The highest sentence id, and when each build was last stamped. Anything
+        holding answers read off the corpus compares this and throws them away
+        when it changes; `stale` asks the different question of whether a build
+        was made under the rules in force.
+
+        The id is there because the stamps are not enough. `append` stamps the
+        build it writes, and yet this table has held sentences written by later
+        transactions than the one that last wrote `build_meta` — so something
+        appends without stamping, and the video that arrived that way sat in
+        the corpus unscored and missing from every ranked list in the app. The
+        id cannot be skipped by anyone: the sequence only goes up, so it moves
+        whenever a row is inserted, whoever inserts it and whatever else they
+        forget. A rebuild that replaces every row moves it too.
+
+        One round trip, and `max(id)` is an index-only read of the primary key.
+        Per-build ids would be better still and cost twenty times as much —
+        measured at 134ms against 8 — for a distinction nothing here draws.
+        """
+        with self._read() as cur:
+            cur.execute("SELECT (SELECT max(id) FROM corpus_sentence),"
+                        " (SELECT string_agg(build || ':' || made_at, ','"
+                        "  ORDER BY build) FROM build_meta)")
+            top, stamps = cur.fetchone()
+        return f"{top or 0}/{stamps or '-'}"
+
     # ---- writing ----------------------------------------------------------
 
     def append(self, sentences: list[Sentence], build: str) -> None:
