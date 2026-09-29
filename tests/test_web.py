@@ -1410,17 +1410,20 @@ class StarredSentenceTest(unittest.TestCase):
         self.assertIn("type='button'", drawn)
         self.assertNotIn("<form", drawn)
 
-    def test_a_page_that_draws_a_star_loads_the_script(self) -> None:
-        """`layout` carries no behaviour, so each page pulls `app.js` in for
-        itself -- and three pages shipped a star that did nothing because
-        they had never needed a script before. The guard is in `_page`, so
-        the next page to draw one cannot repeat it."""
+    def test_every_page_loads_the_script_exactly_once(self) -> None:
+        """`layout` carries no behaviour, so `_page` pulls `app.js` in. It used
+        to do that only for pages drawing a star -- three of them had shipped
+        one that did nothing -- and now does it for all of them, because the
+        keys panel is on every page and needs the script to fill itself in.
+
+        Never twice, which is what the condition is for: the pages with a
+        player load it themselves, and running it again would double every
+        listener -- two star toggles cancelling to nothing."""
         src = (ROOT / "web" / "handlers.py").read_text(encoding="utf-8")
         page = src.split("def _page(")[1].split("    def ")[0]
-        self.assertIn("class='star", page)
         self.assertIn("app.js", page)
-        # and never twice: the pages with a player already load it
         self.assertIn('"app.js" not in body', page)
+        self.assertNotIn("class='star", page)
 
     def test_the_toggle_updates_every_copy_on_the_page(self) -> None:
         """The reel panel and the deck can both be showing one sentence.
@@ -2198,3 +2201,64 @@ class OneStepMarkTest(unittest.TestCase):
         body = js.split("function oneStep(cue)", 1)[1].split("\n}", 1)[0]
         self.assertIn("if (!kind || !key) continue;", body)
         self.assertIn("seen[id]", body)
+
+
+class ShortcutPanelTest(unittest.TestCase):
+    """The keys, written down where they can be found.
+
+    They were spelled out in one `.hint` under one card, so the reel, the
+    video page and the review queue each answered to keys nobody had been
+    told about. The panel is built from what a page actually shows, which
+    keeps it honest about where a key works — and puts it one step from
+    drifting out of step with the bindings, which is what these check.
+    """
+
+    JS = (ROOT / "web" / "static" / "app.js").read_text(encoding="utf-8")
+
+    def panel(self) -> str:
+        """The GROUPS table the panel is built from."""
+        return self.JS.split("var GROUPS = [", 1)[1].split("\n  ];", 1)[0]
+
+    def bound(self) -> set:
+        """Every single letter a keydown handler answers to.
+
+        Both forms: the `key === 'q'` chain the player uses, and the negated
+        guard `key !== 'f' && key !== 'F'` that keeping a sentence is written
+        as. Matching only the first said F was named but not bound.
+        """
+        return {m.lower() for m in
+                re.findall(r"(?:e\.)?key (?:===|!==) '([a-zA-Z])'", self.JS)}
+
+    def test_the_shell_carries_it_on_every_page(self) -> None:
+        shell = (ROOT / "web" / "render.py").read_text(encoding="utf-8")
+        body = shell.split("def layout", 1)[1].split("\ndef ", 1)[0]
+        self.assertIn("id='keys-open'", body)
+        self.assertIn("id='keys'", body)
+
+    def test_every_bound_letter_is_written_down(self) -> None:
+        """A key the app answers to and the panel does not name is a key the
+        reader has no way of finding."""
+        table = self.panel().upper()
+        for letter in sorted(self.bound()):
+            self.assertIn(letter.upper(), re.sub(r"'[a-z-]*'", "", table),
+                          f"{letter} is bound but not in the keys panel")
+
+    def test_it_names_no_key_that_does_nothing(self) -> None:
+        """The other direction: a panel promising a key nobody bound."""
+        named = set()
+        for keys in re.findall(r"\['([^']+)',", self.panel()):
+            for word in keys.split():
+                if len(word) == 1 and word.isalpha():
+                    named.add(word.lower())
+        self.assertEqual(named - self.bound(), set())
+
+    def test_a_group_is_shown_only_where_its_anchor_is(self) -> None:
+        """The video keys on a page with no player would be a lie."""
+        self.assertIn("document.querySelector(g.anchor)", self.JS)
+        for anchor in ("#controls", "#deck", "#reel-state", "#quiz-card"):
+            self.assertIn(f"anchor: '{anchor}'", self.panel())
+
+    def test_the_card_no_longer_keeps_its_own_copy(self) -> None:
+        """Two lists of the same keys is one list that goes stale."""
+        handlers = (ROOT / "web" / "handlers.py").read_text(encoding="utf-8")
+        self.assertNotIn("W/S another sentence", handlers)

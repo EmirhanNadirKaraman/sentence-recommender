@@ -835,7 +835,11 @@ class Viewer:
         load it through `watch.merged_script` and running it twice would
         double every listener -- two star toggles cancelling to nothing.
         """
-        if "class='star" in body and "app.js" not in body:
+        # Every page, not only the ones with a star: the keys panel is on
+        # every page and needs the script to fill itself in, and half of them
+        # were loading nothing at all. Still exactly once -- the rule this
+        # condition existed for, and the reason it is a condition.
+        if "app.js" not in body:
             body += f"<script src='{stamped('app.js')}'></script>"
         return layout(title, body, here, source, self.list_name())
 
@@ -1355,11 +1359,12 @@ class Viewer:
             "</span>"
             "<button type='button' id='next' aria-label='Next sentence'>"
             "&#8594;</button>"
-            # Naming both axes, because D is no longer a
-            # way of looking around: it marks the word known.
-            "<span class='hint'>W/S another sentence &nbsp; "
-            "D know it &nbsp; A later &nbsp; arrows, space: the video &nbsp; "
-            "Q/E a line back or on &nbsp; T auto-pause &nbsp;&nbsp; "
+            # The keys used to be spelled out here, which made this the one
+            # page in the app that said what it answered to. They are in the
+            # standing `keys` panel now, on every page and built from what
+            # each one actually has, so this keeps only what is about these
+            # particular sentences.
+            "<span class='hint'>"
             + (f"{readable} of them need only this"
                if readable != 1 else "one of them needs only this")
             + "</span></div>"

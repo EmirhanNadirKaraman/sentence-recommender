@@ -1439,3 +1439,96 @@ document.addEventListener('keydown', function (e) {
   pick.click();
   e.preventDefault();
 });
+
+// The keyboard shortcuts, on every page and named where they apply.
+//
+// They were written down once, in a `.hint` under the study card's stepper,
+// and the reel, the video page and the review queue each answered to keys
+// nobody had been told about. Which keys work depends on what the page is
+// showing, so the list is built from what is actually on it -- a page with no
+// player does not claim to answer to Q and E -- rather than each handler
+// being asked to remember a list that would drift from the bindings above.
+(function () {
+  // The script is loaded from inside <main>, and the panel's markup sits
+  // after it, so at this point the elements are not parsed yet. Every other
+  // module here is anchored on something inside <main> and does not notice.
+  if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', start);
+  else start();
+
+  function start() {
+  var open = document.getElementById('keys-open');
+  var panel = document.getElementById('keys');
+  if (!open || !panel) return;
+
+  // Each group names the thing it belongs to and the element that proves the
+  // page has one. The keys themselves are the bindings in the modules above;
+  // a group whose anchor is missing is not shown.
+  var GROUPS = [
+    {anchor: '#controls', title: 'The video', keys: [
+      ['Space', 'play or pause'], ['K', 'play or pause'],
+      ['&larr; &rarr;', 'five seconds back or on'],
+      ['J L', 'ten seconds back or on'],
+      ['Q E', 'the subtitle before or after'],
+      ['Z X', 'the i+1 line before or after'],
+      ['T', 'pause after every line'],
+      ['H', 'hide or show the English'],
+      ['M', 'sound off or on'], ['V', 'full screen'],
+      ['&uarr; &darr;', 'louder or quieter']]},
+    {anchor: '#deck', title: 'The sentences', keys: [
+      ['W S', 'another sentence for this word'],
+      ['D', 'I know this word'], ['A', 'not yet']]},
+    {anchor: '#reel-state', title: 'The reel', keys: [
+      ['W O', 'the video before'], ['S P', 'the next video'],
+      ['D', 'I know the word it offers'], ['A', 'set that word aside']]},
+    {anchor: '#quiz-card', title: 'Review', keys: [
+      ['D Y', 'I knew it'], ['A N', 'I did not'], ['S', 'skip it']]},
+    {anchor: "button.star[data-act='star']", title: 'Any sentence', keys: [
+      ['F', 'keep this one']]}
+  ];
+
+  function build() {
+    var out = "<div class='keys-head'><b>Keyboard</b>" +
+      "<button type='button' class='keys-close' aria-label='Close'>" +
+      "&times;</button></div>";
+    var any = false;
+    GROUPS.forEach(function (g) {
+      if (!document.querySelector(g.anchor)) return;
+      any = true;
+      out += "<h3>" + g.title + "</h3><dl>";
+      g.keys.forEach(function (k) {
+        out += "<dt><kbd>" + k[0] + "</kbd></dt><dd>" + k[1] + "</dd>";
+      });
+      out += "</dl>";
+    });
+    if (!any) out += "<p class='quiet'>This page answers to no keys of its " +
+      "own — the ones below work wherever they apply.</p>";
+    out += "<h3>Anywhere</h3><dl>" +
+      "<dt><kbd>?</kbd></dt><dd>this list</dd>" +
+      "<dt><kbd>Esc</kbd></dt><dd>close it</dd></dl>";
+    panel.innerHTML = out;
+  }
+
+  function show(on) {
+    if (on && !panel.innerHTML) build();
+    // Rebuilt each time it opens: a word marked known can add the star
+    // control to a page that had none, and the reel swaps its own card out.
+    else if (on) build();
+    panel.hidden = !on;
+    open.setAttribute('aria-expanded', on ? 'true' : 'false');
+  }
+
+  open.addEventListener('click', function () { show(panel.hidden); });
+  panel.addEventListener('click', function (e) {
+    if (e.target.closest('.keys-close')) show(false);
+  });
+  document.addEventListener('keydown', function (e) {
+    var el = document.activeElement;
+    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ||
+               el.tagName === 'SELECT' || el.isContentEditable)) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === '?') { show(panel.hidden); e.preventDefault(); }
+    else if (e.key === 'Escape' && !panel.hidden) { show(false); e.preventDefault(); }
+  });
+  }
+})();

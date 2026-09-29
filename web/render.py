@@ -95,7 +95,18 @@ def layout(title: str, body: str, here: str = "/", source: str = "",
         "</head><body>"
         "<header class='masthead'><div class='inner'>"
         f"<span class='name'>i+1</span>{links}</div></header>"
-        f"<main>{body}</main></body></html>"
+        f"<main>{body}</main>"
+        # The keys, on every page, because they were written down in one
+        # `.hint` on one card and nowhere else -- so the reel, the video page
+        # and the review queue each had shortcuts nobody was told about. What
+        # they are depends on what the page has, so `app.js` fills this in
+        # from what it finds rather than each handler being asked to remember.
+        "<button type='button' id='keys-open' class='keys-open' "
+        "title='Keyboard shortcuts (?)' aria-label='Keyboard shortcuts'>"
+        "keys</button>"
+        "<div id='keys' class='keys' hidden role='dialog' "
+        "aria-label='Keyboard shortcuts'></div>"
+        "</body></html>"
     )
 
 

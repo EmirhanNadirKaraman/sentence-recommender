@@ -681,3 +681,35 @@ button.w.target { color: var(--target); border-bottom: 1px solid var(--target); 
 /* The two controls that walk the i+1 lines, coloured like the mark they
    walk between so the bar says which is which without being read. */
 .controls button.i1 { color: var(--target); border-color: var(--target); }
+
+/* The keyboard shortcuts. A standing button rather than a line of text on one
+   card: the keys differ per page and were documented on exactly one of them. */
+.keys-open {
+  position: fixed; right: max(14px, env(safe-area-inset-right));
+  bottom: max(14px, env(safe-area-inset-bottom)); z-index: 40;
+  font: 600 12px/1 var(--sans); letter-spacing: .04em; text-transform: uppercase;
+  color: var(--ink-2); background: var(--surface);
+  border: 1px solid var(--faint); border-radius: 999px; padding: 9px 14px;
+  cursor: pointer; box-shadow: 0 1px 6px rgba(0, 0, 0, .18);
+}
+.keys-open:hover { color: var(--ink); border-color: var(--target); }
+.keys {
+  position: fixed; right: max(14px, env(safe-area-inset-right));
+  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 46px); z-index: 41;
+  width: min(23rem, calc(100vw - 28px)); max-height: min(70vh, 34rem);
+  overflow: auto; background: var(--surface); color: var(--ink);
+  border: 1px solid var(--faint); border-radius: 8px; padding: 14px 16px 16px;
+  box-shadow: 0 6px 28px rgba(0, 0, 0, .3);
+}
+.keys-head { display: flex; align-items: center; justify-content: space-between; }
+.keys-close { background: none; border: 0; color: var(--ink-2); cursor: pointer;
+  font-size: 20px; line-height: 1; padding: 0 2px; }
+.keys h3 { font: 600 12px/1 var(--sans); letter-spacing: .04em;
+  text-transform: uppercase; color: var(--ink-2); margin: 14px 0 6px; }
+.keys dl { display: grid; grid-template-columns: auto 1fr; gap: 5px 12px;
+  margin: 0; align-items: baseline; }
+.keys dd { margin: 0; font-size: 14px; }
+.keys kbd { font: 600 12px/1 var(--sans); color: var(--ink);
+  border: 1px solid var(--faint); border-bottom-width: 2px; border-radius: 4px;
+  padding: 3px 6px; white-space: nowrap; background: var(--paper); }
+@media (max-width: 480px) { .keys { width: calc(100vw - 28px); } }
