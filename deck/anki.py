@@ -32,6 +32,7 @@ from pathlib import Path
 from typing import Callable, Iterable
 
 from deck import Card
+from deck.identity import guid_for
 
 # Anki identifies a model and a deck by number, and re-importing with the
 # same number updates rather than duplicates. Derived from the name so the
@@ -189,6 +190,14 @@ def build(cards: list[Card], audio_dir: Path, out_dir: Path, name: str,
                         first_meaning(card),
                         sentences_html(card, per_sentence), sound],
                 due=card.position,
+                # The word, not the card's contents. Left unset `genanki`
+                # hashes every field, so a rebuilt deck -- better sentences,
+                # a meaning filled in, a position that moved because a word
+                # ahead of it was learned -- came in as a set of new notes and
+                # every interval the reader had earned went back to zero. The
+                # deck and the model already have ids that survive a rebuild
+                # for exactly this reason; the notes did not.
+                guid=guid_for("sentence-roadmap", card.word, card.is_pattern),
             ))
             done += 1
             if on_progress and (done % every == 0 or done == len(cards)):

@@ -57,6 +57,7 @@ PROBATION_SHOWN = 10
 # knows now, not the whole plan.
 LOOKAHEAD = 30
 from corpus.levels import video_level
+from deck.identity import guid_for
 from corpus.quality import score as quality, well_formed
 from corpus.sentence import Sentence
 from db import Database
@@ -71,7 +72,7 @@ from roadmap.videos import VideoRoadmapStore
 from roadmap.store import ALL, RoadmapStore, current_stamp
 from vocab.entry import LEMMA, PATTERN, Unit
 from web import watch as video
-from web.render import layout, sentence, stamped
+from web.render import ANKI_REMIND, layout, sentence, stamped
 
 PAGE_SIZE = 40
 # Sentences kept per stranded word, for the arrows on its row. Enough to
@@ -841,7 +842,8 @@ class Viewer:
         # condition existed for, and the reason it is a condition.
         if "app.js" not in body:
             body += f"<script src='{stamped('app.js')}'></script>"
-        return layout(title, body, here, source, self.list_name())
+        return layout(title, body, here, source, self.list_name(),
+                      anki_new=self.app.overrides.anki_unexported())
 
     def list_switch(self, query: dict, page: str) -> str:
         """Which list the page is about.
@@ -1637,11 +1639,22 @@ class Viewer:
                 f"<input type='hidden' name='back' value='/anki'>"
                 "<button type='submit'>Remove</button></form></div>")
         ready = sum(1 for u in order if found.get(u))
-        body = ("<h1>Cards to make</h1>"
-                "<p class='lede'>One card a word, three sentences on it, the "
-                "word blanked in each. Import either file as a "
-                "<b>Cloze</b> note type — first column Text, second Back "
-                "Extra, third Tags.</p>"
+        fresh = self.app.overrides.anki_unexported()
+        # Said here as well as on the nav, because this is the page the number
+        # sends you to and a count with no instruction is not a reminder.
+        due = (f"<p class='note{' due' if fresh >= ANKI_REMIND else ''}'>"
+               f"<b>{fresh:,}</b> word{'' if fresh == 1 else 's'} queued since "
+               "your last export. Downloading either file below counts as "
+               "exporting them.</p>" if fresh else
+               "<p class='note'>Everything queued has been exported at least "
+               "once. Downloading again refreshes the sentences on the cards "
+               "you already have.</p>")
+        body = ("<h1>Cards to make</h1>" + due
+                + "<p class='lede'>One card a word, three sentences on it, the "
+                "word blanked in each. The files carry their own note type, "
+                "deck and identity, so importing is one click and re-importing "
+                "updates the cards you have rather than making new ones — your "
+                "intervals survive a regenerated deck.</p>"
                 "<p class='lede'>Two files, because they are two different "
                 "cards. Without English the answer is the word itself, "
                 "recovered from the German around it, and nothing on the "
@@ -1674,6 +1687,17 @@ class Viewer:
         found = self.anki_examples(source, queued)
         senses, translated = self.anki_english() if english else ({}, {})
         out = io.StringIO()
+        # Anki reads these before the rows: what the columns are separated by,
+        # that the fields hold HTML, which note type and deck to put them in,
+        # and -- the one that matters -- which column carries the identity.
+        # Without it Anki falls back to the first field, which here is the
+        # sentences, so a regenerated deck looked like a set of new notes and
+        # every card went back to being seen for the first time.
+        #
+        # The guid is last, so the fields stay in the columns they were in.
+        deck = "i+1::Words with English" if english else "i+1::Words"
+        out.write(f"#separator:Comma\n#html:true\n#notetype:Cloze\n"
+                  f"#deck:{deck}\n#tags column:3\n#guid column:4\n")
         writer = csv.writer(out)
         for unit in sorted(queued, key=lambda u: u.key):
             rows = found.get(unit, [])
@@ -1693,7 +1717,16 @@ class Viewer:
                     + [x for x in lines if x])
             # Anki splits tags on spaces, so the word travels as one token.
             tag = re.sub(r"\s+", "_", unit.key)
-            writer.writerow([text, back, f"{unit.kind} {tag}"])
+            # The word, not what the card says about it: the sentences are
+            # meant to improve between exports and the card is meant to
+            # survive that. The two files are separate decks with separate
+            # intervals, so they cannot share an id or importing one would
+            # overwrite the other's scheduling.
+            guid = guid_for("i+1", "csv-en" if english else "csv",
+                            unit.kind, unit.key)
+            writer.writerow([text, back, f"{unit.kind} {tag}", guid])
+        self.app.overrides.note_anki_export(queued)
+        self._anki = None
         return out.getvalue()
 
     def star_sentence(self, form: dict) -> dict:

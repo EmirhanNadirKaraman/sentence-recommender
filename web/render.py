@@ -52,19 +52,32 @@ NAV = (("/", "Next"), ("/reels", "Reels"), ("/review", "Review"), ("/hear", "Hea
        ("/settings", "Settings"))
 
 
+# How many words may pile up before the nav stops being quiet about it.
+ANKI_REMIND = 15
+
+
 def layout(title: str, body: str, here: str = "/", source: str = "",
-           wordlist: str = "") -> str:
+           wordlist: str = "", anki_new: int = 0) -> str:
     # Both carried, because a nav link that drops either one silently puts
     # the reader back on the default corpus or the default goal list, which
     # looks like the switch did not work.
     carried = [(k, v) for k, v in (("src", source), ("list", wordlist)) if v]
     suffix = ("?" + "&".join(f"{k}={quote(str(v), safe='')}"
                              for k, v in carried)) if carried else ""
-    links = "".join(
-        f'<a href="{href}{suffix}" class="{"here" if href == here else ""}">'
-        f"{escape(label)}</a>"
-        for href, label in NAV
-    )
+    # The count of words queued and not yet exported rides on the Anki link,
+    # because a reminder that lives on the Anki page is one only the person
+    # already going there will read.
+    def link(href: str, label: str) -> str:
+        here_now = "here" if href == here else ""
+        badge = ""
+        if href == "/anki" and anki_new:
+            due = " due" if anki_new >= ANKI_REMIND else ""
+            badge = (f"<span class='badge{due}' title='queued since your last "
+                     f"export'>{anki_new:,}</span>")
+        return (f'<a href="{href}{suffix}" class="{here_now}">'
+                f"{escape(label)}{badge}</a>")
+
+    links = "".join(link(href, label) for href, label in NAV)
     return (
         "<!doctype html><html lang='en'><head><meta charset='utf-8'>"
         # `viewport-fit=cover` lets the page paint under the notch and the

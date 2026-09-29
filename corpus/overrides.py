@@ -88,6 +88,20 @@ class SentenceOverrides:
         with open_state(self._path) as conn:
             conn.executescript(SCHEMA)
             self._widen_verdict_key(conn)
+            self._add_export_column(conn)
+
+    @staticmethod
+    def _add_export_column(conn) -> None:
+        """`anki_words` gained `exported` after the table already existed, and
+        `CREATE TABLE IF NOT EXISTS` cannot add a column to one that is there.
+
+        Recorded per word rather than as one "last exported" time: a word can
+        be queued, exported, taken out and put back, and a single timestamp
+        compared against `queued` would call that word old.
+        """
+        have = {row[1] for row in conn.execute("PRAGMA table_info(anki_words)")}
+        if "exported" not in have:
+            conn.execute("ALTER TABLE anki_words ADD COLUMN exported TEXT")
 
     @staticmethod
     def _widen_verdict_key(conn) -> None:
@@ -184,6 +198,26 @@ class SentenceOverrides:
             return {(row[0], row[1]): row[2] for row in conn.execute(
                 "SELECT kind, key, queued FROM anki_words"
                 " ORDER BY queued DESC, key")}
+
+    def note_anki_export(self, units) -> None:
+        """Say these words have been written to a file the reader can import.
+
+        Called when the file is actually served, not when it is built, so a
+        page that merely renders the queue does not clear the reminder.
+        """
+        now = datetime.now().isoformat()
+        with open_state(self._path) as conn:
+            conn.executemany(
+                "UPDATE anki_words SET exported = ?"
+                " WHERE kind = ? AND key = ?",
+                [(now, u.kind, u.key) for u in units])
+
+    def anki_unexported(self) -> int:
+        """How many queued words have never been written to a file."""
+        with open_state(self._path) as conn:
+            return conn.execute(
+                "SELECT count(*) FROM anki_words WHERE exported IS NULL"
+            ).fetchone()[0]
 
     # --- how good a sentence is ------------------------------------------
 

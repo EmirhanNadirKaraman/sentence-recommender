@@ -910,7 +910,11 @@ class ReviewQueueTest(unittest.TestCase):
         from vocab.attempts import Attempts
         from vocab.own_sentences import OwnSentences
         state = tmp / "state.sqlite3"
+        from corpus.overrides import SentenceOverrides
         app = SimpleNamespace(
+            # A real one: `_page` counts the words queued and not yet exported
+            # to put the number on the nav, so every page render touches it.
+            overrides=SentenceOverrides(state),
             card_store=CardStore(state), own=OwnSentences(state),
             scheduler=SM2Scheduler(),
             encounters=SimpleNamespace(rungs=lambda: {}, count=lambda unit: 0),
@@ -2262,3 +2266,154 @@ class ShortcutPanelTest(unittest.TestCase):
         """Two lists of the same keys is one list that goes stale."""
         handlers = (ROOT / "web" / "handlers.py").read_text(encoding="utf-8")
         self.assertNotIn("W/S another sentence", handlers)
+
+
+class AnkiIdentityTest(unittest.TestCase):
+    """What makes a card the same card as last time.
+
+    Anki decides whether an imported note updates an existing one or becomes a
+    new one by its identity, and a new one starts from no scheduling at all.
+    Left to itself that identity is the first field, which here is the
+    sentences -- so regenerating a deck to get better sentences threw away
+    every interval the reader had earned. These pin the identity to the word.
+    """
+
+    def viewer(self, queued, examples):
+        from vocab.entry import Unit
+        viewer = Viewer.__new__(Viewer)
+        viewer.source = lambda q: "subtitle"
+        viewer.anki_queued = lambda: set(queued)
+        viewer.anki_examples = lambda source, units, each=3: examples
+        viewer.anki_english = lambda: ({}, {})
+        viewer._anki = None
+        self.exported = []
+        viewer.app = SimpleNamespace(overrides=SimpleNamespace(
+            note_anki_export=lambda units: self.exported.extend(units)))
+        return viewer
+
+    @staticmethod
+    def rows(csv_text):
+        import csv as _csv
+        lines = [ln for ln in csv_text.splitlines() if not ln.startswith("#")]
+        return list(_csv.reader(lines))
+
+    def test_the_id_survives_the_sentences_changing(self) -> None:
+        """The whole point: regenerate, get better sentences, keep the card."""
+        from vocab.entry import Unit
+        word = Unit("lemma", "geben")
+        first = self.viewer({word}, {word: [("Gib mir das.", "Gib")]})
+        second = self.viewer({word}, {word: [("Ganz andere Saetze.", "Gib")]})
+        a, b = self.rows(first.anki_csv({})), self.rows(second.anki_csv({}))
+        self.assertNotEqual(a[0][0], b[0][0], "the sentences did not change")
+        self.assertEqual(a[0][3], b[0][3], "the id moved with the sentences")
+
+    def test_two_words_are_two_cards(self) -> None:
+        from vocab.entry import Unit
+        one, two = Unit("lemma", "geben"), Unit("lemma", "halten")
+        v = self.viewer({one, two},
+                        {one: [("A.", "a")], two: [("B.", "b")]})
+        ids = {r[3] for r in self.rows(v.anki_csv({}))}
+        self.assertEqual(len(ids), 2)
+
+    def test_the_two_files_do_not_share_ids(self) -> None:
+        """They are separate decks with separate intervals; one id between
+        them would mean importing one overwrites the other's scheduling."""
+        from vocab.entry import Unit
+        word = Unit("lemma", "geben")
+        v = self.viewer({word}, {word: [("Gib mir das.", "Gib")]})
+        plain = self.rows(v.anki_csv({}))[0][3]
+        english = self.rows(v.anki_csv({}, english=True))[0][3]
+        self.assertNotEqual(plain, english)
+
+    def test_the_header_tells_anki_where_the_id_is(self) -> None:
+        from vocab.entry import Unit
+        word = Unit("lemma", "geben")
+        text = self.viewer({word}, {word: [("Gib.", "Gib")]}).anki_csv({})
+        head = [ln for ln in text.splitlines() if ln.startswith("#")]
+        self.assertIn("#guid column:4", head)
+        self.assertIn("#notetype:Cloze", head)
+        self.assertIn("#html:true", head)
+        # The id is last, so the fields stay in the columns they were in.
+        self.assertEqual(len(self.rows(text)[0]), 4)
+
+    def test_downloading_counts_as_exporting(self) -> None:
+        """The reminder clears when the file is served, not when the page that
+        lists the queue is drawn."""
+        from vocab.entry import Unit
+        word = Unit("lemma", "geben")
+        v = self.viewer({word}, {word: [("Gib.", "Gib")]})
+        self.assertEqual(self.exported, [])
+        v.anki_csv({})
+        self.assertEqual(self.exported, [word])
+
+    def test_the_package_keeps_its_notes_between_rebuilds(self) -> None:
+        """`genanki` hashes every field when left to itself, so a card whose
+        position moved because a word ahead of it was learned came back as a
+        new note."""
+        src = (ROOT / "deck" / "anki.py").read_text(encoding="utf-8")
+        self.assertIn("guid=guid_for(", src)
+        # Not the position and not the sentences: those are what changes.
+        call = src.split("guid=guid_for(", 1)[1].split(")", 1)[0]
+        self.assertIn("card.word", call)
+        self.assertNotIn("position", call)
+        self.assertNotIn("examples", call)
+
+
+class AnkiReminderTest(unittest.TestCase):
+    """Being told to import again, without going looking.
+
+    A word queued is a card not yet made, and the only way to notice was to
+    remember. The count rides on the nav's Anki link so it is in view from any
+    page, and turns loud at `ANKI_REMIND`.
+    """
+
+    def test_the_nav_is_quiet_with_nothing_waiting(self) -> None:
+        html = render.layout("T", "<p>x</p>", anki_new=0)
+        self.assertNotIn("badge", html)
+
+    def test_it_counts_what_is_waiting(self) -> None:
+        html = render.layout("T", "<p>x</p>", anki_new=3)
+        self.assertIn(">3</span>", html)
+        self.assertNotIn("badge due", html)
+
+    def test_it_turns_loud_at_the_threshold(self) -> None:
+        from web.render import ANKI_REMIND
+        self.assertIn("badge due",
+                      render.layout("T", "x", anki_new=ANKI_REMIND))
+        self.assertNotIn("badge due",
+                         render.layout("T", "x", anki_new=ANKI_REMIND - 1))
+
+    def test_the_count_sits_on_the_anki_link_and_nowhere_else(self) -> None:
+        html = render.layout("T", "<p>x</p>", anki_new=7)
+        self.assertEqual(html.count("badge"), 1)
+        anki = [a for a in html.split("<a ") if 'href="/anki' in a][0]
+        self.assertIn("badge", anki)
+
+    def test_a_word_is_waiting_until_it_has_been_exported(self) -> None:
+        import tempfile
+        from pathlib import Path
+        from corpus.overrides import SentenceOverrides
+        from vocab.entry import Unit
+        store = SentenceOverrides(Path(tempfile.mkdtemp()) / "state.sqlite3")
+        one, two = Unit("lemma", "geben"), Unit("lemma", "halten")
+        store.queue_anki(one)
+        self.assertEqual(store.anki_unexported(), 1)
+        store.note_anki_export([one])
+        self.assertEqual(store.anki_unexported(), 0)
+        store.queue_anki(two)
+        self.assertEqual(store.anki_unexported(), 1)
+
+    def test_a_word_taken_out_and_put_back_is_waiting_again(self) -> None:
+        """It is a card to make again, so it counts again -- which a single
+        "last exported" timestamp compared against `queued` would miss."""
+        import tempfile
+        from pathlib import Path
+        from corpus.overrides import SentenceOverrides
+        from vocab.entry import Unit
+        store = SentenceOverrides(Path(tempfile.mkdtemp()) / "state.sqlite3")
+        word = Unit("lemma", "geben")
+        store.queue_anki(word)
+        store.note_anki_export([word])
+        store.unqueue_anki(word)
+        store.queue_anki(word)
+        self.assertEqual(store.anki_unexported(), 1)

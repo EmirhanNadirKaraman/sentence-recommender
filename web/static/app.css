@@ -713,3 +713,13 @@ button.w.target { color: var(--target); border-bottom: 1px solid var(--target); 
   border: 1px solid var(--faint); border-bottom-width: 2px; border-radius: 4px;
   padding: 3px 6px; white-space: nowrap; background: var(--paper); }
 @media (max-width: 480px) { .keys { width: calc(100vw - 28px); } }
+
+/* How many words are queued and not yet exported, on the nav's Anki link.
+   Quiet until it is worth doing something about, then not. */
+.masthead .badge { display: inline-block; margin-left: 5px; padding: 1px 6px;
+  border-radius: 999px; font-size: 11px; font-weight: 600;
+  background: var(--faint); color: var(--ink-2); }
+.masthead .badge.due { background: var(--rail); color: var(--paper); }
+
+/* The export reminder, once it is worth acting on. */
+.note.due { color: var(--rail); font-weight: 600; }
