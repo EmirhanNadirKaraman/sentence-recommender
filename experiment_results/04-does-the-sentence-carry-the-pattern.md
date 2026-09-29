@@ -373,6 +373,210 @@ Precision and recall are of *frame* against everything else; the two calibration
 
 
 
+## Arm: laya (laya-multilingual-0.3.4), question: frame — does the sentence realise the blueprint
+
+450 rows, 106s, 165,431 input tokens.
+
+| view | rows | precision@0.5 | recall@0.5 | p ≥ 0.9: right/n | p ≤ 0.1: right/n | 0.3–0.7 band |
+|---|---|---|---|---|---|---|
+| all | 450 | 71% | 99% | 209/299 | 0/0 | 14 |
+| residue | 408 | 78% | 99% | 209/273 | 0/0 | 14 |
+
+Precision and recall are of *frame* against everything else; the two calibration columns say, of the rows the judge was sure about, how many the label agreed with; the band is the rows it was not sure about, which is the number a person would still read.
+
+| pattern (panel) | p per row → label |
+|---|---|
+| `all, alle` | 0.87→frame, 0.84→frame, 0.95→frame |
+| `das Beispiel` | 0.95→const, 0.94→frame, 0.80→const |
+| `das Geld` | 0.91→frame, 0.94→frame, 0.90→frame |
+| `das Jahr` | 0.90→frame, 0.96→frame, 0.89→frame |
+| `das Kind` | 0.67→frame, 0.45→frame, 0.85→frame |
+| `das Land` | 0.91→frame, 0.93→frame, 0.96→frame |
+| `das Leben` | 0.75→frame, 0.70→const, 0.55→frame |
+| `das Problem` | 0.86→frame, 0.90→frame, 0.89→frame |
+| `das Thema` | 0.94→frame, 0.90→frame, 0.78→frame |
+| `das Video` | 0.89→frame, 0.90→frame, 0.93→frame |
+| `der Fall` | 0.86→frame, 0.82→const, 0.96→frame |
+| `der Herr` | 0.93→frame, 0.96→frame, 0.91→frame |
+| `der Mann` | 0.97→frame, 0.94→frame, 0.94→frame |
+| `der Mensch` | 0.93→frame, 0.92→frame, 0.90→frame |
+| `der Tag` | 0.93→frame, 0.96→frame, 0.76→frame |
+| `die Frage` | 0.91→frame, 0.95→frame, 0.92→frame |
+| `die Frau` | 0.91→frame, 0.81→frame, 0.88→frame |
+| `die Leute` | 0.85→frame, 0.89→frame, 0.94→frame |
+| `die Partei` | 0.80→frame, 0.80→frame, 0.91→frame |
+| `die Zeit` | 0.94→frame, 0.88→frame, 0.93→const |
+| `etw. (Akk) bekommen` | 0.99→frame, 0.95→frame, 0.89→frame |
+| `etw. (Akk) können` | 0.84→other, 0.86→other, 0.88→other |
+| `etw. (Akk) machen` | 0.94→other, 0.90→frame, 0.91→frame |
+| `etw. (Akk) tun` | 0.85→frame, 0.93→frame, 0.86→frame |
+| `etw. (Akk) wissen` | 0.95→frame, 0.95→frame, 0.94→frame |
+| `etw. (Akk) wollen` | 0.98→other, 0.87→other, 0.95→other |
+| `etw./jdn. (Akk) brauchen` | 0.95→frame, 0.95→other, 0.95→frame |
+| `etw./jdn. (Akk) finden` | 0.95→frame, 0.85→frame, 0.96→other |
+| `etw./jdn. (Akk) haben` | 0.77→other, 0.93→other, 0.96→other |
+| `etw./jdn. (Akk) kennen` | 0.93→frame, 0.96→frame, 0.96→frame |
+| `etw./jdn. (Akk) lassen` | 0.97→other, 0.97→frame, 0.98→other |
+| `etw./jdn. (Akk) nehmen` | 0.95→const, 0.94→const, 0.94→frame |
+| `etw./jdn. (Akk) sehen` | 0.97→frame, 0.87→frame, 0.95→frame |
+| `gern, gerne` | 0.95→frame, 0.90→frame, 0.92→frame |
+| `jdm. (Dat) / etw. (Akk) glauben` | 0.90→other, 0.98→other, 0.97→other |
+| `jdm. (Dat) etw. (Akk) bedeuten` | 0.92→other, 0.97→other, 0.96→other |
+| `jdm. (Dat) etw. (Akk) bringen` | 0.97→const, 0.95→const, 0.96→frame |
+| `jdm. (Dat) etw. (Akk) geben` | 0.96→const, 0.97→const, 0.95→const |
+| `jdm. (Dat) etw. (Akk) sagen` | 0.94→frame, 0.96→frame, 0.98→frame |
+| `jdm. (Dat) etw. (Akk) schreiben` | 0.95→frame, 0.97→frame, 0.96→frame |
+| `jdm. (Dat) etw. (Akk) zeigen` | 0.95→frame, 0.89→frame, 0.95→other |
+| `jdm. (Dat) gehören` | 0.96→other, 0.96→other, 0.94→other |
+| `jdm. (Dat) helfen` | 0.95→frame, 0.94→frame, 0.96→frame |
+| `jdm. (Dat) passieren` | 0.92→frame, 0.96→frame, 0.96→frame |
+| `jdm. (Dat) stehen` | 0.94→other, 0.87→other, 0.96→other |
+| `lange, lang` | 0.69→frame, 0.87→frame, 0.83→frame |
+| `mit jdm. / über etw./jdn. sprechen` | 0.87→frame, 0.75→frame, 0.83→frame |
+| `nach etw. aussehen` | 0.93→other, 0.86→other, 0.96→other |
+| `nichts, nix` | 0.95→frame, 0.97→const, 0.97→frame |
+| `selbst, selber` | 0.96→frame, 0.89→frame, 0.97→frame |
+
+
+## Arm: laya (laya-multilingual-0.3.4), question: plain — is this the word itself, not a fixed expression or another word
+
+448 rows, 113s, 166,057 input tokens.
+
+| view | rows | precision@0.5 | recall@0.5 | p ≥ 0.9: right/n | p ≤ 0.1: right/n | 0.3–0.7 band |
+|---|---|---|---|---|---|---|
+| all | 448 | 90% | 42% | 19/22 | 4/47 | 167 |
+| residue | 406 | 92% | 44% | 18/21 | 4/37 | 155 |
+
+Precision and recall are of *good example* against everything else; the two calibration columns say, of the rows the judge was sure about, how many the label agreed with; the band is the rows it was not sure about, which is the number a person would still read.
+
+| pattern (panel) | p per row → label |
+|---|---|
+| `all, alle` | 0.26→frame, 0.34→frame, 0.70→frame |
+| `das Beispiel` | 0.63→const, 0.14→frame, 0.14→const |
+| `das Geld` | 0.25→frame, 0.04→frame, 0.23→frame |
+| `das Jahr` | 0.20→frame, 0.48→frame, 0.68→frame |
+| `das Kind` | 0.03→frame, 0.02→frame, 0.09→frame |
+| `das Land` | 0.05→frame, 0.06→frame, 0.11→frame |
+| `das Leben` | 0.18→frame, 0.10→const, 0.33→frame |
+| `das Problem` | 0.11→frame, 0.14→frame, 0.21→frame |
+| `das Thema` | 0.24→frame, 0.23→frame, 0.19→frame |
+| `das Video` | 0.13→frame, 0.10→frame, 0.66→frame |
+| `der Fall` | 0.42→frame, 0.21→const, 0.47→frame |
+| `der Herr` | 0.56→frame, 0.70→frame, 0.67→frame |
+| `der Mann` | 0.68→frame, 0.74→frame, 0.12→frame |
+| `der Mensch` | 0.73→frame, 0.74→frame, 0.40→frame |
+| `der Tag` | 0.76→frame, 0.85→frame, 0.57→frame |
+| `die Frage` | 0.29→frame, 0.77→frame, 0.19→frame |
+| `die Frau` | 0.63→frame, 0.39→frame, 0.36→frame |
+| `die Leute` | 0.38→frame, 0.23→frame, 0.22→frame |
+| `die Partei` | 0.12→frame, 0.22→frame, 0.09→frame |
+| `die Zeit` | 0.73→frame, 0.08→frame, 0.28→const |
+| `etw. (Akk) bekommen` | 0.83→frame, 0.74→frame, 0.67→frame |
+| `etw. (Akk) können` | 0.65→other, 0.60→other, 0.47→other |
+| `etw. (Akk) machen` | 0.28→other, 0.45→frame, 0.69→frame |
+| `etw. (Akk) tun` | 0.40→frame, 0.45→frame, 0.51→frame |
+| `etw. (Akk) wissen` | 0.93→frame, 0.07→frame, 0.70→frame |
+| `etw. (Akk) wollen` | 0.66→other, 0.06→other, 0.01→other |
+| `etw./jdn. (Akk) brauchen` | 0.16→frame, 0.12→other, 0.05→frame |
+| `etw./jdn. (Akk) finden` | 0.88→frame, 0.57→frame, 0.25→other |
+| `etw./jdn. (Akk) haben` | 0.02→other, 0.14→other, 0.83→other |
+| `etw./jdn. (Akk) kennen` | 0.30→frame, 0.31→frame, 0.78→frame |
+| `etw./jdn. (Akk) lassen` | 0.15→other, 0.71→frame, 0.67→other |
+| `etw./jdn. (Akk) nehmen` | 0.16→const, 0.57→const, 0.02→frame |
+| `etw./jdn. (Akk) sehen` | 0.68→frame, 0.01→frame, 0.14→frame |
+| `gern, gerne` | 0.21→frame, 0.76→frame, 0.81→frame |
+| `jdm. (Dat) / etw. (Akk) glauben` | 0.19→other, 0.16→other, 0.31→other |
+| `jdm. (Dat) etw. (Akk) bedeuten` | 0.21→other, 0.52→other, 0.39→other |
+| `jdm. (Dat) etw. (Akk) bringen` | 0.50→const, 0.77→const, 0.48→frame |
+| `jdm. (Dat) etw. (Akk) geben` | 0.83→const, 0.88→const, 0.75→const |
+| `jdm. (Dat) etw. (Akk) sagen` | 0.71→frame, 0.75→frame, 0.82→frame |
+| `jdm. (Dat) etw. (Akk) schreiben` | 0.68→frame, 0.67→frame, 0.89→frame |
+| `jdm. (Dat) etw. (Akk) zeigen` | 0.24→frame, 0.14→frame, 0.58→other |
+| `jdm. (Dat) gehören` | 0.97→other, 0.97→other, 0.95→other |
+| `jdm. (Dat) helfen` | 0.67→frame, 0.81→frame, 0.86→frame |
+| `jdm. (Dat) passieren` | 0.90→frame, 0.60→frame, 0.54→frame |
+| `jdm. (Dat) stehen` | 0.56→other, 0.31→other, 0.16→other |
+| `lange, lang` | 0.14→frame, 0.14→frame, 0.33→frame |
+| `mit jdm. / über etw./jdn. sprechen` | 0.64→frame, 0.35→frame, 0.07→frame |
+| `nach etw. aussehen` | 0.07→other, 0.15→other, 0.16→other |
+| `nichts, nix` | 0.32→frame, 0.16→const, 0.46→frame |
+| `selbst, selber` | 0.79→frame, 0.64→frame, 0.67→frame |
+
+
+## Arm: laya (laya-multilingual-0.3.4), question: guessable — could a reader who had every other word work this one out
+
+100 rows, 13s, 24,181 input tokens.
+
+| view | rows | precision@0.5 | recall@0.5 | p ≥ 0.9: right/n | p ≤ 0.1: right/n | 0.3–0.7 band |
+|---|---|---|---|---|---|---|
+| all | 100 | 85% | 88% | 20/24 | 1/1 | 34 |
+| residue | 100 | 85% | 88% | 20/24 | 1/1 | 34 |
+
+Precision and recall are of *guessable* against everything else; the two calibration columns say, of the rows the judge was sure about, how many the label agreed with; the band is the rows it was not sure about, which is the number a person would still read.
+
+| pattern (panel) | p per row → label |
+|---|---|
+| `all, alle` | 0.75→frame, 0.48→frame |
+| `das Beispiel` | 0.42→frame |
+| `das Land` | 0.56→frame |
+| `das Problem` | 0.93→frame |
+| `der Herr` | 0.91→frame, 0.77→frame |
+| `der Mensch` | 0.69→frame |
+| `der Tag` | 0.83→frame, 0.93→frame |
+| `die Leute` | 0.45→frame, 0.40→frame |
+| `die Partei` | 0.58→frame |
+| `etw. (Akk) bekommen` | 0.79→frame |
+| `etw. (Akk) machen` | 0.92→frame, 0.84→frame |
+| `etw. (Akk) tun` | 0.62→frame |
+| `etw./jdn. (Akk) brauchen` | 0.65→frame |
+| `etw./jdn. (Akk) kennen` | 0.68→frame |
+| `etw./jdn. (Akk) nehmen` | 0.84→frame |
+| `etw./jdn. (Akk) sehen` | 0.39→frame |
+| `gern, gerne` | 0.89→frame, 0.53→frame |
+| `jdm. (Dat) etw. (Akk) zeigen` | 0.95→frame |
+| `jdm. (Dat) helfen` | 0.83→frame, 0.95→frame |
+| `lange, lang` | 0.60→frame |
+| `mit jdm. / über etw./jdn. sprechen` | 0.59→frame |
+| `nichts, nix` | 0.73→frame, 0.81→frame |
+
+
+## Arm: laya (laya-multilingual-0.3.4), question: guessable as a rubric — nothing / a hint / gives it away, expected level scaled to 0–1
+
+100 rows, 9s, 30,981 input tokens.
+
+| view | rows | precision@0.5 | recall@0.5 | p ≥ 0.9: right/n | p ≤ 0.1: right/n | 0.3–0.7 band |
+|---|---|---|---|---|---|---|
+| all | 100 | 84% | 100% | 1/1 | 0/0 | 64 |
+| residue | 100 | 84% | 100% | 1/1 | 0/0 | 64 |
+
+Precision and recall are of *guessable* against everything else; the two calibration columns say, of the rows the judge was sure about, how many the label agreed with; the band is the rows it was not sure about, which is the number a person would still read.
+
+| pattern (panel) | p per row → label |
+|---|---|
+| `all, alle` | 0.83→frame, 0.83→frame |
+| `das Beispiel` | 0.68→frame |
+| `das Land` | 0.62→frame |
+| `das Problem` | 0.66→frame |
+| `der Herr` | 0.62→frame, 0.60→frame |
+| `der Mensch` | 0.74→frame |
+| `der Tag` | 0.78→frame, 0.71→frame |
+| `die Leute` | 0.63→frame, 0.66→frame |
+| `die Partei` | 0.56→frame |
+| `etw. (Akk) bekommen` | 0.77→frame |
+| `etw. (Akk) machen` | 0.67→frame, 0.66→frame |
+| `etw. (Akk) tun` | 0.69→frame |
+| `etw./jdn. (Akk) brauchen` | 0.75→frame |
+| `etw./jdn. (Akk) kennen` | 0.74→frame |
+| `etw./jdn. (Akk) nehmen` | 0.68→frame |
+| `etw./jdn. (Akk) sehen` | 0.61→frame |
+| `gern, gerne` | 0.65→frame, 0.61→frame |
+| `jdm. (Dat) etw. (Akk) zeigen` | 0.77→frame |
+| `jdm. (Dat) helfen` | 0.65→frame, 0.67→frame |
+| `lange, lang` | 0.67→frame |
+| `mit jdm. / über etw./jdn. sprechen` | 0.75→frame |
+| `nichts, nix` | 0.56→frame, 0.62→frame |
+
+
 ## Constructions the labels named
 
 What the sentence carried instead, where the judge named it — the candidates a discovery pass would have to propose:

@@ -567,7 +567,45 @@ def arm_local(rows: list[dict], on_progress=None, asking: str = "frame") -> list
     return out
 
 
-ARMS = {"jev": arm_jev, "local": arm_local}
+# Laya (convaiinnovations/laya, Apache 2.0): an open-weight encoder that
+# answers the same three primitives Jev does -- choice, score, noul -- from
+# a state and a question, on this machine. The multilingual checkpoint
+# (mmBERT-base, 322M) is used because the sentences are German; it runs on
+# the M1's GPU at a quarter of a second a row. Asked the very questions Jev
+# was asked, which is the fair first comparison and also a handicap: the
+# head of its input holds 256 tokens for instructions and criteria, each
+# criterion cut at 48, so it reads a shortened form of the frame question.
+def arm_laya(rows: list[dict], on_progress=None, asking: str = "frame") -> list[dict]:
+    import time                                          # noqa: PLC0415
+    import laya                                          # noqa: PLC0415
+    agent = laya.load("convaiinnovations/laya", subfolder="multilingual")
+    if asking == "guessable_score":
+        from corpus.questions import GUESSABLE           # noqa: PLC0415
+        question = {"frame": {
+            "type": "score",
+            "instructions": GUESSABLE["instructions"].replace("units.{id}", "unit"),
+            "criteria": list(GUESSABLE["criteria"])}}
+        top = len(GUESSABLE["criteria"]) - 1
+        read = lambda a: a["score"] / top         # noqa: E731
+    else:
+        instructions, criteria = QUESTIONS[asking]
+        question = {"frame": {"type": "noul", "instructions": instructions,
+                              "criteria": criteria}}
+        read = lambda a: a["noul"]                # noqa: E731
+    out = []
+    for i, row in enumerate(rows, 1):
+        started = time.time()
+        response = agent.predict(_state(row), question)
+        out.append({"n": row["n"], "p": round(read(response["answers"]["frame"]), 4),
+                    "model": "laya-multilingual-0.3.4",
+                    "input_tokens": response["usage"]["input_tokens"],
+                    "seconds": round(time.time() - started, 2)})
+        if on_progress and (i % 50 == 0 or i == len(rows)):
+            on_progress(i, len(rows))
+    return out
+
+
+ARMS = {"jev": arm_jev, "local": arm_local, "laya": arm_laya}
 
 
 def _arm_file(name: str, asking: str) -> str:
@@ -689,7 +727,7 @@ def main() -> None:
     elif what == "arm":
         name = sys.argv[2] if len(sys.argv) > 2 else ""
         if name not in ARMS:
-            raise SystemExit("usage: pattern_sense.py arm jev|local [limit]")
+            raise SystemExit("usage: pattern_sense.py arm jev|local|laya [limit]")
         rows = judged()
         if not rows or "rule" not in rows[0]:
             raise SystemExit("run `measure` first: the arms are scored against the judged file")
@@ -699,7 +737,7 @@ def main() -> None:
         run_arm(name, rows, limit, asking)
         write_report(rows, _last_effect())
     else:
-        raise SystemExit("usage: pattern_sense.py [sample|measure|arm jev|local [plain] [limit]]")
+        raise SystemExit("usage: pattern_sense.py [sample|measure|arm jev|local|laya [plain] [limit]]")
 
 
 if __name__ == "__main__":
