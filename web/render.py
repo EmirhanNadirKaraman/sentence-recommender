@@ -42,10 +42,10 @@ def stamped(name: str) -> str:
     digest = hashlib.sha256((STATIC / name).read_bytes()).hexdigest()[:12]
     return f"/static/{name}?v={digest}"
 
-NAV = (("/", "Next"), ("/reels", "Reels"), ("/review", "Review"), ("/hear", "Hearing"),
+NAV = (("/", "Next"), ("/reels", "Reels"), ("/review", "Review"), ("/hear", "Hearing"), ("/anki", "Anki"),
        ("/mine", "Mine"),
        ("/starred", "Starred"),
-       ("/roadmap", "Roadmap"),
+       ("/roadmap", "Roadmap"), ("/words", "Words"),
        ("/quiz", "Quiz"), ("/blocked", "Blocked"), ("/lists", "Lists"),
        ("/frontier", "Frontier"), ("/subtitles", "Videos"),
        ("/plan", "Plan"), ("/channels", "Channels"),

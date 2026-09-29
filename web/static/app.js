@@ -469,6 +469,7 @@ function glossPopup(button, lineText) {
     "<a class='link' target='_blank' rel='noopener' href='https://www.duden.de/suchen/" +
     "dudenonline/" + encodeURIComponent(lookup) + "'>Duden \u2197</a>" +
     (kind ? "<button type='button' class='known'>I know this</button>" : "") +
+      (kind ? "<button type='button' class='anki'>Anki</button>" : "") +
     "<button type='button' class='use'>Use it in a sentence</button>" +
     "<button type='button' class='close'>Close</button></div>" +
     "<div class='gloss-try' hidden><textarea rows='2' placeholder='Write a German sentence with " +
@@ -495,6 +496,25 @@ function glossPopup(button, lineText) {
     fetch('/known', {method: 'POST', body: body, redirect: 'manual', keepalive: true})
       .catch(function () {})
       .then(function () { knownBtn.textContent = 'Known'; learned(kind, key); });
+  };
+  // Queue the word for a card, or take it out again. The button says which
+  // it is rather than only doing it: the queue lives on another page, and a
+  // control that looks the same before and after is one you press twice.
+  var ankiBtn = glossBox.querySelector('.anki');
+  if (ankiBtn) ankiBtn.onclick = function () {
+    ankiBtn.disabled = true;
+    fetch('/api/anki', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: new URLSearchParams({kind: kind, key: key})
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        ankiBtn.textContent = d.queued ? 'Queued' : 'Anki';
+        ankiBtn.classList.toggle('on', !!d.queued);
+      })
+      .catch(function () { ankiBtn.textContent = 'Anki'; })
+      .then(function () { ankiBtn.disabled = false; });
   };
   var means = glossBox.querySelector('.gloss-means');
   var examples = glossBox.querySelector('.gloss-examples');

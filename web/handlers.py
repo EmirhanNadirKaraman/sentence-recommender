@@ -16,10 +16,12 @@ that way.
 from __future__ import annotations
 
 import csv
+import io
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import datetime
 import json
+import re
 from html import escape
 from pathlib import Path
 from queue import Queue
@@ -309,6 +311,10 @@ class Viewer:
         self._samples: dict | None = None
         self._listing: list | None = None
         self._episodes: dict | None = None
+        self._anki: set | None = None
+        self._gloss: tuple | None = None
+        self._anki_examples: tuple | None = None
+        self._goals_cached: frozenset | None = None
         self._plan_files: dict = {}
         self._stars: set | None = None
         # Video -> the channel that published it, and channel -> its name.
@@ -1471,6 +1477,216 @@ class Viewer:
             self._stars = set(self.app.overrides.starred())
         return text in self._stars
 
+    # --- words waiting for Anki -------------------------------------------
+
+    def anki_queued(self) -> set:
+        """The words queued for Anki, as units."""
+        if self._anki is None:
+            self._anki = {Unit(kind, key) for kind, key
+                          in self.app.overrides.anki_queue()}
+        return self._anki
+
+    def queue_anki(self, form: dict) -> dict:
+        """Put a word in the Anki queue or take it out. JSON, because the
+        button is on every page a word appears on and a reload to move one
+        would lose the reader's place on all of them."""
+        unit = Unit(form.get("kind", ""), form.get("key", ""))
+        if not unit.key:
+            return {"ok": False}
+        queued = unit not in self.anki_queued()
+        if queued:
+            self.app.overrides.queue_anki(unit)
+        else:
+            self.app.overrides.unqueue_anki(unit)
+        self._anki = None
+        return {"ok": True, "queued": queued,
+                "total": len(self.app.overrides.anki_queue())}
+
+    def anki_examples(self, source: str, units: set, each: int = 3) -> dict:
+        """Up to `each` sentences per unit, best first, with what to blank.
+
+        The sentences the epub and pdf decks show, which are `roadmap_example`
+        rows -- ranked when the roadmap was walked, by the judge's `worth`
+        (worth showing at all, times worth showing for this word), then the
+        reader's verdicts, then the quality and variety keys.
+
+        This used to scan the corpus itself and sort by (other unknowns,
+        length), keeping the shortest three. Over 447,007 subtitle lines the
+        shortest followable line is a fragment, so `interessant` was taught by
+        "Oh ja, das ist interessant." and `geben` by "Und das gibt zu denken."
+        Quality never entered into it: the judge, the verdicts and the stored
+        ranking were all sitting there unread, and the deck next door was
+        already showing the good ones.
+
+        A queued word need not be a step in the roadmap -- a button appears
+        wherever a word does, and the roadmap only walks the plan -- so what
+        the store has no deck for is ranked here, by the same
+        `ExampleIndex.examples` the stored order itself came from.
+        """
+        # Kept against the queue it was built for: the fallback below reads
+        # every sentence saying a word, and the page is read more often than
+        # the queue changes.
+        key = (source, frozenset(units), each)
+        if self._anki_examples and self._anki_examples[0] == key:
+            return self._anki_examples[1]
+
+        def carried(rows, unit) -> list:
+            return [(s.text, s.surface_of(unit) or "") for s in rows[:each]]
+
+        picked: dict = {}
+        # The deck itself, by the name `export-deck` writes under, so what
+        # lands in Anki is what landed in the documents.
+        from commands.export_deck import DEFAULT_LABEL     # noqa: PLC0415
+        label = (DEFAULT_LABEL if DEFAULT_LABEL in self._store.labels()
+                 else self._stored_label(source, False))
+        steps = self._store.load(label)
+        by_unit = {step.unit: step for step in steps}
+        wanted = [by_unit[u] for u in units if u in by_unit]
+        stored = self._store.decks(label, wanted, limit=each) if wanted else {}
+        for unit in units:
+            step = by_unit.get(unit)
+            rows = stored.get(step.position, []) if step is not None else []
+            if rows:
+                picked[unit] = carried(rows, unit)
+
+        # Off the plan, so the store holds no deck for it. Ranked the way the
+        # store was ranked, and read uncapped: the cap the word page fetches
+        # under orders by `length(text)`, which is the very bias this exists
+        # to undo.
+        for unit in units:
+            if unit in picked:
+                continue
+            holding = self.app.corpus(*self._builds(source), strict=True,
+                                      holding=(unit.kind, unit.key))
+            picked[unit] = carried(ExampleIndex(holding).examples(
+                unit, self.known, limit=each,
+                minutes=self.app.video_minutes,
+                verdicts=self.app.verdicts(), judged=self.app.judged), unit)
+
+        self._anki_examples = (key, picked)
+        return picked
+
+    def anki_english(self) -> tuple[dict, dict]:
+        """What English there is: a word's sense in a given sentence, and a
+        sentence's own translation.
+
+        The senses are keyed by sentence as well as by word, because `halten`
+        in one line and `halten` in another are not the same English. Only
+        3.1% of corpus sentences carry a stored translation, so the gloss is
+        where most of this comes from.
+        """
+        if self._gloss is None:
+            from deck.gloss import GlossStore          # noqa: PLC0415
+            import os                                  # noqa: PLC0415
+            store = GlossStore(self.app.settings.state_path)
+            said = os.environ.get("LLM_MODEL", "")
+            self._gloss = (store.senses(said), store.sentences(said))
+        return self._gloss
+
+    @staticmethod
+    def anki_cloze(text: str, surface: str) -> str:
+        """The sentence with its word blanked, as Anki writes a deletion."""
+        if not surface:
+            return text
+        hit = re.search(rf"\b{re.escape(surface)}\b", text) or \
+            re.search(re.escape(surface), text)
+        if not hit:
+            return text
+        return (text[:hit.start()] + "{{c1::" + hit.group(0) + "}}"
+                + text[hit.end():])
+
+    def anki_page(self, query: dict) -> str:
+        """The words waiting to become cards, and what each card will say.
+
+        Shown before it exists, because the sentences are chosen for you and
+        the only way to know whether the choice is any good is to read it.
+        """
+        source = self.source(query)
+        queued = self.anki_queued()
+        if not queued:
+            return self._page(
+                "Anki", "<h1>Nothing queued</h1><p class='empty'>Press "
+                "<b>Anki</b> beside a word — in the gloss, on the roadmap, "
+                "anywhere one appears — and it lands here with three "
+                "sentences to learn it from.</p>", "/anki", source)
+        found = self.anki_examples(source, queued)
+        when = {Unit(k, y): t for (k, y), t in self.app.overrides.anki_queue().items()}
+        order = sorted(queued, key=lambda u: (when.get(u, ""), u.key), reverse=True)
+        cards = []
+        for unit in order:
+            rows = found.get(unit, [])
+            body = "".join(
+                f"<p class='cloze'>{escape(self.anki_cloze(text, surface))}</p>"
+                for text, surface in rows) or \
+                "<p class='empty'>No sentence in the corpus says it.</p>"
+            cards.append(
+                "<div class='card'>"
+                f"<h2 class='word'>{escape(unit.key)}</h2>{body}"
+                "<form class='bar' method='post' action='/api/anki'>"
+                f"<input type='hidden' name='kind' value='{escape(unit.kind)}'>"
+                f"<input type='hidden' name='key' value='{escape(unit.key)}'>"
+                f"<input type='hidden' name='back' value='/anki'>"
+                "<button type='submit'>Remove</button></form></div>")
+        ready = sum(1 for u in order if found.get(u))
+        body = ("<h1>Cards to make</h1>"
+                "<p class='lede'>One card a word, three sentences on it, the "
+                "word blanked in each. Import either file as a "
+                "<b>Cloze</b> note type — first column Text, second Back "
+                "Extra, third Tags.</p>"
+                "<p class='lede'>Two files, because they are two different "
+                "cards. Without English the answer is the word itself, "
+                "recovered from the German around it, and nothing on the "
+                "page can give it away. With English it is a reading card. "
+                "They want separate decks and separate intervals rather "
+                "than the same note imported twice.</p>"
+                f"<p class='tally'><b>{len(order):,}</b> queued · "
+                f"<b>{ready:,}</b> with sentences · "
+                f"<a class='link' href='/anki.csv?src={quote(source)}'>"
+                "Download without English</a> · "
+                f"<a class='link' href='/anki-english.csv?src={quote(source)}'>"
+                "with English</a></p>" + "".join(cards))
+        return self._page("Anki", body, "/anki", source)
+
+    def anki_csv(self, query: dict, english: bool = False) -> str:
+        """The queue as Anki's importer wants it: Text, Back Extra, Tags.
+
+        Cloze, so one note carries all three sentences and one review covers
+        every context the word was chosen for. A word with no sentence is
+        left out rather than written as a card with nothing to recall from.
+
+        Two files rather than a column to ignore. Without English the card is
+        a recall test -- the word comes back out of the German around it, and
+        nothing on the page can give it away. With English it is a reading
+        card, and the two want different decks and different intervals, not
+        the same note imported twice.
+        """
+        source = self.source(query)
+        queued = self.anki_queued()
+        found = self.anki_examples(source, queued)
+        senses, translated = self.anki_english() if english else ({}, {})
+        out = io.StringIO()
+        writer = csv.writer(out)
+        for unit in sorted(queued, key=lambda u: u.key):
+            rows = found.get(unit, [])
+            if not rows:
+                continue
+            text = "<br>".join(self.anki_cloze(t, sf) for t, sf in rows)
+            back = unit.key
+            if english:
+                meanings, lines = [], []
+                for sentence, _ in rows:
+                    sense = senses.get((unit.kind, unit.key, sentence), "")
+                    if sense and sense not in meanings:
+                        meanings.append(sense)
+                    lines.append(translated.get(sentence, ""))
+                back = "<br>".join(
+                    [unit.key + (f" — {'; '.join(meanings)}" if meanings else "")]
+                    + [x for x in lines if x])
+            # Anki splits tags on spaces, so the word travels as one token.
+            tag = re.sub(r"\s+", "_", unit.key)
+            writer.writerow([text, back, f"{unit.kind} {tag}"])
+        return out.getvalue()
+
     def star_sentence(self, form: dict) -> dict:
         """Keep a sentence, or let it go. Answers JSON: the control is on
         every page and a reload to move a bookmark would lose the reader's
@@ -1608,7 +1824,22 @@ class Viewer:
         return ("<div class='tools'>"
                 f"<form method='post' action='/known'>{hidden}"
                 "<button name='action' value='known'>I know this</button>"
-                f"</form>{passing}{extra}</div>")
+                f"</form>{passing}{self.anki_button(unit, hidden)}"
+                f"{extra}</div>")
+
+    def anki_button(self, unit: Unit, hidden: str) -> str:
+        """Queue this word for a card, or take it out again.
+
+        A plain form rather than the popup's fetch: these sit on pages the
+        server drew, and a page that came from the server can come again.
+        The label says which state it is in, because the queue is somewhere
+        else and a control that looks the same either way is one you press
+        twice.
+        """
+        queued = unit in self.anki_queued()
+        return (f"<form method='post' action='/api/anki'>{hidden}"
+                f"<button class='{'on' if queued else ''}'>"
+                f"{'Queued' if queued else 'Anki'}</button></form>")
 
     def _actions(self, unit: Unit, source: str, back: str,
                  watchable: bool = False) -> str:
@@ -1626,6 +1857,7 @@ class Viewer:
             f"<form method='post' action='/known'>{hidden}"
             "<button class='go' name='action' value='known'>I know this</button>"
             "</form>"
+            f"{self.anki_button(unit, hidden)}"
             f"{watch}"
             f"<a class='link' href='/unit/{unit.kind}/{quote(unit.key, safe='')}"
             f"?src={quote(source)}'>Other sentences</a>"
@@ -2114,6 +2346,111 @@ class Viewer:
         ]
         self._stuck[key] = rows
         return rows
+
+    def word_search(self, query: dict) -> str:
+        """Look a word up and go to what says it.
+
+        `/unit` has always been the page about a word -- its sentences, each
+        opening the video at the second it was said -- but the only ways in
+        were a link from the roadmap or the reel's next-word panel. A word
+        met in the wild had nowhere to be typed.
+
+        The form met in the wild is the inflected one, so the query is also
+        put through the lemma table: `gibt` finds `geben`, which is the only
+        reason this is more useful than a browser's find-in-page.
+        """
+        source = self.source(query)
+        needle = (query.get("q") or "").strip()
+        box = ("<form class='bar' method='get' action='/words'>"
+               f"<input type='hidden' name='src' value='{escape(source)}'>"
+               f"<input type='text' name='q' value='{escape(needle)}' autofocus "
+               "placeholder='a word, in any form — gibt, gegeben, geben'>"
+               "<button type='submit'>Look it up</button></form>")
+        if not needle:
+            return self._page(
+                "Words", "<h1>Look up a word</h1><p class='lede'>Any form will "
+                "do — the lemma table turns <b>gibt</b> into <b>geben</b>. "
+                "What comes back is the sentences that say it, each opening "
+                "its video where it was said.</p>" + box, "/words", source)
+
+        folded = needle.casefold()
+        # The lemma the form belongs to, if the table knows it.
+        lemma = self.app.analyzer.verb_lemmas.get(folded, "")
+        said = self._units_like(source, folded, lemma)
+        known = self.known
+
+        def score(unit) -> tuple:
+            key = unit.key.casefold()
+            if key == folded or (lemma and key == lemma):
+                rank = 0
+            elif key.startswith(folded):
+                rank = 1
+            else:
+                rank = 2
+            return (rank, -said[unit], len(unit.key), unit.key)
+
+        hits = sorted(said, key=score)[:120]
+        if not hits:
+            return self._page(
+                "Words", f"<h1>Nothing says {escape(needle)}</h1>"
+                "<p class='empty'>No word in the corpus matches that. Try "
+                "another form, or a part of it.</p>" + box, "/words", source)
+        rows = "".join(
+            "<tr>"
+            f"<td><a href='/unit/{u.kind}/{quote(u.key, safe='')}"
+            f"?src={quote(source)}'>{escape(u.key)}</a>"
+            + ("<span class='tag'>known</span>" if u in known else "")
+            + ("<span class='tag'>on the list</span>"
+               if u in self._goal_set() else "")
+            + "</td>"
+            f"<td class='n'>{u.kind}</td>"
+            f"<td class='n'>{said[u]:,}</td>"
+            f"{self._anki_cell(u)}</tr>"
+            for u in hits)
+        body = (f"<h1>{escape(needle)}</h1>" + box
+                + (f"<p class='tally'><b>{len(hits):,}</b> match"
+                   f"{'' if len(hits) == 1 else 'es'}"
+                   + (f" · <b>{escape(lemma)}</b> is the lemma the table gives"
+                      if lemma and lemma != folded else "") + "</p>")
+                + "<table class='rows'><tr><th>word</th><th class='n'>kind</th>"
+                "<th class='n'>lines</th><th class='n'>anki</th></tr>"
+                + rows + "</table>")
+        return self._page("Words", body, "/words", source)
+
+    def _units_like(self, source: str, folded: str, lemma: str) -> dict:
+        """Units whose key contains `folded`, and how many lines say each.
+
+        Off `corpus_unit_count`, the materialised view the corpus stamps --
+        one indexed query rather than the unit-to-video index, which needs a
+        quarter of a million sentences in memory first. Measured at 44ms
+        against 11.6 seconds, and it answers before the corpus has been read
+        at all, which is most of the point on a page someone opens to look
+        one word up.
+        """
+        builds = self._builds(source)
+        wanted = [f"%{folded}%"] + ([lemma] if lemma and lemma != folded else [])
+        clause = " OR ".join(["key ILIKE %s"] + ["key = %s"] * (len(wanted) - 1))
+        sql = ("SELECT kind, key, sum(said)::int FROM corpus_unit_count"
+               f" WHERE ({clause})")
+        params: list = list(wanted)
+        if builds:
+            sql += " AND build = ANY(%s)"
+            params.append(list(builds))
+        sql += " GROUP BY kind, key ORDER BY 3 DESC LIMIT 400"
+        with self.app.corpus_store._read() as cur:
+            cur.execute(sql, params)
+            return {Unit(kind, key): said for kind, key, said in cur.fetchall()}
+
+    def _goal_set(self) -> frozenset:
+        if self._goals_cached is None:
+            self._goals_cached = frozenset(self.app.goal_units)
+        return self._goals_cached
+
+    def _anki_cell(self, unit: Unit) -> str:
+        hidden = (f"<input type='hidden' name='kind' value='{escape(unit.kind)}'>"
+                  f"<input type='hidden' name='key' value='{escape(unit.key)}'>"
+                  "<input type='hidden' name='back' value='/words'>")
+        return f"<td class='n'>{self.anki_button(unit, hidden)}</td>"
 
     def unit(self, kind: str, key: str, query: dict) -> str:
         """One word, read the way the reading page reads a step: a deck of

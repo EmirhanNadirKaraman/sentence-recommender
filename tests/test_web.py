@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import re
 import unittest
+from contextlib import contextmanager
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -1565,7 +1566,31 @@ class OneWalkFloorTest(unittest.TestCase):
                       "the floor cannot be asked for, so the page cannot rebuild it")
 
 
-class HearingTest(unittest.TestCase):
+class KnowingMixin:
+    """Stand in for `Viewer.known` for the length of a block, and put it back.
+
+    `known` is a property, so it cannot be set on an instance, and `type(v)`
+    is `Viewer` itself — so the obvious `type(v).known = ...; del
+    type(v).known` does not restore anything, it deletes the class's own
+    property and every later test reading `self.known` on a real Viewer fails
+    with AttributeError. It cost one, in another file's worth of output.
+    """
+
+    @contextmanager
+    def knowing(self, viewer, units):
+        cls = type(viewer)
+        before = cls.__dict__.get("known")
+        cls.known = property(lambda self: units)
+        try:
+            yield
+        finally:
+            if before is None:
+                del cls.known
+            else:
+                cls.known = before
+
+
+class HearingTest(KnowingMixin, unittest.TestCase):
     """`/hear`: a due word, the clip it is said in, and your own verdict.
 
     The same cards `/review` asks in words. What differs is the question —
@@ -1599,11 +1624,8 @@ class HearingTest(unittest.TestCase):
                  self.line("short, x", {want, other})]
         v._grouped = lambda source: {"vid": lines}
         v._videos_with = lambda source: {want: {"vid"}}
-        type(v).known = property(lambda self: frozenset({other}))
-        try:
+        with self.knowing(v, frozenset({other})):
             got = v._clip_for("subtitle", want)
-        finally:
-            del type(v).known
         self.assertIsNotNone(got)
         self.assertEqual(got[1].text, "short, x",
                          "it did not take the shortest fully-known line")
@@ -1613,11 +1635,8 @@ class HearingTest(unittest.TestCase):
         v = self.viewer()
         v._grouped = lambda source: {}
         v._videos_with = lambda source: {}
-        type(v).known = property(lambda self: frozenset())
-        try:
+        with self.knowing(v, frozenset()):
             self.assertIsNone(v._clip_for("subtitle", Unit.lemma("nowhere")))
-        finally:
-            del type(v).known
 
     def test_an_answer_moves_the_card(self) -> None:
         from types import SimpleNamespace as NS
@@ -1680,3 +1699,106 @@ class HearingTest(unittest.TestCase):
             (Path("data") / "episode_videos.json").read_text(encoding="utf-8"))
         missing = [p for p in list(found)[:200] if not Path(p).exists()]
         self.assertEqual(missing, [], "mapped transcripts that are not there")
+
+
+class AnkiExamplesTest(unittest.TestCase):
+    """Where an Anki card's sentences come from.
+
+    They used to come from a scan of the corpus sorted by (other unknowns,
+    length), keeping the shortest three — which over 447,007 subtitle lines
+    means fragments: "Oh ja, das ist interessant." The epub and pdf decks next
+    door were already rendering `roadmap_example`, ranked by the judge. These
+    check the cards now read that, and that a queued word the roadmap never
+    walked still gets the same ranking rather than the old scan.
+    """
+
+    class Said:
+        def __init__(self, text, surface=""):
+            self.text, self._surface = text, surface
+
+        def surface_of(self, unit):
+            return self._surface
+
+    def viewer(self, steps, decks, corpus=()):
+        from vocab.entry import Unit
+        viewer = Viewer.__new__(Viewer)
+        viewer._anki_examples = None
+        # `known` is a property over `_known`; setting the backing field keeps
+        # the test off the database.
+        viewer._known = SimpleNamespace(units=frozenset())
+        viewer._builds = lambda source: ()
+        viewer._stored_label = lambda source, list_only: "fallback-label"
+        viewer._store = SimpleNamespace(
+            labels=lambda: ["generated+subtitle+transcript:good:strict:"
+                            "goals:beginner"],
+            load=lambda label: steps,
+            decks=lambda label, wanted, limit: decks,
+        )
+        self.scanned = []
+        viewer.corpus_for = lambda *a, **k: (
+            self.scanned.append(True) or corpus)
+        viewer.app = SimpleNamespace(
+            corpus=lambda *a, **k: list(corpus),
+            video_minutes={}, verdicts=lambda: {},
+            judged=None, Unit=Unit)
+        return viewer
+
+    def test_a_step_takes_the_deck_the_documents_show(self) -> None:
+        from vocab.entry import Unit
+        word = Unit("lemma", "geben")
+        steps = [SimpleNamespace(unit=word, position=7)]
+        decks = {7: [self.Said("Gib mir bitte das Buch.", "Gib"),
+                     self.Said("Was gibt es Neues?", "gibt")]}
+        got = self.viewer(steps, decks).anki_examples("subtitle", {word})
+        self.assertEqual(got[word],
+                         [("Gib mir bitte das Buch.", "Gib"),
+                          ("Was gibt es Neues?", "gibt")])
+
+    def test_the_stored_order_is_kept(self) -> None:
+        """The store's `n` is the judge's ranking. Re-sorting here — by length,
+        as this once did — would throw away the one thing that makes it good."""
+        from vocab.entry import Unit
+        word = Unit("lemma", "halten")
+        steps = [SimpleNamespace(unit=word, position=1)]
+        decks = {1: [self.Said("Eine sehr viel laengere Erklaerung dazu."),
+                     self.Said("Kurz.")]}
+        got = self.viewer(steps, decks).anki_examples("subtitle", {word})
+        self.assertEqual([t for t, _ in got[word]],
+                         ["Eine sehr viel laengere Erklaerung dazu.", "Kurz."])
+
+    def test_it_stops_at_each(self) -> None:
+        from vocab.entry import Unit
+        word = Unit("lemma", "sein")
+        steps = [SimpleNamespace(unit=word, position=2)]
+        decks = {2: [self.Said(f"Satz {i}.") for i in range(6)]}
+        got = self.viewer(steps, decks).anki_examples("subtitle", {word},
+                                                      each=3)
+        self.assertEqual(len(got[word]), 3)
+
+    def test_a_word_off_the_plan_is_ranked_not_scanned(self) -> None:
+        """A button appears wherever a word does, so a queued word need not be
+        a step. The old scan is what it must not fall back to."""
+        from unittest.mock import patch
+        from vocab.entry import Unit
+        word = Unit("lemma", "beschimpfen")
+        viewer = self.viewer(steps=[], decks={})
+        ranked = self.Said("Warum hat man dich beschimpft?", "beschimpft")
+        with patch("web.handlers.ExampleIndex") as index:
+            index.return_value.examples.return_value = [ranked]
+            got = viewer.anki_examples("subtitle", {word})
+        self.assertEqual(got[word],
+                         [("Warum hat man dich beschimpft?", "beschimpft")])
+        self.assertTrue(index.return_value.examples.called)
+        self.assertEqual(self.scanned, [], "fell back to the old corpus scan")
+
+    def test_the_answer_is_kept_for_the_queue_it_was_built_for(self) -> None:
+        from vocab.entry import Unit
+        word = Unit("lemma", "geben")
+        steps = [SimpleNamespace(unit=word, position=7)]
+        calls = []
+        viewer = self.viewer(steps, {7: [self.Said("Gib her.")]})
+        loaded = viewer._store.load
+        viewer._store.load = lambda label: calls.append(label) or loaded(label)
+        viewer.anki_examples("subtitle", {word})
+        viewer.anki_examples("subtitle", {word})
+        self.assertEqual(len(calls), 1)

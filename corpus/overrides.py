@@ -40,6 +40,16 @@ CREATE TABLE IF NOT EXISTS starred_sentences (
     text     TEXT PRIMARY KEY,
     starred  TEXT NOT NULL
 );
+-- Words waiting to be written out as Anki cards. A word rather than a
+-- sentence, because the card is the word and the sentences are what it
+-- means: one card carries three of them with the word blanked out, which
+-- is the review this deck exists for and is not a thing to make by hand.
+CREATE TABLE IF NOT EXISTS anki_words (
+    kind   TEXT NOT NULL,
+    key    TEXT NOT NULL,
+    queued TEXT NOT NULL,
+    PRIMARY KEY (kind, key)
+);
 CREATE TABLE IF NOT EXISTS sentence_units_override (
     text     TEXT NOT NULL,
     kind     TEXT NOT NULL,
@@ -151,6 +161,29 @@ class SentenceOverrides:
             return {row[0]: row[1] for row in conn.execute(
                 "SELECT text, starred FROM starred_sentences"
                 " ORDER BY starred DESC, text")}
+
+    # --- words waiting for Anki -------------------------------------------
+
+    def queue_anki(self, unit) -> None:
+        """Put a word in the queue. Queueing one already there changes
+        nothing, not even the date, so the page keeps its order."""
+        with open_state(self._path) as conn:
+            conn.execute(
+                "INSERT OR IGNORE INTO anki_words (kind, key, queued)"
+                " VALUES (?, ?, ?)",
+                (unit.kind, unit.key, datetime.now().isoformat()))
+
+    def unqueue_anki(self, unit) -> None:
+        with open_state(self._path) as conn:
+            conn.execute("DELETE FROM anki_words WHERE kind = ? AND key = ?",
+                         (unit.kind, unit.key))
+
+    def anki_queue(self) -> dict[tuple[str, str], str]:
+        """(kind, key) -> when it was queued, newest first."""
+        with open_state(self._path) as conn:
+            return {(row[0], row[1]): row[2] for row in conn.execute(
+                "SELECT kind, key, queued FROM anki_words"
+                " ORDER BY queued DESC, key")}
 
     # --- how good a sentence is ------------------------------------------
 

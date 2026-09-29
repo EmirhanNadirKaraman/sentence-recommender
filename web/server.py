@@ -221,6 +221,16 @@ def _make_handler(viewers: "Viewers"):
                     self._redirect(viewer.set_blacklist(form))
                 elif posted == "/hide":
                     self._redirect(viewer.hide_sentence(form))
+                elif posted == "/api/anki":
+                    # Two callers, two answers. The button on a word is
+                    # JavaScript and wants JSON, because a reload would lose
+                    # the reader's place; Remove on the Anki page is a plain
+                    # form and says where to come back to.
+                    answer = viewer.queue_anki(form)
+                    if form.get("back"):
+                        self._redirect(form["back"])
+                    else:
+                        self._send_json(answer)
                 elif posted == "/api/star":
                     self._send_json(viewer.star_sentence(form))
                 elif posted == "/api/try":
@@ -268,6 +278,16 @@ def _make_handler(viewers: "Viewers"):
                 return viewer.settings(query), 200
             if path == "/frontier":
                 return viewer.frontier(query), 200
+            if path in ("/anki.csv", "/anki-english.csv"):
+                plain = path == "/anki.csv"
+                self._send_file(
+                    viewer.anki_csv(query, english=not plain), "text/csv",
+                    "anki-cards.csv" if plain else "anki-cards-english.csv")
+                return None, 0
+            if path == "/words":
+                return viewer.word_search(query), 200
+            if path == "/anki":
+                return viewer.anki_page(query), 200
             if path == "/hear":
                 return viewer.hear(query), 200
             if path == "/starred":
@@ -357,6 +377,18 @@ def _make_handler(viewers: "Viewers"):
             payload = json.dumps(data).encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+
+        def _send_file(self, body: str, kind: str, name: str) -> None:
+            """A download rather than a page. `_send` says text/html, which a
+            browser renders instead of saving."""
+            payload = body.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", f"{kind}; charset=utf-8")
+            self.send_header("Content-Disposition",
+                             f'attachment; filename="{name}"')
             self.send_header("Content-Length", str(len(payload)))
             self.end_headers()
             self.wfile.write(payload)
