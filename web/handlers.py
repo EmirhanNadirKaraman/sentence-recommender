@@ -3713,6 +3713,16 @@ class Viewer:
                               "Run <code>experiments/video_order.py</code> "
                               "first — it writes the orders this page reads."
                               "</p>", "/plan", source)
+        # A reader stepping back here out of a video carries the plan's
+        # *name*, because putting all six knobs on each of a thousand rows is
+        # a thousand rows of query string. So the name is accepted and read
+        # back into the knobs it stands for; without this, leaving a
+        # non-default plan and returning would land on the default one at the
+        # same position, which looks like the plan silently changing.
+        named = {stem: combination for combination, stem in offered.items()}
+        asked = named.get((query.get("plan") or "").strip())
+        if asked is not None:
+            query = dict(query) | dict(zip(KNOBS, asked))
         # One dropdown per knob rather than one list of every combination:
         # sixteen names each spelling out all three settings is a wall to
         # read, and it hides that they are three independent questions.
@@ -3766,7 +3776,8 @@ class Viewer:
             if row["kind"] == "video":
                 seen = row["where"].rsplit("v=", 1)[-1]
                 what = (f"<a href='/video?id={quote(seen, safe='')}"
-                        f"&src={quote(source)}'>{escape(name[:64])}</a>"
+                        f"&src={quote(source)}&plan={quote(which)}"
+                        f"&at={row['position']}'>{escape(name[:64])}</a>"
                         + self._wrote_it(seen))
             else:
                 # An episode is a transcript with no video in the catalogue,
@@ -3776,7 +3787,8 @@ class Viewer:
                 # search it always had rather than guessing at an id.
                 found = self._episode_videos().get(row["where"])
                 what = (f"<a href='/video?id={quote(found, safe='')}"
-                        f"&src={quote(source)}'>{escape(name[:64])}</a>"
+                        f"&src={quote(source)}&plan={quote(which)}"
+                        f"&at={row['position']}'>{escape(name[:64])}</a>"
                         if found else
                         f"{escape(name[:64])} <a class='link' rel='noreferrer' "
                         "href='https://www.youtube.com/results?search_query="
@@ -3928,6 +3940,54 @@ class Viewer:
                 + "<button type='submit'>Recalculate from what I know now"
                   "</button>" + said + "</form>")
 
+    def _plan_walk(self, query: dict, source: str) -> str:
+        """Where this video sits in the plan, and how to get to the next one.
+
+        A plan is an order, and a reader following it arrives here to watch
+        one and then has nowhere to go: the page knows the video and not that
+        it was the fourteenth of a thousand. The row carries `plan` and `at`
+        so this can say so and offer the step either side.
+        """
+        stem = (query.get("plan") or "").strip()
+        try:
+            at = int(query.get("at") or 0)
+        except ValueError:
+            at = 0
+        if not stem or at < 1:
+            return ""
+        try:
+            rows = self._plan_rows(stem)
+        except OSError:
+            return ""
+        if at > len(rows):
+            return ""
+
+        def step(to: int, label: str) -> str:
+            if not 1 <= to <= len(rows):
+                return f"<span class='link off'>{label}</span>"
+            row = rows[to - 1]
+            where = row["where"]
+            vid = (where.rsplit("v=", 1)[-1] if row["kind"] == "video"
+                   else self._episode_videos().get(where, ""))
+            if not vid:
+                # An episode with no video found for it. Skipping to the one
+                # after would silently drop a step from the order, so the
+                # plan itself is the way on.
+                return (f"<a class='link' href='/plan?plan={quote(stem)}"
+                        f"&src={quote(source)}&from={max(to - 1, 0)}'>"
+                        f"{label}</a>")
+            return (f"<a class='link' href='/video?id={quote(vid, safe='')}"
+                    f"&src={quote(source)}&plan={quote(stem)}&at={to}'>"
+                    f"{label}</a>")
+
+        return ("<p class='note'>"
+                f"{step(at - 1, '&larr; previous')} · "
+                f"<b>{at:,}</b> of {len(rows):,} in the plan · "
+                f"{step(at + 1, 'next &rarr;')} · "
+                f"<a class='link' href='/plan?plan={quote(stem)}"
+                f"&src={quote(source)}&from={max(at - 1, 0)}'>"
+                "back to the plan</a></p>")
+
     def _plan_rows(self, stem: str) -> list[dict]:
         """One saved order, parsed once and read again when it is rebuilt.
 
@@ -3950,7 +4010,7 @@ class Viewer:
     # --- one video, on purpose ---------------------------------------------
 
     def _episode_page(self, transcript: Path, video_id: str,
-                      source: str) -> str:
+                      source: str, walking: str = "") -> str:
         """An Easy German episode: the video, and the transcript under it.
 
         Not the video page proper, because none of what that page is built on
@@ -3973,7 +4033,8 @@ class Viewer:
         shown = lines[:MAX_TRANSCRIPT_LINES]
         more = len(lines) - len(shown)
         body = (f"<h1>{escape(transcript.stem)}</h1>"
-                "<p class='lede'>An Easy German episode. It has no entry in "
+                + walking
+                + "<p class='lede'>An Easy German episode. It has no entry in "
                 "the catalogue, so there are no timed subtitles and no place "
                 "in the reel — the transcript is below instead.</p>"
                 + video.player(video_id, 0)
@@ -3986,6 +4047,85 @@ class Viewer:
                    f"{escape(transcript.name)}</p>" if more > 0 else "")
                 + "</div>")
         return self._page(transcript.stem, body, "/video", source)
+
+    def _taught_here(self, cues: list, source: str, here: str) -> str:
+        """The words this video can teach now, in the order it says them.
+
+        Only the ones some line here holds as its *only* unknown. A word whose
+        every line has something else new in it cannot be got from this video
+        as it stands, so listing it said "new, and no use to you yet" in a
+        table of things to do -- and on a long video that was most of the rows.
+        The summary still counts them, because how much of a video is over
+        your head is worth knowing before starting it.
+
+        Ordered by first appearance rather than by usefulness, so the list can
+        be read down while watching: the next word you meet is the next row.
+
+        The count is lines in *this video*, not in the corpus. How often a word
+        is said elsewhere is the word page's question; before watching, the
+        useful one is how many chances this video gives you.
+        """
+        known = self.known
+        goals = self._goal_set()
+        says: dict = {}
+        alone: set = set()
+        first: dict = {}
+        for n, cue in enumerate(cues):
+            new = cue.units - known
+            for unit in new & goals:
+                says[unit] = says.get(unit, 0) + 1
+                if unit not in first:
+                    start_ = cue.timing.start if cue.timing else 0.0
+                    first[unit] = (n, start_)
+            if len(new) == 1:
+                alone |= new & goals
+        if not says:
+            return ("<p class='note'>Nothing on your study list is new in this "
+                    "one — every word it says, you already know.</p>")
+
+        order = sorted((u for u in says if u in alone),
+                       key=lambda u: first[u])
+
+        def row(unit: Unit) -> str:
+            hidden = (f"<input type='hidden' name='kind' value='{escape(unit.kind)}'>"
+                      f"<input type='hidden' name='key' value='{escape(unit.key)}'>"
+                      f"<input type='hidden' name='src' value='{escape(source)}'>"
+                      f"<input type='hidden' name='back' value='{escape(here)}'>")
+            return ("<tr>"
+                    f"<td class='n'>{_clock(first[unit][1])}</td>"
+                    f"<td><a href='/unit/{unit.kind}/{quote(unit.key, safe='')}"
+                    f"?src={quote(source)}'>{escape(unit.key)}</a>"
+                    + "</td>"
+                    f"<td class='n'>{says[unit]:,}</td>"
+                    f"<td class='n'>{self.anki_button(unit, hidden)}</td>"
+                    # The same post the study card sends. A word you already
+                    # know, met in a video you are about to watch, is the
+                    # commonest thing to want to say here -- and saying it
+                    # from the roadmap meant leaving the video.
+                    f"<td class='n'><form method='post' action='/known'>{hidden}"
+                    "<button class='go' name='action' value='known'>I know it"
+                    "</button></form></td></tr>")
+
+        rest = len(says) - len(order)
+        if not order:
+            return ("<p class='note'>"
+                    f"<b>{len(says):,}</b> word"
+                    f"{'' if len(says) == 1 else 's'} here "
+                    f"{'is' if len(says) == 1 else 'are'} new, but none of "
+                    "them one step away — every line saying them has "
+                    "something else new in it too.</p>")
+        return ("<details class='taught' open>"
+                f"<summary><b>{len(order):,}</b> word"
+                f"{'' if len(order) == 1 else 's'} here "
+                f"{'is' if len(order) == 1 else 'are'} one step away"
+                + (f", and <b>{rest:,}</b> more new but not yet within reach"
+                   if rest else "")
+                + " — in the order the video says them</summary>"
+                "<table class='rows'><tr><th class='n'>at</th><th>word</th>"
+                "<th class='n'>lines</th><th class='n'>anki</th>"
+                "<th class='n'>known</th></tr>"
+                + "".join(row(u) for u in order)
+                + "</table></details>")
 
     def _episode_videos(self) -> dict[str, str]:
         """Transcript path -> the video it was transcribed from.
@@ -4031,6 +4171,7 @@ class Viewer:
         can be opened, which is what a catalogue is for.
         """
         source = self.source(query)
+        walking = self._plan_walk(query, source)
         wanted = (query.get("id") or query.get("video") or "").strip()
         listing = self._catalogue()
         if not wanted:
@@ -4044,37 +4185,65 @@ class Viewer:
             episode = next((Path(p) for p, v in self._episode_videos().items()
                             if v == wanted), None)
             if episode is not None:
-                return self._episode_page(episode, wanted, source)
+                return self._episode_page(episode, wanted, source,
+                                          walking)
             return self._page("Video", "<h1>Not in the catalogue</h1>"
-                              "<p class='empty'>Nothing here has that id. "
+                              + walking
+                              + "<p class='empty'>Nothing here has that id. "
                               "<a href='/video'>Pick one from the list</a>, or "
                               "add it on the <a href='/subtitles'>Videos</a> "
                               "page.</p>", "/video", source)
         cues = self.app.with_english(self._cues(wanted))
         if not cues:
             return self._page(titles[wanted], f"<h1>{escape(titles[wanted])}</h1>"
-                              "<p class='empty'>This one is in the catalogue "
+                              + walking
+                              + "<p class='empty'>This one is in the catalogue "
                               "but has no analysed lines in this corpus — try "
                               "another build, or another video.</p>",
                               "/video", source)
         here = f"/video?id={quote(wanted, safe='')}&src={quote(source)}"
+        # Where a control on this page should come back to. `here` is the page
+        # itself; this is the page *in the plan*, so marking a word known does
+        # not quietly drop the reader out of the order they were following.
+        stem, step = (query.get("plan") or "").strip(), (query.get("at") or "")
+        back_here = (f"{here}&plan={quote(stem)}&at={quote(step.strip())}"
+                     if stem and step.strip() else here)
         # In the reel too? Then say so and link there, rather than leaving
         # two pages about one video with no road between them.
         ranked = self._watchable(source)
         at = next((n for n, r in enumerate(ranked) if r["video"] == wanted), None)
-        also = (f"<p class='note'><a class='link' href='/reels?src={quote(source)}"
-                f"&i={at}'>Open this in the reel</a> — number {at + 1:,} of "
-                f"{len(ranked):,} there.</p>" if at is not None else
-                "<p class='note'>The reel does not carry this one: it has "
-                f"fewer than {ENOUGH_LINES} lines, or its channel is set "
-                "aside.</p>")
+        # Why it is not in the reel, rather than the two reasons it could be.
+        # "fewer than 40 lines, or its channel is set aside" read as a refusal
+        # to play the video, which is a different thing and was true for its
+        # own reasons; the reel is one way of watching and this page is
+        # another, so this says which and does not imply anything about the
+        # picture above it.
+        if at is not None:
+            also = (f"<p class='note'><a class='link' href='/reels?src="
+                    f"{quote(source)}&i={at}'>Open this in the reel</a> — "
+                    f"number {at + 1:,} of {len(ranked):,} there.</p>")
+        elif wanted in self.app.banned_videos():
+            also = ("<p class='note'>Its channel is set aside, so the reel "
+                    "skips it — watch it here.</p>")
+        else:
+            also = (f"<p class='note'>Too short for the reel, which wants "
+                    f"{ENOUGH_LINES} analysed lines and this has "
+                    f"{len(cues):,} — fewer than it says on YouTube, because "
+                    "only the lines this corpus could parse are counted. "
+                    "Watch it here.</p>")
         body = (f"<h1>{escape(titles[wanted])}</h1>{self._wrote_it(wanted)}"
+                + walking
                 + also
                 + f"<div id='reel-taste'>{self._taste_control(wanted, here)}</div>"
                 + self._audio_toggle()
                 + "<div class='card' id='reel'>"
                 + video.stage(wanted, 0)
                 + "</div>"
+                # Under the picture rather than over it: what a video teaches
+                # is worth reading before watching and not worth pushing the
+                # video itself off the screen for, and this is where the eye
+                # already goes on the way to the transcript.
+                + self._taught_here(cues, source, back_here)
                 + video.transcript(cues, 0, None, words=_words,
                                    known=self.known)
                 + video.merged_script(self.known))

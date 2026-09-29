@@ -133,6 +133,39 @@ function captionsOff(player) {
   try { if (player && player.unloadModule) player.unloadModule('captions'); }
   catch (_) {}
 }
+// What YouTube says when it will not play, said out loud. The embed is built
+// with `controls=0`, so a refusal has nowhere to show itself: the picture stays
+// black behind a spinner and the bar below goes on offering Play. Nothing was
+// listening for `onError` either, so the one message that explains it was
+// being dropped. This puts it over the picture, with the way out.
+var PLAYER_TROUBLE = {
+  2: 'This video was asked for wrongly — the id looks invalid.',
+  5: 'The browser’s player could not start this one.',
+  100: 'The video is gone, or private.',
+  101: 'Its owner does not allow it to be played outside YouTube.',
+  150: 'Its owner does not allow it to be played outside YouTube.'
+};
+
+function playerTrouble(target, code) {
+  var box = document.querySelector('.player');
+  if (!box || box.querySelector('.trouble')) return;
+  var url = '';
+  try { url = target && target.getVideoUrl ? target.getVideoUrl() : ''; } catch (_) {}
+  var note = document.createElement('p');
+  note.className = 'trouble';
+  note.textContent = (PLAYER_TROUBLE[code] || 'YouTube would not play this one.')
+    + ' (error ' + code + ') ';
+  if (url) {
+    var out = document.createElement('a');
+    out.href = url;
+    out.target = '_blank';
+    out.rel = 'noreferrer';
+    out.textContent = 'Watch it on YouTube';
+    note.appendChild(out);
+  }
+  box.appendChild(note);
+}
+
 function quietEvents(events) {
   var onState = events.onStateChange;
   events.onStateChange = function (e) {
@@ -141,6 +174,11 @@ function quietEvents(events) {
   };
   var onReady = events.onReady;
   events.onReady = function (e) { captionsOff(e.target); if (onReady) onReady(e); };
+  var onError = events.onError;
+  events.onError = function (e) {
+    playerTrouble(e && e.target, e && e.data);
+    if (onError) onError(e);
+  };
   return events;
 }
 
@@ -600,8 +638,19 @@ function cueAt(cues, now) {
   // up inside a replaced region has to be looked up again afterwards, which
   // is what `bind` is for — and the gesture listeners hang off #card, which
   // is one of the survivors, so they are attached once.
+  //
+  // What this module needs is the *player*, not the reading page's card. The
+  // embed is built with `controls=0` and the bar under it drives the player
+  // through the API, so a page showing a player that nobody claims cannot be
+  // played at all -- which is what the video page was. It has the picture, the
+  // transcript and the bar, and neither #card nor the reel's #reel-state, so
+  // both modules bailed out and every button on it did nothing. The reel keeps
+  // its own claim, since it drives one player through a feed of videos;
+  // anything else with a player is driven from here, and the deck, the swap
+  // region and the gestures are each optional.
+  if (!document.getElementById('player')
+      || document.getElementById('reel-state')) return;
   var card = document.getElementById('card');
-  if (!card) return;
   var region = document.getElementById('reading');
   var top = document.getElementById('reading-top');
   var box = document.getElementById('transcript');
@@ -790,7 +839,7 @@ function cueAt(cues, now) {
       ? 'translate(' + dx + 'px,' + dy + 'px)' : '';
   }
 
-  card.addEventListener('pointerdown', function (e) {
+  if (card) card.addEventListener('pointerdown', function (e) {
     if (!e.isPrimary || e.clientX < 24) return;
     if (e.target.closest('button, a, input, textarea, select, [contenteditable]'))
       return;
@@ -798,7 +847,7 @@ function cueAt(cues, now) {
     if (deck) deck.style.transition = 'none';
   });
 
-  card.addEventListener('pointermove', function (e) {
+  if (card) card.addEventListener('pointermove', function (e) {
     if (!from) return;
     var dx = e.clientX - from.x, dy = e.clientY - from.y;
     if (!from.axis) {
@@ -815,7 +864,7 @@ function cueAt(cues, now) {
     offset(0, 0);
   }
 
-  card.addEventListener('pointerup', function (e) {
+  if (card) card.addEventListener('pointerup', function (e) {
     if (!from) return;
     var dx = e.clientX - from.x, dy = e.clientY - from.y;
     var axis = from.axis, ms = Math.max(e.timeStamp - from.t, 1);
@@ -828,7 +877,7 @@ function cueAt(cues, now) {
     else show(showing + (d < 0 ? 1 : -1));
   });
 
-  card.addEventListener('pointercancel', settle);
+  if (card) card.addEventListener('pointercancel', settle);
 
   document.addEventListener('keydown', function (e) {
     var el = document.activeElement;
@@ -846,6 +895,32 @@ function cueAt(cues, now) {
   });
 
   bind();
+
+  // The picture, clicked, plays or pauses. The embed is built with
+  // `controls=0`, so YouTube shows nothing to click and the reel's CSS turns
+  // the frame's own pointer events off anyway -- the video page borrows the
+  // reel's id and so inherited that, which left clicks landing on a `.player`
+  // with nobody listening. Whichever module drives a player owns its picture,
+  // so the class goes on here rather than being assumed from an id.
+  var picture = document.querySelector('.player');
+  if (picture) {
+    picture.classList.add('driven');
+    picture.addEventListener('click', function (e) {
+      // The trouble note carries a link out to YouTube; a click meant for it
+      // is not a click meant for the picture.
+      if (e.target.closest('a, button')) return;
+      var p = window.__player;
+      if (!p || !p.getPlayerState) return;
+      if (p.getPlayerState() === 1) p.pauseVideo(); else p.playVideo();
+    });
+  }
+
+  // The reading page loads a video's cues when the deck plays it. A page with
+  // no deck -- the video page -- would otherwise never load any, so the
+  // caption would not follow, the line buttons would have no lines to step
+  // through and auto-pause nothing to pause at. The transcript names its own
+  // video for exactly this.
+  if (!deck && box && box.dataset.video) loadTranscript(box.dataset.video);
 })();
 
 

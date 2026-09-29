@@ -116,7 +116,12 @@ def transcript(cues: list, current_index: int, surface: str | None,
             f"<span class='at'>{_clock(cue.timing.start)}</span>"
             f"<span class='said'>{body}</span></li>"
         )
-    return f"<ol class='transcript' id='transcript'>{''.join(rows)}</ol>"
+    # Which video these are of. The reading page plays a deck and tells the
+    # script what to load; the video page has no deck, so the only way it can
+    # follow along is for the transcript to say what it is a transcript of.
+    of = cues[0].timing.video_id if cues else ""
+    return (f"<ol class='transcript' id='transcript' data-video='{escape(of)}'>"
+            f"{''.join(rows)}</ol>")
 
 
 def script() -> str:

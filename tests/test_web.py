@@ -1701,6 +1701,132 @@ class HearingTest(KnowingMixin, unittest.TestCase):
         self.assertEqual(missing, [], "mapped transcripts that are not there")
 
 
+class PlanWalkTest(unittest.TestCase):
+    """Following the plan from inside a video, which it could not do.
+
+    The plan is an order, and every row of it used to open a page that knew the
+    video and not that it was the fourteenth of a thousand — so a reader who
+    watched one had to go back to the list and count. These check the strip that
+    replaced the counting, and in particular the two ends, where a link to
+    position 0 or 1,164 would 404 silently.
+    """
+
+    ROWS = [
+        {"position": "1", "kind": "video",
+         "where": "https://www.youtube.com/watch?v=aaa"},
+        {"position": "2", "kind": "episode", "where": "EG 210.txt"},
+        {"position": "3", "kind": "video",
+         "where": "https://www.youtube.com/watch?v=ccc"},
+    ]
+    FOUND = {"EG 210.txt": "bbb"}
+
+    def viewer(self, rows=None, episodes=None):
+        viewer = Viewer.__new__(Viewer)
+        viewer._plan_rows = lambda stem: self.ROWS if rows is None else rows
+        viewer._episode_videos = lambda: episodes or {}
+        return viewer
+
+    def walk(self, at, rows=None, episodes=None):
+        return self.viewer(rows, episodes)._plan_walk(
+            {"plan": "p", "at": str(at)}, "all")
+
+    def test_nothing_shows_when_the_page_was_not_reached_from_a_plan(self):
+        viewer = self.viewer()
+        self.assertEqual(viewer._plan_walk({}, "all"), "")
+        self.assertEqual(viewer._plan_walk({"plan": "p"}, "all"), "")
+
+    def test_it_says_where_in_the_order_this_one_sits(self) -> None:
+        self.assertIn("<b>2</b> of 3 in the plan", self.walk(2))
+
+    def test_the_first_has_no_previous_and_the_last_no_next(self) -> None:
+        first = self.walk(1, episodes=self.FOUND)
+        last = self.walk(3, episodes=self.FOUND)
+        self.assertIn("<span class='link off'>&larr; previous</span>", first)
+        self.assertIn("at=2", first)
+        self.assertIn("<span class='link off'>next &rarr;</span>", last)
+        self.assertIn("at=2", last)
+
+    def test_a_step_carries_the_plan_and_the_source_along(self) -> None:
+        """Losing either turns the next click into a different plan, or the
+        same plan read against a corpus the walk never saw."""
+        html = self.walk(1, episodes=self.FOUND)
+        self.assertIn("plan=p", html)
+        self.assertIn("src=all", html)
+
+    def test_an_episode_step_opens_the_video_it_was_transcribed_from(self):
+        self.assertIn("/video?id=bbb", self.walk(1, episodes=self.FOUND))
+
+    def test_an_episode_with_no_video_steps_through_the_plan_instead(self):
+        """Skipping to the row after would drop a step out of the order."""
+        html = self.walk(1)
+        self.assertIn("from=1", html)
+        self.assertNotIn("/video?id=&", html)
+
+    def test_the_way_back_names_the_plan_it_came_from(self) -> None:
+        """`/plan` with no knobs serves the default one. A reader on any other
+        plan who stepped back would land on a different order at the same
+        position, which reads as the plan having changed under them."""
+        for href in re.findall(r"href='(/plan\?[^']*)'", self.walk(2)):
+            self.assertIn("plan=p", href)
+            self.assertIn("src=all", href)
+
+    def test_a_position_past_the_end_says_nothing(self) -> None:
+        """A stale link from a plan that has since been rebuilt shorter."""
+        self.assertEqual(self.walk(9), "")
+
+    def test_a_position_that_is_not_a_number_says_nothing(self) -> None:
+        self.assertEqual(
+            self.viewer()._plan_walk({"plan": "p", "at": "x"}, "all"), "")
+
+
+class PlanWalkExitsTest(unittest.TestCase):
+    """The dead ends, which are where the way on matters most.
+
+    `video_page` returns early three times — an id in no catalogue, a video
+    with no analysed lines, an episode with no catalogue row at all. Each is a
+    separate `return`, each can be written without the strip, and a reader who
+    reached one from the plan is exactly the reader who cannot get back.
+    """
+
+    ROWS = [{"position": "1", "kind": "video",
+             "where": "https://www.youtube.com/watch?v=aaa"},
+            {"position": "2", "kind": "video",
+             "where": "https://www.youtube.com/watch?v=bbb"}]
+
+    def viewer(self, catalogue, episodes=None):
+        viewer = Viewer.__new__(Viewer)
+        viewer.source = lambda q: "all"
+        viewer._plan_rows = lambda stem: self.ROWS
+        viewer._episode_videos = lambda: episodes or {}
+        viewer._catalogue = lambda: catalogue
+        viewer._page = lambda title, body, path, source: body
+        return viewer
+
+    def asked(self, vid):
+        return {"id": vid, "plan": "p", "at": "1"}
+
+    def test_an_id_in_no_catalogue_still_offers_the_next_step(self) -> None:
+        body = self.viewer([]).video_page(self.asked("zzz"))
+        self.assertIn("1</b> of 2 in the plan", body)
+        self.assertIn("Not in the catalogue", body)
+
+    def test_an_episode_still_offers_the_next_step(self) -> None:
+        """No catalogue row, no timings, no reel -- and 58 rows of the default
+        plan are one of these."""
+        viewer = self.viewer([], episodes={"nowhere/EG 210.txt": "zzz"})
+        body = viewer.video_page(self.asked("zzz"))
+        self.assertIn("1</b> of 2 in the plan", body)
+        self.assertIn("An Easy German episode", body)
+
+    def test_a_video_with_no_analysed_lines_still_offers_it(self) -> None:
+        viewer = self.viewer([("zzz", "A title", 3.0)])
+        viewer.app = SimpleNamespace(with_english=lambda cues: [])
+        viewer._cues = lambda vid: []
+        body = viewer.video_page(self.asked("zzz"))
+        self.assertIn("1</b> of 2 in the plan", body)
+        self.assertIn("no analysed lines", body)
+
+
 class AnkiExamplesTest(unittest.TestCase):
     """Where an Anki card's sentences come from.
 
@@ -1802,3 +1928,126 @@ class AnkiExamplesTest(unittest.TestCase):
         viewer.anki_examples("subtitle", {word})
         viewer.anki_examples("subtitle", {word})
         self.assertEqual(len(calls), 1)
+
+
+class TaughtHereTest(KnowingMixin, unittest.TestCase):
+    """What a video teaches, said before it is watched.
+
+    The page knew the video's lines and never said what was new in them, so
+    the only way to find out which words the plan had chosen a video for was
+    to watch it and see. These check the order — the order the video says
+    them, so the list can be read down while watching — and that the list is
+    about *this* video and the reader's own list.
+    """
+
+    def viewer(self, goals, queued=frozenset()):
+        viewer = Viewer.__new__(Viewer)
+        viewer._goal_set = lambda: frozenset(goals)
+        viewer.anki_queued = lambda: queued
+        return viewer
+
+    @staticmethod
+    def line(units, at=0.0):
+        return SimpleNamespace(units=frozenset(units),
+                               timing=SimpleNamespace(start=at))
+
+    def render(self, viewer, cues, known):
+        with self.knowing(viewer, frozenset(known)):
+            return viewer._taught_here(cues, "subtitle", "/video?id=v")
+
+    def test_the_order_is_the_order_the_video_says_them(self) -> None:
+        """Read down the list while watching and the next row is the next word.
+        It used to lead with the learnable ones, which answered a different
+        question and left no way to see what was coming."""
+        from vocab.entry import Unit
+        late, early = Unit.lemma("spaet"), Unit.lemma("frueh")
+        cues = [self.line({Unit.lemma("ich")}, 1.0),
+                # The later word is said twice, so every key the old order
+                # used -- one step away first, then how many lines -- would
+                # have put it first.
+                self.line({late}, 30.0), self.line({late}, 31.0),
+                self.line({early, Unit.lemma("ich")}, 5.0)]
+        # `frueh` first appears at cue 3 but at 5.0s; the order follows the
+        # cues as given, which is the order they play.
+        html = self.render(self.viewer({late, early}), cues,
+                           {Unit.lemma("ich")})
+        self.assertLess(html.index("spaet"), html.index("frueh"))
+
+    def test_it_says_when_each_is_first_said(self) -> None:
+        """Without the time the order looks arbitrary."""
+        from vocab.entry import Unit
+        word = Unit.lemma("geben")
+        html = self.render(self.viewer({word}), [self.line({word}, 74.0)],
+                           set())
+        self.assertIn(">1:14</td>", html)
+
+    def test_the_time_is_the_first_one_not_the_last(self) -> None:
+        from vocab.entry import Unit
+        word = Unit.lemma("geben")
+        cues = [self.line({word}, 12.0), self.line({word}, 90.0)]
+        html = self.render(self.viewer({word}), cues, set())
+        self.assertIn(">0:12</td>", html)
+        self.assertNotIn(">1:30</td>", html)
+
+    def test_a_word_not_yet_within_reach_is_left_out(self) -> None:
+        """A word every line of which has something else new in it cannot be
+        got from this video, so it is not a row in a table of things to do."""
+        from vocab.entry import Unit
+        alone, crowded = Unit.lemma("geben"), Unit.lemma("halten")
+        cues = [self.line({crowded, Unit.lemma("fremd")}, 1.0),
+                self.line({alone, Unit.lemma("ich")}, 2.0)]
+        html = self.render(self.viewer({alone, crowded}), cues,
+                           {Unit.lemma("ich")})
+        self.assertIn("geben", html)
+        self.assertNotIn("halten", html)
+
+    def test_the_ones_left_out_are_still_counted(self) -> None:
+        """How much of a video is over your head is worth knowing before you
+        start it, even when there is nothing to do about those words yet."""
+        from vocab.entry import Unit
+        alone, crowded = Unit.lemma("geben"), Unit.lemma("halten")
+        cues = [self.line({crowded, Unit.lemma("fremd")}, 1.0),
+                self.line({alone, Unit.lemma("ich")}, 2.0)]
+        html = self.render(self.viewer({alone, crowded}), cues,
+                           {Unit.lemma("ich")})
+        self.assertIn("1</b> more new but not yet within reach", html)
+
+    def test_new_words_none_of_them_reachable_says_so(self) -> None:
+        from vocab.entry import Unit
+        crowded = Unit.lemma("halten")
+        cues = [self.line({crowded, Unit.lemma("fremd")}, 1.0)]
+        html = self.render(self.viewer({crowded}), cues, set())
+        self.assertIn("none of them one step away", html)
+        self.assertNotIn("<table", html)
+
+    def test_it_counts_lines_in_this_video(self) -> None:
+        from vocab.entry import Unit
+        word = Unit.lemma("geben")
+        cues = [self.line({word}, float(i)) for i in range(3)]
+        html = self.render(self.viewer({word}), cues, set())
+        self.assertIn(">3<", html)
+
+    def test_a_known_word_is_not_new(self) -> None:
+        from vocab.entry import Unit
+        word = Unit.lemma("geben")
+        html = self.render(self.viewer({word}), [self.line({word})], {word})
+        self.assertIn("every word it says, you already know", html)
+
+    def test_a_word_off_the_study_list_is_not_counted(self) -> None:
+        """The page counts what the reader set out to learn, not every noun
+        the video happens to say."""
+        from vocab.entry import Unit
+        goal, stray = Unit.lemma("geben"), Unit.lemma("Quastenflosser")
+        html = self.render(self.viewer({goal}), [self.line({stray})], set())
+        self.assertIn("every word it says, you already know", html)
+        self.assertNotIn("Quastenflosser", html)
+
+    def test_every_reachable_word_is_listed(self) -> None:
+        """Following along means every one of them, not the first screenful:
+        the cap that was here belonged to the section when it sat above the
+        picture."""
+        from vocab.entry import Unit
+        words = [Unit.lemma(f"w{i}") for i in range(90)]
+        cues = [self.line({w}, float(i)) for i, w in enumerate(words)]
+        html = self.render(self.viewer(set(words)), cues, set())
+        self.assertEqual(html.count("<tr>"), len(words) + 1)   # + header

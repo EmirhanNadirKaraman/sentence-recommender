@@ -611,3 +611,31 @@ button.w.target { color: var(--target); border-bottom: 1px solid var(--target); 
    bold, so the one dropdown to change is visible without reading the rest. */
 .near { list-style: none; padding: 0; margin: 14px 0 0; }
 .near li { padding: 6px 0; font-size: 14px; }
+
+/* What YouTube says when it refuses. Over the picture, because the picture is
+   where the reader is looking and `controls=0` leaves it otherwise blank. */
+.player .trouble {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  padding: .6rem .8rem;
+  background: rgba(0, 0, 0, .82);
+  color: #f2f5ff;
+  font-size: .9rem;
+  text-align: center;
+}
+.player .trouble a { color: #aab7ff; margin-left: .35rem; }
+
+/* A player the page drives itself: the frame shows no controls and takes no
+   clicks, so the picture is ours to toggle on. */
+.player.driven { cursor: pointer; }
+.player.driven iframe { pointer-events: none; }
+
+/* What a video teaches, above the picture. Open by default -- it is the
+   reason the plan chose this video, so it is not a footnote. */
+.taught { margin: .6rem 0 1rem; }
+.taught summary { cursor: pointer; padding: .3rem 0; }
+.taught table { margin-top: .4rem; }
+.taught .tag { margin-left: .5rem; }
