@@ -271,7 +271,8 @@ class Application:
                list_only: bool = False, strict: bool = False,
                holding: tuple[str, str] | None = None,
                text: str | None = None,
-               video: str | None = None):
+               video: str | None = None,
+               limit: int = 0):
         """Cached sentences from the named builds, with reader corrections.
 
         Corrections are applied on the way out rather than baked into the
@@ -312,6 +313,7 @@ class Application:
         return self.apply_overrides(self.corpus_store.load(
             *(builds or self.corpus_store.builds()),
             teachable_only=teachable_only, holding=holding, text=text,
+            limit=limit,
             video=video, resolve=resolve,
         ), resolve)
 

@@ -387,7 +387,8 @@ class CorpusStore:
              holding: tuple[str, str] | None = None,
              text: str | None = None,
              resolve=None,
-             german_only: bool = True) -> list[Sentence]:
+             german_only: bool = True,
+             limit: int = 0) -> list[Sentence]:
         """Stored sentences. By default only the ones worth studying from —
         pass `teachable_only=False` for the full transcript, which is what an
         overlay needs.
@@ -443,16 +444,27 @@ class CorpusStore:
                      " WHERE kind = %s AND key = %s)" if holding else "")
         joined_here = (" AND s.id IN (SELECT sentence_id FROM corpus_unit"
                        " WHERE kind = %s AND key = %s)" if holding else "")
+        # Shortest first, so a cap keeps the sentences a deck wants. The
+        # word page asks for one word's examples and kept twenty-five of
+        # them; for `sagen` that meant loading 11,840 sentences to throw
+        # 11,815 away, two and a half seconds of it. Length is the cheap half
+        # of what makes an example readable and the only half SQL can sort on.
+        capped = " ORDER BY length(text), id LIMIT %s" if limit else ""
         one_text = " AND text = %s" if text else ""
         joined_text = " AND s.text = %s" if text else ""
+        # Two queries, two argument lists. They were one, and adding the
+        # cap put a `%s` in the first query and its value in the arguments of
+        # both -- so every call with a limit raised "not all arguments
+        # converted" from the second.
         args = ([list(builds)] + ([video] if video else [])
                 + (list(holding) if holding else []) + ([text] if text else []))
+        picked = args + ([limit] if limit else [])
         with self._read() as cur:
             cur.execute(
                 "SELECT id, origin, text, translation, raw_text, source_ids,"
                 " video_id, start_time, end_time, teachable"
                 f" FROM corpus_sentence WHERE build = ANY(%s){teachable}"
-                f"{german}{one_video}{said_here}{one_text}", args)
+                f"{german}{one_video}{said_here}{one_text}{capped}", picked)
             rows = cur.fetchall()
             units: dict[int, set[Unit]] = {}
             surfaces: dict[int, list[tuple[Unit, str]]] = {}
@@ -469,12 +481,22 @@ class CorpusStore:
             # nothing but the unit, so it keeps this.
             seen: dict[tuple[str, str], Unit | None] = {}
             unseen = object()          # None already means "refused"
-            cur.execute(
-                "SELECT su.sentence_id, su.kind, su.key, su.surface"
-                " FROM corpus_unit su"
-                " JOIN corpus_sentence s ON s.id = su.sentence_id"
-                f" WHERE s.build = ANY(%s){joined_german}{joined_video}"
-                f"{joined_here}{joined_text}", args)
+            if limit:
+                # The ids the first query returned, rather than the same
+                # filter run again. Under a cap the two disagree: the join
+                # would read the units of every sentence the filter matches
+                # -- 11,840 for `sagen` -- to describe the few hundred that
+                # were kept.
+                cur.execute(
+                    "SELECT sentence_id, kind, key, surface FROM corpus_unit"
+                    " WHERE sentence_id = ANY(%s)", ([r[0] for r in rows],))
+            else:
+                cur.execute(
+                    "SELECT su.sentence_id, su.kind, su.key, su.surface"
+                    " FROM corpus_unit su"
+                    " JOIN corpus_sentence s ON s.id = su.sentence_id"
+                    f" WHERE s.build = ANY(%s){joined_german}{joined_video}"
+                    f"{joined_here}{joined_text}", args)
             for sid, kind, key, surface in cur:
                 unit = seen.get((kind, key), unseen)
                 if unit is unseen:

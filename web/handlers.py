@@ -143,6 +143,10 @@ SHOWN_ENTRIES = 60
 # megabyte of table for a list nobody reads past the top of.
 PLANS = Path(__file__).resolve().parents[1] / "experiment_results"
 PLAN_PAGE = 100
+# How many of a word's sentences the deck reads before choosing among them.
+# The deck shows twenty-five; this is the pool, shortest first, and it is
+# what keeps a common word's page from loading eleven thousand sentences.
+DECK_FETCH = 600
 # Enough to read along with; a transcript is prose and some run long.
 MAX_TRANSCRIPT_LINES = 500
 
@@ -2515,8 +2519,15 @@ class Viewer:
         to find them, forty-six seconds, the slowest thing in the app.
         """
         known = self.known
+        # Capped, and counted separately. Loading every sentence that says a
+        # word to keep twenty-five of them cost two and a half seconds for
+        # `sagen`, which says 11,840 -- and the ones thrown away were the
+        # long ones, which the deck would never have shown. The count the
+        # page prints comes off `corpus_unit_count` instead, so it still says
+        # how many there really are.
         holding = self.app.corpus(*self._builds(source), list_only=list_only,
-                                  strict=not list_only, holding=(target.kind, target.key))
+                                  strict=not list_only, limit=DECK_FETCH,
+                                  holding=(target.kind, target.key))
         found = ExampleIndex(holding).examples(
             target, known, limit=25, minutes=self.app.video_minutes,
             verdicts=self.app.verdicts(), judged=self.app.judged)
@@ -2533,7 +2544,23 @@ class Viewer:
         deck = sorted(readable or found, key=lambda s: (
             len(s.units - known - {target}),
             not (video_id and s.timing and s.timing.video_id == video_id)))[:DECK_SIZE]
-        return deck, len(holding)
+        return deck, self._says_count(source, target) or len(holding)
+
+    def _says_count(self, source: str, target: Unit) -> int:
+        """How many sentences say the word, off the materialised view."""
+        builds = self._builds(source)
+        sql = ("SELECT coalesce(sum(said), 0)::int FROM corpus_unit_count"
+               " WHERE kind = %s AND key = %s")
+        args: list = [target.kind, target.key]
+        if builds:
+            sql += " AND build = ANY(%s)"
+            args.append(list(builds))
+        try:
+            with self.app.corpus_store._read() as cur:
+                cur.execute(sql, args)
+                return cur.fetchone()[0]
+        except Exception:                          # noqa: BLE001 — a count
+            return 0
 
     # --- reviewing the claims ---------------------------------------------
 
