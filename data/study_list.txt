@@ -160,7 +160,7 @@ welch	welch
 nennen	nennen
 tun	tun
 der Deutscher	der Deutscher
-sprechen	mit jdm. / über etw./jdn. sprechen
+sprechen	sprechen
 finden	finden
 das Land	das Land
 seit	seit
@@ -216,7 +216,7 @@ genau	genau
 weiter	weiter
 vier	vier
 darauf	darauf
-gelten	für jdn./etw. gelten
+gelten	gelten
 kennenlernen	kennenlernen
 wirklich	wirklich
 die Welt	die Welt
@@ -236,7 +236,7 @@ richtig	richtig
 brauchen	brauchen
 dafür	dafür
 recht	recht
-bestehen	aus etw. / etw. (Akk) bestehen bestehen
+bestehen	bestehen
 das Recht	das Recht
 lernen	lernen
 kurzem	kurzem
@@ -276,7 +276,7 @@ erzählen	erzählen
 politisch	politisch
 allein, alleine	allein, alleine
 neben	neben
-beginnen	mit etw. / etw. (Akk) beginnen
+beginnen	beginnen
 erklären	erklären
 laufen	laufen
 der Weg	der Weg
@@ -325,7 +325,7 @@ ein paar	ein paar
 suchen	suchen
 treffen	jdn. (Akk) / sich mit jdm. treffen
 die Form	die Form
-handeln	mit etw. / von etw. handeln
+handeln	handeln
 erhalten	erhalten
 vorstellen	jdm. (Dat) jdn./etw. (Akk) / sich (Dat) etw. (Akk) vorstellen
 daran	daran
@@ -386,12 +386,12 @@ die Zahl	die Zahl
 früher	früher
 gemeinsam	gemeinsam
 erkennen	erkennen
-aussehen	nach etw. aussehen
+aussehen	aussehen
 nahe, nah	nahe, nah
 voll	voll
 einzig	einzig
 entwickeln	entwickeln
-reden	mit jdm. / über etw. reden
+reden	reden
 die Minute	die Minute
 die Straße	die Straße
 erscheinen	erscheinen
@@ -415,7 +415,7 @@ naja	naja
 rot	rot
 die Sprache	die Sprache
 bilden	bilden
-anfangen	mit etw. anfangen
+anfangen	anfangen
 bisher	bisher
 sozial	sozial
 wert	wert
@@ -435,7 +435,7 @@ die Milliarde	die Milliarde
 öffentlich	öffentlich
 manchmal	manchmal
 ach	ach
-warten	auf jdn./etw. warten
+warten	warten
 der Krieg	der Krieg
 gewiss	gewiss
 der Schüler	der Schüler
@@ -445,7 +445,7 @@ her	her
 das Gespräch	das Gespräch
 niemand	niemand
 der Meter	der Meter
-erinnern	jdn. (Akk) an etw. erinnern
+erinnern	erinnern
 die Wohnung	die Wohnung
 das Stück	das Stück
 die Regierung	die Regierung
@@ -453,7 +453,7 @@ die Weise	die Weise
 gewinnen	gewinnen
 sechs	sechs
 halb	halb
-sich erinnern	an jdn./etw. sich erinnern
+sich erinnern	sich an jdn./etw. erinnern
 bieten	bieten
 europäisch	europäisch
 schließen	schließen
@@ -471,7 +471,7 @@ der Begriff	der Begriff
 der Punkt	der Punkt
 die Funktion	die Funktion
 der Boden	der Boden
-verbinden	jdn./etw. (Akk) mit jdm./etw. verbinden
+verbinden	verbinden
 fühlen	fühlen
 der Preis	der Preis
 der Sohn	der Sohn
@@ -500,21 +500,21 @@ sich ergeben	aus etw. sich ergeben
 außerdem	außerdem
 die Richtung	die Richtung
 inzwischen	inzwischen
-schauen	auf etw./jdn. schauen
+schauen	schauen
 die Stimme	die Stimme
 die Musik	die Musik
 das Programm	das Programm
 der Rahmen	der Rahmen
 völlig	völlig
 schwarz	schwarz
-vergleichen	etw./jdn. (Akk) mit jdm./etw. vergleichen
+vergleichen	vergleichen
 sofort	sofort
 der Schritt	der Schritt
 einsetzen	einsetzen
 der Gott	der Gott
 der Absatz	der Absatz
 bald	bald
-ausgehen	von etw. ausgehen
+ausgehen	ausgehen
 wachsen	wachsen
 persönlich	persönlich
 genug	genug
@@ -541,7 +541,7 @@ der Präsident	der Präsident
 modern	modern
 sich befinden	sich befinden
 tief	tief
-wirken	auf jdn./etw. wirken
+wirken	wirken
 annehmen	annehmen
 die Zukunft	die Zukunft
 die Erfahrung	die Erfahrung
@@ -566,7 +566,7 @@ zunehmen	zunehmen
 der Doktor	der Doktor
 gestern	gestern
 der Gedanke	der Gedanke
-fordern	etw. (Akk) von jdm. fordern
+fordern	fordern
 der Film	der Film
 gefallen	gefallen
 nachdem	nachdem
@@ -591,7 +591,7 @@ der Arm	der Arm
 grün	grün
 zusammen	zusammen
 die Kraft	die Kraft
-lachen	über jdn./etw. lachen
+lachen	lachen
 trotz	trotz
 schlagen	schlagen
 relativ	relativ
@@ -622,7 +622,7 @@ das Zuhause	das Zuhause
 enthalten	enthalten
 der Erfolg	der Erfolg
 weiß	weiß
-entscheiden	über etw. (Akk) entscheiden
+entscheiden	entscheiden
 pro	pro
 stattfinden	stattfinden
 entscheidend	entscheidend
@@ -636,7 +636,7 @@ das Internet	das Internet
 insgesamt	insgesamt
 dienen	dienen
 die Leistung	die Leistung
-erfahren	etw. (Akk) von jdm. erfahren
+erfahren	erfahren
 langsam	langsam
 eng	eng
 die Lage	die Lage
@@ -652,8 +652,8 @@ trotzdem	trotzdem
 sich verhalten	sich verhalten
 das Verhalten	das Verhalten
 der Arzt	der Arzt
-stimmen	für/gegen jdn./etw. stimmen
-berichten	jdm. (Dat) über etw./jdn. berichten
+stimmen	stimmen
+berichten	berichten
 das Zimmer	das Zimmer
 rein	rein
 der Körper	der Körper
@@ -676,7 +676,7 @@ das Fenster	das Fenster
 der Junge	der Junge
 das Produkt	das Produkt
 selten	selten
-rechnen	mit jdm./etw. rechnen
+rechnen	rechnen
 französisch	französisch
 das Studium	das Studium
 erleben	erleben
@@ -696,8 +696,8 @@ fremd	fremd
 die Natur	die Natur
 wahr	wahr
 das Bett	das Bett
-unterscheiden	etw./jdn. (Akk) von etw./jdm. unterscheiden
-sterben	an etw. (Dat) sterben
+unterscheiden	unterscheiden
+sterben	sterben
 die Wirtschaft	die Wirtschaft
 werfen	werfen
 irgendwo	irgendwo
@@ -715,19 +715,19 @@ reichen	reichen
 das Tier	das Tier
 privat	privat
 tot	tot
-verlangen	etw. (Akk) von jdm. verlangen
+verlangen	verlangen
 der Mitarbeiter	der Mitarbeiter
 der Tod	der Tod
 das Dorf	das Dorf
 sich freuen	auf/über etw. (Akk) sich freuen
 hängen	hängen
 der Bruder	der Bruder
-hoffen	auf etw. (Akk) hoffen
+hoffen	hoffen
 freuen	freuen
 die Angabe	die Angabe
 die Verfügung	die Verfügung
 der Gast	der Gast
-teilen	etw. (Akk) mit jdm. teilen
+teilen	teilen
 wünschen	wünschen
 die Sicherheit	die Sicherheit
 positiv	positiv
@@ -738,23 +738,23 @@ außer	außer
 fest	fest
 bauen	bauen
 das Gebiet	das Gebiet
-zählen	zu etw. / etw. (Akk) zählen
+zählen	zählen
 der Einsatz	der Einsatz
 der Unterschied	der Unterschied
 die Anwendung	die Anwendung
-ankommen	auf etw. / an etw. ankommen
+ankommen	ankommen
 bezahlen	bezahlen
 die Vorstellung	die Vorstellung
 der Kontakt	der Kontakt
-sorgen	für jdn./etw. sorgen
+sorgen	sorgen
 das Fach	das Fach
 zentral	zentral
 die Menge	die Menge
 die Verbindung	die Verbindung
 der Sommer	der Sommer
-stecken	etw. (Akk) in etw. stecken
+stecken	stecken
 dauern	dauern
-beziehen	etw. (Akk) auf jdn./etw. beziehen
+beziehen	beziehen
 fertig	fertig
 der Anspruch	der Anspruch
 weder	weder
@@ -762,7 +762,7 @@ das Herz	das Herz
 spüren	spüren
 statt	statt
 die Antwort	die Antwort
-bitten	jdn. (Akk) um etw. bitten
+bitten	bitten
 die Ausbildung	die Ausbildung
 breit	breit
 hart	hart
@@ -812,7 +812,7 @@ besitzen	besitzen
 der Beginn	der Beginn
 das Wochenende	das Wochenende
 der Professor	der Professor
-beteiligen	jdn. (Akk) an etw. beteiligen
+beteiligen	beteiligen
 der Osten	der Osten
 aktuell	aktuell
 sich eignen	für etw. / als etw. sich eignen
@@ -828,11 +828,11 @@ schlafen	schlafen
 das Institut	das Institut
 merken	jdm. (Dat) etw. (Akk) / sich (Dat) etw. (Akk) merken
 nochmals	nochmals
-passen	jdm. (Dat) / zu etw. passen
+passen	passen
 die Bevölkerung	die Bevölkerung
 die Erde	die Erde
 die Schwester	die Schwester
-richten	etw. (Akk) an jdn. richten
+richten	richten
 irgendwas	irgendwas
 die Ebene	die Ebene
 zuvor	zuvor
@@ -846,14 +846,14 @@ lösen	lösen
 das Prinzip	das Prinzip
 das Risiko	das Risiko
 daraus	daraus
-lächeln	jdn. (Akk) an / über etw. lächeln
-beschäftigen	jdn. (Akk) mit etw. beschäftigen
+lächeln	lächeln
+beschäftigen	beschäftigen
 der Vorteil	der Vorteil
 das Haar	das Haar
 schlimm	schlimm
 miteinander	miteinander
-antworten	jdm. (Dat) auf etw. antworten
-trennen	etw./jdn. (Akk) von jdm./etw. trennen
+antworten	antworten
+trennen	trennen
 der Autor	der Autor
 teilweise	teilweise
 schlimmer	schlimmer
@@ -894,7 +894,7 @@ menschlich	menschlich
 die Technik	die Technik
 erfolgreich	erfolgreich
 der Versuch	der Versuch
-eingehen	auf etw. eingehen
+eingehen	eingehen
 andererseits	andererseits
 zahlreich	zahlreich
 erlauben	erlauben
@@ -903,7 +903,7 @@ der Kreis	der Kreis
 offenbar	offenbar
 die Forderung	die Forderung
 die Rede	die Rede
-blicken	auf etw. (Akk) blicken
+blicken	blicken
 konkret	konkret
 regelmäßig	regelmäßig
 ehemalig	ehemalig
@@ -923,11 +923,11 @@ ausreichen	ausreichen
 treiben	treiben
 kalt	kalt
 zwölf	zwölf
-überzeugen	jdn. (Akk) von etw. überzeugen
+überzeugen	überzeugen
 behandeln	behandeln
 aktiv	aktiv
 das Schweigen	das Schweigen
-drohen	jdm. (Dat) mit etw. drohen
+drohen	drohen
 der Künstler	der Künstler
 staatlich	staatlich
 die Region	die Region
@@ -945,11 +945,11 @@ heutig	heutig
 der Wunsch	der Wunsch
 unabhängig	unabhängig
 kulturell	kulturell
-klingen	nach etw. klingen
+klingen	klingen
 der Artikel	der Artikel
 die Reaktion	die Reaktion
 schweigen	schweigen
-reagieren	auf etw. (Akk) reagieren
+reagieren	reagieren
 bewusst	bewusst
 ruhig	ruhig
 die Linie	die Linie
@@ -971,7 +971,7 @@ der Inhalt	der Inhalt
 fliegen	fliegen
 die Farbe	die Farbe
 der Himmel	der Himmel
-überraschen	jdn. (Akk) mit etw. überraschen
+überraschen	überraschen
 betreiben	betreiben
 die Bibliothek	die Bibliothek
 weiterhin	weiterhin
@@ -996,11 +996,11 @@ ermöglichen	ermöglichen
 vertreten	vertreten
 die Sonne	die Sonne
 irgendein	irgendein
-stoßen	gegen etw. / auf etw. stoßen
+stoßen	stoßen
 das Bein	das Bein
 herstellen	herstellen
 vorne, vorn	vorne, vorn
-leiden	an etw. (Dat) / unter etw. (Dat) leiden
+leiden	leiden
 wechseln	wechseln
 erneut	erneut
 toll	toll
@@ -1019,9 +1019,9 @@ wenigstens	wenigstens
 überlegen	sich (Dat) etw. (Akk) überlegen
 reisen	reisen
 zurzeit	zurzeit
-stammen	aus etw. / von jdm. stammen
+stammen	stammen
 der Garten	der Garten
-zahlen	etw. (Akk) an jdn. zahlen
+zahlen	zahlen
 der Druck	der Druck
 der Zustand	der Zustand
 abschließen	abschließen
@@ -1036,14 +1036,14 @@ aufgeben	aufgeben
 individuell	individuell
 der Auftrag	der Auftrag
 der Baum	der Baum
-greifen	nach etw. greifen
+greifen	greifen
 der Dienst	der Dienst
 der Gegenstand	der Gegenstand
 gesellschaftlich	gesellschaftlich
 die Freude	die Freude
 üblich	üblich
 leer	leer
-verzichten	auf etw. (Akk) verzichten
+verzichten	verzichten
 irgendwelche	irgendwelche
 absolut	absolut
 täglich	täglich
@@ -1068,10 +1068,10 @@ zwanzig	zwanzig
 blau	blau
 ungefähr	ungefähr
 national	national
-verfügen	über etw. (Akk) verfügen
+verfügen	verfügen
 festhalten	festhalten
 sicherlich	sicherlich
-geraten	in etw. (Akk) geraten
+geraten	geraten
 die Haut	die Haut
 das Glas	das Glas
 begründen	begründen
@@ -1097,8 +1097,8 @@ die Umwelt	die Umwelt
 der Verein	der Verein
 die Freundin	die Freundin
 der Haushalt	der Haushalt
-schützen	jdn./etw. (Akk) vor jdm./etw. schützen
-stören	jdn. (Akk) bei etw. stören
+schützen	schützen
+stören	stören
 der Dienstag	der Dienstag
 typisch	typisch
 das Material	das Material
@@ -1128,7 +1128,7 @@ das Zeichen	das Zeichen
 der Schaden	der Schaden
 zufrieden	zufrieden
 behaupten	behaupten
-herrschen	über jdn. (Akk) herrschen
+herrschen	herrschen
 der Mittwoch	der Mittwoch
 die Energie	die Energie
 der Zweck	der Zweck
@@ -1147,7 +1147,7 @@ der Wind	der Wind
 der Antrag	der Antrag
 die Erklärung	die Erklärung
 übrigens	übrigens
-diskutieren	mit jdm. über etw. diskutieren
+diskutieren	diskutieren
 der Beschäftigte, die Beschäftigte	der Beschäftigte, die Beschäftigte
 der Unterricht	der Unterricht
 das Amt	das Amt
@@ -1168,20 +1168,20 @@ der Anschlag	der Anschlag
 einfallen	einfallen
 warm	warm
 das Ausland	das Ausland
-zurückkommen	auf etw. zurückkommen
-zwingen	jdn. (Akk) zu etw. zwingen
+zurückkommen	zurückkommen
+zwingen	zwingen
 fördern	fördern
 existieren	existieren
-entfernen	etw. (Akk) aus etw. entfernen
+entfernen	entfernen
 traditionell	traditionell
 wenden	etw. (Akk) / sich an jdn. wenden
-empfinden	etw. (Akk) für jdn. empfinden
+empfinden	empfinden
 die Erkenntnis	die Erkenntnis
 fassen	fassen
 die Spur	die Spur
 die Behandlung	die Behandlung
 das Hotel	das Hotel
-ansprechen	jdn. (Akk) auf etw. ansprechen
+ansprechen	ansprechen
 schwach	schwach
 der Fehler	der Fehler
 das Publikum	das Publikum
@@ -1204,7 +1204,7 @@ der Faktor	der Faktor
 die Kritik	die Kritik
 sich kümmern	um jdn./etw. sich kümmern
 die See	die See
-informieren	jdn. (Akk) über etw. informieren
+informieren	informieren
 anschließend	anschließend
 sinken	sinken
 ankündigen	ankündigen
@@ -1239,10 +1239,10 @@ per	per
 das Opfer	das Opfer
 die Wahrheit	die Wahrheit
 der Urlaub	der Urlaub
-einladen	jdn. (Akk) zu etw. einladen
+einladen	einladen
 einerseits	einerseits
 glücklich	glücklich
-vorsehen	etw. (Akk) für jdn. vorsehen
+vorsehen	vorsehen
 das Gebäude	das Gebäude
 eröffnen	eröffnen
 begreifen	begreifen
@@ -1257,7 +1257,7 @@ der Gesellschafter	der Gesellschafter
 der Bezug	der Bezug
 leiten	leiten
 die Ausstellung	die Ausstellung
-beschränken	etw. (Akk) auf etw. beschränken
+beschränken	beschränken
 konzentrieren	sich auf etw. (Akk) konzentrieren
 streng	streng
 die Kontrolle	die Kontrolle
@@ -1265,7 +1265,7 @@ der Norden	der Norden
 selbstverständlich	selbstverständlich
 die Hoffnung	die Hoffnung
 die Bitte	die Bitte
-abhängen	von jdm./etw. abhängen
+abhängen	abhängen
 schätzen	schätzen
 prüfen	prüfen
 das Schiff	das Schiff
@@ -1278,7 +1278,7 @@ komplex	komplex
 die Tat	die Tat
 schreien	schreien
 der Gewinn	der Gewinn
-verpflichten	jdn. (Akk) zu etw. verpflichten
+verpflichten	verpflichten
 das Band	das Band
 festlegen	festlegen
 die Einstellung	die Einstellung
@@ -1292,7 +1292,7 @@ zurückkehren	zurückkehren
 orientieren	sich an jdm./etw. orientieren
 der Sieg	der Sieg
 weitergehen	weitergehen
-beitragen	zu etw. beitragen
+beitragen	beitragen
 die Band	die Band
 das Gericht	das Gericht
 dahin	dahin
@@ -1319,7 +1319,7 @@ ausschließlich	ausschließlich
 präsentieren	präsentieren
 hingegen	hingegen
 der Verlust	der Verlust
-abgeben	etw. (Akk) bei jdm. abgeben
+abgeben	abgeben
 tätig	tätig
 mithilfe	mithilfe
 bisherig	bisherig
@@ -1338,8 +1338,8 @@ diesmal	diesmal
 anschauen	jdn./etw. (Akk) / sich (Dat) etw. (Akk) anschauen
 die Anzahl	die Anzahl
 jährlich	jährlich
-verteilen	etw. (Akk) an jdn. verteilen
-füllen	etw. (Akk) mit etw. füllen
+verteilen	verteilen
+füllen	füllen
 böse	böse
 bemerken	bemerken
 die Aktiengesellschaft, die AG	die Aktiengesellschaft, die AG
@@ -1363,7 +1363,7 @@ weitgehend	weitgehend
 erzielen	erzielen
 der Zentimeter	der Zentimeter
 die Nachricht	die Nachricht
-nachdenken	über jdn./etw. nachdenken
+nachdenken	nachdenken
 frisch	frisch
 die Insel	die Insel
 das Instrument	das Instrument
@@ -1385,7 +1385,7 @@ nachher	nachher
 formulieren	formulieren
 vollständig	vollständig
 die Tradition	die Tradition
-kämpfen	für/gegen etw./jdn. kämpfen
+kämpfen	kämpfen
 das Interview	das Interview
 außen	außen
 militärisch	militärisch
@@ -1394,7 +1394,7 @@ solange	solange
 automatisch	automatisch
 der Donnerstag	der Donnerstag
 die Leiter	die Leiter
-ersetzen	jdn./etw. (Akk) durch jdn./etw. ersetzen
+ersetzen	ersetzen
 wieso	wieso
 die Basis	die Basis
 berühmt	berühmt
@@ -1405,11 +1405,11 @@ vorbei	vorbei
 falls	falls
 offensichtlich	offensichtlich
 das Element	das Element
-drängen	jdn. (Akk) zu etw. drängen
+drängen	drängen
 theoretisch	theoretisch
 die Mama	die Mama
 verbringen	verbringen
-warnen	jdn. (Akk) vor etw. (Dat) warnen
+warnen	warnen
 scharf	scharf
 die Nutzung	die Nutzung
 die Dame	die Dame
@@ -1430,11 +1430,11 @@ auseinander	auseinander
 gestalten	gestalten
 die Auseinandersetzung	die Auseinandersetzung
 regeln	regeln
-hinweisen	jdn. (Akk) auf etw. (Akk) hinweisen
+hinweisen	hinweisen
 zulassen	zulassen
-binden	etw. (Akk) an etw. binden
+binden	binden
 die Ansicht	die Ansicht
-anziehen	etw. (Akk) / sich (Akk) anziehen anziehen
+anziehen	etw. (Akk) / sich (Akk) anziehen
 der Herbst	der Herbst
 die Definition	die Definition
 hallo	hallo
@@ -1443,17 +1443,17 @@ die Bahn	die Bahn
 beenden	beenden
 der Jude	der Jude
 die Zusammenarbeit	die Zusammenarbeit
-aufhören	mit etw. aufhören
+aufhören	aufhören
 die Masse	die Masse
 hell	hell
 die Veranstaltung	die Veranstaltung
 die Nation	die Nation
 britisch	britisch
 still	still
-scheitern	an etw. (Dat) scheitern
-teilnehmen	an etw. (Dat) teilnehmen
+scheitern	scheitern
+teilnehmen	teilnehmen
 das Hobby	das Hobby
-reduzieren	etw. (Akk) auf etw. reduzieren
+reduzieren	reduzieren
 elf	elf
 der Bau	der Bau
 die Änderung	die Änderung
@@ -1467,11 +1467,11 @@ das Foto	das Foto
 die Phase	die Phase
 der Ton	der Ton
 froh	froh
-einführen	etw. (Akk) in etw. einführen
+einführen	einführen
 italienisch	italienisch
 das Italienisch	das Italienisch
 die Landschaft	die Landschaft
-gelangen	zu etw. gelangen
+gelangen	gelangen
 der Konflikt	der Konflikt
 begleiten	begleiten
 versichern	versichern
@@ -1497,7 +1497,7 @@ die Rechnung	die Rechnung
 das Schloss	das Schloss
 pflegen	pflegen
 der Nachmittag	der Nachmittag
-begrenzen	etw. (Akk) auf etw. begrenzen
+begrenzen	begrenzen
 riesig	riesig
 akzeptieren	akzeptieren
 produzieren	produzieren
@@ -1505,7 +1505,7 @@ reißen	reißen
 erweisen	sich als etw. erweisen
 die Mannschaft	die Mannschaft
 der Stern	der Stern
-verweisen	jdn. (Akk) auf etw. verweisen
+verweisen	verweisen
 die Runde	die Runde
 günstig	günstig
 fürchten	etw./jdn. (Akk) / sich vor jdm. fürchten
@@ -1527,7 +1527,7 @@ die Figur	die Figur
 überprüfen	überprüfen
 ermitteln	ermitteln
 mittler	mittler
-starten	mit etw. / etw. (Akk) starten
+starten	starten
 gegenwärtig	gegenwärtig
 das Büro	das Büro
 nett	nett
@@ -1554,14 +1554,14 @@ die Szene	die Szene
 das Lager	das Lager
 die Strecke	die Strecke
 das Blut	das Blut
-eintreten	für jdn./etw. / in etw. (Akk) eintreten
+eintreten	eintreten
 erwerben	erwerben
 der Schatten	der Schatten
 die Lehre	die Lehre
 die Gewalt	die Gewalt
 der Rat	der Rat
 die Institution	die Institution
-zurückgehen	auf etw. zurückgehen
+zurückgehen	zurückgehen
 ausdrücken	ausdrücken
 anschließen	etw. (Akk) an etw. / sich jdm. (Dat) anschließen
 die Spitze	die Spitze
@@ -1574,7 +1574,7 @@ spezifisch	spezifisch
 der Fußball	der Fußball
 die Weltmeisterschaft	die Weltmeisterschaft
 streichen	streichen
-schießen	auf jdn./etw. schießen
+schießen	schießen
 gemäß	gemäß
 die Konsequenz	die Konsequenz
 der Stuhl	der Stuhl
@@ -1608,7 +1608,7 @@ der Nachbar	der Nachbar
 egal	egal
 total	total
 der Terrorismus	der Terrorismus
-umgehen	mit jdm./etw. / etw. (Akk) umgehen
+umgehen	umgehen
 extrem	extrem
 die Stufe	die Stufe
 das Bundesland	das Bundesland
@@ -1619,7 +1619,7 @@ die Geschwindigkeit	die Geschwindigkeit
 lauten	lauten
 das Gut	das Gut
 stürzen	stürzen
-absehen	von etw. absehen
+absehen	absehen
 betreten	betreten
 der Zweifel	der Zweifel
 überleben	überleben
@@ -1633,7 +1633,7 @@ vermuten	vermuten
 die Software	die Software
 beweisen	beweisen
 die Belastung	die Belastung
-zukommen	auf jdn. (Akk) zukommen
+zukommen	zukommen
 einst	einst
 elektronisch	elektronisch
 abgesehen	abgesehen
@@ -1653,7 +1653,7 @@ stolz	stolz
 künstlerisch	künstlerisch
 sichtbar	sichtbar
 die Messe	die Messe
-verbergen	etw. (Akk) vor jdm. verbergen
+verbergen	verbergen
 ohnehin	ohnehin
 sobald	sobald
 die Kommission	die Kommission
@@ -1670,7 +1670,7 @@ tausend	tausend
 der Terrorist	der Terrorist
 verbreiten	verbreiten
 das Urteil	das Urteil
-retten	jdn./etw. (Akk) vor jdm./etw. retten
+retten	retten
 das Krankenhaus	das Krankenhaus
 senken	senken
 der Schmerz	der Schmerz
@@ -1692,7 +1692,7 @@ die Tasche	die Tasche
 die Decke	die Decke
 erfordern	erfordern
 jüdisch	jüdisch
-erschrecken	jdn. (Akk) / vor jdm. (Dat) erschrecken
+erschrecken	erschrecken
 der Fisch	der Fisch
 der Wettbewerb	der Wettbewerb
 sämtlich	sämtlich
@@ -1700,7 +1700,7 @@ die Tante	die Tante
 vermutlich	vermutlich
 die Temperatur	die Temperatur
 zweimal	zweimal
-unterrichten	jdn. (Akk) in etw. unterrichten
+unterrichten	unterrichten
 arbeitslos	arbeitslos
 der Leser	der Leser
 die Auswirkung	die Auswirkung
@@ -1799,7 +1799,7 @@ die Botschaft	die Botschaft
 davor	davor
 das Brot	das Brot
 verabschieden	jdn. (Akk) / sich von jdm. verabschieden
-ausrichten	etw. (Akk) an etw. ausrichten
+ausrichten	ausrichten
 zusammenfassen	zusammenfassen
 drüben	drüben
 angenehm	angenehm
@@ -1831,13 +1831,13 @@ die Mühe	die Mühe
 fortsetzen	fortsetzen
 klappen	klappen
 der Studiengang	der Studiengang
-starren	auf jdn./etw. (Akk) starren
+starren	starren
 medizinisch	medizinisch
 angemessen	angemessen
 anhalten	anhalten
 die Debatte	die Debatte
 beantworten	beantworten
-integrieren	jdn./etw. (Akk) in etw. integrieren
+integrieren	integrieren
 sonstig	sonstig
 der Gegner	der Gegner
 die Weile	die Weile
@@ -1858,7 +1858,7 @@ einkaufen	einkaufen
 keineswegs	keineswegs
 dünn	dünn
 beruhigen	beruhigen
-verstecken	etw. (Akk) vor jdm. verstecken
+verstecken	verstecken
 auflösen	auflösen
 anstreben	anstreben
 die Verwaltung	die Verwaltung
@@ -1880,9 +1880,9 @@ schmal	schmal
 vorsichtig	vorsichtig
 der Kauf	der Kauf
 erläutern	erläutern
-fügen	etw. (Akk) in etw. fügen
+fügen	fügen
 entfernt	entfernt
-vereinbaren	etw. (Akk) mit jdm. vereinbaren
+vereinbaren	vereinbaren
 gucken, kucken	gucken, kucken
 die Mathematik	die Mathematik
 wohin	wohin
@@ -1905,9 +1905,9 @@ das Management	das Management
 der Millimeter	der Millimeter
 betreuen	betreuen
 der Sitz	der Sitz
-deuten	auf etw. (Akk) deuten
+deuten	deuten
 empirisch	empirisch
-enden	mit etw. enden
+enden	enden
 ewig	ewig
 der Erwachsene, die Erwachsene	der Erwachsene, die Erwachsene
 der Kanzler	der Kanzler
@@ -1918,16 +1918,16 @@ der Handel	der Handel
 das Drittel	das Drittel
 der Arbeitnehmer	der Arbeitnehmer
 seitdem	seitdem
-begeistern	jdn. (Akk) für etw. begeistern
+begeistern	begeistern
 die Gewerkschaft	die Gewerkschaft
 spanisch	spanisch
 weshalb	weshalb
-übersetzen	etw. (Akk) in etw. übersetzen
+übersetzen	übersetzen
 anzeigen	anzeigen
 der Beamte, die Beamte	der Beamte, die Beamte
 arm	arm
 trocken	trocken
-auffordern	jdn. (Akk) zu etw. auffordern
+auffordern	auffordern
 steuern	steuern
 der Verdacht	der Verdacht
 vielfältig	vielfältig
@@ -1951,14 +1951,14 @@ entsprechend	entsprechend
 gewaltig	gewaltig
 das Steuer	das Steuer
 grundlegend	grundlegend
-eintragen	etw. (Akk) in etw. eintragen
+eintragen	eintragen
 türkisch	türkisch
 begrüßen	begrüßen
 der Polizist	der Polizist
 der Schriftsteller	der Schriftsteller
 sportlich	sportlich
 normalerweise	normalerweise
-verheiraten	jdn. (Akk) mit jdm. verheiraten
+verheiraten	verheiraten
 die Investition	die Investition
 enttäuschen	enttäuschen
 die Planung	die Planung
@@ -1966,10 +1966,10 @@ der Bundestag	der Bundestag
 die Therapie	die Therapie
 stützen	etw. (Akk) / sich auf etw. stützen
 die Überlegung	die Überlegung
-träumen	von jdm./etw. träumen
+träumen	träumen
 die Steuer	die Steuer
 die Stärke	die Stärke
-achten	auf jdn./etw. (Akk) achten
+achten	achten
 die Einnahme	die Einnahme
 das Bewusstsein	das Bewusstsein
 die Verletzung	die Verletzung
@@ -2008,7 +2008,7 @@ der Alltag	der Alltag
 der Bundeskanzler	der Bundeskanzler
 äußere	äußere
 langfristig	langfristig
-zusammenhängen	mit etw. zusammenhängen
+zusammenhängen	zusammenhängen
 der Auftritt	der Auftritt
 die Demokratie	die Demokratie
 demokratisch	demokratisch
@@ -2085,7 +2085,7 @@ die Verpflichtung	die Verpflichtung
 der Bundesrat	der Bundesrat
 beeindrucken	beeindrucken
 die Betrachtung	die Betrachtung
-ausgeben	etw. (Akk) für etw. ausgeben
+ausgeben	ausgeben
 tanzen	tanzen
 vergleichbar	vergleichbar
 der Bedarf	der Bedarf
@@ -2099,7 +2099,7 @@ die Kompetenz	die Kompetenz
 die Bezeichnung	die Bezeichnung
 das Vermögen	das Vermögen
 aufheben	aufheben
-befragen	jdn. (Akk) zu etw. befragen
+befragen	befragen
 kompliziert	kompliziert
 optimal	optimal
 zuordnen	zuordnen
@@ -2151,18 +2151,18 @@ kühl	kühl
 lokal	lokal
 der Anwalt	der Anwalt
 generell	generell
-berechtigen	jdn. (Akk) zu etw. berechtigen
+berechtigen	berechtigen
 physikalisch	physikalisch
 der Vordergrund	der Vordergrund
 der Grundsatz	der Grundsatz
-mischen	etw. (Akk) mit etw. mischen
+mischen	mischen
 nackt	nackt
 das Rennen	das Rennen
 umfangreich	umfangreich
 konservativ	konservativ
 die Komponente	die Komponente
-rühren	in etw. (Dat) / etw. (Akk) rühren
-versorgen	jdn. (Akk) mit etw. versorgen
+rühren	rühren
+versorgen	versorgen
 digital	digital
 das Reich	das Reich
 spannend	spannend
@@ -2182,7 +2182,7 @@ bedenken	bedenken
 die Versicherung	die Versicherung
 das Umfeld	das Umfeld
 der Schlag	der Schlag
-vereinigen	etw. (Akk) mit etw. vereinigen
+vereinigen	vereinigen
 die Sendung	die Sendung
 das Vorjahr	das Vorjahr
 der Verbraucher	der Verbraucher
@@ -2192,9 +2192,9 @@ der Schlaf	der Schlaf
 das Erlebnis	das Erlebnis
 die Bilanz	die Bilanz
 der Sender	der Sender
-beruhen	auf etw. (Dat) beruhen
-investieren	in etw. (Akk) investieren
-einbringen	etw. (Akk) in etw. einbringen
+beruhen	beruhen
+investieren	investieren
+einbringen	einbringen
 wecken	wecken
 herausstellen	etw. (Akk) / sich herausstellen
 die Spannung	die Spannung
@@ -2208,9 +2208,9 @@ die Kamera	die Kamera
 bewirken	bewirken
 das Grundstück	das Grundstück
 komplett	komplett
-befreien	jdn. (Akk) von etw. befreien
+befreien	befreien
 sich verlieben	in jdn. (Akk) sich verlieben
-aufpassen	auf jdn./etw. (Akk) aufpassen
+aufpassen	aufpassen
 das Plus	das Plus
 einheitlich	einheitlich
 das TV	das TV
@@ -2233,7 +2233,7 @@ die Geburt	die Geburt
 das Einkommen	das Einkommen
 zukünftig	zukünftig
 der Verlauf	der Verlauf
-antreten	zu etw. / etw. (Akk) antreten
+antreten	antreten
 der Schnee	der Schnee
 die Sitzung	die Sitzung
 siebzig	siebzig
@@ -2249,9 +2249,9 @@ die Niederlage	die Niederlage
 der Schauspieler	der Schauspieler
 aufsteigen	aufsteigen
 der Mittag	der Mittag
-besprechen	etw. (Akk) mit jdm. besprechen
+besprechen	besprechen
 testen	testen
-einziehen	in etw. (Akk) / etw. (Akk) einziehen
+einziehen	einziehen
 islamisch	islamisch
 der Charakter	der Charakter
 hoffentlich	hoffentlich
@@ -2265,15 +2265,15 @@ die Tiefe	die Tiefe
 schade	schade
 statistisch	statistisch
 das Restaurant	das Restaurant
-riechen	nach etw. riechen
-ausstatten	jdn. (Akk) mit etw. ausstatten
+riechen	riechen
+ausstatten	ausstatten
 berühren	berühren
 die Träne	die Träne
 der Außenminister	der Außenminister
 vorhaben	vorhaben
 das Arzneimittel	das Arzneimittel
 vorgeben	vorgeben
-zögern	mit etw. zögern
+zögern	zögern
 die Annahme	die Annahme
 zugrunde	zugrunde
 die Zustimmung	die Zustimmung
@@ -2287,7 +2287,7 @@ zufällig	zufällig
 aufhalten	aufhalten
 der Bescheid	der Bescheid
 das Argument	das Argument
-ableiten	etw. (Akk) aus/von etw. ableiten
+ableiten	ableiten
 der Angehörige, die Angehörige	der Angehörige, die Angehörige
 verschieben	verschieben
 überlassen	überlassen
@@ -2299,7 +2299,7 @@ die Fraktion	die Fraktion
 juristisch	juristisch
 das Grundgesetz	das Grundgesetz
 einräumen	einräumen
-entlassen	jdn. (Akk) aus etw. entlassen
+entlassen	entlassen
 die Bundeswehr	die Bundeswehr
 demnach	demnach
 das Individuum	das Individuum
@@ -2346,18 +2346,18 @@ sich wehren	gegen jdn./etw. sich wehren
 widmen	jdm. (Dat) etw. (Akk) / sich (Dat) jdm. widmen
 ahnen	ahnen
 die Angelegenheit	die Angelegenheit
-weisen	auf jdn./etw. (Akk) weisen
+weisen	weisen
 aufgehen	aufgehen
 zufolge	zufolge
 derart	derart
-zugehen	auf jdn. (Akk) zugehen
+zugehen	zugehen
 die Auskunft	die Auskunft
 der Fleck	der Fleck
-sich ausziehen	sich (Dat) etw. (Akk) / sich (Akk) sich ausziehen
-zurückführen	etw. (Akk) auf etw. zurückführen
+sich ausziehen	sich (Dat) etw. (Akk) / sich (Akk) ausziehen
+zurückführen	zurückführen
 vorwiegend	vorwiegend
 aussuchen	jdm. (Dat) etw. (Akk) / sich (Dat) etw. (Akk) aussuchen
-ausziehen	etw. (Akk) / aus etw. (Dat) ausziehen
+ausziehen	ausziehen
 das Wunder	das Wunder
 die Begründung	die Begründung
 das Engagement	das Engagement
@@ -2384,13 +2384,13 @@ die Seele	die Seele
 gefangen	gefangen
 der Schlüssel	der Schlüssel
 der Schreibtisch	der Schreibtisch
-versehen	jdn. (Akk) mit etw. versehen
+versehen	versehen
 die Unternehmung	die Unternehmung
 die Vereinbarung	die Vereinbarung
 verrückt	verrückt
 die Handlung	die Handlung
 vertraut	vertraut
-einbeziehen	jdn./etw. (Akk) in etw. einbeziehen
+einbeziehen	einbeziehen
 die Ferne	die Ferne
 ausfallen	ausfallen
 wozu	wozu
@@ -2406,7 +2406,7 @@ glatt	glatt
 winzig	winzig
 das Gedicht	das Gedicht
 die Äußerung	die Äußerung
-einbauen	etw. (Akk) in etw. einbauen
+einbauen	einbauen
 ernsthaft	ernsthaft
 der Angestellte, die Angestellte	der Angestellte, die Angestellte
 die Datei	die Datei
@@ -2428,7 +2428,7 @@ interpretieren	interpretieren
 die Operation	die Operation
 die Qualifikation	die Qualifikation
 scheinbar	scheinbar
-raten	jdm. (Dat) zu etw. raten
+raten	raten
 sanft	sanft
 hübsch	hübsch
 umso	umso
@@ -2436,7 +2436,7 @@ das Konto	das Konto
 die Variante	die Variante
 vergeben	vergeben
 städtisch	städtisch
-schmecken	jdm. (Dat) nach etw. schmecken
+schmecken	schmecken
 die Vielfalt	die Vielfalt
 die Sammlung	die Sammlung
 die Aufwendungen	die Aufwendungen
@@ -2447,7 +2447,7 @@ wirksam	wirksam
 ablegen	ablegen
 ärgern	ärgern
 achtzig	achtzig
-neigen	zu etw. (Dat) neigen
+neigen	neigen
 aufregen	jdn. (Akk) / sich über jdn./etw. aufregen
 der Bestand	der Bestand
 zusammensetzen	etw. (Akk) / sich aus etw. zusammensetzen
@@ -2459,9 +2459,9 @@ der Bauch	der Bauch
 der Aufwand	der Aufwand
 beliebt	beliebt
 bereiten	bereiten
-abstimmen	über etw. (Akk) / etw. (Akk) mit jdm. abstimmen
+abstimmen	abstimmen
 das Entwicklungsland	das Entwicklungsland
-anregen	jdn. (Akk) zu etw. anregen
+anregen	anregen
 ausbauen	ausbauen
 entziehen	entziehen
 der Kern	der Kern
@@ -2469,11 +2469,11 @@ die Hose	die Hose
 hierfür	hierfür
 der Impuls	der Impuls
 herzlich	herzlich
-bedecken	jdn./etw. (Akk) mit etw. bedecken
+bedecken	bedecken
 etliche	etliche
-mangeln	an etw. (Dat) mangeln
+mangeln	mangeln
 sich gewöhnen	an jdn./etw. (Akk) sich gewöhnen
-klopfen	an etw. (Akk) / auf etw. (Akk) klopfen
+klopfen	klopfen
 erfinden	erfinden
 herkommen	herkommen
 die Finanzierung	die Finanzierung
@@ -2482,7 +2482,7 @@ grinsen	grinsen
 das Kapital	das Kapital
 rauchen	rauchen
 rechtzeitig	rechtzeitig
-klagen	über jdn./etw. (Akk) klagen
+klagen	klagen
 die Fachhochschule	die Fachhochschule
 der Fernseher	der Fernseher
 faszinieren	faszinieren
@@ -2502,12 +2502,12 @@ zustimmen	zustimmen
 atmen	atmen
 vorübergehend	vorübergehend
 die Behinderung	die Behinderung
-vorübergehen	an jdm./etw. (Dat) vorübergehen
+vorübergehen	vorübergehen
 übel	übel
 der Stil	der Stil
 der Regisseur	der Regisseur
 zustande	zustande
-vereinen	etw. (Akk) mit etw. vereinen
+vereinen	vereinen
 verständlich	verständlich
 bequem	bequem
 die Anstrengung	die Anstrengung
@@ -2539,7 +2539,7 @@ Frankfurter	Frankfurter
 die Tour	die Tour
 qualifizieren	jdn. (Akk) für etw. / sich für etw. qualifizieren
 die Berücksichtigung	die Berücksichtigung
-bedrohen	jdn. (Akk) mit etw. bedrohen
+bedrohen	bedrohen
 die Verfassung	die Verfassung
 sich bewerben	um etw. / bei jdm. sich bewerben
 aufmachen	aufmachen
@@ -2557,7 +2557,7 @@ abstrakt	abstrakt
 der Beschluss	der Beschluss
 aufbringen	aufbringen
 die Absicht	die Absicht
-vorgehen	gegen jdn./etw. vorgehen
+vorgehen	vorgehen
 die Zeitschrift	die Zeitschrift
 vollkommen	vollkommen
 unendlich	unendlich
@@ -2575,19 +2575,19 @@ decken	decken
 das Business	das Business
 der Ehegatte	der Ehegatte
 der Gläubiger	der Gläubiger
-differenzieren	zwischen etw. (Dat) differenzieren
+differenzieren	differenzieren
 der Halt	der Halt
 die Einschätzung	die Einschätzung
 die Bibel	die Bibel
 die Entstehung	die Entstehung
 das Gewissen	das Gewissen
 entnehmen	entnehmen
-zutreffen	auf jdn./etw. (Akk) zutreffen
+zutreffen	zutreffen
 voneinander	voneinander
 die Flucht	die Flucht
 die Börse	die Börse
 dumm	dumm
-einsteigen	in etw. (Akk) einsteigen
+einsteigen	einsteigen
 das Marketing	das Marketing
 die Nebenwirkung	die Nebenwirkung
 murmeln	murmeln
@@ -2595,7 +2595,7 @@ der Kindergarten	der Kindergarten
 die Infektion	die Infektion
 hinterlassen	hinterlassen
 das Orchester	das Orchester
-loben	jdn. (Akk) für etw. loben
+loben	loben
 der Mantel	der Mantel
 der Nationalsozialist, der Nazi	der Nationalsozialist, der Nazi
 der Kontinent	der Kontinent
@@ -2629,7 +2629,7 @@ der Transport	der Transport
 senden	senden
 verlängern	verlängern
 der Widerspruch	der Widerspruch
-übergehen	in etw. (Akk) / zu etw. übergehen
+übergehen	übergehen
 verschließen	verschließen
 vollziehen	vollziehen
 die Revolution	die Revolution
@@ -2645,7 +2645,7 @@ der Aufenthalt	der Aufenthalt
 abbrechen	abbrechen
 der Besitz	der Besitz
 der Alkohol	der Alkohol
-zusammenarbeiten	mit jdm. zusammenarbeiten
+zusammenarbeiten	zusammenarbeiten
 der Ball	der Ball
 die Wüste	die Wüste
 dementsprechend	dementsprechend
@@ -2653,15 +2653,15 @@ die Frist	die Frist
 einigermaßen	einigermaßen
 die Aussicht	die Aussicht
 das Ei	das Ei
-aufkommen	für etw. (Akk) aufkommen
+aufkommen	aufkommen
 dynamisch	dynamisch
-bewahren	jdn./etw. (Akk) vor etw. (Dat) bewahren
+bewahren	bewahren
 analog	analog
 dominieren	dominieren
 die Bemerkung	die Bemerkung
 die Anerkennung	die Anerkennung
 die Chemie	die Chemie
-zucken	mit etw. (Dat) zucken
+zucken	zucken
 einschalten	einschalten
 einhalten	einhalten
 die Presse	die Presse
@@ -2679,7 +2679,7 @@ die Notwendigkeit	die Notwendigkeit
 locker	locker
 die Gestaltung	die Gestaltung
 indisch	indisch
-identifizieren	jdn./etw. (Akk) mit jdm./etw. identifizieren
+identifizieren	identifizieren
 gewährleisten	gewährleisten
 das Heim	das Heim
 heimlich	heimlich
@@ -2692,7 +2692,7 @@ das Organ	das Organ
 scheiden	etw. (Akk) / sich lassen scheiden
 ausbreiten	etw. (Akk) / sich ausbreiten
 prinzipiell	prinzipiell
-streiten	mit jdm. über etw. (Akk) streiten
+streiten	streiten
 die Rechtsprechung	die Rechtsprechung
 südlich	südlich
 angreifen	angreifen
@@ -2706,9 +2706,9 @@ winken	winken
 problematisch	problematisch
 steil	steil
 der Ring	der Ring
-profitieren	von etw. (Dat) profitieren
+profitieren	profitieren
 das Regal	das Regal
-zittern	vor etw./jdm. (Dat) zittern
+zittern	zittern
 akut	akut
 zurückhalten	zurückhalten
 quasi	quasi
@@ -2736,7 +2736,7 @@ das Frühstück	das Frühstück
 ausgeprägt	ausgeprägt
 erwidern	erwidern
 erstaunen	erstaunen
-danken	jdm. (Dat) für etw. danken
+danken	danken
 ferner	ferner
 das Gehalt	das Gehalt
 die Miete	die Miete
@@ -2759,14 +2759,14 @@ korrigieren	korrigieren
 die Lehrerin	die Lehrerin
 markieren	markieren
 die Klinik	die Klinik
-hinausgehen	über etw. (Akk) hinausgehen
+hinausgehen	hinausgehen
 die Interpretation	die Interpretation
 der Hafen	der Hafen
 die Prognose	die Prognose
 die Marke	die Marke
 wonach	wonach
 die Vorgabe	die Vorgabe
-verwandeln	jdn./etw. (Akk) in etw. (Akk) verwandeln
+verwandeln	verwandeln
 vorerst	vorerst
 der Schreck	der Schreck
 transportieren	transportieren
@@ -2808,7 +2808,7 @@ die Bombe	die Bombe
 dazwischen	dazwischen
 ausführlich	ausführlich
 ausgezeichnet	ausgezeichnet
-anbringen	etw. (Akk) an etw. (Dat) anbringen
+anbringen	anbringen
 absetzen	absetzen
 der Austausch	der Austausch
 denkbar	denkbar
@@ -2838,9 +2838,9 @@ die Erhöhung	die Erhöhung
 die Kindheit	die Kindheit
 das Klavier	das Klavier
 konsequent	konsequent
-aussteigen	aus etw. (Dat) aussteigen
+aussteigen	aussteigen
 mündlich	mündlich
-pressen	etw. (Akk) in/aus etw. pressen
+pressen	pressen
 nebeneinander	nebeneinander
 der Pilot	der Pilot
 das Resultat	das Resultat
@@ -2860,7 +2860,7 @@ die Umfrage	die Umfrage
 die Strafe	die Strafe
 das Ufer	das Ufer
 die Menschheit	die Menschheit
-austauschen	etw. (Akk) mit jdm. austauschen
+austauschen	austauschen
 aufzeigen	aufzeigen
 der Mord	der Mord
 bevorstehen	bevorstehen
@@ -2871,10 +2871,10 @@ der Gesichtspunkt	der Gesichtspunkt
 beliebig	beliebig
 friedlich	friedlich
 das Dutzend	das Dutzend
-fliehen	vor jdm./etw. (Dat) fliehen
+fliehen	fliehen
 die Ernährung	die Ernährung
 evangelisch	evangelisch
-eingreifen	in etw. (Akk) eingreifen
+eingreifen	eingreifen
 das Baby	das Baby
 die Differenz	die Differenz
 die Dunkelheit	die Dunkelheit
@@ -2908,7 +2908,7 @@ die Mischung	die Mischung
 die Hochzeit	die Hochzeit
 das Medium	das Medium
 der Nachfolger	der Nachfolger
-resultieren	aus etw. (Dat) resultieren
+resultieren	resultieren
 jederzeit	jederzeit
 die Konjunktur	die Konjunktur
 der Rohstoff	der Rohstoff
@@ -2931,7 +2931,7 @@ der Sachverhalt	der Sachverhalt
 verdeutlichen	verdeutlichen
 der Sieger	der Sieger
 das Taxi	das Taxi
-umgeben	jdn./etw. (Akk) mit etw. umgeben
+umgeben	umgeben
 wiegen	wiegen
 die Wiedervereinigung	die Wiedervereinigung
 der Abschied	der Abschied
@@ -2943,7 +2943,7 @@ bestreiten	bestreiten
 effektiv	effektiv
 die Benutzung	die Benutzung
 Berner	Berner
-eindringen	in etw. (Akk) eindringen
+eindringen	eindringen
 entfallen	entfallen
 der Ertrag	der Ertrag
 der Flur	der Flur
@@ -2957,11 +2957,11 @@ die Beurteilung	die Beurteilung
 die Einschränkung	die Einschränkung
 herein, rein	herein, rein
 heuer	heuer
-beauftragen	jdn. (Akk) mit etw. beauftragen
+beauftragen	beauftragen
 aushalten	aushalten
-dringen	auf etw. (Akk) / in etw. (Akk) dringen
-ausbrechen	aus etw. (Dat) ausbrechen
-einschließen	jdn./etw. (Akk) in etw. einschließen
+dringen	dringen
+ausbrechen	ausbrechen
+einschließen	einschließen
 der Christ	der Christ
 die Küste	die Küste
 jemals	jemals
@@ -2970,7 +2970,7 @@ die Kneipe	die Kneipe
 notieren	sich (Dat) etw. (Akk) notieren
 die Kette	die Kette
 japanisch	japanisch
-kleben	etw. (Akk) an etw. kleben
+kleben	kleben
 die Messung	die Messung
 die Kammer	die Kammer
 das Messer	das Messer
@@ -3018,13 +3018,13 @@ das Zelt	das Zelt
 die Wiese	die Wiese
 verschaffen	jdm. (Dat) etw. (Akk) / sich (Dat) verschaffen
 die Wärme	die Wärme
-zurücktreten	von etw. (Dat) zurücktreten
-abhalten	jdn. (Akk) von etw. (Dat) abhalten
-befestigen	etw. (Akk) an etw. (Dat) befestigen
+zurücktreten	zurücktreten
+abhalten	abhalten
+befestigen	befestigen
 sich bedanken	bei jdm. für etw. sich bedanken
 die Auflösung	die Auflösung
 der Anhänger	der Anhänger
-werben	für etw. / um jdn. werben
+werben	werben
 verringern	verringern
 wertvoll	wertvoll
 wütend	wütend
@@ -3032,7 +3032,7 @@ die Werbung	die Werbung
 die Vorlage	die Vorlage
 zumeist	zumeist
 die Aufklärung	die Aufklärung
-vertreiben	jdn./etw. (Akk) aus etw. vertreiben
+vertreiben	vertreiben
 ausfüllen	ausfüllen
 die Anzeige	die Anzeige
 das Virus	das Virus
@@ -3041,7 +3041,7 @@ biegen	biegen
 die Einigung	die Einigung
 abstellen	abstellen
 erregen	erregen
-haften	für etw. (Akk) / an etw. (Dat) haften
+haften	haften
 extra	extra
 deutschsprachig	deutschsprachig
 dastehen	dastehen
@@ -3050,7 +3050,7 @@ der Dialekt	der Dialekt
 der Bube	der Bube
 flexibel	flexibel
 die Gleichung	die Gleichung
-erwischen	jdn. (Akk) bei etw. erwischen
+erwischen	erwischen
 die Geste	die Geste
 die Durchführung	die Durchführung
 die Bestellung	die Bestellung
@@ -3089,7 +3089,7 @@ die Schulden	die Schulden
 die Herrschaft	die Herrschaft
 die Realisierung	die Realisierung
 abspielen	etw. (Akk) / sich abspielen
-unterbringen	jdn./etw. (Akk) in etw. (Dat) unterbringen
+unterbringen	unterbringen
 ablösen	ablösen
 unangenehm	unangenehm
 vorläufig	vorläufig
@@ -3110,13 +3110,13 @@ zugunsten	zugunsten
 das Zeugnis	das Zeugnis
 süß	süß
 vernichten	vernichten
-übereinstimmen	mit jdm./etw. (Dat) übereinstimmen
+übereinstimmen	übereinstimmen
 verwirren	verwirren
 der Zeuge	der Zeuge
 achtzehn	achtzehn
 angewiesen	angewiesen
 die Bundesliga	die Bundesliga
-basieren	auf etw. (Dat) basieren
+basieren	basieren
 abzeichnen	etw. (Akk) / sich abzeichnen
 der Befehl	der Befehl
 die Bereitschaft	die Bereitschaft
@@ -3124,7 +3124,7 @@ der Bogen	der Bogen
 die Ehre	die Ehre
 anstrengend	anstrengend
 die Anpassung	die Anpassung
-abweichen	von etw. (Dat) abweichen
+abweichen	abweichen
 sich abspielen	sich abspielen
 divers	divers
 demnächst	demnächst
@@ -3145,7 +3145,7 @@ das Arbeitsamt	das Arbeitsamt
 die Feststellung	die Feststellung
 die Droge	die Droge
 der Knochen	der Knochen
-isolieren	jdn./etw. (Akk) von etw. isolieren
+isolieren	isolieren
 die Geschwister	die Geschwister
 einmalig	einmalig
 die Formulierung	die Formulierung
@@ -3183,7 +3183,7 @@ vergeblich	vergeblich
 die Zone	die Zone
 unklar	unklar
 verwirklichen	etw. (Akk) / sich verwirklichen
-verhandeln	mit jdm. über etw. verhandeln
+verhandeln	verhandeln
 die Wechselwirkung	die Wechselwirkung
 verbrennen	verbrennen
 der Zins	der Zins
@@ -3196,7 +3196,7 @@ anklagen	anklagen
 die Agentur	die Agentur
 die Akademie	die Akademie
 organisatorisch	organisatorisch
-verknüpfen	etw. (Akk) mit etw. verknüpfen
+verknüpfen	verknüpfen
 untereinander	untereinander
 der Teller	der Teller
 verzeichnen	verzeichnen
@@ -3205,7 +3205,7 @@ der Wähler	der Wähler
 übersehen	übersehen
 der Zettel	der Zettel
 die Anfrage	die Anfrage
-auskommen	mit jdm./etw. (Dat) auskommen
+auskommen	auskommen
 das Dokument	das Dokument
 bürgerlich	bürgerlich
 empfindlich	empfindlich
@@ -3214,7 +3214,7 @@ die Aufführung	die Aufführung
 der Buchstabe	der Buchstabe
 entwerfen	entwerfen
 betrieblich	betrieblich
-aufklären	jdn. (Akk) über etw. aufklären
+aufklären	aufklären
 bedauern	bedauern
 ruhen	ruhen
 auftragen	auftragen
@@ -3225,7 +3225,7 @@ einheimisch	einheimisch
 die Einzelheit	die Einzelheit
 die Auflage	die Auflage
 der Bär	der Bär
-ausscheiden	aus etw. (Dat) ausscheiden
+ausscheiden	ausscheiden
 backen	backen
 befriedigen	befriedigen
 das Bedenken	das Bedenken
@@ -3247,7 +3247,7 @@ kriechen	kriechen
 die Erfüllung	die Erfüllung
 lenken	lenken
 die Kollegin	die Kollegin
-erziehen	jdn. (Akk) zu etw. erziehen
+erziehen	erziehen
 jagen	jagen
 der Komponist	der Komponist
 palästinensisch	palästinensisch
@@ -3264,7 +3264,7 @@ bekämpfen	bekämpfen
 reiten	reiten
 heimisch	heimisch
 professionell	professionell
-kombinieren	etw. (Akk) mit etw. kombinieren
+kombinieren	kombinieren
 nördlich	nördlich
 qualitativ	qualitativ
 das Möbel	das Möbel
@@ -3279,7 +3279,7 @@ der Schrank	der Schrank
 das Nerv	das Nerv
 schwanger	schwanger
 der Rücktritt	der Rücktritt
-motivieren	jdn. (Akk) zu etw. motivieren
+motivieren	motivieren
 das Märchen	das Märchen
 die Moderne	die Moderne
 der Vorhang	der Vorhang
@@ -3301,7 +3301,7 @@ versammeln	versammeln
 der Tanz	der Tanz
 das Zitat	das Zitat
 das Gleichgewicht	das Gleichgewicht
-verzweifeln	an jdm./etw. (Dat) verzweifeln
+verzweifeln	verzweifeln
 verdanken	verdanken
 die Sekretärin	die Sekretärin
 der Staub	der Staub
@@ -3315,7 +3315,7 @@ wandeln	etw. (Akk) / sich wandeln
 das Abenteuer	das Abenteuer
 die Allianz	die Allianz
 die Abgrenzung	die Abgrenzung
-zusehen	jdm. (Dat) bei etw. zusehen
+zusehen	zusehen
 beträchtlich	beträchtlich
 aktivieren	aktivieren
 die Begeisterung	die Begeisterung
@@ -3324,9 +3324,9 @@ bewältigen	bewältigen
 der Akteur	der Akteur
 der Investor	der Investor
 aufsuchen	aufsuchen
-zusammenkommen	mit jdm. zusammenkommen
+zusammenkommen	zusammenkommen
 der Ausgleich	der Ausgleich
-zusammenleben	mit jdm. zusammenleben
+zusammenleben	zusammenleben
 abziehen	abziehen
 alltäglich	alltäglich
 zulässig	zulässig
@@ -3349,7 +3349,7 @@ Dresdner	Dresdner
 die Empfehlung	die Empfehlung
 das Chinesisch	das Chinesisch
 der Durchmesser	der Durchmesser
-einreichen	etw. (Akk) bei jdm. einreichen
+einreichen	einreichen
 erfreuen	jdn. (Akk) / sich an etw. (Dat) erfreuen
 die Diagnose	die Diagnose
 die Einladung	die Einladung
@@ -3381,13 +3381,13 @@ männlich	männlich
 das Geschäftsjahr	das Geschäftsjahr
 herkömmlich	herkömmlich
 der Ingenieur	der Ingenieur
-konfrontieren	jdn. (Akk) mit etw. konfrontieren
+konfrontieren	konfrontieren
 hinzu	hinzu
 das Fräulein	das Fräulein
 der Kongress	der Kongress
 der Friedhof	der Friedhof
 die Front	die Front
-infizieren	jdn. (Akk) mit etw. infizieren
+infizieren	infizieren
 medial	medial
 strahlen	strahlen
 oftmals	oftmals
@@ -3414,8 +3414,8 @@ die Rücksicht	die Rücksicht
 der Personenkraftwagen, der PKW	der Personenkraftwagen, der PKW
 die Vorsicht	die Vorsicht
 sogleich	sogleich
-veranlassen	jdn. (Akk) zu etw. / etw. (Akk) veranlassen
-telefonieren	mit jdm. telefonieren
+veranlassen	veranlassen
+telefonieren	telefonieren
 die Vertretung	die Vertretung
 die Wahrscheinlichkeit	die Wahrscheinlichkeit
 verpassen	verpassen
@@ -3429,33 +3429,33 @@ das Universum	das Universum
 trösten	trösten
 treu	treu
 die Unterhaltung	die Unterhaltung
-weitermachen	mit etw. weitermachen
+weitermachen	weitermachen
 weitergeben	weitergeben
 vorig	vorig
 die Unterlagen	die Unterlagen
 die Wange	die Wange
 wach	wach
 verhaften	verhaften
-verkehren	mit jdm. verkehren
+verkehren	verkehren
 die Volkshochschule	die Volkshochschule
 ärztlich	ärztlich
 anrichten	anrichten
 anstehen	anstehen
 ausdehnen	etw. (Akk) / sich ausdehnen
 die Anordnung	die Anordnung
-abschneiden	etw. (Akk) / bei etw. abschneiden
+abschneiden	abschneiden
 die Abstimmung	die Abstimmung
 aufschreiben	aufschreiben
 die Ablehnung	die Ablehnung
 die Zeichnung	die Zeichnung
 die Zwiebel	die Zwiebel
 die Zunahme	die Zunahme
-aufrufen	jdn. (Akk) zu etw. aufrufen
+aufrufen	aufrufen
 alternativ	alternativ
 der Aufsatz	der Aufsatz
 anordnen	anordnen
 die Anregung	die Anregung
-aufspringen	auf etw. (Akk) aufspringen
+aufspringen	aufspringen
 abheben	etw. (Akk) / sich von jdm. abheben
 aufwendig	aufwendig
 zustehen	zustehen
@@ -3487,7 +3487,7 @@ die Blüte	die Blüte
 der Berater	der Berater
 chronisch	chronisch
 bemerkenswert	bemerkenswert
-demonstrieren	etw. (Akk) / gegen/für etw. demonstrieren
+demonstrieren	demonstrieren
 emotional	emotional
 düster	düster
 das Ensemble	das Ensemble
@@ -3502,7 +3502,7 @@ gemütlich	gemütlich
 die Faust	die Faust
 die Eintragung	die Eintragung
 erschweren	erschweren
-flüchten	vor jdm./etw. (Dat) flüchten
+flüchten	flüchten
 dokumentieren	dokumentieren
 erwachen	erwachen
 erschöpfen	jdn./etw. (Akk) / sich erschöpfen
@@ -3529,7 +3529,7 @@ der Großvater	der Großvater
 landwirtschaftlich	landwirtschaftlich
 lauschen	lauschen
 locken	locken
-hervorgehen	aus etw. (Dat) hervorgehen
+hervorgehen	hervorgehen
 hinüber	hinüber
 irren	sich irren
 gleichen	gleichen
@@ -3584,7 +3584,7 @@ wovon	wovon
 verbindlich	verbindlich
 das Zeug	das Zeug
 die Werkstatt	die Werkstatt
-umwandeln	etw. (Akk) in etw. umwandeln
+umwandeln	umwandeln
 der Teufel	der Teufel
 überziehen	überziehen
 die Anweisung	die Anweisung
@@ -3697,7 +3697,7 @@ die Skala	die Skala
 regnen	regnen
 rauschen	rauschen
 regelrecht	regelrecht
-plädieren	auf etw. (Akk) / für etw. plädieren
+plädieren	plädieren
 der Salon	der Salon
 illegal	illegal
 rutschen	rutschen
@@ -3815,7 +3815,7 @@ naturwissenschaftlich	naturwissenschaftlich
 der Parkplatz	der Parkplatz
 die Konzeption	die Konzeption
 der Kommentar	der Kommentar
-lügen	jdn. (Akk) an / --- lügen
+lügen	lügen
 das Magazin	das Magazin
 nachträglich	nachträglich
 der Kasten	der Kasten
@@ -3861,7 +3861,7 @@ umsonst	umsonst
 die Subvention	die Subvention
 die Steigerung	die Steigerung
 die Säule	die Säule
-zielen	auf jdn./etw. (Akk) zielen
+zielen	zielen
 vorbeugen	vorbeugen
 zutrauen	zutrauen
 die Vorlesung	die Vorlesung
@@ -3897,14 +3897,14 @@ ausnehmen	ausnehmen
 das Abkommen	das Abkommen
 die Beschränkung	die Beschränkung
 der Absolvent	der Absolvent
-beten	zu jdm. / für jdn./etw. beten
+beten	beten
 beiseite	beiseite
 aneinander	aneinander
 die Abwehr	die Abwehr
 die Arbeitskraft	die Arbeitskraft
 abgrenzen	etw. (Akk) von etw. / sich abgrenzen
 aufziehen	aufziehen
-ablenken	jdn. (Akk) von etw. ablenken
+ablenken	ablenken
 abschalten	abschalten
 abreißen	abreißen
 die Bar	die Bar
@@ -3923,7 +3923,7 @@ der Erzähler	der Erzähler
 einholen	einholen
 die Fassung	die Fassung
 der Flügel	der Flügel
-bohren	in etw. (Akk/Dat) bohren
+bohren	bohren
 die Fachleute	die Fachleute
 fällig	fällig
 der Fakt, das Fakt	der Fakt, das Fakt
@@ -3976,14 +3976,14 @@ täuschen	jdn. (Akk) / sich in jdm. täuschen
 der Ordner	der Ordner
 die Tablette	die Tablette
 die Tageszeitung	die Tageszeitung
-protestieren	gegen etw. protestieren
+protestieren	protestieren
 die Pistole	die Pistole
 die Reparatur	die Reparatur
 der Physiker	der Physiker
 spannen	spannen
 schräg	schräg
 schmutzig	schmutzig
-schimpfen	mit jdm. / über jdn./etw. (Akk) schimpfen
+schimpfen	schimpfen
 der Sänger	der Sänger
 der Ozean	der Ozean
 die Verknüpfung	die Verknüpfung
@@ -3993,7 +3993,7 @@ vergleichsweise	vergleichsweise
 der Zuwachs	der Zuwachs
 umstellen	umstellen
 wegnehmen	wegnehmen
-zurückgreifen	auf jdn./etw. (Akk) zurückgreifen
+zurückgreifen	zurückgreifen
 die Währung	die Währung
 das Vorfeld	das Vorfeld
 angehören	angehören
@@ -4036,7 +4036,7 @@ der Engel	der Engel
 antun	antun
 entgehen	entgehen
 die Ausrichtung	die Ausrichtung
-mahnen	jdn. (Akk) zu etw. mahnen
+mahnen	mahnen
 der Koch	der Koch
 die Laune	die Laune
 die Kerze	die Kerze
@@ -4078,7 +4078,7 @@ die Schlange	die Schlange
 segeln	segeln
 vernachlässigen	vernachlässigen
 unterstellen	unterstellen
-streben	nach etw. (Dat) streben
+streben	streben
 die Selbstständigkeit	die Selbstständigkeit
 überholen	überholen
 technologisch	technologisch
@@ -4089,7 +4089,7 @@ radioaktiv	radioaktiv
 das Weib	das Weib
 das Volumen	das Volumen
 der Bestandteil	der Bestandteil
-vorbeigehen	an jdm./etw. (Dat) vorbeigehen
+vorbeigehen	vorbeigehen
 übertreiben	übertreiben
 letztlich	letztlich
 der Zuhörer	der Zuhörer
@@ -4100,7 +4100,6 @@ zweifellos	zweifellos
 die Ermittlung	die Ermittlung
 westdeutsch	westdeutsch
 vortragen	vortragen
-jdn. zu etw. einladen	jdn. zu etw. einladen
 
 # --- fixed expressions, from expressions.txt ---
 es gibt	es gibt
