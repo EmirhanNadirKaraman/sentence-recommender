@@ -229,6 +229,10 @@ window.__sentenceStart = null;
 // The start of every subtitle of the video on screen, in order, for the
 // line-by-line keys and the auto-pause; each page registers its own.
 window.__cueTimes = null;
+// The starts of the i+1 lines alone, for the two controls that walk
+// between them. Set beside `__cueTimes` by whichever module owns the
+// cues, so it is recomputed as the reader learns words.
+window.__i1Times = null;
 
 (function () {
   var bar = document.getElementById('controls');
@@ -260,8 +264,11 @@ window.__cueTimes = null;
   // The subtitle before: the one whose start is clearly behind the
   // playhead, so a second press goes back another line rather than
   // restarting the same one; the next: the first start ahead.
-  function step(p, by) {
-    var t = times(), now = p.getCurrentTime(), to = null;
+  function i1Times() {
+    return window.__i1Times ? (window.__i1Times() || []) : [];
+  }
+  function step(p, by, list) {
+    var t = list || times(), now = p.getCurrentTime(), to = null;
     if (by < 0) { for (var i = t.length - 1; i >= 0; i--) if (t[i] < now - 0.8) { to = t[i]; break; } }
     else { for (var j = 0; j < t.length; j++) if (t[j] > now + 0.05) { to = t[j]; break; } }
     if (to == null) return;
@@ -314,6 +321,10 @@ window.__cueTimes = null;
       step(p, -1);
     } else if (act === 'next') {
       step(p, 1);
+    } else if (act === 'i1prev') {
+      step(p, -1, i1Times());
+    } else if (act === 'i1next') {
+      step(p, 1, i1Times());
     } else if (act === 'autopause') {
       toggleAutopause();
     } else if (act === 'back') {
@@ -394,6 +405,10 @@ window.__cueTimes = null;
     }
     else if (key === 'q') step(p, -1);
     else if (key === 'e') step(p, 1);
+    // Z and X walk the i+1 lines, as Q and E walk every line. Free keys: the
+    // pages use WASD, the reel O and P, and F keeps a sentence.
+    else if (key === 'z') step(p, -1, i1Times());
+    else if (key === 'x') step(p, 1, i1Times());
     else if (key === 't') toggleAutopause();
     else if (key === 'h') toggleEnglish();
     else return;
@@ -431,6 +446,25 @@ function targetUnit() {
 // served with the page (`watch.known_script`); a word no unit claims is
 // neither, and a page without the set says nothing. The stylesheet only
 // paints these when colours are on (Settings).
+// Whether a line is i+1: exactly one distinct unit in it is unknown. The
+// server marks what it renders (`web.render.one_step`); the transcript and
+// the caption are redrawn here from `/api/transcript`, so the rule has to
+// exist on this side too or the mark disappears the moment the cues load.
+function oneStep(cue) {
+  if (!cue || !cue.words || !window.__known) return false;
+  var seen = {}, n = 0;
+  for (var i = 0; i < cue.words.length; i++) {
+    var kind = cue.words[i][1], key = cue.words[i][2];
+    if (!kind || !key) continue;
+    var id = kind + ':' + key;
+    if (window.__known[id] || seen[id]) continue;
+    seen[id] = 1;
+    n++;
+    if (n > 1) return false;
+  }
+  return n === 1;
+}
+
 function knownness(kind, key) {
   if (!kind || !key || !window.__known) return '';
   return window.__known[kind + ':' + key] ? ' known' : ' new';
@@ -448,6 +482,29 @@ function learned(kind, key) {
       b.classList.add('known');
     }
   });
+  restep();
+}
+
+// A word just learned can make a sentence i+1 that was i+2 a moment ago, so
+// the marks are recounted off the buttons now that they have been repainted.
+// The target counts as unknown -- it is the word being taught -- and both
+// halves of a sentence carry the mark, because on some pages they are one box.
+function restep() {
+  Array.prototype.forEach.call(
+    document.querySelectorAll('.cue, .de'), function (box) {
+      var seen = {}, n = 0;
+      Array.prototype.forEach.call(
+        box.querySelectorAll('button.w.new, button.w.target'), function (b) {
+          var id = b.dataset.kind + ':' + b.dataset.key;
+          if (!b.dataset.kind || !b.dataset.key || seen[id]) return;
+          seen[id] = 1;
+          n++;
+        });
+      box.classList.toggle('i1', n === 1);
+      var en = box.nextElementSibling;
+      if (box.classList.contains('de') && en && en.classList.contains('en'))
+        en.classList.toggle('i1', n === 1);
+    });
 }
 
 function escapeText(t) {
@@ -686,8 +743,9 @@ function cueAt(cues, now) {
     cues = rows || [];
     if (!box) return;
     box.innerHTML = cues.map(function (c, i) {
-      return "<li class='cue' data-i='" + i + "'><span class='at'>" +
-             c.clock + "</span><span class='said'></span></li>";
+      return "<li class='cue" + (oneStep(c) ? ' i1' : '') + "' data-i='" + i +
+             "'><span class='at'>" + c.clock +
+             "</span><span class='said'></span></li>";
     }).join('');
     Array.prototype.forEach.call(box.querySelectorAll('.cue'), function (el, i) {
       var said = el.querySelector('.said');
@@ -718,8 +776,16 @@ function cueAt(cues, now) {
     if (all[marking]) all[marking].classList.remove('now');
     marking = i;
     if (all[i]) { all[i].classList.add('now'); keepInView(all[i]); }
-    if (line) { line.innerHTML = wordsHtml(cues[i]); line.dataset.text = cues[i].text; }
-    if (lineEn) lineEn.textContent = cues[i].en || '';
+    var step = oneStep(cues[i]);
+    if (line) {
+      line.innerHTML = wordsHtml(cues[i]);
+      line.dataset.text = cues[i].text;
+      line.classList.toggle('i1', step);
+    }
+    if (lineEn) {
+      lineEn.textContent = cues[i].en || '';
+      lineEn.classList.toggle('i1', step);
+    }
   }
 
   function play(i) {
@@ -773,6 +839,9 @@ function cueAt(cues, now) {
         return el && el.dataset.at ? parseFloat(el.dataset.at) : null;
       };
       window.__cueTimes = function () { return cues.map(function (c) { return c.at; }); };
+      window.__i1Times = function () {
+        return cues.filter(oneStep).map(function (c) { return c.at; });
+      };
       play(showing);
       setInterval(function () {
         if (!player || !player.getCurrentTime) return;
@@ -978,6 +1047,9 @@ function cueAt(cues, now) {
         return cues[marking] ? cues[marking].at : 0;
       };
       window.__cueTimes = function () { return cues.map(function (c) { return c.at; }); };
+      window.__i1Times = function () {
+        return cues.filter(oneStep).map(function (c) { return c.at; });
+      };
       setInterval(function () {
         if (!player || !player.getCurrentTime) return;
         var i = cueAt(cues, player.getCurrentTime());

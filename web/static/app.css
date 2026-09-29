@@ -11,6 +11,11 @@
   --target:  #4a55a8;
   --new:     #a85e0a;
   --faint:   #ccd7e8;
+  /* i+1: the sentence with one unknown word in it. Tinted towards --target,
+     which is already the colour of the word being taught, so the line and
+     the word in it read as the same idea. */
+  --i1:      #dbe2fa;
+  --i1-on:   #c9d2f5;
   --serif: Literata, Charter, "Iowan Old Style", Georgia, serif;
   --sans: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
 }
@@ -18,6 +23,7 @@
   :root {
     --paper: #0f1626; --surface: #161f33; --ink: #dce5f6; --ink-2: #8b9bbd;
     --rail: #e2685c; --target: #9fabf2; --new: #f0b064; --faint: #263149;
+    --i1: #23305a; --i1-on: #2e3d6d;
   }
 }
 * { box-sizing: border-box; }
@@ -639,3 +645,39 @@ button.w.target { color: var(--target); border-bottom: 1px solid var(--target); 
 .taught summary { cursor: pointer; padding: .3rem 0; }
 .taught table { margin-top: .4rem; }
 .taught .tag { margin-left: .5rem; }
+
+/* i+1: the sentence you can read but for one word. The whole app exists to
+   find these and on the page they looked like every other line, so they get
+   their own background wherever a sentence is drawn — the study card, the
+   word page, the caption under the picture, the transcript read along with.
+
+   Where the sentence has no padding of its own the tint is grown sideways by
+   a shadow rather than by padding, so learning a word and turning a line i+1
+   never moves anything on the page. */
+.de.i1, .en.i1, .cue.i1 { background: var(--i1); }
+.de.i1 { box-shadow: -.45rem 0 0 var(--i1), .45rem 0 0 var(--i1); }
+.stage .de.i1, .stage .en.i1 { box-shadow: none; }
+.cue.i1.on { background: var(--i1-on); }
+
+/* The transcript's own left bar. `.cue.now` marks the line being spoken with
+   the same inset trick, and it is repeated after this one so it still wins:
+   what is being said now matters more than what it would teach. */
+.cue.i1 { box-shadow: inset 3px 0 0 var(--target); }
+.cue.now { box-shadow: inset 3px 0 0 var(--rail); }
+
+/* Named, not only tinted. In the transcript it goes under the timestamp, and
+   in CSS rather than in markup because those rows are drawn twice -- once by
+   `web.watch.transcript`, once by `app.js` when the cues load -- and a badge
+   written in both places is a badge that drifts. */
+.cue.i1 .at::after { content: 'i+1'; display: block; margin-top: 3px;
+  color: var(--target); font: 600 10.5px/1 var(--sans); letter-spacing: .04em; }
+
+/* The badge `web.render.sentence` writes beside a sentence. */
+.step { font: 600 11.5px/1 var(--sans); color: var(--target);
+  vertical-align: middle; border: 1px solid var(--target); border-radius: 3px;
+  padding: 2px 5px; margin-left: 6px; white-space: nowrap; }
+.de.lead .step { font-size: 12.5px; }
+
+/* The two controls that walk the i+1 lines, coloured like the mark they
+   walk between so the bar says which is which without being read. */
+.controls button.i1 { color: var(--target); border-color: var(--target); }

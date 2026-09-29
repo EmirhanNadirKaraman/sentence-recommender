@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from html import escape
 
-from web.render import clickable, mark, stamped
+from web.render import clickable, mark, one_step, stamped
 
 # A short lead-in, because a cue's start time is when the word is already
 # being said, and beginning exactly there clips it.
@@ -65,6 +65,14 @@ def controls() -> str:
         "<button type='button' data-act='sentence' title='Play this sentence again'>"
         "&#8635; sentence</button>"
         "<button type='button' data-act='next' title='The next subtitle (E)'>line &#8250;</button>"
+        # The two that walk only the lines worth stopping on. The reader is
+        # here to meet one new word at a time and most of a video is not that,
+        # so stepping line by line to find the next i+1 was the work the app
+        # is supposed to be doing for them.
+        "<button type='button' class='i1' data-act='i1prev' "
+        "title='The previous i+1 line (Z)'>&#8249; i+1</button>"
+        "<button type='button' class='i1' data-act='i1next' "
+        "title='The next i+1 line (X)'>i+1 &#8250;</button>"
         "<button type='button' data-act='back' title='Five seconds back'>&minus;5 s</button>"
         "<button type='button' data-act='toggle' id='toggle'>Play</button>"
         "<button type='button' data-act='fwd' title='Five seconds on'>+5 s</button>"
@@ -103,6 +111,10 @@ def transcript(cues: list, current_index: int, surface: str | None,
     rows = []
     for i, cue in enumerate(cues):
         here = " on" if i == current_index else ""
+        # The lines you could read but for one word, marked in the list you
+        # read along with. While watching this is the useful one: it says
+        # which line coming up is the one to catch.
+        step = " i1" if words and one_step(words(cue), known) else ""
         if words:
             body = clickable(words(cue), surface if i == current_index else None, known)
         else:
@@ -111,7 +123,7 @@ def transcript(cues: list, current_index: int, surface: str | None,
         carried = (f" data-words=\"{escape(json.dumps(words(cue), ensure_ascii=False))}\""
                    if words else "")
         rows.append(
-            f"<li class='cue{here}' data-at='{cue.timing.start:.2f}' "
+            f"<li class='cue{here}{step}' data-at='{cue.timing.start:.2f}' "
             f"data-en=\"{english}\" data-text=\"{escape(cue.text)}\"{carried} id='cue{i}'>"
             f"<span class='at'>{_clock(cue.timing.start)}</span>"
             f"<span class='said'>{body}</span></li>"

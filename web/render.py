@@ -148,20 +148,52 @@ def sentence(text: str, translation: str | None, surface: str | None = None,
     A button and not a form: a sentence is rendered inside a form on several
     of those pages, and a nested form is invalid HTML that browsers silently
     unnest, which would post the wrong thing. `app.js` sends it instead.
+
+    A sentence with exactly one unknown word in it is marked `i1`, and the
+    stylesheet gives it its own background. That is the whole point of the
+    thing -- the sentence you can read but for one word -- and it was
+    indistinguishable from a sentence with five. Computed here, off the same
+    `words` and `known` that `clickable` colours the words from, for the
+    reason the keep-control is here: every page is what was asked for, and a
+    mark added page by page is a mark that misses one.
     """
     size = " lead" if lead else ""
+    step = one_step(words, known)
+    size += " i1" if step else ""
     badge = f" <span class='level' title='the level the judge gave it'>{escape(level)}</span>" \
         if level else ""
     body = clickable(words, surface, known) if words else mark(text, surface)
+    # Named, not only tinted. A background says "this one is different"; the
+    # badge says which different, and i+1 is the word the whole app is built
+    # around, so it is worth spelling out where the reader meets it.
+    flag = ("<span class='step' title='you know every word in this one "
+            "but one'>i+1</span>" if step else "")
     keep = "" if starred is None else (
         f"<button type='button' class='star{' on' if starred else ''}'"
         f" data-act='star' aria-pressed='{'true' if starred else 'false'}'"
         f" title='Keep this sentence (F)'>&#9733;</button>")
     out = (f"<p class='de{size}' data-text='{escape(text)}'>"
-           f"{body}{badge}{keep}</p>")
+           f"{body}{flag}{badge}{keep}</p>")
     if translation:
-        out += f"<p class='en'>{escape(translation)}</p>"
+        # The English carries the mark too: on the pages where the two halves
+        # are one box, tinting only the German splits it down the middle.
+        out += (f"<p class='en{' i1' if ' i1' in size else ''}'>"
+                f"{escape(translation)}</p>")
     return out
+
+
+def one_step(words, known) -> bool:
+    """Whether a sentence is i+1: exactly one distinct unit in it is unknown.
+
+    Counted over units rather than tokens, so a word said twice is one
+    unknown, and a token no unit claims -- a name, a number -- is neither
+    known nor unknown and cannot make a sentence harder than it reads.
+    """
+    if not words or known is None:
+        return False
+    new = {(kind, key) for _, kind, key in words
+           if kind and key and Unit(kind, key) not in known}
+    return len(new) == 1
 
 
 def clickable(words: list[list[str]], surface: str | None, known=None) -> str:

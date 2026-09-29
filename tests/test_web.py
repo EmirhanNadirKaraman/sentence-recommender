@@ -2051,3 +2051,150 @@ class TaughtHereTest(KnowingMixin, unittest.TestCase):
         cues = [self.line({w}, float(i)) for i, w in enumerate(words)]
         html = self.render(self.viewer(set(words)), cues, set())
         self.assertEqual(html.count("<tr>"), len(words) + 1)   # + header
+
+
+class OneStepMarkTest(unittest.TestCase):
+    """The i+1 mark, which every page draws a sentence through.
+
+    A sentence with one unknown word in it is the thing this whole app looks
+    for, and on the page it was drawn exactly like a sentence with five. The
+    rule lives in `render.one_step` so the eight call sites cannot each get it
+    slightly different, and `app.js` carries the same rule for the transcript
+    it redraws itself.
+    """
+
+    @staticmethod
+    def words(*pairs):
+        return [[token, kind, key] for token, kind, key in pairs]
+
+    def test_one_unknown_is_i_plus_one(self) -> None:
+        from vocab.entry import Unit
+        from web.render import one_step
+        known = frozenset({Unit("lemma", "ich")})
+        self.assertTrue(one_step(
+            self.words(("Ich", "lemma", "ich"), ("gebe", "lemma", "geben")),
+            known))
+
+    def test_two_unknowns_is_not(self) -> None:
+        from vocab.entry import Unit
+        from web.render import one_step
+        known = frozenset({Unit("lemma", "ich")})
+        self.assertFalse(one_step(
+            self.words(("Ich", "lemma", "ich"), ("gebe", "lemma", "geben"),
+                       ("Brot", "lemma", "Brot")), known))
+
+    def test_none_unknown_is_not(self) -> None:
+        from vocab.entry import Unit
+        from web.render import one_step
+        known = frozenset({Unit("lemma", "ich"), Unit("lemma", "geben")})
+        self.assertFalse(one_step(
+            self.words(("Ich", "lemma", "ich"), ("gebe", "lemma", "geben")),
+            known))
+
+    def test_the_same_word_twice_is_one_unknown(self) -> None:
+        """Counted over units, not tokens — otherwise a sentence that says its
+        new word twice would read as harder than one that says it once."""
+        from vocab.entry import Unit
+        from web.render import one_step
+        known = frozenset({Unit("lemma", "und")})
+        self.assertTrue(one_step(
+            self.words(("Gib", "lemma", "geben"), ("und", "lemma", "und"),
+                       ("gib", "lemma", "geben")), known))
+
+    def test_a_token_no_unit_claims_cannot_make_it_harder(self) -> None:
+        """A name or a number is neither known nor unknown."""
+        from vocab.entry import Unit
+        from web.render import one_step
+        known = frozenset({Unit("lemma", "ich")})
+        self.assertTrue(one_step(
+            self.words(("Ich", "lemma", "ich"), ("gebe", "lemma", "geben"),
+                       ("Hamid", "", ""), ("7", "", "")), known))
+
+    def test_without_the_reader_s_units_nothing_is_marked(self) -> None:
+        """`known=None` is "not asked", not "knows nothing" — the pages that
+        render a sentence as furniture pass no units and must not light up."""
+        from web.render import one_step
+        self.assertFalse(one_step(self.words(("gebe", "lemma", "geben")), None))
+        self.assertFalse(one_step(None, frozenset()))
+
+    def test_the_sentence_carries_the_mark_on_both_halves(self) -> None:
+        from vocab.entry import Unit
+        from web.render import sentence
+        known = frozenset({Unit("lemma", "ich")})
+        html = sentence("Ich gebe.", "I give.", words=self.words(
+            ("Ich", "lemma", "ich"), ("gebe", "lemma", "geben")), known=known)
+        self.assertIn("class='de i1'", html)
+        self.assertIn("class='en i1'", html)
+
+    def test_it_says_i_plus_one_in_words(self) -> None:
+        """A background says "this one is different"; the badge says which."""
+        from vocab.entry import Unit
+        from web.render import sentence
+        html = sentence("Ich gebe.", "I give.", words=self.words(
+            ("Ich", "lemma", "ich"), ("gebe", "lemma", "geben")),
+            known=frozenset({Unit("lemma", "ich")}))
+        self.assertIn("<span class='step'", html)
+        self.assertIn(">i+1</span>", html)
+
+    def test_the_transcript_is_named_by_the_stylesheet(self) -> None:
+        """Those rows are drawn twice -- by `web.watch.transcript` and again by
+        `app.js` when the cues load -- so the badge is a CSS rule on the class
+        both emit, not markup one of them could forget."""
+        css = (ROOT / "web" / "static" / "app.css").read_text(encoding="utf-8")
+        self.assertIn(".cue.i1 .at::after", css)
+        self.assertIn("content: 'i+1'", css)
+
+    def test_the_bar_offers_the_two_i_plus_one_steps(self) -> None:
+        from web.watch import controls
+        html = controls()
+        self.assertIn("data-act='i1prev'", html)
+        self.assertIn("data-act='i1next'", html)
+        self.assertIn("(Z)", html)
+        self.assertIn("(X)", html)
+
+    def test_z_and_x_walk_them_and_collide_with_nothing(self) -> None:
+        """The pages use WASD, the reel O and P, F keeps a sentence, and the
+        player already answers to Q/E/T/H/M/V/J/L/K. Z and X have to be free."""
+        js = (ROOT / "web" / "static" / "app.js").read_text(encoding="utf-8")
+        self.assertIn("key === 'z'", js)
+        self.assertIn("key === 'x'", js)
+        taken = re.findall(r"(?:key|e\.key) === '([a-z])'", js)
+        for letter in ("z", "x"):
+            self.assertEqual(taken.count(letter), 1,
+                             f"{letter} is bound in more than one place")
+
+    def test_the_steps_walk_only_the_i_plus_one_starts(self) -> None:
+        """`step` walks whatever list it is handed; handing it every line's
+        start would make Z and X another Q and E."""
+        js = (ROOT / "web" / "static" / "app.js").read_text(encoding="utf-8")
+        self.assertIn("window.__i1Times", js)
+        self.assertIn("cues.filter(oneStep)", js)
+        self.assertIn("step(p, -1, i1Times())", js)
+        self.assertIn("step(p, 1, i1Times())", js)
+
+    def test_the_line_being_spoken_keeps_its_own_bar(self) -> None:
+        """`.cue.now` and `.cue.i1` both draw an inset left bar, and they land
+        on the same row while that line is playing. The rail has to win, so its
+        rule comes second."""
+        css = (ROOT / "web" / "static" / "app.css").read_text(encoding="utf-8")
+        self.assertLess(css.rindex(".cue.i1 { box-shadow"),
+                        css.rindex(".cue.now { box-shadow"))
+
+    def test_a_harder_sentence_carries_neither(self) -> None:
+        from vocab.entry import Unit
+        from web.render import sentence
+        html = sentence("Ich gebe Brot.", "I give bread.", words=self.words(
+            ("Ich", "lemma", "ich"), ("gebe", "lemma", "geben"),
+            ("Brot", "lemma", "Brot")), known=frozenset({Unit("lemma", "ich")}))
+        self.assertNotIn("i1", html)
+
+    def test_the_script_counts_it_the_same_way(self) -> None:
+        """Two implementations of one rule, so this checks the second exists
+        and reads the units the same way rather than letting it drift."""
+        js = (ROOT / "web" / "static" / "app.js").read_text(encoding="utf-8")
+        self.assertIn("function oneStep(cue)", js)
+        # Counted over distinct units, and a token with no unit skipped —
+        # the two properties the Python tests above pin down.
+        body = js.split("function oneStep(cue)", 1)[1].split("\n}", 1)[0]
+        self.assertIn("if (!kind || !key) continue;", body)
+        self.assertIn("seen[id]", body)
