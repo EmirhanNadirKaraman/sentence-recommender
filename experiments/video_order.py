@@ -341,7 +341,8 @@ def walk(grouped, cost, says, target, supply, seed, k: int, gate: str,
          rewatch: bool, order: list | None = None,
          weight: str = FREQUENCY, ease: float = 0.0,
          plenty: int = 0, thin_k: int = 0,
-         learnable: frozenset | None = None) -> dict:
+         learnable: frozenset | None = None,
+         floor: float = 0.0, relax: float = 0.10) -> dict:
     """Greedy: the video giving the most unmet encounters per minute.
 
     `ease` weighs that rate by how much of the video the reader can follow.
@@ -463,6 +464,20 @@ def walk(grouped, cost, says, target, supply, seed, k: int, gate: str,
     score = {} if queue is not None else {v: useful(v) for v in grouped}
     pool, spent, views, uniq = set(grouped), 0.0, 0, set()
     picks: list = []
+    # How much of a video the reader must be able to follow before it may be
+    # offered at all. `ease` tilts the rate towards readable videos and a
+    # tenfold difference in rate walks straight past a threefold difference
+    # in readability, so the plan opened on one- and two-minute videos a
+    # quarter of which could be read. This refuses them instead.
+    #
+    # It defers rather than excludes: readability is a property of the video
+    # *and* what is known, recomputed every time a word lands, so a video at
+    # 30% today is offered once the reader has grown into it. When nothing
+    # clears the floor it comes down by `relax` and the walk carries on, so
+    # the tail -- the rare words that live only in hard videos -- is still
+    # reached.
+    standing = floor
+    picks_at: list = []
     while pool:
         if queue is not None:
             if not queue:
@@ -470,9 +485,19 @@ def walk(grouped, cost, says, target, supply, seed, k: int, gate: str,
             best = queue.pop(0)
             score[best] = useful(best)
         else:
-            best = max(pool, key=lambda v: (score[v][0] * sway(score[v][3])
-                                            / (cost.get(v) or 1e9),
-                                            score[v][0], str(v)))
+            def worth_offering(v) -> bool:
+                return score[v][1] and score[v][3] >= standing
+
+            allowed = [v for v in pool if worth_offering(v)]
+            while not allowed and standing > 0:
+                standing = max(0.0, round(standing - relax, 4))
+                allowed = [v for v in pool if worth_offering(v)]
+            if not allowed:
+                break
+            best = max(allowed, key=lambda v: (score[v][0] * sway(score[v][3])
+                                               / (cost.get(v) or 1e9),
+                                               score[v][0], str(v)))
+            picks_at.append(standing)
         rate, gain, texts, share = score[best]
         if not gain:
             break
