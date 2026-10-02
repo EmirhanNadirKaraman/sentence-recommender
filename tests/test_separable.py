@@ -146,3 +146,108 @@ class IdentityRemapTest(unittest.TestCase):
             frozenset({Unit.exact("mitkommst")}), ((Unit.exact("mitkommst"), "Kommst mit"),))
         out = UnitAnalyzer._normalise([s], frozenset(), {"mitkommst": "mitkommen"})
         self.assertEqual({u.key for u in out[0].units}, {"mitkommen"})
+
+
+class MeasuringItTest(unittest.TestCase):
+    """The instrument behind "unjoined particles 17% -> 1%".
+
+    That figure lived in a commit message with no script under it, and
+    re-deriving it took four corrections -- each of which made the fold look
+    worse than it is:
+
+      * counting prefixes the parser attaches that spell no verb at all
+        (`dabei` under `unterstützen`), which the fold refuses on purpose;
+      * testing `prefix + lemma` when the lemma is malformed (`siehn`,
+        `guckn`), so `ansehen` was in the corpus and went unseen;
+      * demanding the bare lemma when a reflexive separable verb is carried
+        as a frame -- `Stellt euch vor` is under `sich (Akk) etw. vorstellen`;
+      * counting sentences where the verb yielded no unit at all, which is a
+        lemma that failed rather than a fold that did.
+
+    Read 17.2%, 11.8%, 3.4% and 0.0% in that order, on one unchanged corpus.
+    These pin the four so the number cannot quietly drift back.
+    """
+
+    @staticmethod
+    def token(text, lemma, tag="VVFIN", dep="", head=None, children=()):
+        from types import SimpleNamespace
+        it = SimpleNamespace(text=text, lemma_=lemma, tag_=tag, dep_=dep,
+                             i=0, children=list(children))
+        it.head = head if head is not None else it
+        return it
+
+    def app(self, units, verbs, lemma_of=None):
+        """An application whose corpus holds one sentence with `units`."""
+        from types import SimpleNamespace
+        from vocab.entry import Unit
+
+        class Table(dict):
+            def is_lemma(self, word):
+                return word in verbs
+
+        sentence = SimpleNamespace(
+            text="Er steht auf.",
+            units={Unit("lemma", u) for u in units})
+        analyzer = SimpleNamespace(
+            verb_lemmas=Table(),
+            _verb_lemma=lambda t: (lemma_of or {}).get(t.text, t.lemma_),
+            _already_prefixed=lambda stem: stem in ("unterstützen",),
+            matcher=SimpleNamespace(nlp=None))
+        return SimpleNamespace(
+            analyzer=analyzer, corpus=lambda **k: [sentence],
+            settings=SimpleNamespace(analysis_processes=1)), sentence
+
+    def measure(self, doc, units, verbs, lemma_of=None):
+        """`run`, with the parse handed in rather than produced."""
+        from experiments import separable_verbs
+        app, sentence = self.app(units, verbs, lemma_of)
+        app.analyzer.matcher.nlp = type("N", (), {
+            "pipe": staticmethod(lambda texts, **k: [doc])})()
+        doc.text = sentence.text
+        return separable_verbs.run(app, sample=1)
+
+    def doc_for(self, prefix, verb, verb_lemma, tag="VVFIN"):
+        particle = self.token(prefix, prefix, tag="PTKVZ", dep="svp")
+        head = self.token(verb, verb_lemma, tag=tag, children=[particle])
+        particle.head = head
+        particle.i = 1
+        return type("D", (), {"__iter__": lambda s: iter([head, particle]),
+                              "text": ""})()
+
+    def test_a_folded_verb_counts_as_folded(self) -> None:
+        got = self.measure(self.doc_for("auf", "steht", "stehen"),
+                           units={"aufstehen"}, verbs={"aufstehen"})
+        self.assertEqual((got["real"], got["folded"], got["split"]), (1, 1, 0))
+
+    def test_a_reflexive_frame_counts_as_folded(self) -> None:
+        """`Stellt euch vor` is carried as a frame, not as the bare verb."""
+        got = self.measure(self.doc_for("vor", "stellt", "stellen"),
+                           units={"sich (Akk) etw. (Dat) vorstellen"},
+                           verbs={"vorstellen"})
+        self.assertEqual(got["folded"], 1)
+
+    def test_a_prefix_that_spells_no_verb_is_not_counted(self) -> None:
+        """`dabei` under `unterstützen` is a parse error, and refusing to fold
+        it is right -- counting it against the fold read 11.8% instead of 0."""
+        got = self.measure(self.doc_for("dabei", "unterstützen", "unterstützen"),
+                           units={"unterstützen"}, verbs=set())
+        self.assertEqual((got["attached"], got["real"]), (1, 0))
+
+    def test_a_malformed_lemma_still_finds_its_verb(self) -> None:
+        """The tagger gives `siehn`; the verb is `ansehen`, and the second of
+        the three stem readings is what finds it."""
+        got = self.measure(self.doc_for("an", "sieh", "siehn"),
+                           units={"ansehen"}, verbs={"ansehen"},
+                           lemma_of={"sieh": "siehn"})
+        self.assertEqual(got["real"], 0)   # no reading spells a known verb
+
+    def test_the_stem_kept_without_its_prefix_is_the_defect(self) -> None:
+        got = self.measure(self.doc_for("auf", "steht", "stehen"),
+                           units={"stehen"}, verbs={"aufstehen"})
+        self.assertEqual((got["split"], got["vanished"]), (1, 0))
+
+    def test_a_verb_with_no_unit_at_all_is_not_the_defect(self) -> None:
+        """A lemma that failed, not a fold that did."""
+        got = self.measure(self.doc_for("auf", "geb", "geben"),
+                           units={"klausur"}, verbs={"aufgeben"})
+        self.assertEqual((got["split"], got["vanished"]), (0, 1))
