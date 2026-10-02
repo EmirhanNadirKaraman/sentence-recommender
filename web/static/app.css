@@ -723,3 +723,8 @@ button.w.target { color: var(--target); border-bottom: 1px solid var(--target); 
 
 /* The export reminder, once it is worth acting on. */
 .note.due { color: var(--rail); font-weight: 600; }
+
+/* A card sentence the judge was never asked about. Preferred against, but
+   kept where there was no checked alternative — so it is said, not hidden. */
+.cloze.unchecked { color: var(--ink-2); }
+.cloze.unchecked .tag { margin-left: 8px; vertical-align: 1px; }

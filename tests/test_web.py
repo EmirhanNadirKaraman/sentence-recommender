@@ -1852,7 +1852,9 @@ class AnkiExamplesTest(unittest.TestCase):
         def surface_of(self, unit):
             return self._surface
 
-    def viewer(self, steps, decks, corpus=()):
+    def viewer(self, steps, decks, corpus=(), checked=None, clean=None):
+        """`checked` and `clean` name the sentences the judge has seen and
+        approved; left out, it has seen and approved everything."""
         from vocab.entry import Unit
         viewer = Viewer.__new__(Viewer)
         viewer._anki_examples = None
@@ -1873,7 +1875,10 @@ class AnkiExamplesTest(unittest.TestCase):
         viewer.app = SimpleNamespace(
             corpus=lambda *a, **k: list(corpus),
             video_minutes={}, verdicts=lambda: {},
-            judged=None, Unit=Unit)
+            judged=SimpleNamespace(
+                checked=lambda t: checked is None or t in checked,
+                clean=lambda t: clean is None or t in clean),
+            Unit=Unit)
         return viewer
 
     def test_a_step_takes_the_deck_the_documents_show(self) -> None:
@@ -1907,6 +1912,63 @@ class AnkiExamplesTest(unittest.TestCase):
         got = self.viewer(steps, decks).anki_examples("subtitle", {word},
                                                       each=3)
         self.assertEqual(len(got[word]), 3)
+
+    def test_a_checked_sentence_beats_an_unchecked_one(self) -> None:
+        """`judged.sentence` gives an unjudged sentence the median of the
+        judged, so unchecked enters the ranking as averagely good and outranks
+        every checked sentence below the median. Right for the walk, wrong for
+        a card that is permanent and has alternatives."""
+        from vocab.entry import Unit
+        word = Unit("lemma", "geben")
+        steps = [SimpleNamespace(unit=word, position=1)]
+        seen, unseen = "Der geprüfte Satz.", "Der ungeprüfte Satz."
+        decks = {1: [self.Said(unseen), self.Said(seen)]}
+        got = self.viewer(steps, decks, checked={seen}, clean={seen},
+                          ).anki_examples("subtitle", {word}, each=1)
+        self.assertEqual([t for t, _ in got[word]], [seen])
+
+    def test_a_checked_but_poor_sentence_does_not(self) -> None:
+        """Checked is not the point; checked *and* worth showing is."""
+        from vocab.entry import Unit
+        word = Unit("lemma", "geben")
+        steps = [SimpleNamespace(unit=word, position=1)]
+        poor, unseen = "Der geprüfte schlechte Satz.", "Der ungeprüfte Satz."
+        decks = {1: [self.Said(unseen), self.Said(poor)]}
+        got = self.viewer(steps, decks, checked={poor}, clean=set(),
+                          ).anki_examples("subtitle", {word}, each=1)
+        self.assertEqual([t for t, _ in got[word]], [unseen])
+
+    def test_an_unchecked_sentence_still_fills_an_empty_card(self) -> None:
+        """A preference, not a floor: four of sixteen queued words had no
+        checked sentence at all, and a card with nothing on it teaches less
+        than a card with an unchecked sentence on it."""
+        from vocab.entry import Unit
+        word = Unit("lemma", "geben")
+        steps = [SimpleNamespace(unit=word, position=1)]
+        decks = {1: [self.Said("Nur dieser eine."), self.Said("Und dieser.")]}
+        got = self.viewer(steps, decks, checked=set(), clean=set(),
+                          ).anki_examples("subtitle", {word}, each=2)
+        self.assertEqual(len(got[word]), 2)
+
+    def test_the_checked_keep_the_judge_s_order_among_themselves(self) -> None:
+        """Preferring them must not re-sort them: the stored order is the
+        ranking, and reordering it here would throw that away."""
+        from vocab.entry import Unit
+        word = Unit("lemma", "geben")
+        steps = [SimpleNamespace(unit=word, position=1)]
+        a, b, c = "Erster.", "Zweiter.", "Ungeprüfter."
+        decks = {1: [self.Said(a), self.Said(c), self.Said(b)]}
+        got = self.viewer(steps, decks, checked={a, b}, clean={a, b},
+                          ).anki_examples("subtitle", {word}, each=3)
+        self.assertEqual([t for t, _ in got[word]], [a, b, c])
+
+    def test_it_looks_deeper_than_the_card_holds(self) -> None:
+        """Three candidates to choose three from is not a choice."""
+        src = (ROOT / "web" / "handlers.py").read_text(encoding="utf-8")
+        body = src.split("def anki_examples", 1)[1].split("\n    def ", 1)[0]
+        self.assertIn("deep = max(each * 5, 15)", body)
+        self.assertIn("limit=deep", body)
+        self.assertNotIn("limit=each", body)
 
     def test_a_word_off_the_plan_is_ranked_not_scanned(self) -> None:
         """A button appears wherever a word does, so a queued word need not be

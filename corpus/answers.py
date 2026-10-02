@@ -121,6 +121,17 @@ class Judged:
         the same sentence differently."""
         return self.sentence(text) * self.unit(text, unit) * self.ease(text)
 
+    def checked(self, text: str) -> bool:
+        """Whether the judge was ever asked about this sentence at all.
+
+        `sentence` answers for every sentence, judged or not -- an unjudged one
+        scores the median, which is the right prior where something has to be
+        taught and refusing for want of a judgment would teach nothing. Where
+        there is a choice and the choice is permanent, "nobody looked" is worth
+        knowing apart from "looked, and it was average".
+        """
+        return text in self._quality
+
     def clean(self, text: str) -> bool:
         """Whether the sentence is one to teach a word with at all — its
         quality product at `FLOOR` or above. The walk defers a word whose

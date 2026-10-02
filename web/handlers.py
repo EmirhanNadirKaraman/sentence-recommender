@@ -1541,8 +1541,33 @@ class Viewer:
         if self._anki_examples and self._anki_examples[0] == key:
             return self._anki_examples[1]
 
+        judged = self.app.judged
+
+        def best(rows) -> list:
+            """Checked and clean first, the rest only to fill the card.
+
+            `judged.sentence` answers for every sentence: one the judge was
+            never asked about scores the median of those it was, so unchecked
+            enters the ranking as averagely good and outranks every checked
+            sentence below the median. That prior is right for the walk, which
+            must not refuse to teach a word for want of a judgment -- and wrong
+            here, where a card is permanent, there are few of them, and there
+            is usually a checked alternative sitting in the same list. Measured
+            over sixteen queued words, seven cards carried an unchecked
+            sentence while a better checked one was available.
+
+            Only a preference, not a floor: four of those sixteen had no
+            checked sentence at all, and a card with nothing on it teaches
+            less than a card with an unchecked sentence on it.
+            """
+            good, rest = [], []
+            for row in rows:
+                ok = judged.checked(row.text) and judged.clean(row.text)
+                (good if ok else rest).append(row)
+            return (good + rest)[:each]
+
         def carried(rows, unit) -> list:
-            return [(s.text, s.surface_of(unit) or "") for s in rows[:each]]
+            return [(s.text, s.surface_of(unit) or "") for s in best(rows)]
 
         picked: dict = {}
         # The deck itself, by the name `export-deck` writes under, so what
@@ -1553,7 +1578,11 @@ class Viewer:
         steps = self._store.load(label)
         by_unit = {step.unit: step for step in steps}
         wanted = [by_unit[u] for u in units if u in by_unit]
-        stored = self._store.decks(label, wanted, limit=each) if wanted else {}
+        # Deeper than the card holds: a list of three to choose three from
+        # is not a choice, and the stored order already has the rest of
+        # the judge's ranking in it.
+        deep = max(each * 5, 15)
+        stored = self._store.decks(label, wanted, limit=deep) if wanted else {}
         for unit in units:
             step = by_unit.get(unit)
             rows = stored.get(step.position, []) if step is not None else []
@@ -1570,9 +1599,9 @@ class Viewer:
             holding = self.app.corpus(*self._builds(source), strict=True,
                                       holding=(unit.kind, unit.key))
             picked[unit] = carried(ExampleIndex(holding).examples(
-                unit, self.known, limit=each,
+                unit, self.known, limit=deep,
                 minutes=self.app.video_minutes,
-                verdicts=self.app.verdicts(), judged=self.app.judged), unit)
+                verdicts=self.app.verdicts(), judged=judged), unit)
 
         self._anki_examples = (key, picked)
         return picked
@@ -1626,8 +1655,16 @@ class Viewer:
         cards = []
         for unit in order:
             rows = found.get(unit, [])
+            # Which of them the judge has actually seen. The ranking prefers
+            # the checked ones and falls back rather than leaving a card
+            # empty, so saying nothing here would hide exactly the sentences
+            # worth a second look.
             body = "".join(
-                f"<p class='cloze'>{escape(self.anki_cloze(text, surface))}</p>"
+                f"<p class='cloze"
+                + ("" if self.app.judged.checked(text) else " unchecked")
+                + f"'>{escape(self.anki_cloze(text, surface))}"
+                + ("" if self.app.judged.checked(text) else
+                   "<span class='tag'>unchecked</span>") + "</p>"
                 for text, surface in rows) or \
                 "<p class='empty'>No sentence in the corpus says it.</p>"
             cards.append(
