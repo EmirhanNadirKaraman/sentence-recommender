@@ -57,9 +57,9 @@ services:
       # 127.0.0.1 only. There is no authentication anywhere in this app.
       - "127.0.0.1:8765:8765"
     volumes:
-      # The host's data directory, so `state.sqlite3` — what you know, your
-      # cards, your roadmaps — survives a rebuilt image and can be read with
-      # sqlite3 from outside.
+      # The host's data directory, for the files edited by hand: the word
+      # lists. What you know, your cards and your roadmaps are in the
+      # database, in `pgdata`.
       - ./data:/app/data
     restart: unless-stopped
 

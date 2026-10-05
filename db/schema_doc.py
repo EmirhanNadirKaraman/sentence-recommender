@@ -57,7 +57,8 @@ def _reader_section(db, schema: str, w) -> None:
     w("derived and rebuildable. The judgements are not: "
       + ", ".join(f"`{t}`" for t in IRREPLACEABLE) + " hold decisions")
     w("nothing can regenerate. A dump of the corpus to hand to someone else")
-    w("leaves these schemas out (`--exclude-schema='reader*'`).\n")
+    w("leaves these schemas out, and `accounts` with them (README, \"Moving")
+    w("the corpus\").\n")
     _tables(db, tables, set(tables), w, schema)
 
 

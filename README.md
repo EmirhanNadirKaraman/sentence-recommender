@@ -258,7 +258,8 @@ restore rebuilds it.
 On the machine that has one:
 
 ```
-pg_dump -Fc -Z6 -f corpus.dump sentence_recommender
+pg_dump -Fc -Z6 --exclude-schema=accounts --exclude-schema='reader*' \
+  -f corpus.dump sentence_recommender
 ```
 
 On the machine that wants it, after the Setup above but *instead of*
@@ -274,16 +275,20 @@ pg_restore --no-owner --role=$(whoami) -d sentence_recommender corpus.dump
 database role. The dump names its owner in a hundred places and the restore
 reports an error at every one of them otherwise.
 
-**Send nothing else.** `data/state.sqlite3` is one person's answers — the
-words they have marked known, their review cards, their stored roadmaps, what
-they think of which channel — and it is created empty on first run. Nobody
-else's copy is useful and it is the one file that is nobody else's business.
-`data/tatoeba.sqlite3` predates the move to Postgres and nothing reads it.
-`.env` holds credentials; `.env.example` is the one to copy.
+**Send nothing else.** The two `--exclude-schema` flags are what keep the
+dump to the corpus. `accounts` holds the readers' password hashes and the key
+their sessions are signed with. `reader`, and every `reader_<name>`, is one
+person's answers — the words they have marked known, their review cards,
+their stored roadmaps, what they think of which channel — made empty on
+first use wherever the corpus lands. Nobody else's copy is useful, and it is
+nobody else's business. A backup for yourself is the same command without
+the two flags. `data/tatoeba.sqlite3` predates the move to Postgres and
+nothing reads it. `.env` holds credentials; `.env.example` is the one to
+copy.
 
 What arrives is a catalogue and an analysed corpus, so the receiving machine
-can serve pages immediately. It still needs its own roadmap: those live in
-`data/state.sqlite3` and are not in the dump at all. Run `build-roadmap`
+can serve pages immediately. It still needs its own roadmap: plans live in
+the reader's schema and are not in the dump at all. Run `build-roadmap`
 once after restoring — it walks against your known set, which is why the
 plans are not the shareable part.
 
@@ -306,10 +311,13 @@ The restore runs only on an empty data directory, so it happens once. To do
 it again — a newer dump, or a bad one — `docker compose down -v` and up
 again. A 162 MB dump takes about two minutes, indexes and all.
 
-`./data` is mounted from the host, so `state.sqlite3` — what you know, your
-cards, your roadmaps — survives a rebuilt image and can still be read with
-`sqlite3` from outside. The app publishes on `127.0.0.1` only, because
-nothing in this project authenticates anything.
+What you know, your cards and your roadmaps live in the database, in the
+`pgdata` volume, so they survive a rebuilt image — and `docker compose down
+-v` deletes them along with the corpus. Before restoring again that way,
+take a dump without the excludes above. `./data` is mounted from the host
+for the files you edit by hand: the word lists. The app publishes on
+`127.0.0.1` only; before anyone else reaches it, give the first reader a
+password (see "Readers") and put a TLS proxy in front.
 
 The dump is never baked into an image and no link to one belongs in this
 repo. `dump/` is ignored; the file is something you are handed.
@@ -357,12 +365,79 @@ English in a legibility face, one step down: the German is the material,
 the English is scaffolding.
 
 Server-rendered from the standard library — no framework, no JavaScript, no
-build step. It binds to localhost only and has no authentication, so it must
-not be exposed beyond this machine.
+build step. It binds to localhost only. Until a reader has a password it has
+no door at all, so it must not be exposed beyond this machine before then
+(see "Readers").
 
 The first page load takes about fifteen seconds: it reads the whole cached
 corpus and loads spaCy to resolve the vocabulary files. Everything after that
 is instant.
+
+## Readers
+
+One installation can serve several people, each learning one language —
+German, or English — with their own known words, cards, plans and
+judgements. The pages ask who is reading.
+
+The first reader is whoever's files are at the top of `data/`. Registering
+them moves nothing; it gives them a name and a password:
+
+```
+python main.py reader add emir --home data
+python main.py reader password emir
+```
+
+From then on every page wants a password, and the first reader can invite
+others, from the account page or from here:
+
+```
+python main.py reader invite --language en
+```
+
+That prints a `/signup?invite=…` link, good once and for seven days. Whoever
+opens it on this server's address picks a name and a password, and starts
+from nothing: what they know is what they mark as they read. `--native`
+names the language their translations are made in.
+
+Every command takes `--reader NAME` after its own name, and works on that
+reader's state and their language's corpus; without it, the first reader's.
+English has a model and a corpus of its own:
+
+```
+uv pip install --python .venv/bin/python \
+  https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.8.0/en_core_web_md-3.8.0-py3-none-any.whl
+python main.py add-channel @HANDLE --reader ahmet
+python main.py build-corpus subtitle --reader ahmet
+```
+
+Where it all lives, in the one database:
+
+| schema | what |
+|---|---|
+| `public` | the German catalogue and corpus |
+| `en` | the same tables, for English |
+| `accounts` | who the readers are: names, languages, password hashes, open invitations, the key sessions are signed with |
+| `reader` | the first reader's state: known words, cards, plans, the judge's answers, the glosses paid for |
+| `reader_<name>` | the same, for each reader added since |
+
+A session is a signed cookie. Behind `tailscale serve` or any TLS proxy
+that sets `X-Forwarded-Proto`, it is marked `Secure`; a form posted from
+anywhere but this site is refused; changing a password signs every other
+device out.
+
+**An installation from before the readers** kept all of this in
+`data/state.sqlite3`, and the registry in `data/readers/readers.json`. Move
+it once, with `serve` and `mcp-serve` stopped and a backup taken:
+
+```
+python main.py migrate-state --dry-run
+python main.py migrate-state
+```
+
+Every table goes across by `COPY`, in one transaction, and is compared row
+by row by hash before it commits: a mismatch commits nothing. The files are
+renamed `*.migrated`, never deleted. Half a gigabyte of state took a minute
+or so here.
 
 ## Using it from Claude
 
@@ -407,6 +482,19 @@ matches the rules in force and walks the corpus otherwise, which is the
 same fifteen seconds the first page load pays. The server keeps that index
 for as long as the client keeps it running.
 
+## Tests
+
+```
+createdb -h localhost -U postgres -O <DB_USER> sentence_recommender_test
+PYTHONPATH=. .venv/bin/python -m pytest -q
+```
+
+The stores' tests need a database, and never get the real one: each test
+makes a schema of its own in `sentence_recommender_test` and drops it after,
+and the helper refuses to drop anything else. The database is made once, by
+a role that may create one, owned by the everyday role in `.env`.
+`TEST_DB_NAME` names another.
+
 ## Layout
 
 ```
@@ -436,4 +524,5 @@ python main.py build-corpus subtitle
 python main.py build-roadmap --source subtitle
 ```
 
-All other state written by this project lives in `data/state.sqlite3`.
+Everything a reader does lives in their own schema, `reader` or
+`reader_<name>`, and who the readers are in `accounts` (see "Readers").
