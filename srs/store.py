@@ -90,11 +90,15 @@ class CardStore:
         return self._from_row(row) if row else None
 
     def due(self, now: datetime, limit: int = 20) -> list[Card]:
+        # Ties broken by `card_id`, the order the cards were made in: a
+        # roadmap mints its cards together, so a hundred share a due date,
+        # and Postgres -- unlike SQLite, reading by rowid -- returns ties in
+        # whatever order the table holds them, which an update reshuffles.
         with open_state(self._db) as conn:
             rows = conn.execute(
                 "SELECT card_id, kind, key, due_date, interval_days, ease_factor,"
                 " repetitions, last_review, lapses FROM cards WHERE due_date <= %s"
-                " ORDER BY due_date LIMIT %s",
+                " ORDER BY due_date, card_id LIMIT %s",
                 (now.isoformat(), limit),
             ).fetchall()
         return [self._from_row(row) for row in rows]
@@ -104,7 +108,8 @@ class CardStore:
         with open_state(self._db) as conn:
             rows = conn.execute(
                 "SELECT card_id, kind, key, due_date, interval_days, ease_factor,"
-                " repetitions, last_review, lapses FROM cards ORDER BY due_date").fetchall()
+                " repetitions, last_review, lapses FROM cards"
+                " ORDER BY due_date, card_id").fetchall()
         return [self._from_row(row) for row in rows]
 
     def counts(self, now: datetime) -> tuple[int, int]:

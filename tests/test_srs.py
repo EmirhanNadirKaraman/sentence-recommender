@@ -19,6 +19,27 @@ def sentence(text: str, unit: Unit, surface: str, translation: str | None = None
     )
 
 
+class CardOrderTest(unittest.TestCase):
+    """Cards due at the same moment come in the order they were made.
+
+    A roadmap's cards are minted together, so a hundred and more share a due
+    date. SQLite read ties in rowid order; Postgres returns them in whatever
+    order its table holds them, and an update moves a row to the end.
+    """
+
+    def test_ties_on_the_due_date_keep_the_order_the_cards_were_made_in(self) -> None:
+        from srs.store import CardStore                    # noqa: PLC0415
+        from tests import pg                               # noqa: PLC0415
+        store = CardStore(pg.schema(self))
+        due = NOW - timedelta(days=1)
+        units = [Unit("lemma", f"w{i:02d}") for i in range(40)]
+        store.add_many([Card(unit=u, due_date=due) for u in units])
+        for unit in units[:10]:
+            store.save(Card(unit=unit, due_date=due))
+        self.assertEqual([c.unit for c in store.all()], units)
+        self.assertEqual([c.unit for c in store.due(NOW, limit=40)], units)
+
+
 class SM2SchedulerTest(unittest.TestCase):
     def setUp(self) -> None:
         self.scheduler = SM2Scheduler()

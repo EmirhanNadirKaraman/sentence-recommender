@@ -78,7 +78,7 @@ class ScoreStore:
                 return None
             rows = conn.execute(
                 f"SELECT {', '.join(COLUMNS)} FROM video_score WHERE source = %s"
-                " ORDER BY watch DESC", (source,)).fetchall()
+                " ORDER BY watch DESC, video_id", (source,)).fetchall()
         return [self._as_row(r) for r in rows]
 
     def stamp(self, source: str) -> str | None:
@@ -113,7 +113,7 @@ class ScoreStore:
                 source = row[0]
             rows = conn.execute(
                 f"SELECT {', '.join(COLUMNS)} FROM video_score WHERE source = %s"
-                " ORDER BY watch DESC", (source,)).fetchall()
+                " ORDER BY watch DESC, video_id", (source,)).fetchall()
         return [self._as_row(r) for r in rows]
 
     def save(self, source: str, stamp: str, rows: list[dict]) -> None:

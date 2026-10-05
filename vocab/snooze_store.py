@@ -157,7 +157,8 @@ class SnoozeStore:
             now = self._tick(conn)
             rows = conn.execute(
                 "SELECT kind, key, wake_tick FROM snoozed_units"
-                " WHERE wake_tick > %s ORDER BY wake_tick", (now,)).fetchall()
+                " WHERE wake_tick > %s ORDER BY wake_tick, kind, key",
+                (now,)).fetchall()
         return [(Unit(kind, key), wake - now) for kind, key, wake in rows]
 
     def __len__(self) -> int:

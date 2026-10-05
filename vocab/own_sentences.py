@@ -69,7 +69,7 @@ class OwnSentences:
         with open_state(self._db) as conn:
             rows = conn.execute(
                 "SELECT text, english, made_at, due_date, interval_days,"
-                " repetitions, last_review FROM own_sentence ORDER BY made_at DESC"
+                " repetitions, last_review FROM own_sentence ORDER BY made_at DESC, text"
             ).fetchall()
         return [{"text": t, "english": e, "made_at": m, "due": d,
                  "interval": i, "repetitions": r, "last": last}
@@ -85,7 +85,7 @@ class OwnSentences:
         with open_state(self._db) as conn:
             rows = conn.execute(
                 "SELECT text, english, due_date FROM own_sentence"
-                " WHERE due_date <= %s ORDER BY due_date", (now,)).fetchall()
+                " WHERE due_date <= %s ORDER BY due_date, text", (now,)).fetchall()
         return [{"text": t, "english": e, "due": d} for t, e, d in rows]
 
     def grade(self, text: str, correct: bool, now: datetime | None = None) -> None:
