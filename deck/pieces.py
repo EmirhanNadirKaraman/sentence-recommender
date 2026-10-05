@@ -32,7 +32,7 @@ import wave
 from datetime import datetime
 from pathlib import Path
 
-from state import open_state
+from state import ensure, open_state
 
 # Two characters of the hash as a directory. 40,000 files in one folder is
 # slow to list and slower to stat on every filesystem this runs on; 256 of
@@ -41,14 +41,14 @@ SHARD = 2
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS audio_piece (
-    id       TEXT PRIMARY KEY,
-    text     TEXT NOT NULL,
-    voice    TEXT NOT NULL,
-    slow     INTEGER NOT NULL,
-    role     TEXT NOT NULL,
-    path     TEXT NOT NULL,
-    seconds  REAL NOT NULL,
-    made_at  TEXT NOT NULL
+    id       TEXT COLLATE "C" PRIMARY KEY,
+    text     TEXT COLLATE "C" NOT NULL,
+    voice    TEXT COLLATE "C" NOT NULL,
+    slow     BIGINT NOT NULL,
+    role     TEXT COLLATE "C" NOT NULL,
+    path     TEXT COLLATE "C" NOT NULL,
+    seconds  DOUBLE PRECISION NOT NULL,
+    made_at  TEXT COLLATE "C" NOT NULL
 );
 CREATE INDEX IF NOT EXISTS ix_piece_role ON audio_piece (role);
 -- What a card's clip was assembled from, so the next run can tell whether it
@@ -59,9 +59,9 @@ CREATE INDEX IF NOT EXISTS ix_piece_role ON audio_piece (role);
 -- (which touches 3,902 files to fix five, and re-encodes every mp3 behind
 -- them because their sources look newer).
 CREATE TABLE IF NOT EXISTS card_audio (
-    stem    TEXT PRIMARY KEY,
-    recipe  TEXT NOT NULL,
-    made_at TEXT NOT NULL
+    stem    TEXT COLLATE "C" PRIMARY KEY,
+    recipe  TEXT COLLATE "C" NOT NULL,
+    made_at TEXT COLLATE "C" NOT NULL
 );
 """
 
@@ -99,40 +99,43 @@ def read_pcm(path: Path) -> bytes:
 class PieceStore:
     """Where each spoken line lives."""
 
-    def __init__(self, path: Path) -> None:
-        self._path = path
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with open_state(self._path) as conn:
-            conn.executescript(SCHEMA)
+    def __init__(self, config) -> None:
+        self._db = config
+        ensure(config, SCHEMA)
 
     def have(self) -> dict[str, str]:
         """Every piece already recorded, as key -> path."""
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return dict(conn.execute("SELECT id, path FROM audio_piece"))
 
     def add_many(self, rows: list[tuple[str, str, str, bool, str, str, float]]
                  ) -> None:
         """`(key, text, voice, slow, role, path, seconds)` for each piece."""
         now = datetime.now().isoformat(timespec="seconds")
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             conn.executemany(
-                "INSERT OR REPLACE INTO audio_piece"
+                "INSERT INTO audio_piece"
                 " (id, text, voice, slow, role, path, seconds, made_at)"
-                " VALUES (?,?,?,?,?,?,?,?)",
+                " VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
+                " ON CONFLICT (id) DO UPDATE SET text = excluded.text,"
+                " voice = excluded.voice, slow = excluded.slow,"
+                " role = excluded.role, path = excluded.path,"
+                " seconds = excluded.seconds, made_at = excluded.made_at",
                 [(key, text, voice, int(slow), role, path, seconds, now)
                  for key, text, voice, slow, role, path, seconds in rows])
 
     def card_recipes(self) -> dict[str, str]:
         """What each card was last merged from, as stem -> recipe."""
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return dict(conn.execute("SELECT stem, recipe FROM card_audio"))
 
     def remember_cards(self, recipes: dict[str, str]) -> None:
         now = datetime.now().isoformat(timespec="seconds")
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             conn.executemany(
-                "INSERT OR REPLACE INTO card_audio (stem, recipe, made_at)"
-                " VALUES (?, ?, ?)",
+                "INSERT INTO card_audio (stem, recipe, made_at)"
+                " VALUES (%s, %s, %s) ON CONFLICT (stem) DO UPDATE SET"
+                " recipe = excluded.recipe, made_at = excluded.made_at",
                 [(stem, recipe, now) for stem, recipe in recipes.items()])
 
     def paths_for(self, texts, role: str | None = None) -> dict[str, str]:
@@ -147,25 +150,21 @@ class PieceStore:
         if not wanted:
             return {}
         found: dict[str, str] = {}
-        with open_state(self._path) as conn:
-            for at in range(0, len(wanted), 400):
-                block = wanted[at:at + 400]
-                marks = ",".join("?" * len(block))
-                sql = (f"SELECT text, path FROM audio_piece"
-                       f" WHERE text IN ({marks})")
-                args = list(block)
-                if role is not None:
-                    sql += " AND role = ?"
-                    args.append(role)
-                found.update(conn.execute(sql, args))
+        with open_state(self._db) as conn:
+            sql = "SELECT text, path FROM audio_piece WHERE text = ANY(%s)"
+            args: list = [wanted]
+            if role is not None:
+                sql += " AND role = %s"
+                args.append(role)
+            found.update(conn.execute(sql, args))
         return found
 
     def by_role(self) -> dict[str, int]:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return dict(conn.execute(
                 "SELECT role, COUNT(*) FROM audio_piece GROUP BY role"))
 
     def count(self) -> int:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return conn.execute(
                 "SELECT COUNT(*) FROM audio_piece").fetchone()[0]

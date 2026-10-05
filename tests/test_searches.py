@@ -13,10 +13,10 @@ from __future__ import annotations
 
 import tempfile
 import unittest
-from pathlib import Path
 
 from ingest.searches import SearchLog
 from vocab.entry import Unit
+from tests import pg
 
 
 def u(key: str) -> Unit:
@@ -27,7 +27,7 @@ class RotaTest(unittest.TestCase):
     def setUp(self) -> None:
         self._dir = tempfile.TemporaryDirectory()
         self.addCleanup(self._dir.cleanup)
-        self.log = SearchLog(Path(self._dir.name) / "state.sqlite3")
+        self.log = SearchLog(pg.schema(self))
         self.stuck = [(u("a"), 9), (u("b"), 5), (u("c"), 1)]
 
     def try_it(self, key: str, times: int = 1) -> None:

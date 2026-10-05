@@ -20,16 +20,15 @@ from __future__ import annotations
 
 import re
 from datetime import datetime
-from pathlib import Path
 
-from state import open_state
+from state import ensure, open_state
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS sentence_fix (
-    text    TEXT PRIMARY KEY,
-    fixed   TEXT NOT NULL,
-    model   TEXT NOT NULL,
-    made_at TEXT NOT NULL
+    text    TEXT COLLATE "C" PRIMARY KEY,
+    fixed   TEXT COLLATE "C" NOT NULL,
+    model   TEXT COLLATE "C" NOT NULL,
+    made_at TEXT COLLATE "C" NOT NULL
 );
 """
 
@@ -78,11 +77,9 @@ def real_damage(original: str, fixed: str) -> bool:
 class FixStore:
     """Repaired sentences, by the sentence they repair."""
 
-    def __init__(self, path: Path) -> None:
-        self._path = path
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with open_state(self._path) as conn:
-            conn.executescript(SCHEMA)
+    def __init__(self, config) -> None:
+        self._db = config
+        ensure(config, SCHEMA)
 
     def have(self) -> set[str]:
         """Sentences already looked at, so a run can resume.
@@ -92,16 +89,18 @@ class FixStore:
         "nothing to fix here" is an answer and asking again would cost the
         same as asking the first time.
         """
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return {row[0] for row in conn.execute(
                 "SELECT text FROM sentence_fix")}
 
     def add_many(self, fixes: dict[str, str], model: str) -> None:
         now = datetime.now().isoformat()
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             conn.executemany(
-                "INSERT OR REPLACE INTO sentence_fix"
-                " (text, fixed, model, made_at) VALUES (?, ?, ?, ?)",
+                "INSERT INTO sentence_fix"
+                " (text, fixed, model, made_at) VALUES (%s, %s, %s, %s)"
+                " ON CONFLICT (text) DO UPDATE SET fixed = excluded.fixed,"
+                " model = excluded.model, made_at = excluded.made_at",
                 [(text, fixed, model, now) for text, fixed in fixes.items()])
 
     def all(self, damaged_only: bool = True) -> dict[str, str]:
@@ -112,7 +111,7 @@ class FixStore:
         damage are handed out. `damaged_only=False` returns the rest too, for
         looking at what was rejected and why.
         """
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             rows = list(conn.execute("SELECT text, fixed FROM sentence_fix"))
         return {text: fixed for text, fixed in rows
                 if fixed != text
@@ -120,7 +119,7 @@ class FixStore:
 
     def count(self) -> tuple[int, int]:
         """How many were asked about, and how many were changed."""
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             asked = conn.execute(
                 "SELECT COUNT(*) FROM sentence_fix").fetchone()[0]
             changed = conn.execute(

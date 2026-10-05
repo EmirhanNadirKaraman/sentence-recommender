@@ -25,7 +25,7 @@ class FillGapsCommand:
     def run(self, app, limit: int | None = None,
             builds: tuple[str, ...] = ()) -> None:
         settings = app.settings
-        steps = RoadmapStore(settings.state_path).load()
+        steps = RoadmapStore(settings.state).load()
         if not steps:
             raise SystemExit("no roadmap — run `build-roadmap` first")
 

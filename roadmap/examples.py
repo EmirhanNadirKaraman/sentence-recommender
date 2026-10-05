@@ -7,7 +7,6 @@ queried at any point with whatever the learner knows *now*.
 """
 from __future__ import annotations
 
-from pathlib import Path
 
 import re
 from collections import defaultdict
@@ -247,18 +246,26 @@ ALIKE = 0.4
 SAME_TOPIC = 0.55
 
 _VECTORS: dict[str, "object"] | None = None
-# The state files the vectors are read from: every one an `Application` in
-# this process has opened. A web server serving two readers has two, and the
-# union is the right answer for both -- vectors are keyed by sentence text,
-# and two readers learning different languages share no sentence.
-_VECTOR_FILES: set[Path] = set()
+# The readers' states the vectors are read from: every one an `Application`
+# in this process has opened. A web server serving two readers has two, and
+# the union is the right answer for both -- vectors are keyed by sentence
+# text, and two readers learning different languages share no sentence.
+_VECTOR_STATES: set = set()
 
 
-def read_vectors_from(path: Path) -> None:
-    """Count `path`'s stored vectors in, the next time any are wanted."""
+def read_vectors_from(state) -> None:
+    """Count `state`'s stored vectors in, the next time any are wanted."""
     global _VECTORS
-    if path not in _VECTOR_FILES:
-        _VECTOR_FILES.add(path)
+    if state not in _VECTOR_STATES:
+        _VECTOR_STATES.add(state)
+        _VECTORS = None
+
+
+def forget_vectors(state) -> None:
+    """Stop counting `state`'s vectors in -- a schema about to be dropped."""
+    global _VECTORS
+    if state in _VECTOR_STATES:
+        _VECTOR_STATES.discard(state)
         _VECTORS = None
 
 
@@ -269,22 +276,19 @@ def _known_vectors() -> dict:
     compare two sentences, and a corpus with no vectors yet must still rank.
     An empty store simply means this test never fires.
 
-    From the state files the applications in this process use, rather than
-    a fresh `Settings()`: that was always the first reader's file, so a
-    second reader's examples were spread by the first reader's vectors.
+    From the readers the applications in this process serve, rather than a
+    fresh `Settings()`: that was always the first reader's, so a second
+    reader's examples were spread by the first reader's vectors. With no
+    application at all -- a caller ranking examples directly -- there is
+    nobody to ask, and nothing is compared.
     """
     global _VECTORS
     if _VECTORS is None:
-        from config import Settings                         # noqa: PLC0415
         from corpus.vectors import VectorStore              # noqa: PLC0415
 
         found: dict = {}
-        # With no application to say whose, the installation's own reader:
-        # what this always read, and what a caller ranking examples
-        # directly still means.
-        for path in sorted(_VECTOR_FILES or {Settings().state_path}):
-            if path.exists():
-                found.update(VectorStore(path).load())
+        for state in sorted(_VECTOR_STATES, key=lambda s: s.schema):
+            found.update(VectorStore.stored(state))
         _VECTORS = found
     return _VECTORS
 

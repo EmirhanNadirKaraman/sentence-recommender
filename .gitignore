@@ -5,7 +5,9 @@ __pycache__/
 .DS_Store
 *.pyc
 .venv/
-data/state.sqlite3
+# The state as it was before it moved to Postgres, and what migrating it
+# leaves behind (`state.sqlite3.migrated`).
+data/state.sqlite3*
 # Every reader but the first: their state, their words, their password
 # hashes, and the key their sessions are signed with. Nobody else's.
 data/readers/
@@ -15,8 +17,6 @@ data/readers/
 data/tatoeba.sqlite3
 
 # WAL sidecars — they come and go with the database, which is already ignored
-data/state.sqlite3-shm
-data/state.sqlite3-wal
 
 # Derived: rebuilt whenever the vocabulary files or the analyser change
 data/resolved.json

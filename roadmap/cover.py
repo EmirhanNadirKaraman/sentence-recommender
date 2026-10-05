@@ -180,23 +180,23 @@ def audit(cover: Cover, held: dict[Unit, dict[str, int]],
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS video_cover (
-    list     TEXT NOT NULL,
-    build    TEXT NOT NULL,
-    position INTEGER NOT NULL,
-    video_id TEXT NOT NULL,
-    minutes  REAL,
+    list     TEXT COLLATE "C" NOT NULL,
+    build    TEXT COLLATE "C" NOT NULL,
+    position BIGINT NOT NULL,
+    video_id TEXT COLLATE "C" NOT NULL,
+    minutes  DOUBLE PRECISION,
     PRIMARY KEY (list, build, position)
 );
 CREATE TABLE IF NOT EXISTS video_cover_meta (
-    list        TEXT NOT NULL,
-    build       TEXT NOT NULL,
-    stamp       TEXT NOT NULL,
-    made_at     TEXT NOT NULL,
-    depth       INTEGER NOT NULL,
-    minutes     REAL NOT NULL,
-    covered     INTEGER NOT NULL,
-    short       INTEGER NOT NULL,
-    unreachable INTEGER NOT NULL,
+    list        TEXT COLLATE "C" NOT NULL,
+    build       TEXT COLLATE "C" NOT NULL,
+    stamp       TEXT COLLATE "C" NOT NULL,
+    made_at     TEXT COLLATE "C" NOT NULL,
+    depth       BIGINT NOT NULL,
+    minutes     DOUBLE PRECISION NOT NULL,
+    covered     BIGINT NOT NULL,
+    short       BIGINT NOT NULL,
+    unreachable BIGINT NOT NULL,
     PRIMARY KEY (list, build)
 );
 """
@@ -219,47 +219,50 @@ class VideoCoverStore:
     not to throw it away and make someone wait.
     """
 
-    def __init__(self, path) -> None:
-        from state import open_state                   # noqa: PLC0415
-        self._path = path
-        with open_state(self._path) as conn:
-            conn.executescript(SCHEMA)
+    def __init__(self, config) -> None:
+        from state import ensure                         # noqa: PLC0415
+        self._db = config
+        ensure(config, SCHEMA)
 
     def save(self, cover: Cover, wordlist: str, build: str, stamp: str,
              depth: int = DEPTH) -> None:
         from datetime import datetime                  # noqa: PLC0415
-        from state import open_state                   # noqa: PLC0415
-        with open_state(self._path) as conn:
-            conn.execute("DELETE FROM video_cover WHERE list = ? AND build = ?",
+        from state import open_state                     # noqa: PLC0415
+        with open_state(self._db) as conn:
+            conn.execute("DELETE FROM video_cover WHERE list = %s AND build = %s",
                          (wordlist, build))
             conn.executemany(
                 "INSERT INTO video_cover (list, build, position, video_id,"
-                " minutes) VALUES (?, ?, ?, ?, ?)",
+                " minutes) VALUES (%s, %s, %s, %s, %s)",
                 [(wordlist, build, i, v, None)
                  for i, v in enumerate(cover.videos)])
             conn.execute(
-                "INSERT OR REPLACE INTO video_cover_meta (list, build, stamp,"
+                "INSERT INTO video_cover_meta (list, build, stamp,"
                 " made_at, depth, minutes, covered, short, unreachable)"
-                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                " ON CONFLICT (list, build) DO UPDATE SET stamp = excluded.stamp,"
+                " made_at = excluded.made_at, depth = excluded.depth,"
+                " minutes = excluded.minutes, covered = excluded.covered,"
+                " short = excluded.short, unreachable = excluded.unreachable",
                 (wordlist, build, stamp,
                  datetime.now().isoformat(timespec="seconds"), depth,
                  cover.minutes, len(cover.taught), len(cover.short),
                  len(cover.unreachable)))
 
     def videos(self, wordlist: str, build: str) -> tuple[str, ...]:
-        from state import open_state                   # noqa: PLC0415
-        with open_state(self._path) as conn:
+        from state import open_state                     # noqa: PLC0415
+        with open_state(self._db) as conn:
             return tuple(r[0] for r in conn.execute(
-                "SELECT video_id FROM video_cover WHERE list = ? AND build = ?"
+                "SELECT video_id FROM video_cover WHERE list = %s AND build = %s"
                 " ORDER BY position", (wordlist, build)))
 
     def about(self, wordlist: str, build: str) -> dict | None:
         """What was stored, and when — or None if nothing was."""
-        from state import open_state                   # noqa: PLC0415
-        with open_state(self._path) as conn:
+        from state import open_state                     # noqa: PLC0415
+        with open_state(self._db) as conn:
             row = conn.execute(
                 "SELECT stamp, made_at, depth, minutes, covered, short,"
-                " unreachable FROM video_cover_meta WHERE list = ? AND build = ?",
+                " unreachable FROM video_cover_meta WHERE list = %s AND build = %s",
                 (wordlist, build)).fetchone()
         if not row:
             return None

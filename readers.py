@@ -1,42 +1,72 @@
 """Who is reading.
 
 This was one person's program, so everything they decided -- the words they
-know, their cards, their plans -- lived in one SQLite file and every page
-assumed one reader. A second reader needs three things the first never did:
-a place of their own for what they decide, a language of their own, and a
-door that knows which of them is asking.
+know, their cards, their plans -- lived in one file and every page assumed
+one reader. A second reader needs three things the first never did: a place
+of their own for what they decide, a language of their own, and a door that
+knows which of them is asking.
 
-The place is a directory, `data/readers/<name>/`, holding the reader's own
-state file and vocabulary files. The first reader's are where they always
-were, at the top of `data/`: that file is half a gigabyte of judgements, and
-moving it would buy nothing but the risk. A reader's `home` says which.
+The place is two: a schema in Postgres, `reader_<name>`, for everything the
+program stores for them (see `state`), and a directory for the two word
+files they edit as text, `known_words.txt` and `function_words.txt`. The
+first reader's directory is the top of `data/`, where those files always
+were; everyone else's is `data/readers/<name>/`. A reader's `home` says
+which.
 
 The door is a password and a signed cookie. The cookie carries the reader's
-name and when it expires, signed with a key kept beside the registry, and
-the signature also covers the reader's password hash -- so changing a
-password signs every device out without anything having to remember which
-sessions exist.
+name and when it expires, signed with a key kept in the database, and the
+signature also covers the reader's password hash -- so changing a password
+signs every device out without anything having to remember which sessions
+exist.
 
-The registry, the key and every reader's directory are gitignored: this
-repository is public, and the only things in here are other people's.
+Who the readers are lives in the database too, in a schema of its own,
+`accounts`: names, languages, password hashes, open invitations, the
+signing key. None of it is in this public repository, and none of it goes
+out in a dump of the corpus (see README, "Moving the corpus").
 """
 from __future__ import annotations
 
 import hashlib
 import hmac
-import json
-import os
 import re
 import secrets
 import time
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from threading import RLock
 
 from languages import NATIVE, language
+from state import ensure, open_state
 
 ROOT = Path(__file__).resolve().parent
 READERS = ROOT / "data" / "readers"
+ACCOUNTS = "accounts"
+
+SCHEMA = """
+CREATE TABLE IF NOT EXISTS reader (
+    name     TEXT COLLATE "C" PRIMARY KEY,
+    language TEXT COLLATE "C" NOT NULL,
+    native   TEXT COLLATE "C" NOT NULL,
+    -- Their directory, relative to the project when it is inside it. NULL
+    -- is the usual `data/readers/<name>/`.
+    home     TEXT COLLATE "C",
+    password TEXT COLLATE "C" NOT NULL DEFAULT '',
+    added    TEXT COLLATE "C" NOT NULL
+);
+-- Only a digest of each token: the link is the secret, and a copy of the
+-- database is not a set of working links.
+CREATE TABLE IF NOT EXISTS invite (
+    digest   TEXT COLLATE "C" PRIMARY KEY,
+    language TEXT COLLATE "C" NOT NULL,
+    native   TEXT COLLATE "C" NOT NULL,
+    expires  BIGINT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS secret (
+    name  TEXT COLLATE "C" PRIMARY KEY,
+    value TEXT COLLATE "C" NOT NULL
+);
+"""
 
 # Lowercase letters, digits, `-` and `_`: the name is a directory and a
 # cookie field, and neither should have to be escaped.
@@ -72,10 +102,6 @@ class Reader:
     native: str = "en"
     password: str = ""
 
-    @property
-    def state_path(self) -> Path:
-        return self.home / "state.sqlite3"
-
 
 def hash_password(password: str, salt: bytes | None = None) -> str:
     """`scrypt$n$r$p$salt$hash`, everything needed to check it later."""
@@ -102,36 +128,46 @@ class Registry:
     """The readers this installation knows, and the key their cookies are
     signed with.
 
-    An installation with no registry is the program as it always was: one
-    reader, no login. The first `reader add` makes it a shared one.
+    An installation with no reader in it is the program as it always was:
+    one reader, no login. The first reader with a password makes it a shared
+    one.
+
+    `config` is the `accounts` schema's connection; `homes` is where a
+    reader's directory goes when they are not given one.
     """
 
-    def __init__(self, root: Path = READERS) -> None:
-        self._root = root
-        self._file = root / "readers.json"
-        self._key_file = root / "session.key"
+    def __init__(self, config=None, homes: Path = READERS) -> None:
+        if config is None:
+            from config import DatabaseConfig                # noqa: PLC0415
+            config = DatabaseConfig.owned(ACCOUNTS)
+        self._db = config
+        self._homes = homes
+        self._ready = False
         # Re-entrant: spending an invitation makes the account under the same
-        # lock, so two people holding one link cannot both use it.
+        # lock, so two requests holding one link cannot both use it.
         self._lock = RLock()
         self._failures: dict[str, list[float]] = {}
+        self._signing_key: bytes | None = None
+
+    def _conn(self):
+        if not self._ready:
+            ensure(self._db, SCHEMA)
+            self._ready = True
+        return open_state(self._db)
 
     # --- who there is -----------------------------------------------------
 
     def readers(self) -> dict[str, Reader]:
-        try:
-            raw = json.loads(self._file.read_text(encoding="utf-8"))
-        except FileNotFoundError:
-            return {}
+        with self._conn() as conn:
+            rows = conn.execute(
+                "SELECT name, language, native, home, password FROM reader"
+                " ORDER BY name").fetchall()
         out: dict[str, Reader] = {}
-        for name, fields in raw.get("readers", {}).items():
-            home = Path(fields.get("home") or self._root / name)
-            out[name] = Reader(
-                name=name,
-                language=fields.get("language", "de"),
-                native=fields.get("native", "en"),
-                home=home if home.is_absolute() else ROOT / home,
-                password=fields.get("password", ""),
-            )
+        for name, lang, native, home, password in rows:
+            where = Path(home) if home else self._homes / name
+            out[name] = Reader(name=name,
+                               home=where if where.is_absolute() else ROOT / where,
+                               language=lang, native=native, password=password)
         return out
 
     def get(self, name: str) -> Reader | None:
@@ -143,7 +179,10 @@ class Registry:
     @property
     def shared(self) -> bool:
         """Whether anyone has to log in: true once any reader has a password."""
-        return any(reader.password for reader in self.readers().values())
+        with self._conn() as conn:
+            return conn.execute(
+                "SELECT EXISTS (SELECT 1 FROM reader WHERE password <> '')"
+            ).fetchone()[0]
 
     def owner(self) -> Reader | None:
         """The reader whose files are the ones at the top of `data/`: who
@@ -159,9 +198,10 @@ class Registry:
         belonged to before there were others -- or the only reader there is.
         """
         readers = self.readers()
-        for reader in readers.values():
-            if reader.home == ROOT / "data":
-                return reader
+        owner = next((r for r in readers.values() if r.home == ROOT / "data"),
+                     None)
+        if owner is not None:
+            return owner
         return next(iter(readers.values())) if len(readers) == 1 else None
 
     # --- changing it ------------------------------------------------------
@@ -175,30 +215,17 @@ class Registry:
         if native not in NATIVE:
             raise SystemExit(f"no native language {native!r} -- this project "
                              f"translates into {', '.join(sorted(NATIVE))}")
-        with self._lock:
-            raw = self._read()
-            if name in raw["readers"]:
+        with self._lock, self._conn() as conn:
+            done = conn.execute(
+                "INSERT INTO reader (name, language, native, home, added)"
+                " VALUES (%s, %s, %s, %s, %s) ON CONFLICT DO NOTHING",
+                (name, lang, native, None if home is None else _relative(home),
+                 datetime.now().isoformat(timespec="seconds")))
+            if not done.rowcount:
                 raise SystemExit(f"there is already a reader called {name!r}")
-            fields = {"language": lang, "native": native}
-            if home is not None:
-                fields["home"] = _relative(home)
-            raw["readers"][name] = fields
-            self._write(raw)
         reader = self.get(name)
         reader.home.mkdir(parents=True, exist_ok=True)
-        # The closed classes and the starter words, theirs to strike from: the
-        # quiz comments out what they say they do not know, and the
-        # language's own files are in the repository for every reader of it.
-        # See `Settings.for_reader`.
-        profile = language(lang)
-        copies = [(profile.function_words,
-                   reader.home / profile.function_words.name)]
-        if profile.starter_words is not None:
-            copies.append((profile.starter_words,
-                           reader.home / "known_words.txt"))
-        for shared, mine in copies:
-            if shared.exists() and not mine.exists() and mine != shared:
-                mine.write_bytes(shared.read_bytes())
+        self._copy_word_files(reader)
         return reader
 
     def set_password(self, name: str, password: str) -> None:
@@ -206,12 +233,11 @@ class Registry:
             raise SystemExit("a password needs at least eight characters")
         if len(password) > 1024:
             raise SystemExit("that password is longer than anyone types")
-        with self._lock:
-            raw = self._read()
-            if name not in raw["readers"]:
+        with self._lock, self._conn() as conn:
+            done = conn.execute("UPDATE reader SET password = %s WHERE name = %s",
+                                (hash_password(password), name))
+            if not done.rowcount:
                 raise SystemExit(f"no reader called {name!r}")
-            raw["readers"][name]["password"] = hash_password(password)
-            self._write(raw)
 
     # --- invitations ------------------------------------------------------
     #
@@ -233,61 +259,73 @@ class Registry:
                              f"translates into {', '.join(sorted(NATIVE))}")
         token = secrets.token_urlsafe(18)
         now = time.time()
-        with self._lock:
-            raw = self._read()
+        with self._conn() as conn:
             # Expired ones go whenever a new one is made.
-            invites = {key: found for key, found in raw.get("invites", {}).items()
-                       if found["expires"] > now}
-            invites[_digest(token)] = {"language": lang, "native": native,
-                                       "expires": int(now + days * 86400)}
-            raw["invites"] = invites
-            self._write(raw)
+            conn.execute("DELETE FROM invite WHERE expires <= %s", (int(now),))
+            conn.execute(
+                "INSERT INTO invite (digest, language, native, expires)"
+                " VALUES (%s, %s, %s, %s)",
+                (_digest(token), lang, native, int(now + days * 86400)))
         return token
 
     def invitation(self, token: str) -> dict | None:
         """What `token` invites someone to be, if it is still good."""
-        found = self._read().get("invites", {}).get(_digest(token or ""))
-        if not found or found["expires"] < time.time():
+        with self._conn() as conn:
+            row = conn.execute(
+                "SELECT language, native, expires FROM invite WHERE digest = %s",
+                (_digest(token or ""),)).fetchone()
+        if row is None or row[2] < time.time():
             return None
-        return found
+        return {"language": row[0], "native": row[1], "expires": row[2]}
 
     def redeem(self, token: str, name: str, password: str) -> Reader:
-        """Make the account `token` was for, and spend it."""
+        """Make the account `token` was for, and spend it.
+
+        Spent in the same transaction that checks it, and locked while it is
+        read, so the same link opened twice at once makes one account.
+        """
         if not NAME.match(name):
             raise SystemExit("a name is lowercase letters, digits, - and _, "
                              "starting with a letter")
         if not 8 <= len(password) <= 1024:
             raise SystemExit("a password needs at least eight characters")
-        with self._lock:
-            found = self.invitation(token)
-            if found is None:
+        with self._lock, self._conn() as conn:
+            row = conn.execute(
+                "SELECT language, native, expires FROM invite WHERE digest = %s"
+                " FOR UPDATE", (_digest(token or ""),)).fetchone()
+            if row is None or row[2] < time.time():
                 raise SystemExit("this invitation has expired or has already "
                                  "been used")
-            if name in self.readers():
+            if conn.execute("SELECT 1 FROM reader WHERE name = %s",
+                            (name,)).fetchone():
                 raise SystemExit(f"the name {name!r} is taken")
-            raw = self._read()
-            raw["invites"].pop(_digest(token), None)
-            self._write(raw)
-            reader = self.add(name, found["language"], found["native"])
-            self.set_password(name, password)
-        return self.get(reader.name)
+            conn.execute("DELETE FROM invite WHERE digest = %s",
+                         (_digest(token),))
+            conn.execute(
+                "INSERT INTO reader (name, language, native, home, password,"
+                " added) VALUES (%s, %s, %s, NULL, %s, %s)",
+                (name, row[0], row[1], hash_password(password),
+                 datetime.now().isoformat(timespec="seconds")))
+        reader = self.get(name)
+        reader.home.mkdir(parents=True, exist_ok=True)
+        self._copy_word_files(reader)
+        return reader
 
-    def _read(self) -> dict:
-        try:
-            raw = json.loads(self._file.read_text(encoding="utf-8"))
-        except FileNotFoundError:
-            raw = {}
-        raw.setdefault("readers", {})
-        return raw
-
-    def _write(self, raw: dict) -> None:
-        """Whole or not at all: a half-written registry locks everyone out."""
-        self._root.mkdir(parents=True, exist_ok=True)
-        spare = self._file.with_suffix(".tmp")
-        spare.write_text(json.dumps(raw, indent=2, sort_keys=True) + "\n",
-                         encoding="utf-8")
-        os.chmod(spare, 0o600)
-        os.replace(spare, self._file)
+    @staticmethod
+    def _copy_word_files(reader: Reader) -> None:
+        """The closed classes and the starter words, theirs to strike from:
+        the quiz comments out what they say they do not know, and the
+        language's own files are in the repository for every reader of it.
+        See `Settings.for_reader`."""
+        profile = language(reader.language)
+        copies = [(profile.function_words,
+                   reader.home / profile.function_words.name)]
+        if profile.starter_words is not None:
+            copies.append((profile.starter_words,
+                           reader.home / "known_words.txt"))
+        for shared, mine in copies:
+            if shared.exists() and not mine.exists() and mine != shared:
+                mine.write_bytes(shared.read_bytes())
 
     # --- the door ---------------------------------------------------------
 
@@ -348,19 +386,17 @@ class Registry:
         return hmac.new(self._key(), message, hashlib.sha256).hexdigest()
 
     def _key(self) -> bytes:
-        """The signing key, made the first time it is needed."""
-        try:
-            return bytes.fromhex(self._key_file.read_text(encoding="ascii").strip())
-        except FileNotFoundError:
-            pass
-        with self._lock:
-            if not self._key_file.exists():
-                self._root.mkdir(parents=True, exist_ok=True)
-                fd = os.open(self._key_file, os.O_WRONLY | os.O_CREAT | os.O_EXCL,
-                             0o600)
-                with os.fdopen(fd, "w", encoding="ascii") as out:
-                    out.write(secrets.token_hex(32) + "\n")
-        return bytes.fromhex(self._key_file.read_text(encoding="ascii").strip())
+        """The signing key, made the first time it is needed and kept in the
+        database, so every process serving this installation signs alike."""
+        if self._signing_key is None:
+            with self._conn() as conn:
+                conn.execute(
+                    "INSERT INTO secret (name, value) VALUES ('session', %s)"
+                    " ON CONFLICT DO NOTHING", (secrets.token_hex(32),))
+                (value,) = conn.execute(
+                    "SELECT value FROM secret WHERE name = 'session'").fetchone()
+            self._signing_key = bytes.fromhex(value)
+        return self._signing_key
 
 
 _DUMMY: list[str] = []

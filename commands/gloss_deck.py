@@ -65,14 +65,14 @@ class GlossDeckCommand:
             workers = client.slots() or DEFAULT_WORKERS
         print(f"  {client.describe()} · {workers} in flight", flush=True)
 
-        store = RoadmapStore(settings.state_path)
+        store = RoadmapStore(settings.state)
         steps = store.load(label, limit=limit)
         if not steps:
             raise SystemExit(
                 f"no plan stored as {label!r}\n  stored plans:\n    "
                 + "\n    ".join(store.labels() or ["(none)"]))
         decks = store.decks(label, steps, limit=examples)
-        glosses = GlossStore(settings.state_path)
+        glosses = GlossStore(settings.state)
 
         def build():
             # No repairs applied here, deliberately. The gloss store is keyed

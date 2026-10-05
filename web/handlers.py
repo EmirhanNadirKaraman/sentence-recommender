@@ -276,12 +276,12 @@ class Viewer:
         # page never loads a corpus — the only page that can say that and the
         # reason it stays usable when the machine has nothing left.
         self._searches: dict[str, UnitSearch] = {}
-        self._lists = WordListStore(app.settings.state_path)
+        self._lists = WordListStore(app.settings.state)
         # Set by `web.server.Viewers` so a page can offer the
         # other lists; None when a Viewer is built directly.
         self.lists = None
-        self._store = RoadmapStore(app.settings.state_path)
-        self._video_plan = VideoRoadmapStore(app.settings.state_path)
+        self._store = RoadmapStore(app.settings.state)
+        self._video_plan = VideoRoadmapStore(app.settings.state)
         # Blocked-set results, per source. The walk behind them is cheap on a
         # subtitle corpus and slow on a quarter of a million sentences.
         self._stuck: dict[str, list] = {}
@@ -311,8 +311,8 @@ class Viewer:
         # answered immediately.
         self._marks: Queue = Queue()
         self._worker: Thread | None = None
-        self._scores = ScoreStore(app.settings.state_path)
-        self._taste = ChannelTaste(app.settings.state_path)
+        self._scores = ScoreStore(app.settings.state)
+        self._taste = ChannelTaste(app.settings.state)
         self._samples: dict | None = None
         self._listing: list | None = None
         self._episodes: dict | None = None
@@ -1632,7 +1632,7 @@ class Viewer:
         if self._gloss is None:
             from deck.gloss import GlossStore          # noqa: PLC0415
             import os                                  # noqa: PLC0415
-            store = GlossStore(self.app.settings.state_path)
+            store = GlossStore(self.app.settings.state)
             said = os.environ.get("LLM_MODEL", "")
             self._gloss = (store.senses(said), store.sentences(said))
         return self._gloss

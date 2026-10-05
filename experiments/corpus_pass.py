@@ -24,7 +24,6 @@ the shape the pass will use; nothing here runs without a go.
 from __future__ import annotations
 
 import random
-import sqlite3
 import sys
 import time
 from collections import defaultdict
@@ -58,13 +57,13 @@ def draw(app) -> list[dict]:
         subtitle = {t for (t,) in db.rows(
             "SELECT text FROM corpus_sentence WHERE build = 'subtitle' AND teachable"
             " AND (language IS NULL OR language = 'de')")}
-    con = sqlite3.connect(app.settings.state_path)
+    from state import open_state                            # noqa: PLC0415
     marked = defaultdict(list)
-    for text, verdict, source in con.execute(
-            "SELECT text, verdict, source FROM sentence_verdict"):
-        if text in subtitle:
-            marked[(source, round(verdict, 2))].append(text)
-    con.close()
+    with open_state(app.settings.state) as con:
+        for text, verdict, source in con.execute(
+                "SELECT text, verdict, source FROM sentence_verdict"):
+            if text in subtitle:
+                marked[(source, round(verdict, 2))].append(text)
     rows: list[dict] = []
 
     def take(texts: list[str], n: int, group: str, said: str) -> None:

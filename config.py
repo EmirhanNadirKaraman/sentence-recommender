@@ -11,7 +11,8 @@ a link that outlives it: ingestion writes here, so re-copying would destroy
 work, and the command refuses when it would. Other databases on the same
 server — language-app's, `lexy` — are named at the point of use.
 
-All other mutable state lives in `Settings.state_path` (local SQLite).
+A reader's own state -- what they know, their cards, their plans -- lives in
+a schema of its own in the same database, `Settings.state`; see `state`.
 """
 from __future__ import annotations
 
@@ -23,6 +24,15 @@ from urllib.parse import quote
 from languages import GERMAN, language as _language
 
 ROOT = Path(__file__).resolve().parent
+
+# The schema an installation's reader state lives in when nobody is named:
+# the one reader there was before there was a registry of them.
+STATE_SCHEMA = "reader"
+
+
+def state_schema(name: str) -> str:
+    """The schema reader `name`'s state lives in: `reader_<name>`."""
+    return f"{STATE_SCHEMA}_{name}"
 
 
 def load_dotenv(path: Path | None = None) -> None:
@@ -198,8 +208,11 @@ class Settings:
     goal_entries: tuple[str, ...] | None = None
     goal_lemmas: Path = GERMAN.goal_lemmas
 
-    # Local mutable state (SRS cards, generated roadmap).
-    state_path: Path = ROOT / "data" / "state.sqlite3"
+    # The reader's own schema: what they know, their cards, their plans, and
+    # what has been derived and paid for on their behalf. See `state`. An
+    # installation with no registry of readers has one, `reader`.
+    state: DatabaseConfig = field(
+        default_factory=lambda: DatabaseConfig.owned(STATE_SCHEMA))
 
     # Cached builds the program no longer studies from. See `languages`.
     ignored_builds: frozenset[str] = GERMAN.ignored_builds
@@ -279,6 +292,6 @@ class Settings:
             goal_words=home / "study_list.txt",
             expressions=lang.expressions,
             goal_lemmas=lang.goal_lemmas,
-            state_path=home / "state.sqlite3",
+            state=DatabaseConfig.owned(state_schema(reader.name)),
             ignored_builds=lang.ignored_builds,
         )

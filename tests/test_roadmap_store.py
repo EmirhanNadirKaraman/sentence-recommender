@@ -8,10 +8,8 @@ page with nothing to catch it.
 """
 from __future__ import annotations
 
-import sqlite3
 import tempfile
 import unittest
-from pathlib import Path
 
 from alignment.timing import Timing
 from corpus.sentence import Sentence
@@ -24,6 +22,7 @@ from roadmap.builder import RoadmapBuilder
 from roadmap.step import RoadmapStep
 from roadmap.store import RoadmapStore
 from vocab.entry import Unit
+from tests import pg
 
 HAUS = Unit.lemma("haus")
 
@@ -53,7 +52,7 @@ def step(position: int = 1, *examples: Sentence) -> RoadmapStep:
 class StoreTest(unittest.TestCase):
     def setUp(self) -> None:
         self._dir = tempfile.TemporaryDirectory()
-        self.path = Path(self._dir.name) / "state.sqlite3"
+        self.path = pg.schema(self)
         self.store = RoadmapStore(self.path)
 
     def tearDown(self) -> None:
@@ -117,46 +116,6 @@ class StoreTest(unittest.TestCase):
         self.store.append([step(2)], "src", "second")
         self.assertEqual(self.store.stamp("src"), "second")
         self.assertEqual(len(self.store.load("src")), 2)
-
-
-class MigrationTest(unittest.TestCase):
-    """A database written before the decks existed has to keep working.
-
-    `CREATE TABLE IF NOT EXISTS` does nothing to a table that is already
-    there, so the columns added since have to be put in by hand — this is the
-    bug that bit the score cache, where a missing column failed on first write
-    rather than on open.
-    """
-
-    def test_an_older_roadmap_gains_the_columns_it_is_missing(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "state.sqlite3"
-            conn = sqlite3.connect(path)
-            conn.executescript("""
-                CREATE TABLE roadmap (
-                    source TEXT NOT NULL DEFAULT 'all', position INTEGER NOT NULL,
-                    kind TEXT NOT NULL, key TEXT NOT NULL, sentence TEXT NOT NULL,
-                    translation TEXT, origin TEXT NOT NULL, surface TEXT,
-                    gain INTEGER NOT NULL, score REAL NOT NULL,
-                    now_readable INTEGER NOT NULL, PRIMARY KEY (source, position));
-                INSERT INTO roadmap VALUES
-                    ('src', 1, 'lemma', 'haus', 'Ein Haus.', NULL, 'subtitle',
-                     'Haus', 3, 4.5, 2);
-            """)
-            conn.commit()
-            conn.close()
-
-            store = RoadmapStore(path)
-            loaded = store.load("src")
-
-            self.assertEqual(len(loaded), 1)
-            # The old row is honest about having recorded nothing.
-            self.assertEqual(loaded[0].readable, 0)
-            self.assertEqual(loaded[0].occurrences, 0)
-            self.assertEqual(store.deck("src", loaded[0]), [])
-            # And it can still be written to.
-            store.append([step(2, sentence("Zwei.", "haus"))], "src")
-            self.assertEqual(len(store.load("src")), 2)
 
 
 class RankingTest(unittest.TestCase):

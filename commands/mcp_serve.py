@@ -71,7 +71,7 @@ class Tools:
     def __init__(self, app) -> None:
         self.app = app
         self.viewer = Viewer(app)
-        self._roadmaps = RoadmapStore(app.settings.state_path)
+        self._roadmaps = RoadmapStore(app.settings.state)
         # `redirect_stdout` swaps the process-wide stream, and the SDK runs
         # tools on worker threads: two captures at once would read each
         # other's output. One at a time.
@@ -187,12 +187,12 @@ class Tools:
     def _taught_with(self, unit: Unit) -> set[str]:
         """The sentences every stored plan showed for the unit."""
         from state import open_state                         # noqa: PLC0415
-        with open_state(self.app.settings.state_path) as conn:
+        with open_state(self.app.settings.state) as conn:
             return {t for (t,) in conn.execute(
-                "SELECT sentence FROM roadmap WHERE kind = ? AND key = ?"
+                "SELECT sentence FROM roadmap WHERE kind = %s AND key = %s"
                 " UNION SELECT e.text FROM roadmap_example e"
                 " JOIN roadmap r ON r.source = e.source AND r.position = e.position"
-                " WHERE r.kind = ? AND r.key = ? AND e.n < 3",
+                " WHERE r.kind = %s AND r.key = %s AND e.n < 3",
                 (unit.kind, unit.key, unit.kind, unit.key))}
 
     def due_sentences(self, limit: int = 20) -> list[dict[str, Any]]:

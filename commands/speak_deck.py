@@ -51,18 +51,18 @@ class SpeakDeckCommand:
             german_only: bool = False,
             log: Path = Path("out/speak.log")) -> None:
         settings = app.settings
-        store = RoadmapStore(settings.state_path)
+        store = RoadmapStore(settings.state)
         steps = store.load(label, limit=limit)
         if not steps:
             raise SystemExit(
                 f"no plan stored as {label!r}\n  stored plans:\n    "
                 + "\n    ".join(store.labels() or ["(none)"]))
         decks = store.decks(label, steps, limit=examples)
-        glosses = GlossStore(settings.state_path)
+        glosses = GlossStore(settings.state)
         said = os.environ.get("LLM_MODEL", "")
         cards = cards_from(steps, decks, glosses.senses(said),
                            glosses.sentences(said),
-                           FixStore(app.settings.state_path).all())
+                           FixStore(app.settings.state).all())
 
         waiting = sum(1 for card in cards if not card.glossed)
         if waiting:
@@ -98,7 +98,7 @@ class SpeakDeckCommand:
         # voice, and it is the one a rebuild almost never has work for --
         # reordering the plan changes which lines go together, not what the
         # lines are.
-        pieces = PieceStore(settings.state_path)
+        pieces = PieceStore(settings.state)
         # Two folders under one root: the lines as recorded, and the cards
         # assembled from them. Kept apart because they are different things
         # to look through -- 31,802 pieces named by a hash, against 3,902

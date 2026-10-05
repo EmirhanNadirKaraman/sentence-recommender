@@ -605,6 +605,15 @@ def _parser() -> argparse.ArgumentParser:
     look.add_argument("--source", nargs="+", default=[], metavar="BUILD",
                       help=SOURCE_HELP)
 
+    moving = sub.add_parser(
+        "migrate-state",
+        help="once: move readers and their SQLite state into Postgres")
+    moving.add_argument("--from", dest="source_file", type=Path,
+                        help="one SQLite state file, moved into --reader's "
+                             "schema (default: every reader's)")
+    moving.add_argument("--dry-run", action="store_true",
+                        help="say what would be copied, and stop")
+
     people = sub.add_parser(
         "reader", help="the people this installation serves: list them, add "
                        "one, set a password, or make an invitation link")
@@ -643,8 +652,19 @@ def _settings(name: str | None) -> Settings:
     """The settings for `name`, or for whoever this installation is by
     default: the reader at the top of `data/`, or -- with no registry at
     all -- the single reader it always had."""
+    import psycopg2                                       # noqa: PLC0415
     from readers import Registry                          # noqa: PLC0415
     registry = Registry()
+    try:
+        registry.names()
+    except psycopg2.OperationalError:
+        # No database to ask who the readers are. Some commands need none --
+        # rebuilding a deck from a sheet, say -- and run as the one reader
+        # an installation without a registry has.
+        if name:
+            raise SystemExit(f"cannot look up reader {name!r}: the database "
+                             "is not reachable") from None
+        return Settings()
     if name:
         reader = registry.get(name)
         if reader is None:
@@ -660,7 +680,7 @@ def _settings(name: str | None) -> Settings:
     return Settings()
 
 
-def _same_language(args, settings: Settings) -> None:
+def _same_language(args, settings: Settings, registry=None) -> None:
     """Refuse a `--language` that is not the reader's own.
 
     Each language keeps its catalogue in a database of its own, and the
@@ -672,7 +692,7 @@ def _same_language(args, settings: Settings) -> None:
     wanted = getattr(args, "language", None)
     if args.command != "reader" and wanted and wanted != settings.language:
         from readers import Registry                      # noqa: PLC0415
-        learners = [r.name for r in Registry().readers().values()
+        learners = [r.name for r in (registry or Registry()).readers().values()
                     if r.language == wanted]
         hint = (f" — `--reader {learners[0]}` learns {wanted}" if learners
                 else f" — no reader learns {wanted} yet (`reader add NAME "
@@ -738,7 +758,7 @@ def function_words(app: Application) -> None:
 def word_lists(app: Application, args) -> None:
     """Show, save or forget the lists the reader has built."""
     from vocab.word_lists import WordListStore            # noqa: PLC0415
-    store = WordListStore(app.settings.state_path)
+    store = WordListStore(app.settings.state)
     if args.rename:
         if not args.name:
             raise SystemExit("--rename needs the current name: "
@@ -804,7 +824,7 @@ def main() -> int:
         # any other. The file need not exist — the entries come from the
         # table, and `goal_entries` is what tells `Application` to use them.
         from vocab.word_lists import WordListStore      # noqa: PLC0415
-        store = WordListStore(settings.state_path)
+        store = WordListStore(settings.state)
         if args.goals_list not in store:
             raise SystemExit(f"no saved list called {args.goals_list!r} — "
                              "`python main.py word-list` shows what there is")
@@ -953,6 +973,9 @@ def main() -> int:
         word_lists(app, args)
     elif args.command == "search":
         search_vocabulary(app, args.term, args.limit, tuple(args.source))
+    elif args.command == "migrate-state":
+        from commands.migrate_state import MigrateStateCommand  # noqa: PLC0415
+        MigrateStateCommand().run(app, args.source_file, args.dry_run)
     elif args.command == "schema-doc":
         from db.schema_doc import write        # noqa: PLC0415 — only here
         print(f"wrote {write(app)}")

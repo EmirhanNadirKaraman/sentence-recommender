@@ -17,16 +17,15 @@ checked. Two different facts, kept apart.
 from __future__ import annotations
 
 from datetime import datetime
-from pathlib import Path
 
-from state import open_state
+from state import ensure, open_state
 from vocab.entry import Unit
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS checked_units (
-    kind    TEXT NOT NULL,
-    key     TEXT NOT NULL,
-    checked TEXT NOT NULL,
+    kind    TEXT COLLATE "C" NOT NULL,
+    key     TEXT COLLATE "C" NOT NULL,
+    checked TEXT COLLATE "C" NOT NULL,
     PRIMARY KEY (kind, key)
 );
 """
@@ -35,31 +34,30 @@ CREATE TABLE IF NOT EXISTS checked_units (
 class CheckedStore:
     """Which assumed-known words have been confirmed, and when."""
 
-    def __init__(self, path: Path) -> None:
-        self._path = path
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with open_state(self._path) as conn:
-            conn.executescript(SCHEMA)
+    def __init__(self, config) -> None:
+        self._db = config
+        ensure(config, SCHEMA)
 
     def confirm(self, unit: Unit) -> None:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             conn.execute(
-                "INSERT OR REPLACE INTO checked_units (kind, key, checked)"
-                " VALUES (?, ?, ?)",
+                "INSERT INTO checked_units (kind, key, checked)"
+                " VALUES (%s, %s, %s) ON CONFLICT (kind, key)"
+                " DO UPDATE SET checked = excluded.checked",
                 (unit.kind, unit.key, datetime.now().isoformat(timespec="seconds")))
 
     def forget(self, unit: Unit) -> None:
         """Ask about it again — for a word denied after having been confirmed."""
-        with open_state(self._path) as conn:
-            conn.execute("DELETE FROM checked_units WHERE kind = ? AND key = ?",
+        with open_state(self._db) as conn:
+            conn.execute("DELETE FROM checked_units WHERE kind = %s AND key = %s",
                          (unit.kind, unit.key))
 
     def units(self) -> frozenset[Unit]:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return frozenset(Unit(kind, key) for kind, key in
                              conn.execute("SELECT kind, key FROM checked_units"))
 
     def __len__(self) -> int:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return conn.execute(
                 "SELECT count(*) FROM checked_units").fetchone()[0]

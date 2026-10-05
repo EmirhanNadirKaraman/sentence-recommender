@@ -14,12 +14,12 @@ from __future__ import annotations
 
 import tempfile
 import unittest
-from pathlib import Path
 
 from corpus.overrides import SentenceOverrides
 from corpus.sentence import Sentence
 from roadmap.examples import ExampleIndex, rank
 from vocab.entry import Unit
+from tests import pg
 
 WORD = Unit.exact("zurücktreten")
 GOOD = "Der Kanzler ist gestern von seinem Amt zurückgetreten."
@@ -33,7 +33,7 @@ def sentences() -> list[Sentence]:
 
 class StoreTest(unittest.TestCase):
     def _store(self, tmp) -> SentenceOverrides:
-        return SentenceOverrides(Path(tmp) / "state.sqlite3")
+        return SentenceOverrides(pg.schema(self))
 
     def test_a_partial_pass_replaces_only_what_it_read(self) -> None:
         """A `--limit` run, or a resumed one, must not drop a source's other

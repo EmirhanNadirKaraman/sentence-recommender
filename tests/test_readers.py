@@ -19,6 +19,7 @@ from pathlib import Path
 from unittest import mock
 
 from config import ROOT, Settings
+from tests import pg
 from languages import ENGLISH, GERMAN
 from readers import (LOCKOUT_SECONDS, TRIES, Reader, Registry, check_password,
                      hash_password)
@@ -42,7 +43,7 @@ class RegistryTest(unittest.TestCase):
     def setUp(self) -> None:
         self._dir = tempfile.TemporaryDirectory()
         self.root = Path(self._dir.name) / "readers"
-        self.registry = Registry(self.root)
+        self.registry = Registry(pg.schema(self, "accounts"), homes=self.root)
 
     def tearDown(self) -> None:
         self._dir.cleanup()
@@ -95,15 +96,17 @@ class RegistryTest(unittest.TestCase):
         with self.assertRaises(SystemExit):
             self.registry.set_password("ahmet", "short")
 
-    def test_the_registry_file_is_not_readable_by_others(self) -> None:
+    def test_readers_are_in_the_database_and_no_file_is_written(self) -> None:
         self.registry.add("ahmet", "en", "tr")
-        self.assertEqual((self.root / "readers.json").stat().st_mode & 0o077, 0)
+        self.assertFalse((self.root / "readers.json").exists())
+        self.assertEqual(Registry(self.registry._db).names(), ["ahmet"])
 
 
 class SessionTest(unittest.TestCase):
     def setUp(self) -> None:
         self._dir = tempfile.TemporaryDirectory()
-        self.registry = Registry(Path(self._dir.name) / "readers")
+        self.registry = Registry(pg.schema(self, "accounts"),
+                                 homes=Path(self._dir.name) / "readers")
         self.registry.add("ahmet", "en", "tr")
         self.registry.set_password("ahmet", "a long password")
 
@@ -139,7 +142,8 @@ class SessionTest(unittest.TestCase):
     def test_a_cookie_from_another_installation_is_nobody(self) -> None:
         cookie = self.registry.login("ahmet", "a long password")
         with tempfile.TemporaryDirectory() as other:
-            elsewhere = Registry(Path(other) / "readers")
+            elsewhere = Registry(pg.schema(self, "other"),
+                                 homes=Path(other) / "readers")
             elsewhere.add("ahmet", "en", "tr")
             elsewhere.set_password("ahmet", "a long password")
             self.assertIsNone(elsewhere.session(cookie))
@@ -157,7 +161,8 @@ class SessionTest(unittest.TestCase):
 class InvitationTest(unittest.TestCase):
     def setUp(self) -> None:
         self._dir = tempfile.TemporaryDirectory()
-        self.registry = Registry(Path(self._dir.name) / "readers")
+        self.registry = Registry(pg.schema(self, "accounts"),
+                                 homes=Path(self._dir.name) / "readers")
 
     def tearDown(self) -> None:
         self._dir.cleanup()
@@ -174,8 +179,11 @@ class InvitationTest(unittest.TestCase):
 
     def test_the_token_itself_is_never_stored(self) -> None:
         token = self.registry.invite("en", "tr")
-        stored = (self.registry._root / "readers.json").read_text()
-        self.assertNotIn(token, stored)
+        from state import open_state
+        with open_state(self.registry._db) as conn:
+            stored = conn.execute("SELECT digest FROM invite").fetchall()
+        self.assertNotIn((token,), stored)
+        self.assertEqual(len(stored), 1)
 
     def test_an_expired_invitation_is_nothing(self) -> None:
         token = self.registry.invite("en", "tr", days=1)
@@ -195,7 +203,7 @@ class InvitationTest(unittest.TestCase):
     def test_an_invited_reader_gets_a_home_of_their_own(self) -> None:
         token = self.registry.invite("de", "en")
         reader = self.registry.redeem(token, "max", "a long password")
-        self.assertEqual(reader.home, self.registry._root / "max")
+        self.assertEqual(reader.home, self.registry._homes / "max")
         self.assertIsNone(self.registry.owner())
 
 
@@ -204,17 +212,21 @@ class ReaderSettingsTest(unittest.TestCase):
         owner = Settings.for_reader(Reader("emir", ROOT / "data", "de", "en"))
         plain = Settings()
         for field in fields(Settings):
-            if field.name == "reader":
+            if field.name in ("reader", "state"):
                 continue
             with self.subTest(field=field.name):
                 self.assertEqual(getattr(owner, field.name),
                                  getattr(plain, field.name))
         self.assertEqual(owner.reader, "emir")
+        # Their state is theirs by name, like everyone else's.
+        self.assertEqual(owner.state.schema, "reader_emir")
+        self.assertEqual(plain.state.schema, "reader")
 
     def test_a_second_reader_keeps_their_own_files_at_home(self) -> None:
         home = Path("/tmp/readers/ahmet")
         settings = Settings.for_reader(Reader("ahmet", home, "en", "tr"))
-        self.assertEqual(settings.state_path, home / "state.sqlite3")
+        self.assertEqual(settings.state.schema, "reader_ahmet")
+        self.assertEqual(settings.state.name, settings.own.name)
         self.assertEqual(settings.known_words, home / "known_words.txt")
         self.assertEqual(settings.goal_words, home / "study_list.txt")
         self.assertEqual(settings.data_dir, home)
@@ -279,7 +291,8 @@ class DoorTest(unittest.TestCase):
     def setUp(self) -> None:
         from web.server import Door, _make_handler
         self._dir = tempfile.TemporaryDirectory()
-        self.registry = Registry(Path(self._dir.name) / "readers")
+        self.registry = Registry(pg.schema(self, "accounts"),
+                                 homes=Path(self._dir.name) / "readers")
         for name, lang, native in (("emir", "de", "en"), ("ahmet", "en", "tr")):
             self.registry.add(name, lang, native)
             self.registry.set_password(name, f"{name} password")
@@ -483,7 +496,8 @@ class DoorTest(unittest.TestCase):
 
     def test_without_passwords_there_is_no_door(self) -> None:
         with tempfile.TemporaryDirectory() as empty:
-            self.door.registry = Registry(Path(empty) / "readers")
+            self.door.registry = Registry(pg.schema(self, "empty"),
+                                          homes=Path(empty) / "readers")
             response, data = self.request("GET", "/")
             self.assertEqual(response.status, 200)
             self.assertIn("next for", data)

@@ -13,11 +13,9 @@ built and is read back from here in a single query.
 from __future__ import annotations
 
 import json
-import sqlite3
 from datetime import datetime
 
-from state import open_state
-from pathlib import Path
+from state import ensure, open_state
 
 from alignment.timing import Timing
 from corpus.quality import VERSION as QUALITY_VERSION
@@ -63,47 +61,47 @@ def current_stamp(language: str = "de") -> str:
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS roadmap (
-    source       TEXT NOT NULL DEFAULT 'all',
-    position     INTEGER NOT NULL,
-    kind         TEXT NOT NULL,
-    key          TEXT NOT NULL,
-    sentence     TEXT NOT NULL,
-    translation  TEXT,
-    origin       TEXT NOT NULL,
-    surface      TEXT,
-    gain         INTEGER NOT NULL,
-    score        REAL NOT NULL,
-    now_readable INTEGER NOT NULL,
-    readable     INTEGER NOT NULL DEFAULT 0,
-    occurrences  INTEGER NOT NULL DEFAULT 0,
+    source       TEXT COLLATE "C" NOT NULL DEFAULT 'all',
+    position     BIGINT NOT NULL,
+    kind         TEXT COLLATE "C" NOT NULL,
+    key          TEXT COLLATE "C" NOT NULL,
+    sentence     TEXT COLLATE "C" NOT NULL,
+    translation  TEXT COLLATE "C",
+    origin       TEXT COLLATE "C" NOT NULL,
+    surface      TEXT COLLATE "C",
+    gain         BIGINT NOT NULL,
+    score        DOUBLE PRECISION NOT NULL,
+    now_readable BIGINT NOT NULL,
+    readable     BIGINT NOT NULL DEFAULT 0,
+    occurrences  BIGINT NOT NULL DEFAULT 0,
     -- The word learned alongside this one, on the steps where the walk had to
     -- take two from a sentence because nothing anywhere was one word away.
     -- Null on an ordinary step, which is nearly all of them.
-    beside_kind  TEXT,
-    beside_key   TEXT,
+    beside_kind  TEXT COLLATE "C",
+    beside_key   TEXT COLLATE "C",
     PRIMARY KEY (source, position)
 );
 
 CREATE TABLE IF NOT EXISTS roadmap_example (
-    source      TEXT NOT NULL,
-    position    INTEGER NOT NULL,
-    n           INTEGER NOT NULL,
-    text        TEXT NOT NULL,
-    translation TEXT,
-    origin      TEXT NOT NULL,
-    surface     TEXT,
-    units       TEXT NOT NULL,
-    video_id    TEXT,
-    start_time  REAL,
-    end_time    REAL,
+    source      TEXT COLLATE "C" NOT NULL,
+    position    BIGINT NOT NULL,
+    n           BIGINT NOT NULL,
+    text        TEXT COLLATE "C" NOT NULL,
+    translation TEXT COLLATE "C",
+    origin      TEXT COLLATE "C" NOT NULL,
+    surface     TEXT COLLATE "C",
+    units       TEXT COLLATE "C" NOT NULL,
+    video_id    TEXT COLLATE "C",
+    start_time  DOUBLE PRECISION,
+    end_time    DOUBLE PRECISION,
     PRIMARY KEY (source, position, n)
 );
 
 CREATE TABLE IF NOT EXISTS roadmap_meta (
-    source  TEXT PRIMARY KEY,
-    stamp   TEXT NOT NULL,
-    made_at TEXT NOT NULL,
-    total   INTEGER NOT NULL DEFAULT 0
+    source  TEXT COLLATE "C" PRIMARY KEY,
+    stamp   TEXT COLLATE "C" NOT NULL,
+    made_at TEXT COLLATE "C" NOT NULL,
+    total   BIGINT NOT NULL DEFAULT 0
 );
 """
 
@@ -116,71 +114,13 @@ EXAMPLE_COLUMNS = ("position, n, text, translation, origin, surface, units,"
 
 
 class RoadmapStore:
-    def __init__(self, path: Path) -> None:
-        self._path = path
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with open_state(self._path) as conn:
-            self._ensure_schema(conn)
-
-    @classmethod
-    def _ensure_schema(cls, conn) -> None:
-        """Create the tables, dropping a pre-source roadmap if it is still there.
-
-        The old table keyed on position alone, so it cannot hold two roadmaps
-        at once. Rebuilding one takes seconds; migrating the rows would be
-        more code than it saves.
-        """
-        columns = {row[1] for row in conn.execute("PRAGMA table_info(roadmap)")}
-        if columns and "source" not in columns:
-            conn.execute("DROP TABLE roadmap")
-        conn.executescript(SCHEMA)
-        cls._add_missing_columns(conn)
-
-    @staticmethod
-    def _add_missing_columns(conn) -> None:
-        """Bring a roadmap written by an older version up to the current shape.
-
-        `CREATE TABLE IF NOT EXISTS` does nothing to a table that already
-        exists, so a column added later has to be added by hand or the first
-        write against an older database fails.  The defaults are what an old
-        row honestly says: nothing was recorded, and the page falls back to
-        counting for itself.
-
-        The type travels with the name because not every column is a count.
-        `beside_kind` is a word or it is nothing, and adding it as `INTEGER
-        NOT NULL DEFAULT 0` — which is what every column got when they were
-        all tallies — made a plain step unwritable.
-        """
-        for table, added in (
-            ("roadmap", (("readable", "INTEGER NOT NULL DEFAULT 0"),
-                         ("occurrences", "INTEGER NOT NULL DEFAULT 0"),
-                         ("beside_kind", "TEXT"),
-                         ("beside_key", "TEXT"))),
-            ("roadmap_meta", (("total", "INTEGER NOT NULL DEFAULT 0"),)),
-        ):
-            existing = {row[1]: row for row in
-                        conn.execute(f"PRAGMA table_info({table})")}
-            for name, kind in added:
-                row = existing.get(name)
-                if row is None:
-                    conn.execute(
-                        f"ALTER TABLE {table} ADD COLUMN {name} {kind}")
-                    continue
-                # Added once with the wrong shape, and skipping it because the
-                # name was present left the wrong shape in place. Every column
-                # here was a tally when this was written, so a later one that
-                # is a word arrived as `INTEGER NOT NULL DEFAULT 0` and made a
-                # plain step unwritable — the fix to the type did nothing to
-                # the databases that had already run the broken version.
-                wants_null = "NOT NULL" not in kind
-                if wants_null and row[3]:          # row[3] is `notnull`
-                    conn.execute(f"ALTER TABLE {table} DROP COLUMN {name}")
-                    conn.execute(
-                        f"ALTER TABLE {table} ADD COLUMN {name} {kind}")
+    def __init__(self, config) -> None:
+        self._db = config
+        ensure(config, SCHEMA)
 
     def sources(self) -> dict[str, int]:
         """Which roadmaps exist, and how long each is."""
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return dict(conn.execute(
                 "SELECT source, count(*) FROM roadmap GROUP BY source"))
 
@@ -192,9 +132,9 @@ class RoadmapStore:
         page keeps serving sentences that may no longer be in the corpus at
         all.  The stamp is how a reader of the store can tell.
         """
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             row = conn.execute(
-                "SELECT stamp FROM roadmap_meta WHERE source = ?",
+                "SELECT stamp FROM roadmap_meta WHERE source = %s",
                 (source,)).fetchone()
         return row[0] if row else None
 
@@ -208,9 +148,9 @@ class RoadmapStore:
         page that showed progress against the larger number would be quietly
         answering a question nobody asked.
         """
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             row = conn.execute(
-                "SELECT total FROM roadmap_meta WHERE source = ?",
+                "SELECT total FROM roadmap_meta WHERE source = %s",
                 (source,)).fetchone()
         return row[0] if row else 0
 
@@ -227,18 +167,18 @@ class RoadmapStore:
 
     def save(self, steps: list[RoadmapStep], source: str = ALL,
              stamp: str = "", total: int = 0) -> None:
-        with open_state(self._path) as conn:
-            conn.execute("DELETE FROM roadmap WHERE source = ?", (source,))
-            conn.execute("DELETE FROM roadmap_example WHERE source = ?",
+        with open_state(self._db) as conn:
+            conn.execute("DELETE FROM roadmap WHERE source = %s", (source,))
+            conn.execute("DELETE FROM roadmap_example WHERE source = %s",
                          (source,))
         self._insert(steps, source, stamp, total)
 
     def _insert(self, steps: list[RoadmapStep], source: str,
                 stamp: str = "", total: int = 0) -> None:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             conn.executemany(
                 f"INSERT INTO roadmap (source, {COLUMNS})"
-                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 [(source, s.position, s.unit.kind, s.unit.key, s.sentence.text,
                   s.sentence.translation, s.sentence.origin,
                   s.sentence.surface_of(s.unit), s.gain, s.score,
@@ -247,17 +187,24 @@ class RoadmapStore:
                   s.beside.key if s.beside else None) for s in steps],
             )
             conn.executemany(
-                f"INSERT OR REPLACE INTO roadmap_example (source,"
+                f"INSERT INTO roadmap_example (source,"
                 f" {EXAMPLE_COLUMNS})"
-                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                " ON CONFLICT (source, position, n) DO UPDATE SET"
+                " text = excluded.text, translation = excluded.translation,"
+                " origin = excluded.origin, surface = excluded.surface,"
+                " units = excluded.units, video_id = excluded.video_id,"
+                " start_time = excluded.start_time, end_time = excluded.end_time",
                 [self._example_row(source, step, n, example)
                  for step in steps
                  for n, example in enumerate(step.examples)],
             )
             if stamp:
                 conn.execute(
-                    "INSERT OR REPLACE INTO roadmap_meta"
-                    " (source, stamp, made_at, total) VALUES (?, ?, ?, ?)",
+                    "INSERT INTO roadmap_meta"
+                    " (source, stamp, made_at, total) VALUES (%s, %s, %s, %s)"
+                    " ON CONFLICT (source) DO UPDATE SET stamp = excluded.stamp,"
+                    " made_at = excluded.made_at, total = excluded.total",
                     (source, stamp,
                      datetime.now().isoformat(timespec="seconds"), total))
 
@@ -281,7 +228,7 @@ class RoadmapStore:
         Only ever asked for when a caller has named one that is not there, so
         the answer can be a list of what is.
         """
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return [row[0] for row in conn.execute(
                 "SELECT DISTINCT source FROM roadmap ORDER BY source")]
 
@@ -293,10 +240,10 @@ class RoadmapStore:
         the list wants one line per step.  `deck` fetches the one that is
         actually being read.
         """
-        query = (f"SELECT {COLUMNS} FROM roadmap WHERE source = ? ORDER BY position")
+        query = (f"SELECT {COLUMNS} FROM roadmap WHERE source = %s ORDER BY position")
         if limit:
             query += f" LIMIT {int(limit)}"
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             rows = conn.execute(query, (source,)).fetchall()
         return [
             RoadmapStep(
@@ -328,10 +275,10 @@ class RoadmapStore:
         the reader is here to learn, so the step has to be on hand to put it
         back where it belongs.
         """
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             rows = conn.execute(
                 f"SELECT {EXAMPLE_COLUMNS} FROM roadmap_example"
-                " WHERE source = ? AND position = ? ORDER BY n",
+                " WHERE source = %s AND position = %s ORDER BY n",
                 (source, step.position)).fetchall()
         return [self._as_sentence(row, step.unit) for row in rows]
 
@@ -349,10 +296,10 @@ class RoadmapStore:
         """
         by_unit = {step.position: step.unit for step in steps}
         out: dict[int, list[Sentence]] = {}
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             rows = conn.execute(
                 f"SELECT {EXAMPLE_COLUMNS} FROM roadmap_example"
-                " WHERE source = ? ORDER BY position, n", (source,))
+                " WHERE source = %s ORDER BY position, n", (source,))
             for row in rows:
                 # Column order is `position, n, ...` — `n` is the rank of the
                 # example within its deck, not the step.
@@ -383,7 +330,7 @@ class RoadmapStore:
         )
 
     def count(self, source: str = ALL) -> int:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return conn.execute(
-                "SELECT count(*) FROM roadmap WHERE source = ?", (source,)
+                "SELECT count(*) FROM roadmap WHERE source = %s", (source,)
             ).fetchone()[0]

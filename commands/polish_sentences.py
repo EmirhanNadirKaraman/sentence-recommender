@@ -126,7 +126,7 @@ class PolishSentencesCommand:
     def run(self, app, label: str | None = None, limit: int | None = None,
             batch: int = BATCH, workers: int = 4,
             everything: bool = False) -> None:
-        import sqlite3                                      # noqa: PLC0415
+        from state import open_state                        # noqa: PLC0415
         from concurrent.futures import ThreadPoolExecutor    # noqa: PLC0415
 
         from commands.export_deck import DEFAULT_LABEL      # noqa: PLC0415
@@ -148,14 +148,14 @@ class PolishSentencesCommand:
         # matched nothing at all, because `filter.py` and `quality` already
         # settle those upstream.
         shown = "" if everything else " AND n < 3"
-        with sqlite3.connect(settings.state_path) as conn:
+        with open_state(settings.state) as conn:
             wanted = [row[0] for row in conn.execute(
                 "SELECT DISTINCT text FROM roadmap_example"
-                f" WHERE source = ?{shown}", (label,))]
+                f" WHERE source = %s{shown}", (label,))]
         if not wanted:
             raise SystemExit(f"no stored examples for '{label}'")
 
-        store = FixStore(settings.state_path)
+        store = FixStore(settings.state)
         done = store.have()
         todo = [text for text in wanted if text not in done]
         if limit:

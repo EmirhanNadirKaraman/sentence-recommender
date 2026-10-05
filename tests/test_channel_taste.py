@@ -10,16 +10,17 @@ from __future__ import annotations
 
 import tempfile
 import unittest
-from pathlib import Path
 
 from vocab.channel_taste import DOWN, UP, ChannelBlacklist, ChannelTaste
 from watchability import SET_ASIDE, SUBSCRIBED, taste_weight
+from tests import pg
 
 
 class StoreTest(unittest.TestCase):
     def setUp(self) -> None:
         self._dir = tempfile.TemporaryDirectory()
-        self.store = ChannelTaste(Path(self._dir.name) / "state.sqlite3")
+        self.state = pg.schema(self)
+        self.store = ChannelTaste(self.state)
 
     def tearDown(self) -> None:
         self._dir.cleanup()
@@ -61,7 +62,7 @@ class StoreTest(unittest.TestCase):
 
     def test_it_survives_being_reopened(self) -> None:
         self.store.set("UC1", UP)
-        again = ChannelTaste(Path(self._dir.name) / "state.sqlite3")
+        again = ChannelTaste(self.state)
         self.assertEqual(again.of("UC1"), UP)
 
 
@@ -120,7 +121,7 @@ if __name__ == "__main__":
 class BlacklistStoreTest(unittest.TestCase):
     def setUp(self) -> None:
         self._dir = tempfile.TemporaryDirectory()
-        self.store = ChannelBlacklist(Path(self._dir.name) / "state.sqlite3")
+        self.store = ChannelBlacklist(pg.schema(self))
 
     def tearDown(self) -> None:
         self._dir.cleanup()
@@ -166,7 +167,7 @@ class RemovalTest(unittest.TestCase):
         from corpus.sentence import Sentence
         self._dir = tempfile.TemporaryDirectory()
         self.app = Application(Settings(
-            state_path=Path(self._dir.name) / "state.sqlite3"))
+            state=pg.schema(self)))
         self.said = [
             Sentence("Aus dem einen Kanal.", timing=Timing("v1", 0.0, 1.0)),
             Sentence("Aus dem anderen.", timing=Timing("v2", 0.0, 1.0)),
@@ -215,7 +216,7 @@ class DoubtTest(unittest.TestCase):
         from vocab.entry import Unit
         self._dir = tempfile.TemporaryDirectory()
         self.app = Application(Settings(
-            state_path=Path(self._dir.name) / "state.sqlite3"))
+            state=pg.schema(self)))
         self.heard = Unit.pattern("jdm. (Dat) gehören")
         self.lemma = Unit.lemma("gehören")
         self.have = Unit.pattern("etw./jdn. (Akk) haben")
@@ -254,7 +255,7 @@ class MachineMadeTest(unittest.TestCase):
         from context import Application
         self._dir = tempfile.TemporaryDirectory()
         self.app = Application(Settings(
-            state_path=Path(self._dir.name) / "state.sqlite3"))
+            state=pg.schema(self)))
 
     def tearDown(self) -> None:
         self._dir.cleanup()

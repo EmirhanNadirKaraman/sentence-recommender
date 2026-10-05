@@ -65,7 +65,7 @@ class AddVideosCommand:
             max_minutes: float = 0) -> None:
         ids = self._collect(app, source, limit)
         ingestor = VideoIngestor(app.settings, app.analyzer)
-        log = AttemptLog(app.settings.state_path)
+        log = AttemptLog(app.settings.state)
         # Two reasons to pass a video over: it is already in the catalogue, or
         # it was tried and settled. Without the second, every run re-listed
         # the channel and re-fetched the metadata of the same refusals — most

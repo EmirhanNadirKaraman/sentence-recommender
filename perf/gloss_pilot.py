@@ -22,7 +22,7 @@ client = LLMClient(timeout=300)
 model = os.environ.get("LLM_MODEL", "")
 print(f"{client.describe()}   slots={client.slots()}")
 
-plans = RoadmapStore(settings.state_path)
+plans = RoadmapStore(settings.state)
 steps = plans.load(DEFAULT_LABEL, limit=N)
 if not steps:
     raise SystemExit(f"no plan {DEFAULT_LABEL!r}; have {plans.labels()}")

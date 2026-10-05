@@ -17,21 +17,20 @@ and `GoalList` reads it as one.
 from __future__ import annotations
 
 from datetime import datetime
-from pathlib import Path
 
-from state import open_state
+from state import ensure, open_state
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS word_list (
-    name     TEXT NOT NULL,
-    position INTEGER NOT NULL,
-    entry    TEXT NOT NULL,
+    name     TEXT COLLATE "C" NOT NULL,
+    position BIGINT NOT NULL,
+    entry    TEXT COLLATE "C" NOT NULL,
     PRIMARY KEY (name, position)
 );
 CREATE TABLE IF NOT EXISTS word_list_meta (
-    name    TEXT PRIMARY KEY,
-    saved   TEXT NOT NULL,
-    note    TEXT NOT NULL DEFAULT ''
+    name    TEXT COLLATE "C" PRIMARY KEY,
+    saved   TEXT COLLATE "C" NOT NULL,
+    note    TEXT COLLATE "C" NOT NULL DEFAULT ''
 );
 """
 
@@ -39,11 +38,9 @@ CREATE TABLE IF NOT EXISTS word_list_meta (
 class WordListStore:
     """Named lists of goal entries, in the order they were chosen."""
 
-    def __init__(self, path: Path) -> None:
-        self._path = path
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with open_state(self._path) as conn:
-            conn.executescript(SCHEMA)
+    def __init__(self, config) -> None:
+        self._db = config
+        ensure(config, SCHEMA)
 
     def save(self, name: str, entries: list[str], note: str = "") -> int:
         """Replace a list. De-duplicated, keeping the first position.
@@ -57,26 +54,27 @@ class WordListStore:
             cleaned = entry.strip()
             if cleaned:
                 seen.setdefault(cleaned, None)
-        with open_state(self._path) as conn:
-            conn.execute("DELETE FROM word_list WHERE name = ?", (name,))
+        with open_state(self._db) as conn:
+            conn.execute("DELETE FROM word_list WHERE name = %s", (name,))
             conn.executemany(
-                "INSERT INTO word_list (name, position, entry) VALUES (?, ?, ?)",
+                "INSERT INTO word_list (name, position, entry) VALUES (%s, %s, %s)",
                 [(name, i, entry) for i, entry in enumerate(seen)])
             conn.execute(
-                "INSERT OR REPLACE INTO word_list_meta (name, saved, note)"
-                " VALUES (?, ?, ?)",
+                "INSERT INTO word_list_meta (name, saved, note)"
+                " VALUES (%s, %s, %s) ON CONFLICT (name)"
+                " DO UPDATE SET saved = excluded.saved, note = excluded.note",
                 (name, datetime.now().isoformat(timespec="seconds"), note))
         return len(seen)
 
     def entries(self, name: str) -> tuple[str, ...]:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return tuple(row[0] for row in conn.execute(
-                "SELECT entry FROM word_list WHERE name = ? ORDER BY position",
+                "SELECT entry FROM word_list WHERE name = %s ORDER BY position",
                 (name,)))
 
     def names(self) -> list[tuple[str, int, str]]:
         """Every saved list: name, how many entries, when it was saved."""
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return [(name, n, saved) for name, n, saved in conn.execute(
                 "SELECT m.name, count(w.entry), m.saved"
                 "  FROM word_list_meta m"
@@ -93,21 +91,21 @@ class WordListStore:
         entries = self.entries(old)
         if not entries:
             return 0
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             note = conn.execute(
-                "SELECT note FROM word_list_meta WHERE name = ?",
+                "SELECT note FROM word_list_meta WHERE name = %s",
                 (old,)).fetchone()
         written = self.save(new, list(entries), note[0] if note else "")
         self.forget(old)
         return written
 
     def forget(self, name: str) -> None:
-        with open_state(self._path) as conn:
-            conn.execute("DELETE FROM word_list WHERE name = ?", (name,))
-            conn.execute("DELETE FROM word_list_meta WHERE name = ?", (name,))
+        with open_state(self._db) as conn:
+            conn.execute("DELETE FROM word_list WHERE name = %s", (name,))
+            conn.execute("DELETE FROM word_list_meta WHERE name = %s", (name,))
 
     def __contains__(self, name: str) -> bool:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return conn.execute(
-                "SELECT 1 FROM word_list_meta WHERE name = ?",
+                "SELECT 1 FROM word_list_meta WHERE name = %s",
                 (name,)).fetchone() is not None

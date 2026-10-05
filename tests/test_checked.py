@@ -11,11 +11,11 @@ from __future__ import annotations
 
 import tempfile
 import unittest
-from pathlib import Path
 
 from commands.quiz import ANSWERS, PROMPT
 from vocab.checked_store import CheckedStore
 from vocab.entry import Unit
+from tests import pg
 
 HAUS = Unit.lemma("haus")
 BAUM = Unit.lemma("baum")
@@ -25,7 +25,7 @@ DER = Unit.pattern("der Hut")
 class CheckedTest(unittest.TestCase):
     def setUp(self) -> None:
         self._dir = tempfile.TemporaryDirectory()
-        self.path = Path(self._dir.name) / "state.sqlite3"
+        self.path = pg.schema(self)
         self.store = CheckedStore(self.path)
 
     def tearDown(self) -> None:

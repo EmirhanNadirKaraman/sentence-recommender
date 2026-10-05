@@ -34,7 +34,6 @@ TODO #26. What they will be scored on is fixed by this file.
 from __future__ import annotations
 
 import csv
-import sqlite3
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -121,16 +120,16 @@ def _glosses(app, patterns: set[str]) -> dict[str, str]:
     show. It is on the sheet so the judge knows what the label claims,
     not as the answer.
     """
-    con = sqlite3.connect(app.settings.state_path)
+    from state import open_state                            # noqa: PLC0415
     out: dict[str, str] = {}
-    for key in patterns:
-        row = con.execute(
-            "SELECT means FROM unit_sense WHERE kind = 'pattern' AND key = ?"
-            " AND means IS NOT NULL GROUP BY means ORDER BY count(*) DESC"
-            " LIMIT 1", (key,)).fetchone()
-        if row:
-            out[key] = row[0]
-    con.close()
+    with open_state(app.settings.state) as con:
+        for key in patterns:
+            row = con.execute(
+                "SELECT means FROM unit_sense WHERE kind = 'pattern' AND key = %s"
+                " AND means IS NOT NULL GROUP BY means ORDER BY count(*) DESC"
+                " LIMIT 1", (key,)).fetchone()
+            if row:
+                out[key] = row[0]
     return out
 
 

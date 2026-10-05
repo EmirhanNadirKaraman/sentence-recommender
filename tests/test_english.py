@@ -11,6 +11,7 @@ import unittest
 from pathlib import Path
 
 from languages import ENGLISH, GERMAN
+from tests import pg
 from vocab.aliases import Aliases, heads
 from vocab.entry import Unit
 from vocab.goal_list import GoalList
@@ -239,9 +240,14 @@ class LanguageFlagTest(unittest.TestCase):
         from types import SimpleNamespace
         from config import Settings
         from main import _same_language
-        with self.assertRaises(SystemExit) as refused:
-            _same_language(SimpleNamespace(command="add-channel", language="en"),
-                           Settings())
+        from readers import Registry
+        with tempfile.TemporaryDirectory() as tmp:
+            registry = Registry(pg.schema(self, "accounts"),
+                                homes=Path(tmp) / "readers")
+            with self.assertRaises(SystemExit) as refused:
+                _same_language(SimpleNamespace(command="add-channel",
+                                               language="en"),
+                               Settings(), registry)
         self.assertIn("learns de, not en", str(refused.exception))
         _same_language(SimpleNamespace(command="add-channel", language="de"),
                        Settings())
@@ -254,7 +260,7 @@ class PrivateFunctionWordsTest(unittest.TestCase):
         from config import Settings
         from readers import Registry
         with tempfile.TemporaryDirectory() as tmp:
-            registry = Registry(Path(tmp) / "readers")
+            registry = Registry(pg.schema(self, "accounts"), homes=Path(tmp) / "readers")
             reader = registry.add("ahmet", "en", "tr")
             settings = Settings.for_reader(reader)
             self.assertEqual(settings.function_words,
@@ -266,7 +272,7 @@ class PrivateFunctionWordsTest(unittest.TestCase):
         from config import Settings
         from readers import Registry
         with tempfile.TemporaryDirectory() as tmp:
-            reader = Registry(Path(tmp) / "readers").add("ahmet", "en", "tr")
+            reader = Registry(pg.schema(self, "accounts"), homes=Path(tmp) / "readers").add("ahmet", "en", "tr")
             known = Settings.for_reader(reader).known_words
             self.assertEqual(known, reader.home / "known_words.txt")
             self.assertEqual(known.read_bytes(),
@@ -275,7 +281,7 @@ class PrivateFunctionWordsTest(unittest.TestCase):
     def test_a_german_reader_gets_no_starter_list(self) -> None:
         from readers import Registry
         with tempfile.TemporaryDirectory() as tmp:
-            reader = Registry(Path(tmp) / "readers").add("max", "de", "en")
+            reader = Registry(pg.schema(self, "accounts"), homes=Path(tmp) / "readers").add("max", "de", "en")
             self.assertFalse((reader.home / "known_words.txt").exists())
 
 

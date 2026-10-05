@@ -37,9 +37,8 @@ brings everything back at once, with nothing to re-scrape or re-analyse.
 from __future__ import annotations
 
 from datetime import datetime
-from pathlib import Path
 
-from state import open_state
+from state import ensure, open_state, version_trigger
 
 UP = "up"
 DOWN = "down"
@@ -53,85 +52,64 @@ VERDICTS = (MACHINE, HUMAN)
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS channel_taste (
-    channel_id TEXT PRIMARY KEY,
-    taste      TEXT NOT NULL,
-    decided    TEXT NOT NULL
+    channel_id TEXT COLLATE "C" PRIMARY KEY,
+    taste      TEXT COLLATE "C" NOT NULL,
+    decided    TEXT COLLATE "C" NOT NULL
 );
 
 -- Bumped on every change, so a page can ask whether the order it is holding
 -- still reflects what you have said without reading the table itself.
 CREATE TABLE IF NOT EXISTS channel_taste_version (
-    id      INTEGER PRIMARY KEY CHECK (id = 1),
-    version INTEGER NOT NULL
+    id      BIGINT PRIMARY KEY CHECK (id = 1),
+    version BIGINT NOT NULL
 );
-INSERT OR IGNORE INTO channel_taste_version (id, version) VALUES (1, 0);
+INSERT INTO channel_taste_version (id, version) VALUES (1, 0) ON CONFLICT DO NOTHING;
 
-CREATE TRIGGER IF NOT EXISTS channel_taste_set
-AFTER INSERT ON channel_taste
-BEGIN UPDATE channel_taste_version SET version = version + 1 WHERE id = 1; END;
 
-CREATE TRIGGER IF NOT EXISTS channel_taste_changed
-AFTER UPDATE ON channel_taste
-BEGIN UPDATE channel_taste_version SET version = version + 1 WHERE id = 1; END;
 
-CREATE TRIGGER IF NOT EXISTS channel_taste_cleared
-AFTER DELETE ON channel_taste
-BEGIN UPDATE channel_taste_version SET version = version + 1 WHERE id = 1; END;
 
 CREATE TABLE IF NOT EXISTS video_removed (
-    video_id TEXT PRIMARY KEY,
-    decided  TEXT NOT NULL
+    video_id TEXT COLLATE "C" PRIMARY KEY,
+    decided  TEXT COLLATE "C" NOT NULL
 );
 -- Versioned like the others, and for the same reason: `banned_videos` caches
 -- what the removals come to and has to know when that answer is stale.
 CREATE TABLE IF NOT EXISTS video_removed_version (
-    id      INTEGER PRIMARY KEY CHECK (id = 1),
-    version INTEGER NOT NULL
+    id      BIGINT PRIMARY KEY CHECK (id = 1),
+    version BIGINT NOT NULL
 );
-INSERT OR IGNORE INTO video_removed_version (id, version) VALUES (1, 0);
+INSERT INTO video_removed_version (id, version) VALUES (1, 0) ON CONFLICT DO NOTHING;
 
-CREATE TRIGGER IF NOT EXISTS video_removed_added
-AFTER INSERT ON video_removed
-BEGIN UPDATE video_removed_version SET version = version + 1 WHERE id = 1; END;
 
-CREATE TRIGGER IF NOT EXISTS video_removed_restored
-AFTER DELETE ON video_removed
-BEGIN UPDATE video_removed_version SET version = version + 1 WHERE id = 1; END;
 
 CREATE TABLE IF NOT EXISTS channel_blacklist (
-    channel_id TEXT PRIMARY KEY,
-    decided    TEXT NOT NULL
+    channel_id TEXT COLLATE "C" PRIMARY KEY,
+    decided    TEXT COLLATE "C" NOT NULL
 );
 -- Bumped on every change, for the same reason as the taste's: the set of
 -- videos it removes is derived from it, and a holder of that set can ask
 -- whether it is still current without reading the table.
 CREATE TABLE IF NOT EXISTS channel_blacklist_version (
-    id      INTEGER PRIMARY KEY CHECK (id = 1),
-    version INTEGER NOT NULL
+    id      BIGINT PRIMARY KEY CHECK (id = 1),
+    version BIGINT NOT NULL
 );
-INSERT OR IGNORE INTO channel_blacklist_version (id, version) VALUES (1, 0);
-
-CREATE TRIGGER IF NOT EXISTS channel_blacklist_added
-AFTER INSERT ON channel_blacklist
-BEGIN UPDATE channel_blacklist_version SET version = version + 1 WHERE id = 1; END;
-
-CREATE TRIGGER IF NOT EXISTS channel_blacklist_restored
-AFTER DELETE ON channel_blacklist
-BEGIN UPDATE channel_blacklist_version SET version = version + 1 WHERE id = 1; END;
-"""
+INSERT INTO channel_blacklist_version (id, version) VALUES (1, 0) ON CONFLICT DO NOTHING;
+""" + version_trigger("channel_taste", "channel_taste_version",
+                      "INSERT OR UPDATE OR DELETE") \
+  + version_trigger("video_removed", "video_removed_version", "INSERT OR DELETE") \
+  + version_trigger("channel_blacklist", "channel_blacklist_version",
+                    "INSERT OR DELETE")
 
 
 class ChannelTaste:
     """What you have said about each channel, and nothing more."""
 
-    def __init__(self, path: Path) -> None:
-        self._path = path
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with open_state(self._path) as conn:
-            conn.executescript(SCHEMA)
+    def __init__(self, config) -> None:
+        self._db = config
+        ensure(config, SCHEMA)
 
     def version(self) -> int:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             row = conn.execute(
                 "SELECT version FROM channel_taste_version WHERE id = 1"
             ).fetchone()
@@ -144,7 +122,7 @@ class ChannelTaste:
         on and the ranking needs every one of them at once. 520 channels is
         the ceiling and most will never be in here.
         """
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return {row[0]: row[1] for row in
                     conn.execute("SELECT channel_id, taste FROM channel_taste")}
 
@@ -165,14 +143,14 @@ class ChannelTaste:
             return
         if taste is not None and taste not in TASTES:
             raise ValueError(f"unknown taste {taste!r}")
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             if taste is None:
-                conn.execute("DELETE FROM channel_taste WHERE channel_id = ?",
+                conn.execute("DELETE FROM channel_taste WHERE channel_id = %s",
                              (channel_id,))
             else:
                 conn.execute(
                     "INSERT INTO channel_taste (channel_id, taste, decided)"
-                    " VALUES (?, ?, ?) ON CONFLICT(channel_id) DO UPDATE SET"
+                    " VALUES (%s, %s, %s) ON CONFLICT(channel_id) DO UPDATE SET"
                     " taste = excluded.taste, decided = excluded.decided",
                     (channel_id, taste, datetime.now().isoformat(" ", "seconds")))
 
@@ -192,14 +170,12 @@ class VideoRemovals:
     have decided, and a re-scrape cannot quietly undo it.
     """
 
-    def __init__(self, path: Path) -> None:
-        self._path = path
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with open_state(self._path) as conn:
-            conn.executescript(SCHEMA)
+    def __init__(self, config) -> None:
+        self._db = config
+        ensure(config, SCHEMA)
 
     def version(self) -> int:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             row = conn.execute(
                 "SELECT version FROM video_removed_version WHERE id = 1"
             ).fetchone()
@@ -207,7 +183,7 @@ class VideoRemovals:
 
     def all(self) -> dict[str, str]:
         """Video id -> when it was removed, oldest first."""
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return {row[0]: row[1] for row in conn.execute(
                 "SELECT video_id, decided FROM video_removed"
                 " ORDER BY decided, video_id")}
@@ -217,32 +193,30 @@ class VideoRemovals:
         not even the date, so the list keeps saying when you decided."""
         if not video_id:
             return
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             conn.execute(
-                "INSERT OR IGNORE INTO video_removed (video_id, decided)"
-                " VALUES (?, ?)",
+                "INSERT INTO video_removed (video_id, decided)"
+                " VALUES (%s, %s) ON CONFLICT DO NOTHING",
                 (video_id, datetime.now().isoformat(" ", "seconds")))
 
     def remove(self, video_id: str) -> None:
         """Bring one back."""
         if not video_id:
             return
-        with open_state(self._path) as conn:
-            conn.execute("DELETE FROM video_removed WHERE video_id = ?",
+        with open_state(self._db) as conn:
+            conn.execute("DELETE FROM video_removed WHERE video_id = %s",
                          (video_id,))
 
 
 class ChannelBlacklist:
     """The channels you have removed, and when."""
 
-    def __init__(self, path: Path) -> None:
-        self._path = path
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with open_state(self._path) as conn:
-            conn.executescript(SCHEMA)
+    def __init__(self, config) -> None:
+        self._db = config
+        ensure(config, SCHEMA)
 
     def version(self) -> int:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             row = conn.execute(
                 "SELECT version FROM channel_blacklist_version WHERE id = 1"
             ).fetchone()
@@ -250,7 +224,7 @@ class ChannelBlacklist:
 
     def all(self) -> dict[str, str]:
         """Channel id -> when it was removed, oldest first."""
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return {row[0]: row[1] for row in conn.execute(
                 "SELECT channel_id, decided FROM channel_blacklist"
                 " ORDER BY decided, channel_id")}
@@ -260,16 +234,16 @@ class ChannelBlacklist:
         not even the date, so the list keeps saying when you decided."""
         if not channel_id:
             return
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             conn.execute(
-                "INSERT OR IGNORE INTO channel_blacklist (channel_id, decided)"
-                " VALUES (?, ?)",
+                "INSERT INTO channel_blacklist (channel_id, decided)"
+                " VALUES (%s, %s) ON CONFLICT DO NOTHING",
                 (channel_id, datetime.now().isoformat(" ", "seconds")))
 
     def remove(self, channel_id: str) -> None:
         """Bring a channel back."""
         if not channel_id:
             return
-        with open_state(self._path) as conn:
-            conn.execute("DELETE FROM channel_blacklist WHERE channel_id = ?",
+        with open_state(self._db) as conn:
+            conn.execute("DELETE FROM channel_blacklist WHERE channel_id = %s",
                          (channel_id,))

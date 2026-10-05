@@ -15,7 +15,7 @@ class StatusCommand:
         total, due = app.card_store.counts(datetime.now())
         return {
             "corpus": dict(app.corpus_store.builds()),
-            "roadmaps": dict(RoadmapStore(settings.state_path).sources()),
+            "roadmaps": dict(RoadmapStore(settings.state).sources()),
             "cards": {"scheduled": total, "due": due},
             "vocab": {path.name: path.exists()
                       for path in (settings.known_words,

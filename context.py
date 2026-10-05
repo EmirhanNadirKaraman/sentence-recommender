@@ -45,10 +45,6 @@ class Application:
         self.language = profile(self.settings.language)
         if self.language.code != "de":
             self.PLACEHOLDERS = self.language.markers | self.language.slots
-        # Example spreading compares sentences by their stored vectors,
-        # which live in this reader's state file. See `roadmap.examples`.
-        from roadmap.examples import read_vectors_from      # noqa: PLC0415
-        read_vectors_from(self.settings.state_path)
         # ((blacklist version, removals version), the videos they hide)
         # -- see `banned_videos`.
         self._banned: tuple[int, frozenset[str]] | None = None
@@ -66,7 +62,7 @@ class Application:
 
     @cached_property
     def card_store(self) -> CardStore:
-        return CardStore(self.settings.state_path)
+        return CardStore(self.settings.state)
 
     @cached_property
     def scheduler(self) -> SM2Scheduler:
@@ -122,13 +118,13 @@ class Application:
 
     @cached_property
     def overrides(self) -> SentenceOverrides:
-        return SentenceOverrides(self.settings.state_path)
+        return SentenceOverrides(self.settings.state)
 
     @cached_property
     def answers(self):
         """What the corpus pass's judge said about sentences and their words."""
         from corpus.answers import AnswerStore              # noqa: PLC0415
-        return AnswerStore(self.settings.state_path)
+        return AnswerStore(self.settings.state)
 
     @cached_property
     def judged(self):
@@ -144,31 +140,31 @@ class Application:
     def blacklist(self):
         """The channels the reader has removed. See `vocab.channel_taste`."""
         from vocab.channel_taste import ChannelBlacklist   # noqa: PLC0415
-        return ChannelBlacklist(self.settings.state_path)
+        return ChannelBlacklist(self.settings.state)
 
     @cached_property
     def removals(self):
         """The single videos the reader has taken off their pages."""
         from vocab.channel_taste import VideoRemovals      # noqa: PLC0415
-        return VideoRemovals(self.settings.state_path)
+        return VideoRemovals(self.settings.state)
 
     @cached_property
     def taste(self):
         """What the reader has said about each channel. See `vocab.channel_taste`."""
         from vocab.channel_taste import ChannelTaste       # noqa: PLC0415
-        return ChannelTaste(self.settings.state_path)
+        return ChannelTaste(self.settings.state)
 
     @cached_property
     def own(self):
         """The sentences the reader wrote to say. See `vocab.own_sentences`."""
         from vocab.own_sentences import OwnSentences        # noqa: PLC0415
-        return OwnSentences(self.settings.state_path)
+        return OwnSentences(self.settings.state)
 
     @cached_property
     def encounters(self):
         """The words the reader has met watching. See `vocab.encounters`."""
         from vocab.encounters import Encounters              # noqa: PLC0415
-        return Encounters(self.settings.state_path)
+        return Encounters(self.settings.state)
 
     def due_cards(self, now=None, limit: int = 20) -> list:
         """The claims to test now, as `(card, reason)`: by date, or called
@@ -185,7 +181,7 @@ class Application:
     def attempts(self):
         """What the reader wrote with each word. See `vocab.attempts`."""
         from vocab.attempts import Attempts                  # noqa: PLC0415
-        return Attempts(self.settings.state_path)
+        return Attempts(self.settings.state)
 
     def adopt(self, text: str, english: str) -> None:
         """Take a sentence the reader wrote into the corpus and the schedule.
@@ -262,7 +258,7 @@ class Application:
     def glosses(self):
         """What the model has said in English about sentences and words."""
         from deck.gloss import GlossStore                   # noqa: PLC0415
-        return GlossStore(self.settings.state_path)
+        return GlossStore(self.settings.state)
 
     @property
     def llm_model(self) -> str:
@@ -315,6 +311,10 @@ class Application:
         instead.
         """
         self.check_freshness()
+        # Ranking these will compare sentences by their stored vectors, which
+        # live in this reader's state. See `roadmap.examples`.
+        from roadmap.examples import read_vectors_from      # noqa: PLC0415
+        read_vectors_from(self.settings.state)
         # Decided once and applied while the units are read, rather than by a
         # pass over the finished sentences — see `_unit_rule`.
         resolve = self._unit_rule(strict, list_only)
@@ -578,19 +578,20 @@ class Application:
 
     @cached_property
     def resolved(self) -> ResolvedCache:
-        return ResolvedCache(self.settings.state_path, self.settings.language)
+        return ResolvedCache(self.settings.data_dir / "resolved.json",
+                             self.settings.language)
 
     @cached_property
     def marked_known(self) -> KnownStore:
-        return KnownStore(self.settings.state_path)
+        return KnownStore(self.settings.state)
 
     @cached_property
     def snoozes(self) -> SnoozeStore:
-        return SnoozeStore(self.settings.state_path)
+        return SnoozeStore(self.settings.state)
 
     @cached_property
     def checked(self) -> CheckedStore:
-        return CheckedStore(self.settings.state_path)
+        return CheckedStore(self.settings.state)
 
     def known_set(self) -> KnownSet:
         """Everything the reader knows: the vocabulary files plus what they

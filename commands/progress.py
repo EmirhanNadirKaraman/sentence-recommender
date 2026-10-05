@@ -32,12 +32,12 @@ class ProgressCommand:
 
         label = label or DEFAULT_LABEL
         settings = app.settings
-        store = RoadmapStore(settings.state_path)
+        store = RoadmapStore(settings.state)
         steps = store.load(label)
         if not steps:
             raise SystemExit(f"no plan stored as {label!r}")
         decks = store.decks(label, steps, limit=3)
-        glosses = GlossStore(settings.state_path)
+        glosses = GlossStore(settings.state)
         model = os.environ.get("LLM_MODEL", "")
         english = glosses.sentences(model)
         # Two views of the same deck, because two consumers build it two ways
@@ -48,7 +48,7 @@ class ProgressCommand:
         # owed a translation where the gloss would ask about 6.
         plain = cards_from(steps, decks, glosses.senses(model), english)
         cards = cards_from(steps, decks, glosses.senses(model), english,
-                           FixStore(settings.state_path).all())
+                           FixStore(settings.state).all())
 
         print(f"{label}\n  {len(cards):,} cards\n")
 
@@ -73,7 +73,7 @@ class ProgressCommand:
 
         # Only cards with a gloss are recorded, so the denominator matches
         # what `speak-deck` will actually try to say.
-        pieces = PieceStore(settings.state_path)
+        pieces = PieceStore(settings.state)
         have = set(pieces.have())
         needed = {
             key_for(text, DEFAULT_GERMAN if german else DEFAULT_ENGLISH, slow)

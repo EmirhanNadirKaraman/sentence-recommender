@@ -24,38 +24,37 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
-from pathlib import Path
 
-from state import open_state
+from state import ensure, open_state
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS video_score (
-    source        TEXT NOT NULL,
-    video_id      TEXT NOT NULL,
-    title         TEXT,
-    lines         INTEGER NOT NULL,
-    minutes       REAL,
-    comprehension REAL NOT NULL,
-    teachable     INTEGER NOT NULL,
-    teaches       INTEGER NOT NULL,
-    watch         REAL NOT NULL,
+    source        TEXT COLLATE "C" NOT NULL,
+    video_id      TEXT COLLATE "C" NOT NULL,
+    title         TEXT COLLATE "C",
+    lines         BIGINT NOT NULL,
+    minutes       DOUBLE PRECISION,
+    comprehension DOUBLE PRECISION NOT NULL,
+    teachable     BIGINT NOT NULL,
+    teaches       BIGINT NOT NULL,
+    watch         DOUBLE PRECISION NOT NULL,
     -- The next-best words, as JSON: [[kind, key, sentences unlocked], ...].
     -- A list rather than its own table because it is read whole, written
     -- whole, and never queried across videos.
-    next_words    TEXT NOT NULL DEFAULT '[]',
+    next_words    TEXT COLLATE "C" NOT NULL DEFAULT '[]',
     -- The judge's level of the video, in levels above A1, from a sample of
     -- its lines (`corpus.levels`); NULL until enough of them are levelled.
-    level         REAL,
+    level         DOUBLE PRECISION,
     -- The share of its lines readable whole. `comprehension` is the share
     -- of its words known; the panel's "one word away" arithmetic is in
     -- lines and wants this.
-    readable      REAL,
+    readable      DOUBLE PRECISION,
     PRIMARY KEY (source, video_id)
 );
 CREATE TABLE IF NOT EXISTS video_score_meta (
-    source  TEXT PRIMARY KEY,
-    stamp   TEXT NOT NULL,
-    made_at TEXT NOT NULL
+    source  TEXT COLLATE "C" PRIMARY KEY,
+    stamp   TEXT COLLATE "C" NOT NULL,
+    made_at TEXT COLLATE "C" NOT NULL
 );
 """
 
@@ -66,38 +65,19 @@ COLUMNS = ("video_id", "title", "lines", "minutes", "comprehension",
 class ScoreStore:
     """Scored videos, and the stamp saying who they were scored for."""
 
-    def __init__(self, path: Path) -> None:
-        self._path = path
-        with open_state(path) as conn:
-            conn.executescript(SCHEMA)
-            self._add_missing_columns(conn)
-
-    @staticmethod
-    def _add_missing_columns(conn) -> None:
-        """Bring a table written by an older version up to the current shape.
-
-        `CREATE TABLE IF NOT EXISTS` does nothing to a table that already
-        exists, so a new column has to be added by hand or the first write
-        fails against a database that predates it.
-        """
-        have = {row[1] for row in conn.execute("PRAGMA table_info(video_score)")}
-        if "next_words" not in have:
-            conn.execute("ALTER TABLE video_score ADD COLUMN"
-                         " next_words TEXT NOT NULL DEFAULT '[]'")
-        if "level" not in have:
-            conn.execute("ALTER TABLE video_score ADD COLUMN level REAL")
-        if "readable" not in have:
-            conn.execute("ALTER TABLE video_score ADD COLUMN readable REAL")
+    def __init__(self, config) -> None:
+        self._db = config
+        ensure(config, SCHEMA)
 
     def load(self, source: str, stamp: str) -> list[dict] | None:
         """The stored scores, or None if they no longer describe you."""
-        with open_state(self._path) as conn:
-            row = conn.execute("SELECT stamp FROM video_score_meta WHERE source = ?",
+        with open_state(self._db) as conn:
+            row = conn.execute("SELECT stamp FROM video_score_meta WHERE source = %s",
                                (source,)).fetchone()
             if not row or row[0] != stamp:
                 return None
             rows = conn.execute(
-                f"SELECT {', '.join(COLUMNS)} FROM video_score WHERE source = ?"
+                f"SELECT {', '.join(COLUMNS)} FROM video_score WHERE source = %s"
                 " ORDER BY watch DESC", (source,)).fetchall()
         return [self._as_row(r) for r in rows]
 
@@ -111,8 +91,8 @@ class ScoreStore:
         restamping those would declare every untouched video fresh under an
         analyser that never scored it.
         """
-        with open_state(self._path) as conn:
-            row = conn.execute("SELECT stamp FROM video_score_meta WHERE source = ?",
+        with open_state(self._db) as conn:
+            row = conn.execute("SELECT stamp FROM video_score_meta WHERE source = %s",
                                (source,)).fetchone()
         return row[0] if row else None
 
@@ -124,7 +104,7 @@ class ScoreStore:
         learned, and slowly, so the last order is the right one to work
         down. With no `source` named, the source scored most recently --
         the one the reel was last looked at under."""
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             if source is None:
                 row = conn.execute("SELECT source FROM video_score_meta"
                                    " ORDER BY made_at DESC LIMIT 1").fetchone()
@@ -132,16 +112,16 @@ class ScoreStore:
                     return []
                 source = row[0]
             rows = conn.execute(
-                f"SELECT {', '.join(COLUMNS)} FROM video_score WHERE source = ?"
+                f"SELECT {', '.join(COLUMNS)} FROM video_score WHERE source = %s"
                 " ORDER BY watch DESC", (source,)).fetchall()
         return [self._as_row(r) for r in rows]
 
     def save(self, source: str, stamp: str, rows: list[dict]) -> None:
-        with open_state(self._path) as conn:
-            conn.execute("DELETE FROM video_score WHERE source = ?", (source,))
+        with open_state(self._db) as conn:
+            conn.execute("DELETE FROM video_score WHERE source = %s", (source,))
             conn.executemany(
                 f"INSERT INTO video_score (source, {', '.join(COLUMNS)})"
-                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 [self._as_record(source, r) for r in rows])
             self._restamp(conn, source, stamp)
 
@@ -151,10 +131,10 @@ class ScoreStore:
         The rows not named keep the numbers they had, which is the point:
         they describe videos the change could not have touched.
         """
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             conn.executemany(
                 f"INSERT INTO video_score (source, {', '.join(COLUMNS)})"
-                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
                 " ON CONFLICT(source, video_id) DO UPDATE SET"
                 " title = excluded.title, lines = excluded.lines,"
                 " minutes = excluded.minutes,"
@@ -172,14 +152,14 @@ class ScoreStore:
         says. Without it the stamp would stay behind and the next read would
         rebuild nine hundred rows to arrive at what is already there.
         """
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             self._restamp(conn, source, stamp)
 
     @staticmethod
     def _restamp(conn, source: str, stamp: str) -> None:
         conn.execute(
             "INSERT INTO video_score_meta (source, stamp, made_at)"
-            " VALUES (?, ?, ?) ON CONFLICT(source) DO UPDATE SET"
+            " VALUES (%s, %s, %s) ON CONFLICT(source) DO UPDATE SET"
             " stamp = excluded.stamp, made_at = excluded.made_at",
             (source, stamp, datetime.now().isoformat(timespec="seconds")))
 

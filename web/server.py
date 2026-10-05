@@ -76,7 +76,7 @@ class Viewers:
         """The list this process was started with, and every saved one."""
         from vocab.word_lists import WordListStore       # noqa: PLC0415
         saved = [n for n, count, _ in
-                 WordListStore(self._default.settings.state_path).names()
+                 WordListStore(self._default.settings.state).names()
                  if count]
         return [self._stem] + [n for n in saved if n != self._stem]
 
@@ -89,7 +89,7 @@ class Viewers:
                 from dataclasses import replace              # noqa: PLC0415
                 from context import Application              # noqa: PLC0415
                 from vocab.word_lists import WordListStore   # noqa: PLC0415
-                store = WordListStore(self._default.settings.state_path)
+                store = WordListStore(self._default.settings.state)
                 settings = replace(
                     self._default.settings,
                     goal_words=self._default.settings.data_dir / f"{wanted}.txt",

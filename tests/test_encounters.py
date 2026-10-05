@@ -12,12 +12,12 @@ from __future__ import annotations
 import tempfile
 import unittest
 from datetime import datetime, timedelta
-from pathlib import Path
 
 from srs.card import Card
 from srs.scheduler import BY_DATE, BY_HEARING, due_now
 from vocab.encounters import ENOUGH, LADDER, Encounters, Rung
 from vocab.entry import Unit
+from tests import pg
 
 DAY0 = datetime(2026, 9, 22, 20, 0)
 ALSO = Unit.lemma("also")
@@ -39,7 +39,7 @@ class LadderTest(unittest.TestCase):
 
     def test_the_rungs_come_on_days_0_1_3_5_10_and_26_at_the_earliest(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            store = Encounters(Path(tmp) / "state.sqlite3")
+            store = Encounters(pg.schema(self))
             self.assertEqual(store.rung(ALSO), Rung())
             # An evening of hearings is one rung -- and the first two are
             # the same sentence, which is one hearing.
@@ -81,7 +81,7 @@ class LadderTest(unittest.TestCase):
         and a word met only in those has not been met again -- however
         long ago the last one was."""
         with tempfile.TemporaryDirectory() as tmp:
-            store = Encounters(Path(tmp) / "state.sqlite3")
+            store = Encounters(pg.schema(self))
             gut = Unit.lemma("gut")
             batch = [(ALSO, "Also gut.", "vid", 12.0), (gut, "Also gut.", "vid", 12.0),
                      (ALSO, "Also, los.", "vid", 40.0)]

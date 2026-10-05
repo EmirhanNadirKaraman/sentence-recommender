@@ -13,7 +13,6 @@ sentences that are new.
 """
 from __future__ import annotations
 
-import sqlite3
 import time
 
 from corpus.vectors import DIMS, VectorStore, pack, without
@@ -34,17 +33,18 @@ class EmbedSentencesCommand:
         # The surface as well as the text: what is embedded is the sentence
         # with the taught word taken out, and the same sentence teaching a
         # different word is a different comparison.
-        with sqlite3.connect(settings.state_path) as conn:
+        from state import open_state                         # noqa: PLC0415
+        with open_state(settings.state) as conn:
             rows = list(conn.execute(
                 "SELECT DISTINCT text, surface FROM roadmap_example"
-                " WHERE source = ?", (label,)))
+                " WHERE source = %s", (label,)))
         masked = {text: without(text, surface or "") for text, surface in rows}
         wanted = [text for text, _ in rows]
         if not wanted:
             raise SystemExit(f"no stored examples for '{label}' — "
                              "run `build-roadmap` first")
 
-        store = VectorStore(settings.state_path)
+        store = VectorStore(settings.state)
         done = store.have()
         todo = [text for text in wanted if text not in done]
         if limit:

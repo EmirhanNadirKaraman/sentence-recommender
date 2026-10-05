@@ -17,23 +17,22 @@ from nothing but itself.
 from __future__ import annotations
 
 from datetime import datetime
-from pathlib import Path
 
 from srs.card import Card
 from srs.scheduler import SM2Scheduler
-from state import open_state
+from state import ensure, open_state
 from vocab.entry import Unit
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS own_sentence (
-    text          TEXT PRIMARY KEY,
-    english       TEXT NOT NULL,
-    made_at       TEXT NOT NULL,
-    due_date      TEXT NOT NULL,
-    interval_days REAL NOT NULL,
-    ease_factor   REAL NOT NULL,
-    repetitions   INTEGER NOT NULL,
-    last_review   TEXT
+    text          TEXT COLLATE "C" PRIMARY KEY,
+    english       TEXT COLLATE "C" NOT NULL,
+    made_at       TEXT COLLATE "C" NOT NULL,
+    due_date      TEXT COLLATE "C" NOT NULL,
+    interval_days DOUBLE PRECISION NOT NULL,
+    ease_factor   DOUBLE PRECISION NOT NULL,
+    repetitions   BIGINT NOT NULL,
+    last_review   TEXT COLLATE "C"
 );
 """
 
@@ -41,11 +40,9 @@ KIND = "sentence"
 
 
 class OwnSentences:
-    def __init__(self, path: Path) -> None:
-        self._path = path
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with open_state(self._path) as conn:
-            conn.executescript(SCHEMA)
+    def __init__(self, config) -> None:
+        self._db = config
+        ensure(config, SCHEMA)
         self._scheduler = SM2Scheduler()
 
     def add(self, text: str, english: str, now: datetime | None = None) -> None:
@@ -53,23 +50,23 @@ class OwnSentences:
         thing to be asked for."""
         now = now or datetime.now()
         card = self._scheduler.new_card(Unit(KIND, text), now)
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             conn.execute(
                 "INSERT INTO own_sentence (text, english, made_at, due_date,"
                 " interval_days, ease_factor, repetitions, last_review)"
-                " VALUES (?, ?, ?, ?, ?, ?, ?, NULL)"
+                " VALUES (%s, %s, %s, %s, %s, %s, %s, NULL)"
                 " ON CONFLICT(text) DO UPDATE SET english = excluded.english",
                 (text, english, now.isoformat(timespec="seconds"),
                  card.due_date.isoformat(), card.interval_days, card.ease_factor,
                  card.repetitions))
 
     def remove(self, text: str) -> None:
-        with open_state(self._path) as conn:
-            conn.execute("DELETE FROM own_sentence WHERE text = ?", (text,))
+        with open_state(self._db) as conn:
+            conn.execute("DELETE FROM own_sentence WHERE text = %s", (text,))
 
     def all(self) -> list[dict]:
         """Every sentence, newest first, with its schedule."""
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             rows = conn.execute(
                 "SELECT text, english, made_at, due_date, interval_days,"
                 " repetitions, last_review FROM own_sentence ORDER BY made_at DESC"
@@ -79,25 +76,25 @@ class OwnSentences:
                 for t, e, m, d, i, r, last in rows]
 
     def texts(self) -> frozenset[str]:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return frozenset(t for (t,) in conn.execute("SELECT text FROM own_sentence"))
 
     def due(self, now: datetime | None = None) -> list[dict]:
         """The ones to ask for now, the longest overdue first."""
         now = (now or datetime.now()).isoformat()
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             rows = conn.execute(
                 "SELECT text, english, due_date FROM own_sentence"
-                " WHERE due_date <= ? ORDER BY due_date", (now,)).fetchall()
+                " WHERE due_date <= %s ORDER BY due_date", (now,)).fetchall()
         return [{"text": t, "english": e, "due": d} for t, e, d in rows]
 
     def grade(self, text: str, correct: bool, now: datetime | None = None) -> None:
         """You said it, or you did not: the next asking moves accordingly."""
         now = now or datetime.now()
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             row = conn.execute(
                 "SELECT due_date, interval_days, ease_factor, repetitions, last_review"
-                " FROM own_sentence WHERE text = ?", (text,)).fetchone()
+                " FROM own_sentence WHERE text = %s", (text,)).fetchone()
             if row is None:
                 return
             due, interval, ease, reps, last = row
@@ -105,7 +102,7 @@ class OwnSentences:
                         datetime.fromisoformat(last) if last else None)
             after = self._scheduler.review(card, correct, now)
             conn.execute(
-                "UPDATE own_sentence SET due_date = ?, interval_days = ?, ease_factor = ?,"
-                " repetitions = ?, last_review = ? WHERE text = ?",
+                "UPDATE own_sentence SET due_date = %s, interval_days = %s, ease_factor = %s,"
+                " repetitions = %s, last_review = %s WHERE text = %s",
                 (after.due_date.isoformat(), after.interval_days, after.ease_factor,
                  after.repetitions, now.isoformat(timespec="seconds"), text))

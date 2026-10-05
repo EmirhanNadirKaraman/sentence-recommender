@@ -20,13 +20,13 @@ from __future__ import annotations
 
 import tempfile
 import unittest
-from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
 
 from scores import ScoreStore
 from vocab.entry import Unit
 from web.handlers import Once, Viewer
+from tests import pg
 
 
 def row(video: str, watch: float = 1.0) -> dict:
@@ -115,7 +115,7 @@ class RepairStoredScoresTest(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
-        self.scores = ScoreStore(Path(self.tmp.name) / "state.sqlite3")
+        self.scores = ScoreStore(pg.schema(self))
         self.unit = Unit.lemma("haus")
 
     def viewer(self, *, ranked=False, corpus_loaded=False, stamp="fp|8|1"):
@@ -319,7 +319,7 @@ class ScoredUnderTest(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
-        self.scores = ScoreStore(Path(self.tmp.name) / "state.sqlite3")
+        self.scores = ScoreStore(pg.schema(self))
 
     def viewer(self, written: str):
         v = Viewer.__new__(Viewer)

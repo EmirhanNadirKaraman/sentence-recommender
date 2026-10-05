@@ -25,18 +25,18 @@ class ExportAnkiCommand:
             bitrate: str = "64k", examples: int = 3,
             limit: int | None = None) -> None:
         settings = app.settings
-        store = RoadmapStore(settings.state_path)
+        store = RoadmapStore(settings.state)
         steps = store.load(label, limit=limit)
         if not steps:
             raise SystemExit(
                 f"no plan stored as {label!r}\n  stored plans:\n    "
                 + "\n    ".join(store.labels() or ["(none)"]))
         decks = store.decks(label, steps, limit=examples)
-        glosses = GlossStore(settings.state_path)
+        glosses = GlossStore(settings.state)
         said = os.environ.get("LLM_MODEL", "")
         cards = cards_from(steps, decks, glosses.senses(said),
                            glosses.sentences(said),
-                           FixStore(app.settings.state_path).all())
+                           FixStore(app.settings.state).all())
 
         heard = sum(1 for c in cards
                     if (audio_dir / f"{c.stem}.wav").exists())
@@ -57,7 +57,7 @@ class ExportAnkiCommand:
         # per line rather than one for the whole thing. `role="de"` because
         # a card plays its German; the English and the meaning are recorded
         # too and are what a different arrangement would reach for.
-        store = PieceStore(app.settings.state_path)
+        store = PieceStore(app.settings.state)
         spoken = store.paths_for(
             [e.text for card in cards for e in card.examples], role="de")
         if spoken:

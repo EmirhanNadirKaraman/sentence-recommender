@@ -37,6 +37,7 @@ from vocab.encounters import Encounters
 from vocab.own_sentences import OwnSentences
 from vocab.known_store import KnownStore
 from vocab.snooze_store import SnoozeStore
+from tests import pg
 
 try:
     from mcp import Client
@@ -68,12 +69,11 @@ STEPS = [
 ]
 
 
-def stub_app(tmp: Path) -> SimpleNamespace:
+def stub_app(tmp: Path, state) -> SimpleNamespace:
     """Enough of an `Application` for the server: the stores it writes,
     on a state file of their own, and the two corpus questions stubbed."""
-    state = tmp / "state.sqlite3"
     settings = SimpleNamespace(
-        state_path=state,
+        state=state,
         # The same stem as the default list, so the plan's label carries no
         # list name and `LABEL` above is the one the viewer looks for.
         goal_words=Settings().goal_words,
@@ -110,7 +110,7 @@ def stub_app(tmp: Path) -> SimpleNamespace:
 class ToolsTest(unittest.TestCase):
     def setUp(self) -> None:
         self._tmp = tempfile.TemporaryDirectory()
-        self.app = stub_app(Path(self._tmp.name))
+        self.app = stub_app(Path(self._tmp.name), pg.schema(self))
         self.tools = Tools(self.app)
 
     def tearDown(self) -> None:
@@ -149,7 +149,7 @@ class ToolsTest(unittest.TestCase):
         # Its deck no longer readable -- another word in it unknown -- the
         # heard word waits, and the plan's first is offered.
         harder = sentence("Sogar du.", Unit.lemma("sogar"), "Sogar", Unit.lemma("du"))
-        RoadmapStore(self.app.settings.state_path).save(
+        RoadmapStore(self.app.settings.state).save(
             [STEPS[0], STEPS[1], replace(STEPS[2], sentence=harder, examples=(harder,))],
             LABEL, stamp=current_stamp(), total=3)
         self.assertEqual(self.tools.next_up("subtitle")["unit"]["key"], "anders")
@@ -252,7 +252,7 @@ class ToolsTest(unittest.TestCase):
         # The stored plans on a real machine outlive the rules that built
         # them, and `next_up` then walks the corpus. The resource still
         # reads — but must say so, or the two contradict each other.
-        RoadmapStore(self.app.settings.state_path).save(
+        RoadmapStore(self.app.settings.state).save(
             STEPS, LABEL, stamp="older|rules", total=3)
         lines = self.tools.roadmap(LABEL).splitlines()
         self.assertEqual(len(lines), 4)
@@ -281,7 +281,8 @@ class WireTest(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self) -> None:
         self._tmp = tempfile.TemporaryDirectory()
-        self.server = build(Tools(stub_app(Path(self._tmp.name))))
+        self.server = build(Tools(stub_app(Path(self._tmp.name),
+                                           pg.schema(self))))
 
     def tearDown(self) -> None:
         self._tmp.cleanup()

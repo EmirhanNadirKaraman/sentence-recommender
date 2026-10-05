@@ -10,10 +10,10 @@ from __future__ import annotations
 
 import tempfile
 import unittest
-from pathlib import Path
 
 from vocab.entry import Unit
 from vocab.snooze_store import CAP, DELAY, SnoozeStore
+from tests import pg
 
 HAUS = Unit.lemma("haus")
 BAUM = Unit.lemma("baum")
@@ -22,7 +22,7 @@ BAUM = Unit.lemma("baum")
 class SnoozeTest(unittest.TestCase):
     def setUp(self) -> None:
         self._dir = tempfile.TemporaryDirectory()
-        self.path = Path(self._dir.name) / "state.sqlite3"
+        self.path = pg.schema(self)
         self.store = SnoozeStore(self.path)
 
     def tearDown(self) -> None:

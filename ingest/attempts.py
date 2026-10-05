@@ -19,9 +19,8 @@ the settled ones are skipped.
 from __future__ import annotations
 
 from datetime import datetime
-from pathlib import Path
 
-from state import open_state
+from state import ensure, open_state
 
 # Outcomes worth never repeating. Anything else — a timeout, a bot check, an
 # error nobody has classified — is treated as weather and tried again.
@@ -46,11 +45,11 @@ AUTO_SETTLED = frozenset({
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS video_attempts (
-    video_id TEXT PRIMARY KEY,
-    tries   INTEGER NOT NULL DEFAULT 0,
-    outcome  TEXT NOT NULL,
-    detail   TEXT,
-    tried    TEXT NOT NULL
+    video_id TEXT COLLATE "C" PRIMARY KEY,
+    tries   BIGINT NOT NULL DEFAULT 0,
+    outcome  TEXT COLLATE "C" NOT NULL,
+    detail   TEXT COLLATE "C",
+    tried    TEXT COLLATE "C" NOT NULL
 );
 """
 
@@ -58,30 +57,17 @@ CREATE TABLE IF NOT EXISTS video_attempts (
 class AttemptLog:
     """Every video the ingester has tried, and what came of it."""
 
-    def __init__(self, path: Path) -> None:
-        self._path = Path(path)
-        self._path.parent.mkdir(parents=True, exist_ok=True)
-        with open_state(self._path) as conn:
-            conn.executescript(SCHEMA)
-            # CREATE TABLE IF NOT EXISTS leaves an existing table alone, so
-            # a column added later has to be asked for separately.
-            self._widen(conn)
+    def __init__(self, config) -> None:
+        self._db = config
+        ensure(config, SCHEMA)
 
     GIVE_UP = 3
 
-    def _widen(self, conn) -> None:
-        """`tries` arrived after the table did."""
-        have = {row[1] for row in conn.execute("PRAGMA table_info(video_attempts)")}
-        if "tries" not in have:
-            conn.execute("ALTER TABLE video_attempts ADD COLUMN"
-                         " tries INTEGER NOT NULL DEFAULT 0")
-
     def record(self, video_id: str, outcome: str, detail: str = "") -> None:
-        with open_state(self._path) as conn:
-            self._widen(conn)
+        with open_state(self._db) as conn:
             conn.execute(
                 "INSERT INTO video_attempts"
-                " (video_id, outcome, detail, tried, tries) VALUES (?, ?, ?, ?, 1)"
+                " (video_id, outcome, detail, tried, tries) VALUES (%s, %s, %s, %s, 1)"
                 " ON CONFLICT(video_id) DO UPDATE SET"
                 " outcome = excluded.outcome, detail = excluded.detail,"
                 " tried = excluded.tried, tries = video_attempts.tries + 1",
@@ -107,14 +93,13 @@ class AttemptLog:
         Three failures is not weather.
         """
         verdicts = sorted(AUTO_SETTLED if accept_auto else SETTLED)
-        with open_state(self._path) as conn:
-            self._widen(conn)
+        with open_state(self._db) as conn:
             rows = conn.execute(
                 "SELECT video_id FROM video_attempts"
-                f" WHERE outcome IN ({','.join('?' * len(verdicts))})"
+                " WHERE outcome = ANY(%s)"
                 "    OR (outcome NOT IN ('added', 'throttled')"
-                "        AND tries >= ?)",
-                (*verdicts, self.GIVE_UP))
+                "        AND tries >= %s)",
+                (verdicts, self.GIVE_UP))
             return frozenset(r[0] for r in rows)
 
     def attempted(self) -> frozenset[str]:
@@ -127,14 +112,13 @@ class AttemptLog:
         told a reader that MrWissen2go held 66 usable videos when 526 of the
         527 it counted had already been fetched and refused.
         """
-        with open_state(self._path) as conn:
-            self._widen(conn)
+        with open_state(self._db) as conn:
             rows = conn.execute(
                 "SELECT video_id FROM video_attempts WHERE outcome <> 'added'")
             return frozenset(r[0] for r in rows)
 
     def counts(self) -> dict[str, int]:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return dict(conn.execute(
                 "SELECT outcome, count(*) FROM video_attempts GROUP BY outcome"))
 

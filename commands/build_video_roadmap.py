@@ -40,7 +40,7 @@ class BuildVideoRoadmapCommand:
                 " JOIN channel c ON c.id = v.channel_id"
                 " WHERE c.youtube_channel_id IS NOT NULL"))
 
-        said = ChannelTaste(settings.state_path).all()
+        said = ChannelTaste(settings.state).all()
         taste = {video: taste_weight(said.get(channel.get(video)))
                  for video in grouped}
         chosen = sum(1 for w in taste.values() if w != 1.0)
@@ -58,7 +58,7 @@ class BuildVideoRoadmapCommand:
             raise SystemExit("nothing here teaches anything — every video's "
                              "sentences need two or more new words")
 
-        VideoRoadmapStore(settings.state_path).save(
+        VideoRoadmapStore(settings.state).save(
             plan, source, analyser_fingerprint(app.settings.language))
 
         taught = len(walk.known) - len(known)

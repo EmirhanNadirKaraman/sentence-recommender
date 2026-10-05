@@ -13,13 +13,14 @@ from pathlib import Path
 from vocab.goal_list import GoalList
 from vocab.search import UnitSearch, trigrams
 from vocab.word_lists import WordListStore
+from tests import pg
 
 
 class StoreTest(unittest.TestCase):
     def setUp(self) -> None:
         self._dir = tempfile.TemporaryDirectory()
         self.addCleanup(self._dir.cleanup)
-        self.store = WordListStore(Path(self._dir.name) / "state.sqlite3")
+        self.store = WordListStore(pg.schema(self))
 
     def test_order_survives(self) -> None:
         """A goal list's order is the only ranking it carries."""

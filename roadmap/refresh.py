@@ -137,7 +137,7 @@ class RoadmapRefresher:
 
     def __init__(self, app) -> None:
         self._app = app
-        self._store = RoadmapStore(app.settings.state_path)
+        self._store = RoadmapStore(app.settings.state)
 
     def refresh(self, touching: str | None = None, rebuild: bool = False,
                 progress=None) -> dict[str, int]:

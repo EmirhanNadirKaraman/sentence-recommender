@@ -28,7 +28,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from corpus.sentence import Sentence
-from state import open_state
+from state import ensure, open_state
 from vocab.entry import Unit
 
 # Below this a video is not a lesson, it is a clip. The reel already refuses
@@ -175,19 +175,19 @@ class VideoWalk:
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS video_roadmap (
-    source     TEXT NOT NULL,
-    position   INTEGER NOT NULL,
-    video_id   TEXT NOT NULL,
-    teaches    INTEGER NOT NULL,
-    minutes    REAL,
-    lines      INTEGER NOT NULL,
-    readable   INTEGER NOT NULL,
+    source     TEXT COLLATE "C" NOT NULL,
+    position   BIGINT NOT NULL,
+    video_id   TEXT COLLATE "C" NOT NULL,
+    teaches    BIGINT NOT NULL,
+    minutes    DOUBLE PRECISION,
+    lines      BIGINT NOT NULL,
+    readable   BIGINT NOT NULL,
     PRIMARY KEY (source, position)
 );
 CREATE TABLE IF NOT EXISTS video_roadmap_meta (
-    source  TEXT PRIMARY KEY,
-    stamp   TEXT NOT NULL,
-    made_at TEXT NOT NULL
+    source  TEXT COLLATE "C" PRIMARY KEY,
+    stamp   TEXT COLLATE "C" NOT NULL,
+    made_at TEXT COLLATE "C" NOT NULL
 );
 """
 
@@ -202,36 +202,37 @@ class VideoRoadmapStore:
     the page wants is the order.
     """
 
-    def __init__(self, path) -> None:
-        self._path = path
-        with open_state(self._path) as conn:
-            conn.executescript(SCHEMA)
+    def __init__(self, config) -> None:
+        self._db = config
+        ensure(config, SCHEMA)
 
     def save(self, steps: list[VideoStep], source: str, stamp: str = "") -> None:
-        with open_state(self._path) as conn:
-            conn.execute("DELETE FROM video_roadmap WHERE source = ?", (source,))
+        with open_state(self._db) as conn:
+            conn.execute("DELETE FROM video_roadmap WHERE source = %s", (source,))
             conn.executemany(
                 "INSERT INTO video_roadmap (source, position, video_id, teaches,"
-                " minutes, lines, readable) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                " minutes, lines, readable) VALUES (%s, %s, %s, %s, %s, %s, %s)",
                 [(source, s.position, s.video, s.teaches, s.minutes, s.lines,
                   s.readable_after) for s in steps])
             if stamp:
                 conn.execute(
-                    "INSERT OR REPLACE INTO video_roadmap_meta"
-                    " (source, stamp, made_at) VALUES (?, ?, ?)",
+                    "INSERT INTO video_roadmap_meta"
+                    " (source, stamp, made_at) VALUES (%s, %s, %s)"
+                    " ON CONFLICT (source) DO UPDATE SET stamp = excluded.stamp,"
+                    " made_at = excluded.made_at",
                     (source, stamp,
                      datetime.now().isoformat(timespec="seconds")))
 
     def order(self, source: str) -> dict[str, int]:
         """Video id -> where it comes in the plan."""
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return {v: n for v, n in conn.execute(
-                "SELECT video_id, position FROM video_roadmap WHERE source = ?",
+                "SELECT video_id, position FROM video_roadmap WHERE source = %s",
                 (source,))}
 
     def stamp(self, source: str) -> str | None:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             row = conn.execute(
-                "SELECT stamp FROM video_roadmap_meta WHERE source = ?",
+                "SELECT stamp FROM video_roadmap_meta WHERE source = %s",
                 (source,)).fetchone()
         return row[0] if row else None

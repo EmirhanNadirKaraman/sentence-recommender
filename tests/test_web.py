@@ -21,6 +21,7 @@ from web import render, watch
 from threading import Lock
 
 from web.handlers import ORDERS, Once, Viewer
+from tests import pg
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -462,7 +463,9 @@ class TranscriptUnitsTest(unittest.TestCase):
                 seen.update(kw)
                 return []
 
+        from config import Settings
         app = Application.__new__(Application)
+        app.settings = Settings(state=pg.schema(self))
         app.__dict__["corpus_store"] = Store()
         app.__dict__["check_freshness"] = lambda: None
         app._unit_rule = lambda strict, list_only: None
@@ -909,7 +912,7 @@ class ReviewQueueTest(unittest.TestCase):
         from srs import CardStore, SM2Scheduler
         from vocab.attempts import Attempts
         from vocab.own_sentences import OwnSentences
-        state = tmp / "state.sqlite3"
+        state = pg.schema(self)
         from corpus.overrides import SentenceOverrides
         app = SimpleNamespace(
             # A real one: `_page` counts the words queued and not yet exported
@@ -921,7 +924,7 @@ class ReviewQueueTest(unittest.TestCase):
             attempts=Attempts(state),
             mcp_prompt=lambda unit: {"spoken": unit.key, "meaning": "", "examples": []},
             corpus_store=SimpleNamespace(builds=lambda teachable_only=False: {"subtitle": 1}),
-            settings=SimpleNamespace(state_path=state, goal_words=tmp / "study_list.txt"))
+            settings=SimpleNamespace(state=state, goal_words=tmp / "study_list.txt"))
         app.due_cards = lambda now=None, limit=20: Application.due_cards(app, now, limit)
         viewer = Viewer(app)
         return viewer, app
@@ -1115,7 +1118,7 @@ class HeardTest(unittest.TestCase):
         from vocab.encounters import Encounters
         from vocab.entry import Unit
         with tempfile.TemporaryDirectory() as tmp:
-            store = Encounters(Path(tmp) / "state.sqlite3")
+            store = Encounters(pg.schema(self))
             viewer = SimpleNamespace(app=SimpleNamespace(encounters=store))
             got = Viewer.heard(viewer, [
                 {"text": "Lasst uns mal üben!", "video": "vid", "at": 12.5,
@@ -1281,7 +1284,7 @@ class RemoveOneVideoTest(unittest.TestCase):
         from vocab.channel_taste import VideoRemovals
         self._dir = tempfile.TemporaryDirectory()
         self.addCleanup(self._dir.cleanup)
-        return VideoRemovals(Path(self._dir.name) / "state.sqlite3")
+        return VideoRemovals(pg.schema(self))
 
     def test_removing_and_restoring_round_trips(self) -> None:
         store = self.store()
@@ -1371,7 +1374,7 @@ class StarredSentenceTest(unittest.TestCase):
         from corpus.overrides import SentenceOverrides
         self._dir = tempfile.TemporaryDirectory()
         self.addCleanup(self._dir.cleanup)
-        return SentenceOverrides(Path(self._dir.name) / "state.sqlite3")
+        return SentenceOverrides(pg.schema(self))
 
     def test_starring_round_trips(self) -> None:
         store = self.store()
@@ -2452,11 +2455,9 @@ class AnkiReminderTest(unittest.TestCase):
         self.assertIn("badge", anki)
 
     def test_a_word_is_waiting_until_it_has_been_exported(self) -> None:
-        import tempfile
-        from pathlib import Path
         from corpus.overrides import SentenceOverrides
         from vocab.entry import Unit
-        store = SentenceOverrides(Path(tempfile.mkdtemp()) / "state.sqlite3")
+        store = SentenceOverrides(pg.schema(self))
         one, two = Unit("lemma", "geben"), Unit("lemma", "halten")
         store.queue_anki(one)
         self.assertEqual(store.anki_unexported(), 1)
@@ -2468,11 +2469,9 @@ class AnkiReminderTest(unittest.TestCase):
     def test_a_word_taken_out_and_put_back_is_waiting_again(self) -> None:
         """It is a card to make again, so it counts again -- which a single
         "last exported" timestamp compared against `queued` would miss."""
-        import tempfile
-        from pathlib import Path
         from corpus.overrides import SentenceOverrides
         from vocab.entry import Unit
-        store = SentenceOverrides(Path(tempfile.mkdtemp()) / "state.sqlite3")
+        store = SentenceOverrides(pg.schema(self))
         word = Unit("lemma", "geben")
         store.queue_anki(word)
         store.note_anki_export([word])

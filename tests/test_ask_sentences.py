@@ -8,6 +8,7 @@ from types import SimpleNamespace
 from commands.ask_sentences import _once, read, state_and_questions
 from corpus.sentence import Sentence
 from vocab.entry import Unit
+from tests import pg
 
 
 class RequestTest(unittest.TestCase):
@@ -69,18 +70,17 @@ class BestVideosTest(unittest.TestCase):
 
     def test_the_lines_come_best_video_first(self) -> None:
         import tempfile
-        from pathlib import Path
         from alignment.timing import Timing
         from commands.ask_sentences import _of_the_best_videos
         from scores import ScoreStore
         from config import Settings
         from context import Application
         with tempfile.TemporaryDirectory() as tmp:
-            app = Application(Settings(state_path=Path(tmp) / "state.sqlite3"))
+            app = Application(Settings(state=pg.schema(self)))
             row = lambda video, watch, lines=50: {
                 "video": video, "title": "", "lines": lines, "minutes": 10.0,
                 "comprehension": 0.9, "i+1": 1, "teaches": 1, "watch": watch, "next": []}
-            ScoreStore(app.settings.state_path).save("all", "stamp", [
+            ScoreStore(app.settings.state).save("all", "stamp", [
                 row("best", 0.9), row("thin", 0.95, lines=5), row("next", 0.5)])
             lines = [Sentence("Zweitbestes Video, erste Zeile.", timing=Timing("next", 1.0, 2.0)),
                      Sentence("Bestes Video, zweite Zeile.", timing=Timing("best", 9.0, 10.0)),
@@ -112,21 +112,11 @@ class BestVideosTest(unittest.TestCase):
 
 
 class ScoreStoreLevelTest(unittest.TestCase):
-    def test_a_videos_level_is_stored_and_read_back_and_an_old_table_gains_it(self) -> None:
-        import sqlite3
+    def test_a_videos_level_is_stored_and_read_back(self) -> None:
         import tempfile
-        from pathlib import Path
         from scores import ScoreStore
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "state.sqlite3"
-            with sqlite3.connect(path) as conn:      # a table from before the column
-                conn.execute("CREATE TABLE video_score (source TEXT NOT NULL, video_id TEXT "
-                             "NOT NULL, title TEXT, lines INTEGER NOT NULL, minutes REAL, "
-                             "comprehension REAL NOT NULL, teachable INTEGER NOT NULL, "
-                             "teaches INTEGER NOT NULL, watch REAL NOT NULL, "
-                             "next_words TEXT NOT NULL DEFAULT '[]', "
-                             "PRIMARY KEY (source, video_id))")
-            store = ScoreStore(path)
+        with tempfile.TemporaryDirectory():
+            store = ScoreStore(pg.schema(self))
             row = {"video": "v", "title": "", "lines": 50, "minutes": 10.0,
                    "comprehension": 0.5, "readable": 0.1, "i+1": 1, "teaches": 1,
                    "watch": 0.3, "next": [], "level": 1.5}

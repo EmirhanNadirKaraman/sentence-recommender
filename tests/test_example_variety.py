@@ -120,6 +120,12 @@ class SameMeaningTest(unittest.TestCase):
     TOETEN = Unit("lemma", "töten")
 
     def test_a_rewritten_sentence_is_not_shown_beside_its_original(self) -> None:
+        """Their stored vectors say they are one sentence twice -- here made
+        to, as the embedding model says it of the real pair."""
+        import numpy
+        from corpus.vectors import DIMS, VectorStore, pack
+        from roadmap import examples
+        from tests import pg
         candidates = [
             sentence("Du würdest doch mich nicht töten, deinen Freund Frank.",
                      self.TOETEN, "töten"),
@@ -128,6 +134,13 @@ class SameMeaningTest(unittest.TestCase):
             sentence("Man darf einen anderen Menschen niemals einfach so "
                      "töten.", self.TOETEN, "töten"),
         ]
+        alike, apart = numpy.zeros(DIMS), numpy.zeros(DIMS)
+        alike[0], apart[1] = 1.0, 1.0
+        state = pg.schema(self)
+        VectorStore(state).add_many({candidates[0].text: pack(alike),
+                                     candidates[1].text: pack(alike),
+                                     candidates[2].text: pack(apart)}, "test")
+        examples.read_vectors_from(state)
         chosen = spread(candidates, self.TOETEN, 2)
         self.assertEqual(chosen[0], candidates[0])
         self.assertEqual(chosen[1], candidates[2])

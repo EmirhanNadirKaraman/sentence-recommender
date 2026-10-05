@@ -23,23 +23,22 @@ from __future__ import annotations
 import json
 from collections import defaultdict
 from datetime import datetime
-from pathlib import Path
 
 from corpus.questions import LEVELS
-from state import open_state
+from state import ensure, open_state
 from vocab.entry import Unit
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS sentence_answer (
-    text         TEXT NOT NULL,
-    kind         TEXT NOT NULL DEFAULT '',
-    key          TEXT NOT NULL DEFAULT '',
-    question     TEXT NOT NULL,
-    version      INTEGER NOT NULL,
-    model        TEXT NOT NULL,
-    value        REAL NOT NULL,
-    distribution TEXT,
-    made_at      TEXT NOT NULL,
+    text         TEXT COLLATE "C" NOT NULL,
+    kind         TEXT COLLATE "C" NOT NULL DEFAULT '',
+    key          TEXT COLLATE "C" NOT NULL DEFAULT '',
+    question     TEXT COLLATE "C" NOT NULL,
+    version      BIGINT NOT NULL,
+    model        TEXT COLLATE "C" NOT NULL,
+    value        DOUBLE PRECISION NOT NULL,
+    distribution TEXT COLLATE "C",
+    made_at      TEXT COLLATE "C" NOT NULL,
     PRIMARY KEY (text, kind, key, question, version, model)
 );
 CREATE INDEX IF NOT EXISTS ix_sentence_answer_question
@@ -200,11 +199,9 @@ class Judged:
 
 
 class AnswerStore:
-    def __init__(self, path: Path) -> None:
-        self._path = path
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with open_state(self._path) as conn:
-            conn.executescript(SCHEMA)
+    def __init__(self, config) -> None:
+        self._db = config
+        ensure(config, SCHEMA)
 
     def save(self, text: str, model: str, version: int,
              answers: dict[str, tuple[float, dict | None]],
@@ -223,19 +220,27 @@ class AnswerStore:
                          question, version, model, float(value),
                          json.dumps(distribution, ensure_ascii=False) if distribution else None,
                          now))
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             conn.executemany(
-                "INSERT OR REPLACE INTO sentence_answer"
+                "INSERT INTO sentence_answer"
                 " (text, kind, key, question, version, model, value, distribution, made_at)"
-                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", rows)
+                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                " ON CONFLICT (text, kind, key, question, version, model)"
+                " DO UPDATE SET value = excluded.value,"
+                " distribution = excluded.distribution,"
+                " made_at = excluded.made_at", rows)
 
     def refuse(self, text: str, unit: Unit, model: str) -> None:
         """The gloss would not read this sentence as this word."""
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             conn.execute(
-                "INSERT OR REPLACE INTO sentence_answer"
+                "INSERT INTO sentence_answer"
                 " (text, kind, key, question, version, model, value, distribution, made_at)"
-                " VALUES (?, ?, ?, ?, 0, ?, 1.0, NULL, ?)",
+                " VALUES (%s, %s, %s, %s, 0, %s, 1.0, NULL, %s)"
+                " ON CONFLICT (text, kind, key, question, version, model)"
+                " DO UPDATE SET value = excluded.value,"
+                " distribution = excluded.distribution,"
+                " made_at = excluded.made_at",
                 (text, unit.kind, unit.key, REFUSED, model,
                  datetime.now().isoformat(timespec="seconds")))
 
@@ -246,16 +251,15 @@ class AnswerStore:
         that asks `level` alone of a video's lines skips what the full
         pass already levelled, and the full pass, asking `complete` among
         the rest, does not skip a sentence that has only the level."""
-        marks = ", ".join("?" for _ in questions)
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return {text for (text,) in conn.execute(
                 "SELECT text FROM sentence_answer"
-                f" WHERE question IN ({marks}) AND version = ? AND model = ?"
-                " GROUP BY text HAVING count(DISTINCT question) = ?",
-                (*questions, version, model, len(questions)))}
+                " WHERE question = ANY(%s) AND version = %s AND model = %s"
+                " GROUP BY text HAVING count(DISTINCT question) = %s",
+                (list(questions), version, model, len(set(questions))))}
 
     def counts(self) -> dict[str, int]:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return {q: n for q, n in conn.execute(
                 "SELECT question, count(*) FROM sentence_answer GROUP BY question")}
 
@@ -272,10 +276,10 @@ class AnswerStore:
         quality: dict[str, float] = {}
         levels: dict[str, float] = {}
         plain: dict[str, dict[tuple[str, str], float]] = defaultdict(dict)
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             for text, kind, key, question, value in conn.execute(
                     "SELECT text, kind, key, question, value FROM sentence_answer"
-                    " WHERE (model = ? AND version = ?) OR question = ?",
+                    " WHERE (model = %s AND version = %s) OR question = %s",
                     (model, version, REFUSED)):
                 if question in QUALITY:
                     quality[text] = quality.get(text, 1.0) * value

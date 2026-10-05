@@ -24,7 +24,8 @@ class ResolvedCache:
     """Resolved vocabulary, keyed on the files it came from."""
 
     def __init__(self, path: Path, language: str = "de") -> None:
-        self._path = path.with_name("resolved.json")
+        # Beside the reader's other files, in their home: `resolved.json`.
+        self._path = path
         # Whose rules resolved it: each language's parser is its own.
         self._language = language
 

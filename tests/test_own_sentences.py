@@ -4,10 +4,10 @@ from __future__ import annotations
 import tempfile
 import unittest
 from datetime import datetime, timedelta
-from pathlib import Path
 
 from srs.scheduler import SM2Scheduler
 from vocab.own_sentences import OwnSentences
+from tests import pg
 
 FUZZ = SM2Scheduler.FUZZ
 
@@ -15,7 +15,7 @@ FUZZ = SM2Scheduler.FUZZ
 class OwnSentencesTest(unittest.TestCase):
     def setUp(self) -> None:
         self._dir = tempfile.TemporaryDirectory()
-        self.own = OwnSentences(Path(self._dir.name) / "state.sqlite3")
+        self.own = OwnSentences(pg.schema(self))
         self.now = datetime(2026, 9, 21, 12, 0)
 
     def tearDown(self) -> None:

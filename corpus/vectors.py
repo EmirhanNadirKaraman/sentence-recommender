@@ -27,24 +27,23 @@ from __future__ import annotations
 
 import re
 from datetime import datetime
-from pathlib import Path
 
 import numpy as np
 
-from state import open_state
+from state import ensure, open_state
 
 DIMS = 512
-# float16 halves the file for a difference far below the thresholds this
+# float16 halves the storage for a difference far below the thresholds this
 # feeds: 62,000 sentences are 32MB rather than 64MB.
 DTYPE = np.float16
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS sentence_vector (
-    text    TEXT PRIMARY KEY,
-    vector  BLOB NOT NULL,
-    dims    INTEGER NOT NULL,
-    model   TEXT NOT NULL,
-    made_at TEXT NOT NULL
+    text    TEXT COLLATE "C" PRIMARY KEY,
+    vector  BYTEA NOT NULL,
+    dims    BIGINT NOT NULL,
+    model   TEXT COLLATE "C" NOT NULL,
+    made_at TEXT COLLATE "C" NOT NULL
 );
 """
 
@@ -101,26 +100,39 @@ def pack(raw) -> bytes:
 class VectorStore:
     """Sentence vectors, by the sentence."""
 
-    def __init__(self, path: Path) -> None:
-        self._path = path
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with open_state(self._path) as conn:
-            conn.executescript(SCHEMA)
+    def __init__(self, config) -> None:
+        self._db = config
+        ensure(config, SCHEMA)
 
     def have(self) -> set[str]:
         """Every sentence already answered for, so a run can resume."""
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return {row[0] for row in
                     conn.execute("SELECT text FROM sentence_vector")}
 
     def add_many(self, vectors: dict[str, bytes], model: str) -> None:
         now = datetime.now().isoformat()
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             conn.executemany(
-                "INSERT OR REPLACE INTO sentence_vector"
-                " (text, vector, dims, model, made_at) VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO sentence_vector"
+                " (text, vector, dims, model, made_at) VALUES (%s, %s, %s, %s, %s)"
+                " ON CONFLICT (text) DO UPDATE SET vector = excluded.vector,"
+                " dims = excluded.dims, model = excluded.model,"
+                " made_at = excluded.made_at",
                 [(text, blob, DIMS, model, now)
                  for text, blob in vectors.items()])
+
+    @staticmethod
+    def stored(config) -> dict[str, np.ndarray]:
+        """`load`, for a reader who may never have stored a vector -- read
+        without making the table, so asking does not change anything."""
+        with open_state(config) as conn:
+            if conn.execute("SELECT to_regclass('sentence_vector')"
+                            ).fetchone()[0] is None:
+                return {}
+            return {text: np.frombuffer(blob, dtype=DTYPE).astype(np.float32)
+                    for text, blob in
+                    conn.execute("SELECT text, vector FROM sentence_vector")}
 
     def load(self) -> dict[str, np.ndarray]:
         """Every vector, as float32 arrays ready to dot together.
@@ -129,12 +141,12 @@ class VectorStore:
         but numpy's f16 dot is done in software and is several times slower
         than f32 on every machine this runs on.
         """
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return {text: np.frombuffer(blob, dtype=DTYPE).astype(np.float32)
                     for text, blob in
                     conn.execute("SELECT text, vector FROM sentence_vector")}
 
     def count(self) -> int:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return conn.execute(
                 "SELECT COUNT(*) FROM sentence_vector").fetchone()[0]

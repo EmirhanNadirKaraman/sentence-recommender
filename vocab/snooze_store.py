@@ -21,18 +21,17 @@ word out of the reading page.
 from __future__ import annotations
 
 from datetime import datetime
-from pathlib import Path
 
-from state import open_state
+from state import ensure, open_state
 from vocab.entry import Unit
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS snoozed_units (
-    kind      TEXT NOT NULL,
-    key       TEXT NOT NULL,
-    wake_tick INTEGER NOT NULL,
-    times     INTEGER NOT NULL DEFAULT 1,
-    snoozed   TEXT NOT NULL,
+    kind      TEXT COLLATE "C" NOT NULL,
+    key       TEXT COLLATE "C" NOT NULL,
+    wake_tick BIGINT NOT NULL,
+    times     BIGINT NOT NULL DEFAULT 1,
+    snoozed   TEXT COLLATE "C" NOT NULL,
     PRIMARY KEY (kind, key)
 );
 CREATE INDEX IF NOT EXISTS ix_snoozed_wake ON snoozed_units(wake_tick);
@@ -41,10 +40,10 @@ CREATE INDEX IF NOT EXISTS ix_snoozed_wake ON snoozed_units(wake_tick);
 -- tick 40 with a delay of twenty is asleep until tick 60, whether those twenty
 -- decisions take an evening or a fortnight.
 CREATE TABLE IF NOT EXISTS study_clock (
-    id   INTEGER PRIMARY KEY CHECK (id = 1),
-    tick INTEGER NOT NULL
+    id   BIGINT PRIMARY KEY CHECK (id = 1),
+    tick BIGINT NOT NULL
 );
-INSERT OR IGNORE INTO study_clock (id, tick) VALUES (1, 0);
+INSERT INTO study_clock (id, tick) VALUES (1, 0) ON CONFLICT DO NOTHING;
 """
 
 # How far back a word goes the first time, and the furthest it can ever go.
@@ -58,16 +57,14 @@ CAP = 200
 class SnoozeStore:
     """Which words are set aside, and until when."""
 
-    def __init__(self, path: Path) -> None:
-        self._path = path
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with open_state(self._path) as conn:
-            conn.executescript(SCHEMA)
+    def __init__(self, config) -> None:
+        self._db = config
+        ensure(config, SCHEMA)
 
     # --- the clock --------------------------------------------------------
 
     def tick(self) -> int:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return self._tick(conn)
 
     @staticmethod
@@ -78,7 +75,7 @@ class SnoozeStore:
     def advance(self) -> int:
         """One decision taken. Called for a word learned as well as one set
         aside — both are "another word", which is what the delay counts."""
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return self._advance(conn)
 
     @staticmethod
@@ -98,16 +95,16 @@ class SnoozeStore:
         taps racing the counter would give one of them a delay measured from
         a tick that no longer exists.
         """
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             now = self._advance(conn)
             row = conn.execute(
-                "SELECT times FROM snoozed_units WHERE kind = ? AND key = ?",
+                "SELECT times FROM snoozed_units WHERE kind = %s AND key = %s",
                 (unit.kind, unit.key)).fetchone()
             times = (row[0] if row else 0) + 1
             wait = min(delay * 2 ** (times - 1), cap)
             conn.execute(
                 "INSERT INTO snoozed_units (kind, key, wake_tick, times, snoozed)"
-                " VALUES (?, ?, ?, ?, ?)"
+                " VALUES (%s, %s, %s, %s, %s)"
                 " ON CONFLICT(kind, key) DO UPDATE SET"
                 " wake_tick = excluded.wake_tick, times = excluded.times,"
                 " snoozed = excluded.snoozed",
@@ -122,8 +119,8 @@ class SnoozeStore:
         Deletes the row rather than expiring it, so `times` resets too. A
         retraction should not leave the word remembering it was avoided.
         """
-        with open_state(self._path) as conn:
-            conn.execute("DELETE FROM snoozed_units WHERE kind = ? AND key = ?",
+        with open_state(self._db) as conn:
+            conn.execute("DELETE FROM snoozed_units WHERE kind = %s AND key = %s",
                          (unit.kind, unit.key))
 
     # --- reading ----------------------------------------------------------
@@ -135,7 +132,7 @@ class SnoozeStore:
         indexed query over a table of tens of rows, and keeping it in memory is
         the exact bug this replaced.
         """
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return frozenset(
                 Unit(kind, key) for kind, key in conn.execute(
                     "SELECT kind, key FROM snoozed_units"
@@ -143,9 +140,9 @@ class SnoozeStore:
             )
 
     def is_asleep(self, unit: Unit) -> bool:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             row = conn.execute(
-                "SELECT 1 FROM snoozed_units WHERE kind = ? AND key = ?"
+                "SELECT 1 FROM snoozed_units WHERE kind = %s AND key = %s"
                 " AND wake_tick > (SELECT tick FROM study_clock WHERE id = 1)",
                 (unit.kind, unit.key)).fetchone()
         return row is not None
@@ -156,15 +153,15 @@ class SnoozeStore:
         For the list that lets a mis-swipe be undone after the moment has
         passed.
         """
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             now = self._tick(conn)
             rows = conn.execute(
                 "SELECT kind, key, wake_tick FROM snoozed_units"
-                " WHERE wake_tick > ? ORDER BY wake_tick", (now,)).fetchall()
+                " WHERE wake_tick > %s ORDER BY wake_tick", (now,)).fetchall()
         return [(Unit(kind, key), wake - now) for kind, key, wake in rows]
 
     def __len__(self) -> int:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return conn.execute(
                 "SELECT count(*) FROM snoozed_units"
                 " WHERE wake_tick > (SELECT tick FROM study_clock WHERE id = 1)"

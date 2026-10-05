@@ -1,14 +1,14 @@
 """The bulk translation pass, and the store it shares with the gloss."""
 from __future__ import annotations
 
-import sqlite3
 import tempfile
 import unittest
-from pathlib import Path
 
 from commands.translate_sentences import ordered, parse
 from deck import Card, Example
 from deck.gloss import GLOSS_VERSION, GlossStore, missing
+from state import open_state
+from tests import pg
 
 MODEL = "some/model"
 
@@ -54,14 +54,14 @@ class OrderTest(unittest.TestCase):
                          ["c", "e", "f", "a", "b", "d"])
 
 
-def _store(tmp: str) -> GlossStore:
-    return GlossStore(Path(tmp) / "state.sqlite3")
+def _store(test) -> GlossStore:
+    return GlossStore(pg.schema(test))
 
 
 class StoreTest(unittest.TestCase):
     def test_a_bulk_translation_is_english_but_was_not_asked(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            store = _store(tmp)
+            store = _store(self)
             store.save_translations({"Satz eins.": "Sentence one."}, MODEL)
             store.save("lemma", "zwei", [("Satz zwei.", "Sentence two.",
                                           "zwei means two.")], MODEL)
@@ -71,7 +71,7 @@ class StoreTest(unittest.TestCase):
 
     def test_the_gloss_wins_whichever_lands_second(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            store = _store(tmp)
+            store = _store(self)
             store.save("lemma", "eins", [("Satz.", "From the gloss.", "x")],
                        MODEL)
             store.save_translations({"Satz.": "From the bulk pass."}, MODEL)
@@ -88,32 +88,16 @@ class StoreTest(unittest.TestCase):
         would be asked again anyway, and another model's is not this
         model's answer at all."""
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "state.sqlite3"
+            path = pg.schema(self)
             store = GlossStore(path)
             store.save("lemma", "x", [("Alt.", "Old.", "x")], "other/model")
-            with sqlite3.connect(path) as conn:
+            with open_state(path) as conn:
                 conn.execute("INSERT INTO sentence_english (text, english, "
-                             "version, model, source) VALUES (?,?,?,?,'gloss')",
+                             "version, model, source) VALUES (%s,%s,%s,%s,'gloss')",
                              ("Älter.", "Older.", GLOSS_VERSION - 1, MODEL))
             store.save_translations({"Alt.": "New.", "Älter.": "Newer."}, MODEL)
             self.assertEqual(store.sentences(MODEL),
                              {"Alt.": "New.", "Älter.": "Newer."})
-
-    def test_an_older_database_reads_its_rows_as_the_gloss(self) -> None:
-        """Every row written before the column existed came from the gloss,
-        which was the only thing writing here."""
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "state.sqlite3"
-            with sqlite3.connect(path) as conn:
-                conn.execute("CREATE TABLE sentence_english (text TEXT PRIMARY "
-                             "KEY, english TEXT NOT NULL, version INTEGER NOT "
-                             "NULL DEFAULT 0, model TEXT NOT NULL DEFAULT '', "
-                             "made_at TEXT NOT NULL DEFAULT '')")
-                conn.execute("INSERT INTO sentence_english VALUES (?,?,?,?,?)",
-                             ("Satz.", "Sentence.", GLOSS_VERSION, MODEL, ""))
-            store = GlossStore(path)
-            self.assertEqual(store.sentences(MODEL), {"Satz.": "Sentence."})
-            self.assertEqual(store.asked(MODEL), {"Satz."})
 
 
 class BlocksTest(unittest.TestCase):
@@ -135,7 +119,7 @@ class MissingTest(unittest.TestCase):
         word. Judged by "has English somewhere", such a card would never
         be glossed at all; judged by what the gloss has seen, it is."""
         with tempfile.TemporaryDirectory() as tmp:
-            store = _store(tmp)
+            store = _store(self)
             store.save_translations({"Eins.": "One.", "Zwei.": "Two."}, MODEL)
             english = store.sentences(MODEL)
             card = Card(1, "eins", False,
@@ -148,7 +132,7 @@ class MissingTest(unittest.TestCase):
         answered and one it never saw -- even one the bulk pass gave
         English to -- is a card with a question left in it."""
         with tempfile.TemporaryDirectory() as tmp:
-            store = _store(tmp)
+            store = _store(self)
             store.save("lemma", "eins",
                        [("Eins.", "One.", "eins means one."),
                         ("Zwei.", "Two.", "eins means one.")], MODEL)
@@ -169,12 +153,12 @@ class MissingTest(unittest.TestCase):
         even though `asked` knows nothing of it, the bulk pass having since
         replaced its English rows."""
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "state.sqlite3"
+            path = pg.schema(self)
             store = GlossStore(path)
-            with sqlite3.connect(path) as conn:
+            with open_state(path) as conn:
                 conn.executemany(
                     "INSERT INTO unit_sense (kind, key, text, means, version, model)"
-                    " VALUES (?,?,?,?,?,?)",
+                    " VALUES (%s,%s,%s,%s,%s,%s)",
                     [("lemma", "die Zeit", "Zeit.", "die Zeit means time.",
                       GLOSS_VERSION - 1, MODEL),
                      ("pattern", "jdm. (Dat) stehen", "Steht.",

@@ -19,17 +19,16 @@ not remember what the last one tried repeats it.
 from __future__ import annotations
 
 from datetime import datetime
-from pathlib import Path
 
-from state import open_state
+from state import ensure, open_state
 from vocab.entry import Unit
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS goal_search (
-    kind    TEXT NOT NULL,
-    key     TEXT NOT NULL,
-    tries   INTEGER NOT NULL DEFAULT 0,
-    last    TEXT NOT NULL,
+    kind    TEXT COLLATE "C" NOT NULL,
+    key     TEXT COLLATE "C" NOT NULL,
+    tries   BIGINT NOT NULL DEFAULT 0,
+    last    TEXT COLLATE "C" NOT NULL,
     PRIMARY KEY (kind, key)
 );
 """
@@ -43,11 +42,9 @@ GIVE_UP = 2
 class SearchLog:
     """A rota over the goals worth looking for."""
 
-    def __init__(self, path: Path) -> None:
-        self._path = Path(path)
-        self._path.parent.mkdir(parents=True, exist_ok=True)
-        with open_state(self._path) as conn:
-            conn.executescript(SCHEMA)
+    def __init__(self, config) -> None:
+        self._db = config
+        ensure(config, SCHEMA)
 
     def record(self, units) -> None:
         """Say these were looked for, whatever came of it."""
@@ -55,26 +52,26 @@ class SearchLog:
         rows = [(u.kind, u.key, now) for u in units]
         if not rows:
             return
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             conn.executemany(
                 "INSERT INTO goal_search (kind, key, tries, last)"
-                " VALUES (?, ?, 1, ?)"
+                " VALUES (%s, %s, 1, %s)"
                 " ON CONFLICT(kind, key) DO UPDATE SET"
-                " tries = tries + 1, last = excluded.last", rows)
+                " tries = goal_search.tries + 1, last = excluded.last", rows)
 
     def tried(self) -> dict[Unit, int]:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return {Unit(kind, key): n for kind, key, n in conn.execute(
                 "SELECT kind, key, tries FROM goal_search")}
 
     def forget(self, units=None) -> None:
         """Start the rota again — for these, or for everything."""
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             if units is None:
                 conn.execute("DELETE FROM goal_search")
             else:
                 conn.executemany(
-                    "DELETE FROM goal_search WHERE kind = ? AND key = ?",
+                    "DELETE FROM goal_search WHERE kind = %s AND key = %s",
                     [(u.kind, u.key) for u in units])
 
     def rota(self, stuck, give_up: int = GIVE_UP):

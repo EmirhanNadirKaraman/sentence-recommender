@@ -62,8 +62,8 @@ class HuntVideosCommand:
             quality_only: bool = False, absent_only: bool = False) -> None:
         ingestor = VideoIngestor(app.settings, app.analyzer)
         # The book `add-videos` has always kept, and the hunt never opened.
-        log = AttemptLog(app.settings.state_path)
-        searches = SearchLog(app.settings.state_path)
+        log = AttemptLog(app.settings.state)
+        searches = SearchLog(app.settings.state)
         hunter = VideoHunter(ingestor, log)
         if rounds > 1:
             settled = len(log.settled())
@@ -215,7 +215,7 @@ class HuntVideosCommand:
         spare = CorpusIndex(sentences, known or app.known_set(),
                             app.compounds)
         goals = frozenset(app.goal_units)
-        store = RoadmapStore(app.settings.state_path)
+        store = RoadmapStore(app.settings.state)
         stored = store.sources()
         # Named for the list this process is aimed at, like every other
         # reader of a stored plan. It composed the label from the source

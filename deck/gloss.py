@@ -32,18 +32,19 @@ A gloss answer replaces a bulk one, never the other way round.
 """
 from __future__ import annotations
 
+import hashlib
+
 import json
 import re
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from datetime import datetime
-from pathlib import Path
 from typing import Callable, Iterable
 
 from corpus.sentence import Sentence
 from deck import Card
 from vocab.entry import Unit
-from state import open_state
+from state import ensure, open_state
 
 # Bumped when the prompt changes in a way that changes the answers. Stored
 # beside each row and compared on read, so a wording fix does not leave
@@ -82,29 +83,31 @@ SCHEMA = """
 -- The word's sense *in one sentence*, so the same word can be glossed two
 -- ways where it is used two ways. Keyed by both, which is the whole point.
 CREATE TABLE IF NOT EXISTS unit_sense (
-    kind    TEXT NOT NULL,
-    key     TEXT NOT NULL,
-    text    TEXT NOT NULL,
-    means   TEXT NOT NULL,
-    version INTEGER NOT NULL DEFAULT 0,
-    model   TEXT NOT NULL DEFAULT '',
-    made_at TEXT NOT NULL DEFAULT '',
+    kind    TEXT COLLATE "C" NOT NULL,
+    key     TEXT COLLATE "C" NOT NULL,
+    text    TEXT COLLATE "C" NOT NULL,
+    means   TEXT COLLATE "C" NOT NULL,
+    version BIGINT NOT NULL DEFAULT 0,
+    model   TEXT COLLATE "C" NOT NULL DEFAULT '',
+    made_at TEXT COLLATE "C" NOT NULL DEFAULT '',
     PRIMARY KEY (kind, key, text)
 );
--- Superseded by unit_sense before it ever held anything worth keeping: it
--- stored one gloss per word, which had to hedge across the sentences.
-DROP TABLE IF EXISTS unit_gloss;
 -- Which prompt produced the row: 'gloss', asked beside a word and its
 -- sense, or 'translate', asked of the sentence alone. `version` is that
 -- prompt's version.
 CREATE TABLE IF NOT EXISTS sentence_english (
-    text    TEXT PRIMARY KEY,
-    english TEXT NOT NULL,
-    version INTEGER NOT NULL DEFAULT 0,
-    model   TEXT NOT NULL DEFAULT '',
-    made_at TEXT NOT NULL DEFAULT '',
-    source  TEXT NOT NULL DEFAULT 'gloss'
+    text    TEXT COLLATE "C" NOT NULL,
+    english TEXT COLLATE "C" NOT NULL,
+    version BIGINT NOT NULL DEFAULT 0,
+    model   TEXT COLLATE "C" NOT NULL DEFAULT '',
+    made_at TEXT COLLATE "C" NOT NULL DEFAULT '',
+    source  TEXT COLLATE "C" NOT NULL DEFAULT 'gloss'
 );
+-- Keyed on a digest of the text rather than the text: a key is limited to a
+-- third of a page, and 123 of these are whole unpunctuated transcript
+-- passages that the bulk pass translated, the longest seventy kilobytes.
+CREATE UNIQUE INDEX IF NOT EXISTS sentence_english_text
+    ON sentence_english (md5(text));
 """
 
 SYSTEM = (
@@ -203,37 +206,9 @@ _FENCE = re.compile(r"^```(?:json)?\s*|\s*```$", re.MULTILINE)
 class GlossStore:
     """What the model has already said, keyed by the thing it said it about."""
 
-    def __init__(self, path: Path) -> None:
-        self._path = path
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with open_state(self._path) as conn:
-            conn.executescript(SCHEMA)
-            self._add_missing_columns(conn)
-
-    @staticmethod
-    def _add_missing_columns(conn) -> None:
-        """Widen tables made by an earlier version of this file.
-
-        `CREATE TABLE IF NOT EXISTS` is a no-op against a table that already
-        exists, columns and all — so a new column has to be added by hand or
-        every read of it fails on databases that predate it. Adding rather
-        than recreating, because the rows are answers someone paid a model
-        for. They default to version 0, which no prompt ever produced, so
-        they read as missing and are asked again.
-        """
-        for table in ("unit_sense", "sentence_english"):
-            have = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
-            if "version" not in have:
-                conn.execute(
-                    f"ALTER TABLE {table} ADD COLUMN version INTEGER NOT NULL"
-                    " DEFAULT 0")
-        have = {row[1] for row in conn.execute("PRAGMA table_info(sentence_english)")}
-        if "source" not in have:
-            # Every row written before the column existed came from the
-            # gloss, which was the only thing writing here.
-            conn.execute("ALTER TABLE sentence_english ADD COLUMN source"
-                         " TEXT NOT NULL DEFAULT 'gloss'")
-        conn.commit()
+    def __init__(self, config) -> None:
+        self._db = config
+        ensure(config, SCHEMA)
 
     def senses(self, model: str = "") -> dict[tuple[str, str, str], str]:
         """What each word means in each sentence it was glossed against.
@@ -255,10 +230,10 @@ class GlossStore:
         # Without this the bump re-asked all 3,883 cards of the beginner
         # deck for the 940 that had changed.
         from vocab.goal_list import CASE_FRAME             # noqa: PLC0415
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             rows = conn.execute(
                 "SELECT kind, key, text, means, version FROM unit_sense"
-                " WHERE version IN (?, ?) AND (? = '' OR model = ?)"
+                " WHERE version IN (%s, %s) AND (%s = '' OR model = %s)"
                 " ORDER BY version",
                 (STILL_CURRENT, GLOSS_VERSION, model, model)).fetchall()
         return {(kind, key, text): means for kind, key, text, means, version in rows
@@ -267,10 +242,10 @@ class GlossStore:
     def sense(self, kind: str, key: str, text: str, model: str = "") -> str | None:
         """One word's meaning in one sentence, the newest there is, whatever
         prompt made it -- what the subtitle popup shows -- or None."""
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             row = conn.execute(
-                "SELECT means FROM unit_sense WHERE kind = ? AND key = ? AND text = ?"
-                " AND means IS NOT NULL AND (? = '' OR model = ?)"
+                "SELECT means FROM unit_sense WHERE kind = %s AND key = %s AND text = %s"
+                " AND means IS NOT NULL AND (%s = '' OR model = %s)"
                 " ORDER BY version DESC LIMIT 1",
                 (kind, key, text, model, model)).fetchone()
         return row[0] if row else None
@@ -278,11 +253,14 @@ class GlossStore:
     def save_sense(self, kind: str, key: str, text: str, means: str, model: str) -> None:
         """A meaning asked for on the spot -- a word clicked in a subtitle --
         kept under version 0, a prompt of its own that no card reads."""
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             conn.execute(
-                "INSERT OR REPLACE INTO unit_sense"
+                "INSERT INTO unit_sense"
                 " (kind, key, text, means, version, model, made_at)"
-                " VALUES (?, ?, ?, ?, 0, ?, ?)",
+                " VALUES (%s, %s, %s, %s, 0, %s, %s)"
+                " ON CONFLICT (kind, key, text) DO UPDATE SET means = excluded.means,"
+                " version = excluded.version, model = excluded.model,"
+                " made_at = excluded.made_at",
                 (kind, key, text, means, model,
                  datetime.now().isoformat(timespec="seconds")))
             conn.commit()
@@ -299,19 +277,19 @@ class GlossStore:
         have emptied every card until the local model had been round the
         whole deck again. Newest version wins per sentence.
         """
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return {(kind, key, text): means for kind, key, text, means in
                     conn.execute(
                         "SELECT kind, key, text, means FROM unit_sense"
-                        " WHERE means IS NOT NULL AND (? = '' OR model = ?)"
+                        " WHERE means IS NOT NULL AND (%s = '' OR model = %s)"
                         " ORDER BY version", (model, model))}
 
     # A row the current prompts and this model produced. Either prompt will
     # do: a gloss answer and a bulk one are both the English of the sentence,
     # and each is current at its own version.
-    _CURRENT = ("(? = '' OR model = ?)"
-                " AND ((source = 'gloss' AND version = ?)"
-                "   OR (source = 'translate' AND version = ?))")
+    _CURRENT = ("(%s = '' OR model = %s)"
+                " AND ((source = 'gloss' AND version = %s)"
+                "   OR (source = 'translate' AND version = %s))")
 
     @staticmethod
     def _current(model: str) -> tuple:
@@ -320,7 +298,7 @@ class GlossStore:
     def sentences(self, model: str = "") -> dict[str, str]:
         """Sentence translations, from a current prompt and this model. See
         `senses` for why the model is part of the question."""
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return dict(conn.execute(
                 "SELECT text, english FROM sentence_english"
                 f" WHERE {self._CURRENT}", self._current(model)))
@@ -338,16 +316,14 @@ class GlossStore:
         """
         wanted = list(dict.fromkeys(texts))
         out: dict[str, str] = {}
-        with open_state(self._path) as conn:
-            # Chunked to stay under SQLite's bound-parameter limit.
-            for at in range(0, len(wanted), 500):
-                chunk = wanted[at:at + 500]
-                marks = ",".join("?" * len(chunk))
-                out.update(conn.execute(
-                    "SELECT text, english FROM sentence_english"
-                    f" WHERE text IN ({marks}) AND english <> ''"
-                    f" AND {self._CURRENT}",
-                    (*chunk, *self._current(model))))
+        with open_state(self._db) as conn:
+            # By digest, which is what the index is on.
+            out.update(conn.execute(
+                "SELECT text, english FROM sentence_english"
+                " WHERE md5(text) = ANY(%s) AND english <> ''"
+                f" AND {self._CURRENT}",
+                ([hashlib.md5(t.encode("utf-8")).hexdigest() for t in wanted],
+                 *self._current(model))))
         return out
 
     def translated(self, sentences: Iterable[Sentence],
@@ -372,11 +348,11 @@ class GlossStore:
         so a card whose sentence it has covered is still owed a gloss call.
         This is what `missing` wants for `asked`.
         """
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return {text for (text,) in conn.execute(
                 "SELECT text FROM sentence_english"
-                " WHERE source = 'gloss' AND version = ?"
-                " AND (? = '' OR model = ?)",
+                " WHERE source = 'gloss' AND version = %s"
+                " AND (%s = '' OR model = %s)",
                 (GLOSS_VERSION, model, model))}
 
     def save(self, kind: str, key: str,
@@ -389,17 +365,23 @@ class GlossStore:
         """
         now = datetime.now().isoformat(timespec="seconds")
         rows = list(rows)
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             conn.executemany(
-                "INSERT OR REPLACE INTO sentence_english"
+                "INSERT INTO sentence_english"
                 " (text, english, version, model, made_at, source)"
-                " VALUES (?,?,?,?,?,'gloss')",
+                " VALUES (%s,%s,%s,%s,%s,'gloss')"
+                " ON CONFLICT ((md5(text))) DO UPDATE SET english = excluded.english,"
+                " version = excluded.version, model = excluded.model,"
+                " made_at = excluded.made_at, source = excluded.source",
                 [(text, english, GLOSS_VERSION, model, now)
                  for text, english, _ in rows])
             conn.executemany(
-                "INSERT OR REPLACE INTO unit_sense"
+                "INSERT INTO unit_sense"
                 " (kind, key, text, means, version, model, made_at)"
-                " VALUES (?,?,?,?,?,?,?)",
+                " VALUES (%s,%s,%s,%s,%s,%s,%s)"
+                " ON CONFLICT (kind, key, text) DO UPDATE SET means = excluded.means,"
+                " version = excluded.version, model = excluded.model,"
+                " made_at = excluded.made_at",
                 [(kind, key, text, means, GLOSS_VERSION, model, now)
                  for text, _, means in rows if means])
             conn.commit()
@@ -415,17 +397,18 @@ class GlossStore:
         another model, an earlier bulk answer -- is replaced.
         """
         now = datetime.now().isoformat(timespec="seconds")
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             conn.executemany(
                 "INSERT INTO sentence_english"
                 " (text, english, version, model, made_at, source)"
-                " VALUES (?,?,?,?,?,'translate')"
-                " ON CONFLICT(text) DO UPDATE SET"
+                " VALUES (%s,%s,%s,%s,%s,'translate')"
+                " ON CONFLICT ((md5(text))) DO UPDATE SET"
                 " english = excluded.english, version = excluded.version,"
                 " model = excluded.model, made_at = excluded.made_at,"
                 " source = excluded.source"
-                " WHERE NOT (source = 'gloss' AND version = ?"
-                "            AND model = excluded.model)",
+                " WHERE NOT (sentence_english.source = 'gloss'"
+                "            AND sentence_english.version = %s"
+                "            AND sentence_english.model = excluded.model)",
                 [(text, said, TRANSLATE_VERSION, model, now, GLOSS_VERSION)
                  for text, said in english.items()])
             conn.commit()

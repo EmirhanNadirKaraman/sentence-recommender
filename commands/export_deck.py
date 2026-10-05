@@ -48,7 +48,7 @@ class ExportDeckCommand:
             self._render(cards, out_dir, sheet.stem, formats, None)
             return
 
-        store = RoadmapStore(app.settings.state_path)
+        store = RoadmapStore(app.settings.state)
         steps = store.load(label, limit=limit)
         if not steps:
             known = store.labels()
@@ -70,11 +70,11 @@ class ExportDeckCommand:
         # carried of its own -- 85 of 3,902 -- which looks like a finished
         # document and is a third of one.
         decks = store.decks(label, steps, limit=examples)
-        glosses = GlossStore(app.settings.state_path)
+        glosses = GlossStore(app.settings.state)
         said = os.environ.get("LLM_MODEL", "")
         cards = cards_from(steps, decks, glosses.senses_for_reading(said),
                            glosses.sentences(said),
-                           FixStore(app.settings.state_path).all())
+                           FixStore(app.settings.state).all())
         sentences = sum(len(c.examples) for c in cards)
         glossed = sum(1 for c in cards if c.glossed)
         relaxed = sum(1 for c in cards if c.beside)

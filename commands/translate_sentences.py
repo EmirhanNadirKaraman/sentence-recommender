@@ -189,7 +189,7 @@ def best_videos_first(app, todo: list[str], count: int) -> tuple[list[str], int]
     from scores import ScoreStore                            # noqa: PLC0415
     from watchability import ENOUGH_LINES                    # noqa: PLC0415
     banned = app.banned_videos()
-    ranked = [row["video"] for row in ScoreStore(app.settings.state_path).latest()
+    ranked = [row["video"] for row in ScoreStore(app.settings.state).latest()
               if row["lines"] >= ENOUGH_LINES and row["video"] not in banned][:count]
     place = {video: n for n, video in enumerate(ranked)}
     first: dict[str, int] = {}
@@ -234,11 +234,11 @@ class TranslateSentencesCommand:
             workers = client.slots() or WORKERS
 
         wanted = app.corpus_store.untranslated()
-        glosses = GlossStore(settings.state_path)
+        glosses = GlossStore(settings.state)
         have = glosses.sentences(model)
         pending = [(text, teachable) for text, teachable in wanted
                    if text not in have]
-        with open_state(settings.state_path) as conn:
+        with open_state(settings.state) as conn:
             # What a reader sees: the sentence each roadmap step teaches
             # with, and the three a card shows. Not the same set -- a third
             # of the step sentences sit past the third example, or outside

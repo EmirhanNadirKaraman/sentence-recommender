@@ -21,7 +21,6 @@ from __future__ import annotations
 
 import json
 import random
-import sqlite3
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -51,15 +50,15 @@ def expected(probabilities: dict[str, float]) -> float:
 def draw(app) -> list[dict]:
     """200 sentences the pass has levelled, up to 40 per top label."""
     random.seed(SEED)
-    con = sqlite3.connect(app.settings.state_path)
+    from state import open_state                            # noqa: PLC0415
     by_level: dict[str, list[tuple[str, dict]]] = defaultdict(list)
-    for text, distribution in con.execute(
-            "SELECT text, distribution FROM sentence_answer"
-            " WHERE question = 'level' AND version = ? AND model = ?",
-            (VERSION, app.settings.judge_model)):
-        dist = json.loads(distribution)
-        by_level[max(dist, key=dist.get)].append((text, dist))
-    con.close()
+    with open_state(app.settings.state) as con:
+        for text, distribution in con.execute(
+                "SELECT text, distribution FROM sentence_answer"
+                " WHERE question = 'level' AND version = %s AND model = %s",
+                (VERSION, app.settings.judge_model)):
+            dist = json.loads(distribution)
+            by_level[max(dist, key=dist.get)].append((text, dist))
     rows: list[dict] = []
     for label in LEVELS:
         pool = by_level.get(label, [])

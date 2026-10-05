@@ -1,23 +1,23 @@
-"""Generating `DATABASE.md` from the live databases.
+"""Generating `DATABASE.md` from the live database.
 
 The document says "regenerate rather than hand-edit", which was a promise the
 repository could not keep: the generator lived in a scratch directory and the
 version in git went stale the moment the schema moved. This is that generator,
 kept where it can be run again.
 
-It reports both stores, because the split between them is the thing worth
-understanding. Postgres holds the German — the catalogue as scraped, and the
-corpus analysed out of it. SQLite holds only what the reader has done about
-it: the roadmaps walked, the cards scheduled, the judgements nothing can
+One database, in schemas, and the split between them is the thing worth
+understanding. `public` holds the German -- the catalogue as scraped, and the
+corpus analysed out of it -- and `en` the same tables for English. `accounts`
+holds who the readers are. Each `reader_<name>` holds what one reader has
+done: the roadmaps walked, the cards scheduled, the judgements nothing can
 regenerate.
 
-For Postgres it prints keys, foreign keys and indexes as well as columns.
-That would have been noise when the schema belonged to another project and
-nothing here could change it. It is the point of the document now.
+It prints keys, foreign keys and indexes as well as columns. That would have
+been noise when the schema belonged to another project and nothing here
+could change it. It is the point of the document now.
 """
 from __future__ import annotations
 
-import sqlite3
 from datetime import date
 from pathlib import Path
 
@@ -44,51 +44,29 @@ IRREPLACEABLE = ("known_units", "checked_units", "snoozed_units",
                  "hidden_sentences", "corrected_sentences", "video_attempts")
 
 
-def _sqlite_section(path: Path, w) -> None:
-    conn = sqlite3.connect(str(path))
-    try:
-        tables = [r[0] for r in conn.execute(
-            "SELECT name FROM sqlite_master WHERE type='table'"
-            " AND name NOT LIKE 'sqlite_%' ORDER BY name")]
-        w(f"\n## `{path.relative_to(Path.cwd())}` — what the reader does"
-          f" ({len(tables)} tables)\n")
-        w("What the reader has done, and nothing else — the corpus itself"
-          " moved to")
-        w("Postgres. Roadmaps and scores are derived and rebuildable. The"
-          " judgements are")
-        w("not: " + ", ".join(f"`{t}`" for t in IRREPLACEABLE) + " hold"
-          " decisions")
-        w("nothing can regenerate. The file is gitignored either way.\n")
-        for table in tables:
-            rows = conn.execute(f'SELECT count(*) FROM "{table}"').fetchone()[0]
-            cols = list(conn.execute(f'PRAGMA table_info("{table}")'))
-            keys = [c[1] for c in sorted((c for c in cols if c[5]),
-                                         key=lambda c: c[5])]
-            w(f"\n### `{table}` — {rows:,} rows\n")
-            w("| column | type | null |")
-            w("|---|---|---|")
-            for _, name, kind, notnull, _default, _pk in cols:
-                w(f"| `{name}` | {kind or 'ANY'} | {'no' if notnull else 'yes'} |")
-            w("")
-            w(f"- primary key: "
-              + (", ".join(f"`{k}`" for k in keys) if keys
-                 else "**none declared**"))
-            for (index,) in [(r[1],) for r in
-                             conn.execute(f'PRAGMA index_list("{table}")')
-                             if not r[1].startswith("sqlite_")]:
-                on = [r[2] for r in conn.execute(f'PRAGMA index_info("{index}")')]
-                w(f"- index `{index}` on ({', '.join(on)})")
-    finally:
-        conn.close()
+def _reader_section(db, schema: str, w) -> None:
+    tables = [r[0] for r in db.rows(
+        "SELECT table_name FROM information_schema.tables"
+        " WHERE table_schema = %s AND table_type = 'BASE TABLE'"
+        " ORDER BY table_name", (schema,))]
+    w(f"\n## Schema `{schema}` — what one reader does ({len(tables)} tables)\n")
+    w("One schema per reader, `reader_<name>`, all alike; this is the")
+    w("installation's own reader's. What the reader has done, and what has")
+    w("been derived or paid for on their behalf. Roadmaps and scores are")
+    w("derived and rebuildable. The judgements are not: "
+      + ", ".join(f"`{t}`" for t in IRREPLACEABLE) + " hold decisions")
+    w("nothing can regenerate. A dump of the corpus to hand to someone else")
+    w("leaves these schemas out (`--exclude-schema='reader_*'`).\n")
+    _tables(db, tables, set(tables), w, schema)
 
 
 def _postgres_section(db, name: str, w) -> None:
     present = {r[0] for r in db.rows(
         "SELECT table_name FROM information_schema.tables"
         " WHERE table_schema = 'public'")}
-    revision = db.rows("SELECT version_num FROM alembic_version") \
+    revision = db.rows("SELECT version_num FROM public.alembic_version") \
         if "alembic_version" in present else []
-    w(f"\n## Postgres `{name}` — the catalogue ({len(CATALOGUE)} tables)\n")
+    w(f"\n## Schema `public` — the German catalogue ({len(CATALOGUE)} tables)\n")
     w("This project's own database, under `alembic`"
       + (f" at revision `{revision[0][0]}`" if revision else "") + ". Every")
     w("read and every write goes here; `DB_NAME` names it.\n")
@@ -99,9 +77,9 @@ def _postgres_section(db, name: str, w) -> None:
     w("Tables marked *write-only* are filled by language-app's scraper during")
     w("ingestion and read by nothing in this project.\n")
 
-    _tables(db, CATALOGUE, present, w)
+    _tables(db, CATALOGUE, present, w, "public")
 
-    w(f"\n## Postgres `{name}` — the analysed corpus"
+    w(f"\n## Schema `public` — the analysed German corpus"
       f" ({len(CORPUS)} tables + 1 view)\n")
     w("What the matcher made of the catalogue: one row per sentence worth")
     w("reading, and one per learning unit in it. `build` names both the source")
@@ -109,12 +87,12 @@ def _postgres_section(db, name: str, w) -> None:
     w("coexist; `build_meta` records which rules produced each.\n")
     w("These were SQLite until the i+1 subtraction — 3.48M set operations per")
     w("load — was measured at 2.18s in SQL against 10.04s in Python.\n")
-    _tables(db, CORPUS, present, w)
+    _tables(db, CORPUS, present, w, "public")
 
     for view, definition in db.rows(
             "SELECT matviewname, definition FROM pg_matviews"
             " WHERE schemaname = 'public' ORDER BY matviewname"):
-        rows = db.rows(f'SELECT count(*) FROM "{view}"')[0][0]
+        rows = db.rows(f'SELECT count(*) FROM public."{view}"')[0][0]
         w(f"\n### `{view}` — {rows:,} rows *(materialized view)*\n")
         w("Refreshed CONCURRENTLY when a build is written. 59ms to read,")
         w("against 197ms to group the unit rows live.\n")
@@ -123,12 +101,12 @@ def _postgres_section(db, name: str, w) -> None:
         w("```")
 
 
-def _tables(db, names, present, w) -> None:
+def _tables(db, names, present, w, schema: str) -> None:
     for table in names:
         if table not in present:
             w(f"\n### `{table}` — **missing**\n")
             continue
-        rows = db.rows(f'SELECT count(*) FROM "{table}"')[0][0]
+        rows = db.rows(f'SELECT count(*) FROM "{schema}"."{table}"')[0][0]
         mark = " *(write-only)*" if table in WRITE_ONLY else ""
         w(f"\n### `{table}` — {rows:,} rows{mark}\n")
         w("| column | type | null | default |")
@@ -136,21 +114,21 @@ def _tables(db, names, present, w) -> None:
         for col, kind, nullable, default in db.rows(
                 "SELECT column_name, data_type, is_nullable, column_default"
                 " FROM information_schema.columns WHERE table_name = %s"
-                " AND table_schema = 'public' ORDER BY ordinal_position",
-                (table,)):
+                " AND table_schema = %s ORDER BY ordinal_position",
+                (table, schema)):
             shown = f"`{default.split('::')[0]}`" if default else ""
             w(f"| `{col}` | {kind} | {nullable.lower()} | {shown} |")
         w("")
         for kind, definition in db.rows(
                 "SELECT contype, pg_get_constraintdef(oid) FROM pg_constraint"
                 " WHERE conrelid = %s::regclass"
-                " ORDER BY contype, conname", (table,)):
+                " ORDER BY contype, conname", (f'"{schema}"."{table}"',)):
             label = {"p": "primary key", "u": "unique", "f": "foreign key",
                      "c": "check"}.get(kind, kind)
             w(f"- {label}: `{definition}`")
         for index, definition in db.rows(
                 "SELECT indexname, indexdef FROM pg_indexes WHERE tablename = %s"
-                " AND schemaname = 'public' ORDER BY indexname", (table,)):
+                " AND schemaname = %s ORDER BY indexname", (table, schema)):
             if "UNIQUE INDEX" in definition:
                 continue                 # already shown as a constraint
             # The name comes from its own column. Parsing it back out of the
@@ -171,12 +149,13 @@ def write(app, out: Path | None = None) -> Path:
     w("Generated by `python main.py schema-doc` — regenerate rather than")
     w("hand-edit.\n")
     w(f"_As of {date.today().isoformat()}._\n")
-    w("Two stores, and the split is deliberate. Postgres holds the catalogue")
-    w("— what German exists. SQLite holds what has been made of it, and what")
-    w("the reader has decided.")
+    w("One Postgres database, `DB_NAME`, in schemas. `public` holds the")
+    w("catalogue and the corpus -- what German exists, and what was made of")
+    w("it -- and `en` the same tables for English. `accounts` holds who the")
+    w("readers are, and each `reader_<name>` what one reader has decided.")
 
-    _sqlite_section(app.settings.state_path, w)
     with Database(app.settings.own) as db:
+        _reader_section(db, app.settings.state.schema, w)
         _postgres_section(db, app.settings.own.name, w)
 
     out.write_text("\n".join(lines) + "\n", encoding="utf-8")

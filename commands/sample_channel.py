@@ -60,7 +60,7 @@ class SampleChannelCommand:
             raise SystemExit(f"{channel}: nothing listed — check the handle")
 
         ingestor = VideoIngestor(app.settings, app.analyzer)
-        path = app.settings.state_path
+        path = app.settings.state
         settled = AttemptLog(path).settled()
         tried = AttemptLog(path).attempted()
         held = [v for v in ids if ingestor.already_have(v)]

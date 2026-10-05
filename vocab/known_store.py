@@ -7,19 +7,17 @@ make it untrustworthy.
 """
 from __future__ import annotations
 
-import sqlite3
 
-from state import open_state
+from state import ensure, open_state, version_trigger
 from datetime import datetime
-from pathlib import Path
 
 from vocab.entry import Unit
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS known_units (
-    kind     TEXT NOT NULL,
-    key      TEXT NOT NULL,
-    marked   TEXT NOT NULL,
+    kind     TEXT COLLATE "C" NOT NULL,
+    key      TEXT COLLATE "C" NOT NULL,
+    marked   TEXT COLLATE "C" NOT NULL,
     PRIMARY KEY (kind, key)
 );
 
@@ -31,25 +29,17 @@ CREATE TABLE IF NOT EXISTS known_units (
 -- trigger cannot: the row cannot change without the version moving, whoever
 -- writes it and by whatever route.
 CREATE TABLE IF NOT EXISTS known_version (
-    id      INTEGER PRIMARY KEY CHECK (id = 1),
-    version INTEGER NOT NULL
+    id      BIGINT PRIMARY KEY CHECK (id = 1),
+    version BIGINT NOT NULL
 );
-INSERT OR IGNORE INTO known_version (id, version) VALUES (1, 0);
-
-CREATE TRIGGER IF NOT EXISTS known_units_added AFTER INSERT ON known_units
-BEGIN UPDATE known_version SET version = version + 1 WHERE id = 1; END;
-
-CREATE TRIGGER IF NOT EXISTS known_units_removed AFTER DELETE ON known_units
-BEGIN UPDATE known_version SET version = version + 1 WHERE id = 1; END;
-"""
+INSERT INTO known_version (id, version) VALUES (1, 0) ON CONFLICT DO NOTHING;
+""" + version_trigger("known_units", "known_version", "INSERT OR DELETE")
 
 
 class KnownStore:
-    def __init__(self, path: Path) -> None:
-        self._path = path
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with open_state(self._path) as conn:
-            conn.executescript(SCHEMA)
+    def __init__(self, config) -> None:
+        self._db = config
+        ensure(config, SCHEMA)
 
     def version(self) -> int:
         """How many times what you know has changed.
@@ -57,29 +47,29 @@ class KnownStore:
         Cheap enough to ask on every request, which is the point: it decides
         whether a stored score still describes you.
         """
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             row = conn.execute(
                 "SELECT version FROM known_version WHERE id = 1").fetchone()
         return row[0] if row else 0
 
     def add(self, unit: Unit) -> None:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             conn.execute(
-                "INSERT OR IGNORE INTO known_units (kind, key, marked)"
-                " VALUES (?, ?, ?)",
+                "INSERT INTO known_units (kind, key, marked)"
+                " VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
                 (unit.kind, unit.key, datetime.now().isoformat()),
             )
 
     def remove(self, unit: Unit) -> None:
-        with open_state(self._path) as conn:
-            conn.execute("DELETE FROM known_units WHERE kind = ? AND key = ?",
+        with open_state(self._db) as conn:
+            conn.execute("DELETE FROM known_units WHERE kind = %s AND key = %s",
                          (unit.kind, unit.key))
 
     def units(self) -> set[Unit]:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return {Unit(kind, key) for kind, key in
                     conn.execute("SELECT kind, key FROM known_units")}
 
     def __len__(self) -> int:
-        with open_state(self._path) as conn:
+        with open_state(self._db) as conn:
             return conn.execute("SELECT count(*) FROM known_units").fetchone()[0]
