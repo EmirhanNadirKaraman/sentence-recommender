@@ -620,9 +620,6 @@ def _parser() -> argparse.ArgumentParser:
                         help="where their files live (default: "
                              "data/readers/NAME). `--home data` registers "
                              "the files this installation already has")
-    people.add_argument("--owner", action="store_true",
-                        help="with `invite`: the link makes the account that "
-                             "owns the data already at the top of data/")
     people.add_argument("--days", type=int, default=7,
                         help="with `invite`: how long the link works "
                              "(default 7)")
@@ -700,22 +697,17 @@ def manage_readers(args) -> None:
                   f"translated into {reader.native}   {door}   {reader.home}")
         return
     if args.action == "invite":
-        if args.owner:
-            # The data at the top of `data/` is the first reader's, German.
-            token = registry.invite("de", "en", args.days, owner=True)
-            print("an invitation to make the account that owns the data "
-                  "already here:")
-        else:
-            token = registry.invite(args.language, args.native, args.days)
-            print(f"an invitation to learn {args.language}, translated into "
-                  f"{args.native}:")
+        token = registry.invite(args.language, args.native, args.days)
+        print(f"an invitation to learn {args.language}, translated into "
+              f"{args.native}:")
         print(f"\n  /signup?invite={token}\n")
         print(f"Open it on this server's address — good once, for "
               f"{args.days} days.")
-        if not args.owner and registry.owner() is None:
+        if registry.owner() is None:
             print("Nobody owns the data at the top of data/ yet: once this "
-                  "is used, signing in is needed, and that data is reachable "
-                  "only after `reader invite --owner` is used too.")
+                  "is used, signing in is needed everywhere. Make that "
+                  "account first: `reader add NAME --home data`, then "
+                  "`reader password NAME`.")
         return
     if not args.name:
         raise SystemExit(f"`reader {args.action}` needs a NAME")

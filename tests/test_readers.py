@@ -192,19 +192,11 @@ class InvitationTest(unittest.TestCase):
             self.registry.redeem(token, "ahmet", "a long password")
         self.assertIsNotNone(self.registry.invitation(token))
 
-    def test_the_owner_invitation_takes_over_the_data_already_here(self) -> None:
-        token = self.registry.invite("de", "en", owner=True)
-        reader = self.registry.redeem(token, "emir", "a long password")
-        self.assertEqual(reader.home, ROOT / "data")
-        self.assertEqual(self.registry.owner().name, "emir")
-        with self.assertRaises(SystemExit):
-            self.registry.invite("de", "en", owner=True)
-
-    def test_only_the_newest_owner_invitation_works(self) -> None:
-        first = self.registry.invite("de", "en", owner=True)
-        second = self.registry.invite("de", "en", owner=True)
-        self.assertIsNone(self.registry.invitation(first))
-        self.assertIsNotNone(self.registry.invitation(second))
+    def test_an_invited_reader_gets_a_home_of_their_own(self) -> None:
+        token = self.registry.invite("de", "en")
+        reader = self.registry.redeem(token, "max", "a long password")
+        self.assertEqual(reader.home, self.registry._root / "max")
+        self.assertIsNone(self.registry.owner())
 
 
 class ReaderSettingsTest(unittest.TestCase):

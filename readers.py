@@ -215,37 +215,31 @@ class Registry:
 
     # --- invitations ------------------------------------------------------
     #
-    # How a reader comes to exist without anyone typing at the server: the
-    # owner makes a link -- in Settings, or `reader invite` -- and whoever
+    # How a new reader comes to exist without anyone typing at the server:
+    # the owner makes a link -- in Settings, or `reader invite` -- and whoever
     # opens it picks a name and a password. The link carries a token kept
     # only as a digest, good once, for `INVITE_DAYS`; the language and the
     # language of the translations are the invitation's, not the visitor's
-    # to choose. The first account of all is an invitation too, made with
-    # `reader invite --owner`, and takes over the files already in `data/`.
+    # to choose. The owner themselves is made at the server, with `reader
+    # add NAME --home data` and `reader password NAME`: whoever can type
+    # there owns it anyway, and a web page that made the first account would
+    # hand the installation to whoever reached it first.
 
-    def invite(self, lang: str, native: str, days: int = INVITE_DAYS,
-               owner: bool = False) -> str:
+    def invite(self, lang: str, native: str, days: int = INVITE_DAYS) -> str:
         """A token for `/signup?invite=...`, good once and for `days`."""
         language(lang)
         if native not in NATIVE:
             raise SystemExit(f"no native language {native!r} -- this project "
                              f"translates into {', '.join(sorted(NATIVE))}")
-        if owner and self.owner() is not None:
-            raise SystemExit(f"{self.owner().name} already owns this "
-                             "installation's data")
         token = secrets.token_urlsafe(18)
         now = time.time()
         with self._lock:
             raw = self._read()
-            # Expired ones go whenever a new one is made, and an owner's
-            # replaces any earlier owner's: only the newest such link works.
+            # Expired ones go whenever a new one is made.
             invites = {key: found for key, found in raw.get("invites", {}).items()
-                       if found["expires"] > now
-                       and not (owner and found.get("owner"))}
-            invites[_digest(token)] = {
-                "language": lang, "native": native,
-                "expires": int(now + days * 86400),
-                **({"owner": True} if owner else {})}
+                       if found["expires"] > now}
+            invites[_digest(token)] = {"language": lang, "native": native,
+                                       "expires": int(now + days * 86400)}
             raw["invites"] = invites
             self._write(raw)
         return token
@@ -271,13 +265,10 @@ class Registry:
                                  "been used")
             if name in self.readers():
                 raise SystemExit(f"the name {name!r} is taken")
-            if found.get("owner") and self.owner() is not None:
-                raise SystemExit("this installation's data already has an owner")
             raw = self._read()
             raw["invites"].pop(_digest(token), None)
             self._write(raw)
-            reader = self.add(name, found["language"], found["native"],
-                              home=ROOT / "data" if found.get("owner") else None)
+            reader = self.add(name, found["language"], found["native"])
             self.set_password(name, password)
         return self.get(reader.name)
 

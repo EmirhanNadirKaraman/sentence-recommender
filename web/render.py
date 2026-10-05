@@ -280,9 +280,6 @@ def login_page(error: str, target: str, name: str = "") -> str:
 def _invited_to(found: dict) -> str:
     """What an invitation is for, in a sentence."""
     from languages import NATIVE, language               # noqa: PLC0415
-    if found.get("owner"):
-        return ("It makes the account that owns what is already here: the "
-                "words marked known, the cards, the plans.")
     learning = language(found["language"]).name
     helped = NATIVE.get(found["native"], found["native"])
     return (f"It is to learn {escape(learning)}, with {escape(helped)} "
