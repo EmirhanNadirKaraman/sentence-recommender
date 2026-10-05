@@ -416,9 +416,65 @@ Where it all lives, in the one database:
 |---|---|
 | `public` | the German catalogue and corpus |
 | `en` | the same tables, for English |
-| `accounts` | who the readers are: names, languages, password hashes, open invitations, the key sessions are signed with |
+| `accounts` | who the readers are: names, languages, password hashes, the Google accounts that sign them in, open invitations, the key sessions are signed with |
 | `reader` | the first reader's state: known words, cards, plans, the judge's answers, the glosses paid for |
 | `reader_<name>` | the same, for each reader added since |
+
+### Signing in with Google
+
+Three lines in `.env` put a Google button on every door, and let anyone
+with a Google account make an account here on their own, no invitation
+needed:
+
+```
+GOOGLE_CLIENT_ID=<…>.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=<…>
+PUBLIC_URL=https://<machine>.<tailnet>.ts.net
+```
+
+The first two come from the Google Cloud console
+(console.cloud.google.com):
+
+1. Make a project. Under *APIs & Services → OAuth consent screen*, choose
+   *External* and give it a name and your address. While its publishing
+   status is *Testing*, only the test users listed there can sign in;
+   publish it for anyone with a Google account. It asks for nothing but
+   a name and an address (`openid email`).
+2. Under *APIs & Services → Credentials*, create an *OAuth client ID* of
+   type *Web application*. Add `PUBLIC_URL` followed by
+   `/auth/google/callback` under *Authorized redirect URIs*, character for
+   character, and copy the client ID and secret into `.env`.
+3. Restart `serve`.
+
+Try it first with `PUBLIC_URL=http://localhost:8765` and that address's
+callback registered: the console takes a plain-HTTP address for
+`localhost` only. Behind `tailscale serve` or another TLS proxy, use the
+HTTPS address; the console says when you add it whether it accepts that
+host. A sign-in begun on any other address is sent to `PUBLIC_URL` first,
+because Google answers there and nowhere else.
+
+A reader is known by Google's own id for their account, never by its
+address. Someone with a password can link a Google account in Settings,
+and unlink it again; someone who signed up with Google can add a password
+there.
+
+With strangers able to read here, the owner is the only one who:
+
+- **adds videos and channels.** That scrapes YouTube with the owner's
+  browser cookies, into the corpus every reader of the language shares.
+- **recalculates plans.** There is one set of plan files, and every
+  reader's Plan page shows them: the owner's plans, from the owner's words.
+- **puts sentences into the corpus.** Anyone else's sentences on Mine stay
+  in their own schema.
+
+Everyone else gets sixty model calls an hour: a gloss asked for the first
+time, a sentence tried, a sentence put into the other language. They can
+keep one saved word list open besides their own. `SIGNUP_LIMIT` (default
+10, 0 closes sign-up) caps how many sign up on their own; invitations do
+not count. A reader reading holds about 250 MB.
+`python main.py reader list` says who joined how;
+`python main.py reader remove NAME` deletes a reader and everything they
+stored, and never the owner.
 
 A session is a signed cookie. Behind `tailscale serve` or any TLS proxy
 that sets `X-Forwarded-Proto`, it is marked `Secure`; a form posted from

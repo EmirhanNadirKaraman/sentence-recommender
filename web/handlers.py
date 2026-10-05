@@ -3553,6 +3553,13 @@ class Viewer:
         "wrong": "That is not your current password; nothing changed.",
         "mismatch": "The two new passwords did not match; nothing changed.",
         "short": "A password needs at least eight characters; nothing changed.",
+        "set": "Password set: it signs you in as well as Google does.",
+        "google": "Google account linked. Every other device is signed out.",
+        "google-taken": ("That Google account already signs in someone else "
+                         "here; nothing changed."),
+        "unlinked": "Google account unlinked. Every other device is signed out.",
+        "needs-password": ("Set a password first: without it or Google there "
+                           "would be no way back in."),
     }
 
     def _account(self, query: dict | None = None) -> str:
@@ -3568,10 +3575,20 @@ class Viewer:
             return ""
         from languages import LANGUAGES, NATIVE, language   # noqa: PLC0415
         from readers import Registry                    # noqa: PLC0415
+        from web.google import configured               # noqa: PLC0415
+        registry = Registry()
+        me = registry.get(settings.reader)
+        has_password = bool(me and me.password)
         learning = language(settings.language).name
         helped = NATIVE.get(settings.native, settings.native)
         said = self.ACCOUNT_NOTES.get((query or {}).get("account", ""), "")
         note = f"<p class='note due'>{escape(said)}</p>" if said else ""
+        current = ("<label>Current password <input name='current' "
+                   "type='password' autocomplete='current-password' "
+                   "required></label>" if has_password else
+                   "<p class='note'>You sign in with Google. A password is a "
+                   "second way in, and Google cannot be unlinked without "
+                   "one.</p>")
         out = ("<h2>Signed in</h2>"
                f"<p class='note'>As <b>{escape(settings.reader)}</b>, learning "
                f"{escape(learning)} with {escape(helped)} translations.</p>"
@@ -3580,16 +3597,43 @@ class Viewer:
                "<h2>Password</h2>"
                f"{note}"
                "<form method='post' action='/password' class='login'>"
-               "<label>Current password <input name='current' type='password' "
-               "autocomplete='current-password' required></label>"
+               f"{current}"
                "<label>New password <input name='password' type='password' "
                "autocomplete='new-password' minlength='8' required></label>"
                "<label>New password again <input name='again' type='password' "
                "autocomplete='new-password' minlength='8' required></label>"
-               "<button type='submit'>Change password</button></form>")
-        owner = Registry().owner()
+               f"<button type='submit'>{'Change' if has_password else 'Set'} "
+               "password</button></form>")
+        google = configured()
+        if google:
+            email = registry.google_email(settings.reader)
+            if email is None:
+                out += ("<h2>Google</h2><p class='note'>Sign in with a Google "
+                        "account as well as your password.</p>"
+                        "<form method='post' action='/auth/google' class='login'>"
+                        "<input type='hidden' name='purpose' value='link'>"
+                        "<button type='submit'>Link a Google account</button>"
+                        "</form>")
+            else:
+                who = f"<b>{escape(email)}</b>" if email else "a Google account"
+                out += f"<h2>Google</h2><p class='note'>You sign in with {who}.</p>"
+                if has_password:
+                    out += ("<form method='post' action='/auth/google/unlink'>"
+                            "<button type='submit'>Unlink it</button></form>")
+        owner = registry.owner()
         if owner is None or owner.name != settings.reader:
             return out
+        how = {"server": "made here", "invite": "invited", "google": "signed up"}
+        out += ("<h2>Readers</h2><ul class='readers'>" + "".join(
+            f"<li><b>{escape(r.name)}</b>: {escape(language(r.language).name)}, "
+            f"{escape(how.get(r.joined, r.joined))}"
+            f"{', with Google' if r.google else ''}</li>"
+            for r in registry.readers().values()) + "</ul>")
+        if google:
+            out += (f"<p class='note'>{registry.places()} more can sign up on "
+                    "their own (<code>SIGNUP_LIMIT</code> in <code>.env</code>). "
+                    "<code>python main.py reader remove NAME</code> removes one, "
+                    "with everything they stored.</p>")
 
         def options(choices: dict[str, str], chosen: str) -> str:
             return "".join(

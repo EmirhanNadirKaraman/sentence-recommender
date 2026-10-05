@@ -258,12 +258,14 @@ def clickable(words: list[list[str]], surface: str | None, known=None) -> str:
     return " ".join(out)
 
 
-def login_page(error: str, target: str, name: str = "") -> str:
-    """The door: a name and a password, and where to go after."""
+def login_page(error: str, target: str, name: str = "",
+               google: bool = False) -> str:
+    """The door: a name and a password, or Google, and where to go after."""
     warning = f"<p class='note due'>{escape(error)}</p>" if error else ""
     body = (
         "<h1>Sign in</h1>"
         f"{warning}"
+        f"{_google_form('signin', 'Sign in with Google', target) if google else ''}"
         "<form method='post' action='/login' class='login'>"
         f"<input type='hidden' name='next' value='{escape(target, quote=True)}'>"
         "<label>Name <input name='name' autocomplete='username' "
@@ -273,8 +275,18 @@ def login_page(error: str, target: str, name: str = "") -> str:
         "autocomplete='current-password' required></label>"
         "<button type='submit'>Sign in</button>"
         "</form>"
+        + ("<p class='note'>New here? <a href='/signup'>Make an account with "
+           "Google</a>.</p>" if google else "")
     )
     return layout("Sign in", body, bare=True)
+
+
+def _google_form(purpose: str, label: str, target: str = "/") -> str:
+    """A button that begins a sign-in with Google (see `web.google`)."""
+    return ("<form method='post' action='/auth/google' class='login'>"
+            f"<input type='hidden' name='purpose' value='{escape(purpose, quote=True)}'>"
+            f"<input type='hidden' name='next' value='{escape(target, quote=True)}'>"
+            f"<button type='submit'>{escape(label)}</button></form>")
 
 
 def _invited_to(found: dict) -> str:
@@ -286,13 +298,19 @@ def _invited_to(found: dict) -> str:
             "translations.")
 
 
-def signup_page(error: str, token: str, found: dict, name: str = "") -> str:
-    """An invitation, and the form that spends it."""
+def signup_page(error: str, token: str, found: dict, name: str = "",
+                google: bool = False) -> str:
+    """An invitation, and the form that spends it -- with a password, or
+    with Google instead, which is the same form sent elsewhere."""
     warning = f"<p class='note due'>{escape(error)}</p>" if error else ""
+    instead = ("<button type='submit' formaction='/auth/google' formnovalidate "
+               "name='purpose' value='signup'>Use Google instead of a "
+               "password</button>" if google else "")
     body = (
         "<h1>Make your account</h1>"
         f"<p class='note'>You have an invitation. {_invited_to(found)} "
-        "Pick the name you will sign in with, and a password.</p>"
+        "Pick the name you will sign in with, and a password"
+        + (" -- or sign in with Google instead" if google else "") + ".</p>"
         f"{warning}"
         "<form method='post' action='/signup' class='login'>"
         f"<input type='hidden' name='invite' value='{escape(token, quote=True)}'>"
@@ -306,9 +324,79 @@ def signup_page(error: str, token: str, found: dict, name: str = "") -> str:
         "<label>Password again <input name='again' type='password' "
         "autocomplete='new-password' minlength='8' required></label>"
         "<button type='submit'>Make my account</button>"
+        f"{instead}"
         "</form>"
     )
     return layout("Make your account", body, bare=True)
+
+
+def open_signup_page(error: str, name: str = "", learning: str = "de",
+                     native: str = "en") -> str:
+    """Signing up on one's own, with a Google account: a name, the language
+    to learn, and the one translations are made in."""
+    from languages import LANGUAGES, NATIVE              # noqa: PLC0415
+    warning = f"<p class='note due'>{escape(error)}</p>" if error else ""
+
+    def options(choices: dict[str, str], chosen: str) -> str:
+        return "".join(
+            f"<option value='{escape(code, quote=True)}'"
+            f"{' selected' if code == chosen else ''}>{escape(label)}</option>"
+            for code, label in choices.items())
+
+    body = (
+        "<h1>Make your account</h1>"
+        "<p class='note'>Pick the name you will be known by here and what you "
+        "want to learn; Google confirms who you are, and you sign in with it "
+        "from then on. Your words, cards and plans are your own.</p>"
+        f"{warning}"
+        "<form method='post' action='/auth/google' class='login'>"
+        "<input type='hidden' name='purpose' value='signup'>"
+        "<label>Name <input name='name' autocomplete='username' "
+        "autocapitalize='none' autocorrect='off' spellcheck='false' required "
+        "pattern='[a-z][a-z0-9_-]{0,31}' "
+        "title='lowercase letters, digits, - and _, starting with a letter' "
+        f"value='{escape(name, quote=True)}'></label>"
+        "<label>Learning <select name='language'>"
+        f"{options({c: l.name for c, l in LANGUAGES.items()}, learning or 'de')}"
+        "</select></label>"
+        "<label>Translations in <select name='native'>"
+        f"{options(NATIVE, native or 'en')}</select></label>"
+        "<button type='submit'>Continue with Google</button>"
+        "</form>"
+        "<p class='note'>Have an account? <a href='/login'>Sign in</a>.</p>"
+    )
+    return layout("Make your account", body, bare=True)
+
+
+def signup_closed() -> str:
+    return layout("Sign-ups closed", "<h1>Sign-ups are closed for now</h1>"
+                  "<p class='sub'>This installation has as many readers as it "
+                  "takes. Ask whoever runs it for an invitation, or "
+                  "<a href='/login'>sign in</a>.</p>", bare=True)
+
+
+def no_invitation() -> str:
+    return layout("Sign up", "<h1>Signing up takes an invitation</h1>"
+                  "<p class='sub'>Ask whoever runs this installation for a "
+                  "link, or <a href='/login'>sign in</a>.</p>", bare=True)
+
+
+def google_failed(message: str, back: str) -> str:
+    return layout("Google sign-in", "<h1>That did not work</h1>"
+                  f"<p class='sub'>{escape(message)}</p>"
+                  f"<p><a href='{escape(back, quote=True)}'>Back</a></p>",
+                  bare=True)
+
+
+def unknown_google(email: str, can_sign_up: bool) -> str:
+    """A Google account that signs nobody in here."""
+    which = f" ({escape(email)})" if email else ""
+    then = ("<a href='/signup'>Make an account</a> with it, or "
+            "<a href='/login'>sign in</a> another way." if can_sign_up else
+            "<a href='/login'>Sign in</a> another way, or ask whoever runs "
+            "this installation for an invitation.")
+    return layout("Google sign-in", "<h1>No account here uses that Google "
+                  f"account{which}</h1><p class='sub'>{then}</p>", bare=True)
 
 
 def owner_only() -> str:

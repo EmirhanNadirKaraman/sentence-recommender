@@ -13,11 +13,16 @@ where an installation's always were -- the schema `reader` and the top of
 `data/` -- and everyone else's are `reader_<name>` and
 `data/readers/<name>/`. A reader's `home` says which.
 
-The door is a password and a signed cookie. The cookie carries the reader's
-name and when it expires, signed with a key kept in the database, and the
-signature also covers the reader's password hash -- so changing a password
-signs every device out without anything having to remember which sessions
-exist.
+The door is a password, or a Google account (`web.google`), and a signed
+cookie. The cookie carries the reader's name and when it expires, signed
+with a key kept in the database, and the signature also covers the ways in
+-- the password hash, and the Google account when there is one -- so
+changing either signs every device out without anything having to remember
+which sessions exist.
+
+Most readers come by invitation. With Google set up, anyone may also sign
+up on their own, up to `SIGNUP_LIMIT` of them, and every reader but the
+owner is rationed (`web.limits`).
 
 Who the readers are lives in the database too, in a schema of its own,
 `accounts`: names, languages, password hashes, open invitations, the
@@ -28,8 +33,10 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import os
 import re
 import secrets
+import shutil
 import time
 from dataclasses import dataclass
 from datetime import datetime
@@ -66,6 +73,21 @@ CREATE TABLE IF NOT EXISTS secret (
     name  TEXT COLLATE "C" PRIMARY KEY,
     value TEXT COLLATE "C" NOT NULL
 );
+-- How each reader came to be: made at the server ('server'), by a link the
+-- owner made ('invite'), or on their own with a Google account ('google').
+-- The last are what `SIGNUP_LIMIT` counts.
+ALTER TABLE reader ADD COLUMN IF NOT EXISTS
+    joined TEXT COLLATE "C" NOT NULL DEFAULT 'server';
+-- The Google account that signs a reader in. `subject` is Google's own id
+-- for the account, which never changes -- never the address, which can
+-- change hands -- and the address is kept only to show them which it is.
+CREATE TABLE IF NOT EXISTS google_login (
+    subject TEXT COLLATE "C" PRIMARY KEY,
+    name    TEXT COLLATE "C" NOT NULL UNIQUE
+            REFERENCES reader (name) ON DELETE CASCADE,
+    email   TEXT COLLATE "C" NOT NULL DEFAULT '',
+    added   TEXT COLLATE "C" NOT NULL
+);
 """
 
 # Lowercase letters, digits, `-` and `_`: the name is a directory and a
@@ -90,6 +112,21 @@ LOCKOUT_SECONDS = 15 * 60
 # is away for a weekend; short enough that one lying in an old chat is dead.
 INVITE_DAYS = 7
 
+# Readers who may sign up on their own, with a Google account, unless
+# `SIGNUP_LIMIT` in `.env` says otherwise; 0 closes sign-up. Each reader
+# reading is an application of their own, about 250 MB measured, so this is
+# what bounds the memory strangers can take. Invitations do not count.
+SIGNUP_LIMIT = 10
+
+
+def signup_limit() -> int:
+    from config import load_dotenv                       # noqa: PLC0415
+    load_dotenv()
+    try:
+        return max(0, int(os.environ.get("SIGNUP_LIMIT", SIGNUP_LIMIT)))
+    except ValueError:
+        return SIGNUP_LIMIT
+
 
 @dataclass(frozen=True)
 class Reader:
@@ -101,6 +138,10 @@ class Reader:
     language: str = "de"
     native: str = "en"
     password: str = ""
+    # Google's id for the account that signs them in, if one does.
+    google: str = ""
+    # 'server', 'invite' or 'google' -- see the `joined` column.
+    joined: str = "server"
 
 
 def hash_password(password: str, salt: bytes | None = None) -> str:
@@ -160,14 +201,17 @@ class Registry:
     def readers(self) -> dict[str, Reader]:
         with self._conn() as conn:
             rows = conn.execute(
-                "SELECT name, language, native, home, password FROM reader"
-                " ORDER BY name").fetchall()
+                "SELECT r.name, r.language, r.native, r.home, r.password,"
+                " coalesce(g.subject, ''), r.joined FROM reader r"
+                " LEFT JOIN google_login g ON g.name = r.name"
+                " ORDER BY r.name").fetchall()
         out: dict[str, Reader] = {}
-        for name, lang, native, home, password in rows:
+        for name, lang, native, home, password, google, joined in rows:
             where = Path(home) if home else self._homes / name
             out[name] = Reader(name=name,
                                home=where if where.is_absolute() else ROOT / where,
-                               language=lang, native=native, password=password)
+                               language=lang, native=native, password=password,
+                               google=google, joined=joined)
         return out
 
     def get(self, name: str) -> Reader | None:
@@ -178,11 +222,12 @@ class Registry:
 
     @property
     def shared(self) -> bool:
-        """Whether anyone has to log in: true once any reader has a password."""
+        """Whether anyone has to log in: true once any reader has a way to --
+        a password, or a Google account."""
         with self._conn() as conn:
             return conn.execute(
                 "SELECT EXISTS (SELECT 1 FROM reader WHERE password <> '')"
-            ).fetchone()[0]
+                " OR EXISTS (SELECT 1 FROM google_login)").fetchone()[0]
 
     def owner(self) -> Reader | None:
         """The reader whose files are the ones at the top of `data/`: who
@@ -303,12 +348,140 @@ class Registry:
                          (_digest(token),))
             conn.execute(
                 "INSERT INTO reader (name, language, native, home, password,"
-                " added) VALUES (%s, %s, %s, NULL, %s, %s)",
+                " added, joined) VALUES (%s, %s, %s, NULL, %s, %s, 'invite')",
                 (name, row[0], row[1], hash_password(password),
                  datetime.now().isoformat(timespec="seconds")))
         reader = self.get(name)
         reader.home.mkdir(parents=True, exist_ok=True)
         self._copy_word_files(reader)
+        return reader
+
+    # --- Google -----------------------------------------------------------
+    #
+    # A Google account is a second way in, and for someone who signs up on
+    # their own the only one. Google's checking of who is at the keyboard is
+    # `web.google`'s business; this is what follows from it.
+
+    def google_reader(self, subject: str) -> Reader | None:
+        """The reader a Google account signs in, if any."""
+        with self._conn() as conn:
+            row = conn.execute("SELECT name FROM google_login WHERE subject = %s",
+                               (subject,)).fetchone()
+        return self.get(row[0]) if row else None
+
+    def google_email(self, name: str) -> str | None:
+        """The address of the Google account that signs `name` in, if one
+        does -- "" when Google did not vouch for one."""
+        with self._conn() as conn:
+            row = conn.execute("SELECT email FROM google_login WHERE name = %s",
+                               (name,)).fetchone()
+        return row[0] if row else None
+
+    def places(self) -> int:
+        """How many more readers may still sign up on their own."""
+        with self._conn() as conn:
+            (taken,) = conn.execute(
+                "SELECT count(*) FROM reader WHERE joined = 'google'").fetchone()
+        return max(0, signup_limit() - taken)
+
+    def join_with_google(self, name: str, subject: str, email: str,
+                         lang: str = "", native: str = "",
+                         token: str = "") -> Reader:
+        """Make a reader whom a Google account signs in.
+
+        By invitation when `token` is given, and then the language is the
+        invitation's; otherwise on their own, into one of the places
+        `SIGNUP_LIMIT` leaves. The places are counted and taken in one
+        transaction, under a lock every process serving this installation
+        shares, so two sign-ups at once cannot both take the last.
+        """
+        if not NAME.match(name):
+            raise SystemExit("a name is lowercase letters, digits, - and _, "
+                             "starting with a letter")
+        if not subject:
+            raise SystemExit("Google did not say whose account this is")
+        with self._lock, self._conn() as conn:
+            conn.execute("SELECT pg_advisory_xact_lock(hashtext('accounts.join'))")
+            if token:
+                row = conn.execute(
+                    "SELECT language, native, expires FROM invite"
+                    " WHERE digest = %s FOR UPDATE", (_digest(token),)).fetchone()
+                if row is None or row[2] < time.time():
+                    raise SystemExit("this invitation has expired or has "
+                                     "already been used")
+                lang, native, joined = row[0], row[1], "invite"
+            else:
+                _check_languages(lang, native)
+                (taken,) = conn.execute(
+                    "SELECT count(*) FROM reader WHERE joined = 'google'"
+                ).fetchone()
+                if taken >= signup_limit():
+                    raise SystemExit("sign-ups here are closed for now")
+                joined = "google"
+            if conn.execute("SELECT 1 FROM google_login WHERE subject = %s",
+                            (subject,)).fetchone():
+                raise SystemExit("that Google account already signs someone in "
+                                 "here -- sign in with it instead")
+            if conn.execute("SELECT 1 FROM reader WHERE name = %s",
+                            (name,)).fetchone():
+                raise SystemExit(f"the name {name!r} is taken")
+            if token:
+                conn.execute("DELETE FROM invite WHERE digest = %s",
+                             (_digest(token),))
+            now = datetime.now().isoformat(timespec="seconds")
+            conn.execute(
+                "INSERT INTO reader (name, language, native, home, added, joined)"
+                " VALUES (%s, %s, %s, NULL, %s, %s)",
+                (name, lang, native, now, joined))
+            conn.execute(
+                "INSERT INTO google_login (subject, name, email, added)"
+                " VALUES (%s, %s, %s, %s)", (subject, name, email, now))
+        reader = self.get(name)
+        reader.home.mkdir(parents=True, exist_ok=True)
+        self._copy_word_files(reader)
+        return reader
+
+    def link_google(self, name: str, subject: str, email: str) -> None:
+        """Let a Google account sign `name` in, in place of any that did."""
+        with self._lock, self._conn() as conn:
+            row = conn.execute("SELECT name FROM google_login WHERE subject = %s",
+                               (subject,)).fetchone()
+            if row and row[0] != name:
+                raise SystemExit("that Google account already signs in "
+                                 "someone else here")
+            conn.execute("DELETE FROM google_login WHERE name = %s", (name,))
+            conn.execute(
+                "INSERT INTO google_login (subject, name, email, added)"
+                " VALUES (%s, %s, %s, %s)",
+                (subject, name, email, datetime.now().isoformat(timespec="seconds")))
+
+    def unlink_google(self, name: str) -> None:
+        """Stop a Google account signing `name` in -- not the only way in."""
+        reader = self.get(name)
+        if reader is None or not reader.password:
+            raise SystemExit("set a password first: without it or Google "
+                             "there would be no way back in")
+        with self._lock, self._conn() as conn:
+            conn.execute("DELETE FROM google_login WHERE name = %s", (name,))
+
+    def remove(self, name: str) -> Reader:
+        """A reader gone: their account, their schema, and their directory
+        when it is the usual `data/readers/<name>/`. Never the owner."""
+        from config import Settings                      # noqa: PLC0415
+        import state                                     # noqa: PLC0415
+        reader = self.get(name)
+        if reader is None:
+            raise SystemExit(f"no reader called {name!r}")
+        if reader.home == ROOT / "data":
+            raise SystemExit(f"{name} owns this installation and is not removed")
+        mine = Settings.for_reader(reader).state
+        with self._lock, self._conn() as conn:
+            conn.execute("DELETE FROM reader WHERE name = %s", (name,))
+            conn.execute(f'DROP SCHEMA IF EXISTS "{mine.schema}" CASCADE')
+        state.forget(mine)
+        home = reader.home.resolve()
+        if home.parent == self._homes.resolve() and home.name == name:
+            shutil.rmtree(home, ignore_errors=True)
         return reader
 
     @staticmethod
@@ -373,17 +546,22 @@ class Registry:
         if until < time.time():
             return None
         reader = self.get(name)
-        if reader is None or not reader.password:
+        if reader is None or not (reader.password or reader.google):
             return None
         if not hmac.compare_digest(signature, self._signature(reader, until)):
             return None
         return reader
 
     def _signature(self, reader: Reader, expires: int) -> str:
-        # The password hash is signed over too, so a new password ends every
-        # session the old one opened.
-        message = f"{reader.name}.{expires}.{reader.password}".encode("utf-8")
-        return hmac.new(self._key(), message, hashlib.sha256).hexdigest()
+        # The ways in are signed over too -- the password hash, and the
+        # Google account when there is one -- so changing either ends every
+        # session the old ones opened. A reader without Google signs exactly
+        # what they always did, so no one is signed out by its arrival.
+        message = f"{reader.name}.{expires}.{reader.password}"
+        if reader.google:
+            message += f".{reader.google}"
+        return hmac.new(self._key(), message.encode("utf-8"),
+                        hashlib.sha256).hexdigest()
 
     def _key(self) -> bytes:
         """The signing key, made the first time it is needed and kept in the
@@ -410,6 +588,17 @@ def _dummy() -> str:
     if not _DUMMY:
         _DUMMY.append(hash_password(secrets.token_hex(16)))
     return _DUMMY[0]
+
+
+def _check_languages(lang: str, native: str) -> None:
+    """Refuse a language nobody can learn here, or translations into one
+    there are none for -- chosen on a form now, not by an invitation."""
+    from languages import LANGUAGES                      # noqa: PLC0415
+    if lang not in LANGUAGES:
+        raise SystemExit("pick a language to learn")
+    if native not in NATIVE or native == lang:
+        raise SystemExit("pick a language for the translations, other than "
+                         "the one you are learning")
 
 
 def _digest(token: str) -> str:

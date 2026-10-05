@@ -616,8 +616,10 @@ def _parser() -> argparse.ArgumentParser:
 
     people = sub.add_parser(
         "reader", help="the people this installation serves: list them, add "
-                       "one, set a password, or make an invitation link")
-    people.add_argument("action", choices=["list", "add", "password", "invite"])
+                       "one, set a password, make an invitation link, or "
+                       "remove one")
+    people.add_argument("action",
+                        choices=["list", "add", "password", "invite", "remove"])
     people.add_argument("name", nargs="?",
                         help="lowercase letters, digits, - and _")
     people.add_argument("--language", default="de",
@@ -632,6 +634,8 @@ def _parser() -> argparse.ArgumentParser:
     people.add_argument("--days", type=int, default=7,
                         help="with `invite`: how long the link works "
                              "(default 7)")
+    people.add_argument("--yes", action="store_true",
+                        help="with `remove`: do not ask first")
 
     # On every command, after its name, because that is where a flag gets
     # typed: `build-roadmap --reader NAME`. Whose state is read and written,
@@ -702,19 +706,32 @@ def _same_language(args, settings: Settings, registry=None) -> None:
 
 
 def manage_readers(args) -> None:
-    """`reader list | add NAME | password NAME | invite`."""
+    """`reader list | add NAME | password NAME | invite | remove NAME`."""
     import getpass                                        # noqa: PLC0415
-    from readers import Registry                          # noqa: PLC0415
+    from readers import Registry, signup_limit            # noqa: PLC0415
     registry = Registry()
     if args.action == "list":
         readers = registry.readers()
         if not readers:
             print("no readers yet -- one installation, one reader, no login. "
                   "`reader add NAME` makes it shared.")
+        how = {"server": "made here", "invite": "invited",
+               "google": "signed up"}
         for reader in readers.values():
-            door = "password set" if reader.password else "no password"
+            doors = [d for d, has in (("password", reader.password),
+                                      ("Google", reader.google)) if has]
+            door = " + ".join(doors) or "no way in yet"
+            if reader.google:
+                email = registry.google_email(reader.name)
+                door += f" ({email})" if email else ""
             print(f"  {reader.name:<16} learns {reader.language}, "
-                  f"translated into {reader.native}   {door}   {reader.home}")
+                  f"translated into {reader.native}   "
+                  f"{how.get(reader.joined, reader.joined)}   {door}   "
+                  f"{reader.home}")
+        if any(r.joined == "google" for r in readers.values()) or \
+                registry.places() < signup_limit():
+            print(f"  {registry.places()} more can sign up on their own "
+                  "(SIGNUP_LIMIT)")
         return
     if args.action == "invite":
         token = registry.invite(args.language, args.native, args.days)
@@ -731,6 +748,20 @@ def manage_readers(args) -> None:
         return
     if not args.name:
         raise SystemExit(f"`reader {args.action}` needs a NAME")
+    if args.action == "remove":
+        reader = registry.get(args.name)
+        if reader is None:
+            raise SystemExit(f"no reader called {args.name!r}")
+        if not args.yes:
+            typed = input(f"remove {reader.name}, with their known words, "
+                          "cards and plans? Type the name to confirm: ")
+            if typed.strip() != reader.name:
+                raise SystemExit("not removed")
+        registry.remove(reader.name)
+        print(f"removed {reader.name}: their account, their schema, and "
+              f"{reader.home} when it was theirs alone. A running `serve` "
+              "still holds their pages in memory until it is restarted.")
+        return
     if args.action == "add":
         from db.migrate import prepare                    # noqa: PLC0415
         if prepare(args.language):

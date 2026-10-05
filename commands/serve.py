@@ -14,19 +14,23 @@ class ServeCommand:
             LocalServer(app, port, host).serve(open_browser)
             return
 
-        # Every reader warmed before the socket opens, for the same reason
-        # the single reader always was -- see `_warm`. One reader's trouble
-        # is reported and does not keep the other's pages from being served:
-        # a reader whose language has no corpus yet still has to be able to
-        # sign in and see that it has none.
+        # The owner and the readers they let in warmed before the socket
+        # opens, for the same reason the single reader always was -- see
+        # `_warm`. One reader's trouble is reported and does not keep the
+        # other's pages from being served: a reader whose language has no
+        # corpus yet still has to be able to sign in and see that it has
+        # none. Readers who signed up on their own are made on their first
+        # page instead: each is about 250 MB, and there may be many.
         from config import Settings                      # noqa: PLC0415
         from context import Application                  # noqa: PLC0415
         apps = {}
         for reader in registry.readers().values():
-            if not reader.password:
+            if not (reader.password or reader.google):
                 print(f"{reader.name}: no password yet, so cannot sign in — "
                       f"`python main.py reader password {reader.name}`",
                       flush=True)
+                continue
+            if reader.joined == "google":
                 continue
             mine = (app if reader.name == app.settings.reader
                     else Application(Settings.for_reader(reader)))

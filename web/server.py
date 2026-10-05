@@ -30,6 +30,9 @@ from urllib.parse import parse_qs, quote, unquote, urlparse
 
 from readers import SESSION_SECONDS as _SESSION_SECONDS
 from web import render
+from web.google import COOKIE as _GOOGLE_COOKIE
+from web.google import COOKIE_PATH as _GOOGLE_PATH
+from web.google import PENDING_SECONDS as _GOOGLE_SECONDS
 from web.handlers import Viewer
 
 LOOPBACK = "127.0.0.1"
@@ -50,7 +53,11 @@ COOKIE = "i1_session"
 # browser asks for before it has one -- an icon on a home screen, the
 # manifest of an installed app.
 OPEN = {"/login", "/signup", "/favicon.ico", "/apple-touch-icon.png",
-        "/apple-touch-icon-precomposed.png", "/manifest.webmanifest"}
+        "/apple-touch-icon-precomposed.png", "/manifest.webmanifest",
+        "/auth/google/callback"}
+
+# `Door`'s default for `google`: read the configuration from `.env`.
+_FROM_ENV = object()
 
 # What only the installation's owner may do, because it reaches past the
 # reader's own schema: adding a video or a channel scrapes YouTube with the
@@ -137,9 +144,16 @@ class Door:
     reader its session cookie names, and to nobody without it.
     """
 
-    def __init__(self, app, registry=None, apps: dict | None = None) -> None:
+    def __init__(self, app, registry=None, apps: dict | None = None,
+                 google=_FROM_ENV) -> None:
         from readers import Registry                     # noqa: PLC0415
         self.registry = registry if registry is not None else Registry()
+        # Signing in with Google, when `.env` configures it (`web.google`);
+        # None, and no Google button anywhere, when it does not.
+        if google is _FROM_ENV:
+            from web.google import GoogleSignIn          # noqa: PLC0415
+            google = GoogleSignIn.from_env()
+        self.google = google
         self._default = app
         # Applications already made -- by `serve`, which warms each reader
         # before opening the socket -- so the first page does not make them
@@ -218,9 +232,13 @@ class LocalServer:
         # while compose publishes on loopback and nobody else could reach it.
         if self._door.shared:
             able = [r.name for r in self._door.registry.readers().values()
-                    if r.password]
+                    if r.password or r.google]
             print(f"  readers: {', '.join(sorted(able))} — each signs in",
                   flush=True)
+            if self._door.google is not None:
+                print(f"  Google sign-in at {self._door.google.base_url}; "
+                      f"{self._door.registry.places()} places left to sign up",
+                      flush=True)
         elif where != LOOPBACK:
             print("  no authentication — anyone who can reach this port can "
                   "read your corpus and mark words known. `python main.py "
@@ -384,8 +402,14 @@ def _make_handler(door: "Door"):
             if posted == "/signup":
                 self._signup(form)
                 return
+            if posted == "/auth/google":
+                self._google_start(form)
+                return
             allowed, reader = self._admit(posted, posting=True)
             if not allowed:
+                return
+            if posted == "/auth/google/unlink":
+                self._google_unlink(reader)
                 return
             if posted == "/password":
                 self._password(form, reader)
@@ -465,17 +489,26 @@ def _make_handler(door: "Door"):
                 _report(error, self.path)
                 self._send(_oops(error), status=500)
 
-        def _redirect(self, target: str, cookie: str = "") -> None:
+        def _redirect(self, target: str, cookie: str | list[str] = "") -> None:
             """303 after a state change, so a refresh does not repeat it.
 
             Only ever to a path on this site. Several forms say where to come
             back to in a `back` field, and a target taken from a form as it
             stands is a link that sends a reader anywhere at all.
             """
+            self._see_other(_local(target), cookie)
+
+        def _away(self, url: str, cookie: str | list[str] = "") -> None:
+            """303 off this site: to Google, or to `PUBLIC_URL`. Only for
+            addresses this server makes, never one a form gave it."""
+            self._see_other(url, cookie)
+
+        def _see_other(self, location: str, cookie: str | list[str]) -> None:
             self.send_response(303)
-            self.send_header("Location", _local(target))
-            if cookie:
-                self.send_header("Set-Cookie", cookie)
+            self.send_header("Location", location)
+            for each in ([cookie] if isinstance(cookie, str) else cookie):
+                if each:
+                    self.send_header("Set-Cookie", each)
             self.send_header("Content-Length", "0")
             self.end_headers()
 
@@ -494,7 +527,7 @@ def _make_handler(door: "Door"):
                 self._send(render.login_page(
                     "Too many tries -- wait a quarter of an hour." if locked
                     else "That name and password do not match.",
-                    target, name), status=401)
+                    target, name, google=door.google is not None), status=401)
                 return
             self._redirect(target, self._cookie(value, _SESSION_SECONDS))
 
@@ -510,18 +543,19 @@ def _make_handler(door: "Door"):
             if found is None:
                 self._send(render.invitation_gone(), status=410)
                 return
+            google = door.google is not None
             if password != (form.get("again") or ""):
                 self._send(render.signup_page(
-                    "The two passwords do not match.", token, found, name),
-                    status=400)
+                    "The two passwords do not match.", token, found, name,
+                    google=google), status=400)
                 return
             try:
                 from db.migrate import prepare           # noqa: PLC0415
                 prepare(found["language"])
                 reader = door.registry.redeem(token, name, password)
             except SystemExit as refused:
-                self._send(render.signup_page(str(refused), token, found, name),
-                           status=400)
+                self._send(render.signup_page(str(refused), token, found, name,
+                                              google=google), status=400)
                 return
             value = door.registry.sign(reader, int(time.time()) + _SESSION_SECONDS)
             self._redirect("/", self._cookie(value, _SESSION_SECONDS))
@@ -533,7 +567,10 @@ def _make_handler(door: "Door"):
                 self._redirect("/settings")
                 return
             fresh = form.get("password") or ""
-            if not check_password(form.get("current") or "", reader.password):
+            # Someone who signs in with Google sets a first password without
+            # one to give; anyone else proves the one they have.
+            if reader.password and not check_password(form.get("current") or "",
+                                                      reader.password):
                 time.sleep(1)
                 self._redirect("/settings?account=wrong")
                 return
@@ -547,7 +584,8 @@ def _make_handler(door: "Door"):
                 return
             renewed = door.registry.get(reader.name)
             value = door.registry.sign(renewed, int(time.time()) + _SESSION_SECONDS)
-            self._redirect("/settings?account=changed",
+            self._redirect("/settings?account="
+                           + ("changed" if reader.password else "set"),
                            self._cookie(value, _SESSION_SECONDS))
 
         def _invite(self, form: dict, reader) -> None:
@@ -571,6 +609,185 @@ def _make_handler(door: "Door"):
             self._send(render.invited_page(
                 f"{scheme}://{host}/signup?invite={token}", found), 200)
 
+        # --- Google -----------------------------------------------------
+        #
+        # Three ways in through one round trip: signing in, signing up, and
+        # linking an account to the reader signed in. What each needs goes
+        # out with the state (`web.google.Pending`) and comes back with it.
+
+        def _google_start(self, form: dict) -> None:
+            google = door.google
+            if google is None:
+                self._send(_missing(self.path), status=404)
+                return
+            purpose = form.get("purpose") or "signin"
+            if self._host() != google.host:
+                # Google answers at `PUBLIC_URL` only, and only a cookie set
+                # there can meet the answer: begin again at that address.
+                where = "/settings" if purpose == "link" else "/login"
+                self._away(google.base_url + where)
+                return
+            if purpose == "signin":
+                fields = {"next": _local(form.get("next") or "/")}
+            elif purpose == "link":
+                reader = self._reader() if door.shared else None
+                if reader is None:
+                    self._send(_signed_out(), status=403)
+                    return
+                fields = {"name": reader.name, "next": "/settings"}
+            elif purpose == "signup":
+                fields = self._google_signup(form)
+                if fields is None:
+                    return
+            else:
+                self._send(_missing(self.path), status=404)
+                return
+            url, state = google.start(purpose, **fields)
+            self._away(url, self._google_cookie(state, _GOOGLE_SECONDS))
+
+        def _google_signup(self, form: dict) -> dict | None:
+            """What a sign-up takes to Google and back, checked before it
+            goes: a name taken, or no places left, is said now rather than
+            after a trip to Google. None when the page has been answered."""
+            from readers import NAME, _check_languages      # noqa: PLC0415
+            token = form.get("invite") or ""
+            name = (form.get("name") or "").strip().lower()
+            if token:
+                found = door.registry.invitation(token)
+                if found is None:
+                    self._send(render.invitation_gone(), status=410)
+                    return None
+                lang, native = found["language"], found["native"]
+
+                def again(error: str) -> str:
+                    return render.signup_page(error, token, found, name,
+                                              google=True)
+            else:
+                if not self._open_signup():
+                    self._send(render.signup_closed(), status=403)
+                    return None
+                lang = form.get("language") or ""
+                native = form.get("native") or ""
+
+                def again(error: str) -> str:
+                    return render.open_signup_page(error, name, lang, native)
+            error = ""
+            if not NAME.match(name):
+                error = ("A name is lowercase letters, digits, - and _, "
+                         "starting with a letter.")
+            elif door.registry.get(name) is not None:
+                error = f"The name {name} is taken."
+            elif not token:
+                try:
+                    _check_languages(lang, native)
+                except SystemExit as refused:
+                    error = str(refused).capitalize() + "."
+            if error:
+                self._send(again(error), status=400)
+                return None
+            return {"name": name, "language": lang, "native": native,
+                    "invite": token}
+
+        def _open_signup(self) -> bool:
+            """Whether someone may sign up here on their own: Google is set
+            up, the installation has its owner -- or the first stranger
+            would make it theirs -- and there are places left."""
+            return (door.google is not None and door.registry.owner() is not None
+                    and door.registry.places() > 0)
+
+        def _google_back(self, query: dict) -> tuple[str, int]:
+            """Where Google sends the browser back to."""
+            from web.google import Refused                  # noqa: PLC0415
+            google = door.google
+            if google is None:
+                return _missing(self.path), 404
+            if query.get("error"):
+                return render.google_failed(
+                    "Google sign-in was cancelled, so nothing changed.",
+                    "/login"), 400
+            try:
+                pending, who = google.finish(query.get("state") or "",
+                                             self._cookie_named(_GOOGLE_COOKIE),
+                                             query.get("code") or "")
+            except Refused as why:
+                return render.google_failed(str(why), "/login"), 400
+            spent = self._google_cookie("", 0)
+            until = int(time.time()) + _SESSION_SECONDS
+            if pending.purpose == "signin":
+                reader = door.registry.google_reader(who.subject)
+                if reader is None:
+                    return render.unknown_google(who.email,
+                                                 self._open_signup()), 403
+                self._redirect(pending.next, [
+                    self._cookie(door.registry.sign(reader, until),
+                                 _SESSION_SECONDS), spent])
+                return "", 0
+            if pending.purpose == "signup":
+                try:
+                    from db.migrate import prepare           # noqa: PLC0415
+                    prepare(pending.language)
+                    reader = door.registry.join_with_google(
+                        pending.name, who.subject, who.email, pending.language,
+                        pending.native, pending.invite)
+                except SystemExit as refused:
+                    back = (f"/signup?invite={quote(pending.invite)}"
+                            if pending.invite else "/signup")
+                    return render.google_failed(
+                        str(refused).capitalize() + ".", back), 400
+                self._redirect("/", [
+                    self._cookie(door.registry.sign(reader, until),
+                                 _SESSION_SECONDS), spent])
+                return "", 0
+            current = self._reader() if door.shared else None
+            if current is None or current.name != pending.name:
+                return render.google_failed(
+                    "Sign in first, then link a Google account in Settings.",
+                    "/login"), 403
+            try:
+                door.registry.link_google(current.name, who.subject, who.email)
+            except SystemExit:
+                self._redirect("/settings?account=google-taken", spent)
+                return "", 0
+            # Linking changes what a session is signed over: this device
+            # gets a new one, every other is signed out.
+            renewed = door.registry.get(current.name)
+            self._redirect("/settings?account=google", [
+                self._cookie(door.registry.sign(renewed, until),
+                             _SESSION_SECONDS), spent])
+            return "", 0
+
+        def _google_unlink(self, reader) -> None:
+            if reader is None:
+                self._redirect("/settings")
+                return
+            try:
+                door.registry.unlink_google(reader.name)
+            except SystemExit:
+                self._redirect("/settings?account=needs-password")
+                return
+            renewed = door.registry.get(reader.name)
+            value = door.registry.sign(renewed, int(time.time()) + _SESSION_SECONDS)
+            self._redirect("/settings?account=unlinked",
+                           self._cookie(value, _SESSION_SECONDS))
+
+        def _google_cookie(self, value: str, seconds: int) -> str:
+            secure = "; Secure" if door.google and door.google.secure else ""
+            return (f"{_GOOGLE_COOKIE}={value}; Max-Age={seconds}; "
+                    f"Path={_GOOGLE_PATH}; HttpOnly; SameSite=Lax{secure}")
+
+        def _cookie_named(self, name: str) -> str:
+            try:
+                jar = SimpleCookie(self.headers.get("Cookie", ""))
+            except CookieError:
+                return ""
+            morsel = jar.get(name)
+            return morsel.value if morsel else ""
+
+        def _host(self) -> str:
+            """The host the browser asked for, through a proxy or not."""
+            return (self.headers.get("X-Forwarded-Host")
+                    or self.headers.get("Host") or "")
+
         def _cookie(self, value: str, seconds: int) -> str:
             # `Secure` when the browser's side of the proxy was HTTPS: this
             # process only ever sees plain HTTP from whatever stands in
@@ -587,16 +804,26 @@ def _make_handler(door: "Door"):
             render.ACTIVE.shared = False
             if path == "/signup":
                 token = query.get("invite") or ""
-                found = door.registry.invitation(token)
-                if found is None:
-                    return render.invitation_gone(), 410
-                return render.signup_page("", token, found), 200
+                if token:
+                    found = door.registry.invitation(token)
+                    if found is None:
+                        return render.invitation_gone(), 410
+                    return render.signup_page("", token, found,
+                                              google=door.google is not None), 200
+                if door.google is None:
+                    return render.no_invitation(), 403
+                if not self._open_signup():
+                    return render.signup_closed(), 403
+                return render.open_signup_page(""), 200
+            if path == "/auth/google/callback":
+                return self._google_back(query)
             if path == "/login":
                 if not door.shared:
                     return self._redirect("/"), 0
                 if self._reader() is not None:
                     return self._redirect(query.get("next") or "/"), 0
-                return render.login_page("", _local(query.get("next") or "/")), 200
+                return render.login_page("", _local(query.get("next") or "/"),
+                                         google=door.google is not None), 200
             # Safari asks for both of these unprompted the moment you add the
             # page to a home screen. They used to fall through and come back
             # as an HTML 404 with a 200-shaped body.
