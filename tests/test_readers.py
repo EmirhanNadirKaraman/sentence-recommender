@@ -212,15 +212,15 @@ class ReaderSettingsTest(unittest.TestCase):
         owner = Settings.for_reader(Reader("emir", ROOT / "data", "de", "en"))
         plain = Settings()
         for field in fields(Settings):
-            if field.name in ("reader", "state"):
+            if field.name == "reader":
                 continue
             with self.subTest(field=field.name):
                 self.assertEqual(getattr(owner, field.name),
                                  getattr(plain, field.name))
         self.assertEqual(owner.reader, "emir")
-        # Their state is theirs by name, like everyone else's.
-        self.assertEqual(owner.state.schema, "reader_emir")
-        self.assertEqual(plain.state.schema, "reader")
+        # Their state included: a script that builds `Application()` without
+        # naming anyone reads theirs, as it read `data/state.sqlite3`.
+        self.assertEqual(owner.state.schema, "reader")
 
     def test_a_second_reader_keeps_their_own_files_at_home(self) -> None:
         home = Path("/tmp/readers/ahmet")

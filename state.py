@@ -2,8 +2,10 @@
 
 Everything a reader has decided and everything derived for them -- the words
 they marked known, their cards, their plans, the judge's answers and the
-model's glosses they have paid for -- lives in one schema per reader,
-`reader_<name>`, in the same database as the catalogue and the corpus. It
+model's glosses they have paid for -- lives in one schema per reader, in the
+same database as the catalogue and the corpus: `reader` for the
+installation's own, as `data/state.sqlite3` was, and `reader_<name>` for
+each reader added since. It
 was a SQLite file per reader until there was a server for two people to
 share: then one database meant one thing to back up, and a writer from the
 web page, one from an MCP client and one from the command line stopped

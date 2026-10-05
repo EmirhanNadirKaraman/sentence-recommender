@@ -8,8 +8,8 @@ kept where it can be run again.
 One database, in schemas, and the split between them is the thing worth
 understanding. `public` holds the German -- the catalogue as scraped, and the
 corpus analysed out of it -- and `en` the same tables for English. `accounts`
-holds who the readers are. Each `reader_<name>` holds what one reader has
-done: the roadmaps walked, the cards scheduled, the judgements nothing can
+holds who the readers are. `reader`, and a `reader_<name>` for each reader
+added since, each hold what one reader has done: the roadmaps walked, the cards scheduled, the judgements nothing can
 regenerate.
 
 It prints keys, foreign keys and indexes as well as columns. That would have
@@ -50,13 +50,14 @@ def _reader_section(db, schema: str, w) -> None:
         " WHERE table_schema = %s AND table_type = 'BASE TABLE'"
         " ORDER BY table_name", (schema,))]
     w(f"\n## Schema `{schema}` — what one reader does ({len(tables)} tables)\n")
-    w("One schema per reader, `reader_<name>`, all alike; this is the")
-    w("installation's own reader's. What the reader has done, and what has")
+    w("One schema per reader, all alike: `reader` for the installation's own,")
+    w("whose this is, and `reader_<name>` for each reader added since. What")
+    w("the reader has done, and what has")
     w("been derived or paid for on their behalf. Roadmaps and scores are")
     w("derived and rebuildable. The judgements are not: "
       + ", ".join(f"`{t}`" for t in IRREPLACEABLE) + " hold decisions")
     w("nothing can regenerate. A dump of the corpus to hand to someone else")
-    w("leaves these schemas out (`--exclude-schema='reader_*'`).\n")
+    w("leaves these schemas out (`--exclude-schema='reader*'`).\n")
     _tables(db, tables, set(tables), w, schema)
 
 
@@ -152,7 +153,8 @@ def write(app, out: Path | None = None) -> Path:
     w("One Postgres database, `DB_NAME`, in schemas. `public` holds the")
     w("catalogue and the corpus -- what German exists, and what was made of")
     w("it -- and `en` the same tables for English. `accounts` holds who the")
-    w("readers are, and each `reader_<name>` what one reader has decided.")
+    w("readers are, and `reader` and each `reader_<name>` what one reader has")
+    w("decided.")
 
     with Database(app.settings.own) as db:
         _reader_section(db, app.settings.state.schema, w)

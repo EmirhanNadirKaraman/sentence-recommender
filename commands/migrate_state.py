@@ -1,7 +1,8 @@
 """`migrate-state` — move a reader's SQLite state into their Postgres schema.
 
-Once per installation that predates the move: `data/state.sqlite3`, and any
-`data/readers/<name>/state.sqlite3`, into `reader_<name>`; and the reader
+Once per installation that predates the move: `data/state.sqlite3` into
+`reader`, the installation's own reader's schema, and any
+`data/readers/<name>/state.sqlite3` into `reader_<name>`; and the reader
 registry, `data/readers/readers.json` with its `session.key`, into
 `accounts`. Nothing is deleted. Each SQLite file is renamed to
 `*.migrated` once its rows are all accounted for, and the registry file
@@ -18,6 +19,12 @@ later.
 The version counters (`known_version` and the rest) are set to what SQLite
 held after the copy: the triggers fire on every row copied in, and a stored
 score stamped against the old count has to find the same count here.
+
+A file is settled before it is read: its write-ahead log folded in and
+switched off. That puts the last writes, which can sit in the `-wal` beside
+the file, into the file the archive keeps; it leaves no log under the old
+name to be read back into whatever file takes that name next; and it fails
+while anything still has the file open, which is the moment to stop.
 """
 from __future__ import annotations
 
@@ -82,14 +89,20 @@ class MigrateStateCommand:
             self._one(source, app.settings.state, dry_run)
             return
         # The readers the registry file names, or -- moved already -- the
-        # ones the database has. Their state goes first and the registry
-        # last, so a failure part-way leaves the old installation whole.
+        # ones the database has; and the installation's own file, which is
+        # the first reader's or, with no registry, nobody's in particular.
+        # Their state goes first and the registry last, so a failure
+        # part-way leaves the old installation whole.
         named = self._named(READERS) or list(registry.readers().values())
-        moved = []
+        plain = Settings()
+        targets = {plain.data_dir / "state.sqlite3": plain.state}
         for reader in named:
-            file = reader.home / "state.sqlite3"
+            targets[reader.home / "state.sqlite3"] = \
+                Settings.for_reader(reader).state
+        moved = []
+        for file, target in targets.items():
             if file.exists():
-                self._one(file, Settings.for_reader(reader).state, dry_run)
+                self._one(file, target, dry_run)
                 moved.append(file)
         if not moved:
             print("no reader has a SQLite state file left to move")
@@ -168,6 +181,8 @@ class MigrateStateCommand:
         left where it was.
         """
         print(f"{file} -> schema {target.schema}", flush=True)
+        if not dry_run:
+            _settle(file)
         lite = sqlite3.connect(f"file:{file}?mode=ro", uri=True)
         try:
             tables = [name for (name,) in lite.execute(
@@ -306,6 +321,27 @@ class MigrateStateCommand:
             if mine != theirs:
                 bad.append(f"{table} ({mine[0]:,} rows here, {theirs[0]:,} there)")
         return bad
+
+
+def _settle(file: Path) -> None:
+    """Fold `file`'s write-ahead log into it, and switch the log off.
+
+    Leaving WAL mode needs the only connection to the file, so this is also
+    the check that nothing else has it open: a `serve` or an `mcp-serve`
+    still running would write after the copy, into a file nobody reads.
+    """
+    lite = sqlite3.connect(file, timeout=1)
+    try:
+        lite.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        mode = lite.execute("PRAGMA journal_mode=DELETE").fetchone()[0]
+    except sqlite3.OperationalError as error:
+        raise SystemExit(f"  {file} is in use ({error}) -- stop whatever has "
+                         "it open (`serve`, `mcp-serve`) and run again")
+    finally:
+        lite.close()
+    if mode != "delete":
+        raise SystemExit(f"  {file} is still open elsewhere (its journal is "
+                         f"{mode!r}) -- stop whatever has it open and run again")
 
 
 # What a backslash, a tab, a newline and a carriage return become in

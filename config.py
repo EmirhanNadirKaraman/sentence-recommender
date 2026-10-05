@@ -26,12 +26,13 @@ from languages import GERMAN, language as _language
 ROOT = Path(__file__).resolve().parent
 
 # The schema an installation's reader state lives in when nobody is named:
-# the one reader there was before there was a registry of them.
+# the one reader there was before there was a registry of them, who keeps it
+# once there is one (see `Settings.for_reader`).
 STATE_SCHEMA = "reader"
 
 
 def state_schema(name: str) -> str:
-    """The schema reader `name`'s state lives in: `reader_<name>`."""
+    """The schema a reader added since keeps their state in: `reader_<name>`."""
     return f"{STATE_SCHEMA}_{name}"
 
 
@@ -292,6 +293,10 @@ class Settings:
             goal_words=home / "study_list.txt",
             expressions=lang.expressions,
             goal_lemmas=lang.goal_lemmas,
-            state=DatabaseConfig.owned(state_schema(reader.name)),
+            # The first reader's state stays where `Settings()` looks, as
+            # their files do, so a script that builds `Application()` without
+            # naming anyone still reads theirs.
+            state=DatabaseConfig.owned(STATE_SCHEMA if home == cls.data_dir
+                                       else state_schema(reader.name)),
             ignored_builds=lang.ignored_builds,
         )

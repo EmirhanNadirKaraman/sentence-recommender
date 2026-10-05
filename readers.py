@@ -6,12 +6,12 @@ one reader. A second reader needs three things the first never did: a place
 of their own for what they decide, a language of their own, and a door that
 knows which of them is asking.
 
-The place is two: a schema in Postgres, `reader_<name>`, for everything the
-program stores for them (see `state`), and a directory for the two word
-files they edit as text, `known_words.txt` and `function_words.txt`. The
-first reader's directory is the top of `data/`, where those files always
-were; everyone else's is `data/readers/<name>/`. A reader's `home` says
-which.
+The place is two: a schema in Postgres for everything the program stores
+for them (see `state`), and a directory for the two word files they edit as
+text, `known_words.txt` and `function_words.txt`. The first reader's are
+where an installation's always were -- the schema `reader` and the top of
+`data/` -- and everyone else's are `reader_<name>` and
+`data/readers/<name>/`. A reader's `home` says which.
 
 The door is a password and a signed cookie. The cookie carries the reader's
 name and when it expires, signed with a key kept in the database, and the
