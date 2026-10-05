@@ -933,6 +933,20 @@ class Viewer:
         step, deck, readable, occurrences, total = self.next_step(
             query, source, only)
 
+        if step is None and not self.app.corpus_store.builds(teachable_only=True):
+            # Nothing to walk at all -- a reader whose language has no video
+            # in yet. "Nothing left" would say they had read it all.
+            from languages import language                  # noqa: PLC0415
+            name = language(self.app.settings.language).name
+            whose = (f" --reader {self.app.settings.reader}"
+                     if self.app.settings.reader else "")
+            body = (f"<h1>No {escape(name)} videos yet</h1>"
+                    "<p class='empty'>There is nothing to read in "
+                    f"{escape(name)} until some video is in. On the server: "
+                    f"<code>python main.py add-channel @HANDLE{escape(whose)}"
+                    "</code>, then <code>python main.py build-corpus subtitle"
+                    f"{escape(whose)}</code>.</p>")
+            return self._page("i+1", body, "/", source)
         if step is None:
             body = (switch + picker + "<h1>Nothing left that is i+1</h1>"
                     "<p class='empty'>Every remaining sentence needs two or more "
