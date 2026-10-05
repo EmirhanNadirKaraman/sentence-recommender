@@ -52,9 +52,9 @@ def _reader_section(db, schema: str, w) -> None:
     w(f"\n## Schema `{schema}` — what one reader does ({len(tables)} tables)\n")
     w("One schema per reader, all alike: `reader` for the installation's own,")
     w("whose this is, and `reader_<name>` for each reader added since. What")
-    w("the reader has done, and what has")
-    w("been derived or paid for on their behalf. Roadmaps and scores are")
-    w("derived and rebuildable. The judgements are not: "
+    w("the reader has done, and what has been derived or paid for on their")
+    w("behalf. Roadmaps and scores are derived and rebuildable. The")
+    w("judgements are not: "
       + ", ".join(f"`{t}`" for t in IRREPLACEABLE) + " hold decisions")
     w("nothing can regenerate. A dump of the corpus to hand to someone else")
     w("leaves these schemas out, and `accounts` with them (README, \"Moving")
