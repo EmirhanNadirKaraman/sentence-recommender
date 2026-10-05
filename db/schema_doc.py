@@ -121,23 +121,26 @@ def _tables(db, names, present, w, schema: str) -> None:
             shown = f"`{default.split('::')[0]}`" if default else ""
             w(f"| `{col}` | {kind} | {nullable.lower()} | {shown} |")
         w("")
-        for kind, definition in db.rows(
-                "SELECT contype, pg_get_constraintdef(oid) FROM pg_constraint"
-                " WHERE conrelid = %s::regclass"
+        constraints = set()
+        for name, kind, definition in db.rows(
+                "SELECT conname, contype, pg_get_constraintdef(oid)"
+                " FROM pg_constraint WHERE conrelid = %s::regclass"
                 " ORDER BY contype, conname", (f'"{schema}"."{table}"',)):
+            constraints.add(name)
             label = {"p": "primary key", "u": "unique", "f": "foreign key",
                      "c": "check"}.get(kind, kind)
             w(f"- {label}: `{definition}`")
         for index, definition in db.rows(
                 "SELECT indexname, indexdef FROM pg_indexes WHERE tablename = %s"
                 " AND schemaname = %s ORDER BY indexname", (table, schema)):
-            if "UNIQUE INDEX" in definition:
+            if index in constraints:
                 continue                 # already shown as a constraint
             # The name comes from its own column. Parsing it back out of the
             # definition picks up the table instead, since `CREATE INDEX x ON
             # public.t USING ...` puts the table last before USING.
             _, _, using = definition.partition(" USING ")
-            w(f"- index `{index}` — `{using}`")
+            unique = "unique " if "UNIQUE INDEX" in definition else ""
+            w(f"- {unique}index `{index}` — `{using}`")
 
 
 def write(app, out: Path | None = None) -> Path:
