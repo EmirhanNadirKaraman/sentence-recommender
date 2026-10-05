@@ -26,7 +26,7 @@ from state import open_state
 # Outcomes worth never repeating. Anything else — a timeout, a bot check, an
 # error nobody has classified — is treated as weather and tried again.
 SETTLED = frozenset({"no-subtitles", "unavailable", "not-wanted-language",
-                     "too-long"})
+                     "too-long", "translated"})
 
 # The same question asked by the machine-caption path, where the answer is
 # different in one decisive place: `no-subtitles` means "no *hand-written*
@@ -41,6 +41,7 @@ SETTLED = frozenset({"no-subtitles", "unavailable", "not-wanted-language",
 AUTO_SETTLED = frozenset({
     "unavailable", "not-wanted-language",
     "auto-no-track", "auto-unpunctuated", "auto-not-german", "auto-too-short",
+    "auto-not-english", "translated",
 })
 
 SCHEMA = """

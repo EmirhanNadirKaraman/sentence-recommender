@@ -1,0 +1,203 @@
+# Function words — the closed word classes of English.
+#
+# Every line here counts as ALREADY KNOWN when the roadmap decides which
+# sentences are i+1. These are the classes a learner acquires wholesale
+# rather than one item at a time: articles and determiners, pronouns,
+# prepositions, conjunctions, auxiliaries and modals, and the handful of
+# particles and question words every sentence is built on.
+#
+# Written by hand rather than read off the corpus: German's list is the
+# closed-class tags of its tagset, and English's tags (Penn) do not separate
+# the classes the same way. Each entry is resolved through the English parser
+# like any other word, so `me` and `I` meet in one lemma.
+#
+# HOW TO REVIEW
+#   Delete a line — or put a `#` in front of it — for anything you do NOT
+#   know. What remains is treated as known. Order does not matter.
+
+## Articles and determiners
+a
+an
+the
+this
+that
+these
+those
+some
+any
+no
+every
+each
+either
+neither
+both
+all
+another
+other
+such
+much
+many
+more
+most
+few
+less
+little
+several
+enough
+own
+
+## Personal pronouns
+I
+me
+my
+mine
+myself
+you
+your
+yours
+yourself
+yourselves
+he
+him
+his
+himself
+she
+her
+hers
+herself
+it
+its
+itself
+we
+us
+our
+ours
+ourselves
+they
+them
+their
+theirs
+themselves
+
+## Other pronouns
+one
+who
+whom
+whose
+what
+which
+whoever
+whatever
+something
+anything
+nothing
+everything
+someone
+anyone
+everyone
+somebody
+anybody
+everybody
+nobody
+none
+
+## Prepositions
+about
+above
+across
+after
+against
+along
+among
+around
+as
+at
+before
+behind
+below
+beside
+between
+beyond
+by
+down
+during
+except
+for
+from
+in
+inside
+into
+like
+near
+of
+off
+on
+onto
+out
+outside
+over
+past
+since
+through
+till
+to
+toward
+towards
+under
+until
+up
+upon
+with
+within
+without
+
+## Conjunctions
+and
+or
+but
+nor
+so
+yet
+because
+although
+though
+while
+if
+unless
+whether
+than
+once
+
+## Question words
+when
+where
+why
+how
+
+## Auxiliaries and modals
+be
+have
+do
+will
+would
+shall
+should
+can
+could
+may
+might
+must
+
+## Particles and the rest
+not
+yes
+there
+here
+very
+too
+also
+just
+only
+now
+then
+again

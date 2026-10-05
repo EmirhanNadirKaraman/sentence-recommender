@@ -162,6 +162,17 @@ class Tracks:
         """The languages someone wrote subtitles in."""
         return sorted({t.language for t in self.tracks if not t.machine})
 
+    def heard(self) -> frozenset[str]:
+        """The languages YouTube's speech recognition heard, as plain codes.
+
+        A machine track is filed under the language its recogniser took the
+        speech for, so this is the nearest thing the player says to what the
+        video is spoken in. Empty when there is no machine track at all,
+        which says nothing either way.
+        """
+        return frozenset(t.language.split("-")[0]
+                         for t in self.tracks if t.machine)
+
     def _pick(self, language: str, machine: bool) -> Track | None:
         kind = [t for t in self.tracks if t.machine == machine]
         return (next((t for t in kind if t.language == language), None)

@@ -78,7 +78,7 @@ def stub_app(tmp: Path) -> SimpleNamespace:
         # list name and `LABEL` above is the one the viewer looks for.
         goal_words=Settings().goal_words,
         known_words=tmp / "known.txt", function_words=tmp / "function.txt",
-        snooze_words=20,
+        snooze_words=20, language="de", native="en", reader="",
     )
     app = SimpleNamespace(
         settings=settings,

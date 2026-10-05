@@ -72,7 +72,11 @@ _ROLE = re.compile(r"[^\W\d_]+\.?\s*\((?:Akk|Dat|Gen|Nom)\)")
 _WORD = re.compile(r"[^\W\d_]+(?:-[^\W\d_]+)*")
 
 
-def heads(key: str) -> set[str]:
+# A word as English writes one: `don't` and `one's` are single words.
+_ENGLISH_WORD = re.compile(r"[^\W\d_]+(?:['’-][^\W\d_]+)*")
+
+
+def heads(key: str, language: str = "de") -> set[str]:
     """Every word this goal key names on its own, as written.
 
     `die Schule` names `Schule`; `etw./jdn. (Akk) haben` names `haben`;
@@ -84,7 +88,12 @@ def heads(key: str) -> set[str]:
     Comma alternatives are taken one at a time, because the list uses them to
     write the *same* word twice: `gern, gerne` names both spellings, and read
     as one key it would name two words and so name nothing.
+
+    Everything above is German's notation. A language without it names a
+    word only by being one -- see `_one_word`.
     """
+    if language != "de":
+        return _one_word(key, language)
     out: set[str] = set()
     for part in key.split(","):
         # Role slots go first, taking their case marker with them; then any
@@ -106,6 +115,28 @@ def heads(key: str) -> set[str]:
     return out
 
 
+def _one_word(key: str, language: str) -> set[str]:
+    """What a key names in a language that writes no frames.
+
+    English writes a verb with its particle -- `give up` -- and that is a
+    word of its own, not `give` in a frame: a reader who knows `give` does
+    not know `give up`, and a sentence saying `give` is not saying `give
+    up`. So a key of several words names nothing, and only a key that is one
+    word once the list's markers and slots are gone (`to abandon`, `the
+    internet`) names that word.
+    """
+    from languages import language as profile             # noqa: PLC0415
+    lang = profile(language)
+    ignored = lang.markers | lang.slots
+    out: set[str] = set()
+    for part in key.split(","):
+        words = [w for w in _ENGLISH_WORD.findall(part)
+                 if w.lower() not in ignored]
+        if len(words) == 1:
+            out.add(words[0])
+    return out
+
+
 class Aliases:
     """The study list's name for each word it teaches.
 
@@ -117,14 +148,14 @@ class Aliases:
     lowercase lemma reach a goal the list wrote with a capital.
     """
 
-    def __init__(self, goals: Iterable[Unit]) -> None:
+    def __init__(self, goals: Iterable[Unit], language: str = "de") -> None:
         exact: dict[str, Unit] = {}
         folded: dict[str, Unit] = {}
         # Sorted, so a word two goals both name resolves the same way on
         # every run. `Band` is `das Band`, `der Band` and `die Band`; one of
         # the three has to win and nothing in the list says which.
         for goal in sorted(goals, key=lambda u: (u.kind, u.key)):
-            for word in heads(goal.key):
+            for word in heads(goal.key, language):
                 exact.setdefault(word, goal)
                 folded.setdefault(word.lower(), goal)
         self._exact = exact

@@ -55,6 +55,7 @@ class GroupedSharesTheCorpusTest(unittest.TestCase):
 
         v._corpus_at = None
         v.app = SimpleNamespace(
+            settings=SimpleNamespace(language="de"),
             corpus=corpus,
             corpus_store=SimpleNamespace(vintage=lambda: "T1"))
         v._builds = lambda source: (source,)
@@ -258,6 +259,7 @@ class CorpusMovedTest(unittest.TestCase):
         v._corpus_at = None
         v._builds = lambda source: (source,)
         v.app = SimpleNamespace(
+            settings=SimpleNamespace(language="de"),
             corpus=lambda *b, **kw: ["a sentence"],
             corpus_store=SimpleNamespace(vintage=lambda: self.written))
         return v
@@ -344,6 +346,7 @@ class ScoredUnderTest(unittest.TestCase):
         v._channel_of = lambda: {}
         timed = SimpleNamespace(video_id="a")
         v.app = SimpleNamespace(
+            settings=SimpleNamespace(language="de"),
             goal_units=(),
             banned_videos=lambda: frozenset(),
             marked_known=SimpleNamespace(version=lambda: 1),
@@ -394,6 +397,7 @@ class ScoreBasisTest(unittest.TestCase):
         v = Viewer.__new__(Viewer)
         self.written = written
         v.app = SimpleNamespace(
+            settings=SimpleNamespace(language="de"),
             corpus_store=SimpleNamespace(vintage=lambda: self.written),
             marked_known=SimpleNamespace(version=lambda: 7))
         return v

@@ -221,7 +221,7 @@ class Tools:
         # what `next_up` serves — that walks the corpus instead, as the page
         # does — and two tools on one server must not contradict each other
         # in silence.
-        if self._roadmaps.stamp(label) != current_stamp():
+        if self._roadmaps.stamp(label) != current_stamp(self.app.settings.language):
             lines.insert(0, "(built under earlier rules than the ones in "
                             "force: `next_up` walks the corpus instead of "
                             "following this; `build-roadmap` brings it up "

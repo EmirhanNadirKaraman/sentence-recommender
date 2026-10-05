@@ -39,7 +39,14 @@ class WordList:
 
 
 class WordListLoader:
-    """Reads a vocabulary file into a `WordList`."""
+    """Reads a vocabulary file into a `WordList`.
+
+    `markers` are the words an entry may start with that are not part of it
+    -- German's articles by default; see `languages.Language.markers`.
+    """
+
+    def __init__(self, markers: frozenset[str] = ARTICLES) -> None:
+        self._markers = markers
 
     def load(self, path: Path) -> WordList:
         """The file's entries, or an empty list if it is not there.
@@ -61,12 +68,11 @@ class WordListLoader:
                 seen.setdefault(surface, None)
         return WordList(path=path, surfaces=tuple(seen))
 
-    @staticmethod
-    def _split_entry(line: str) -> list[str]:
+    def _split_entry(self, line: str) -> list[str]:
         out: list[str] = []
         for part in line.split(","):
             tokens = part.split()
-            if len(tokens) > 1 and tokens[0].lower() in ARTICLES:
+            if len(tokens) > 1 and tokens[0].lower() in self._markers:
                 tokens = tokens[1:]      # "der Abend" -> "Abend"
             if tokens:
                 out.append(normalize(" ".join(tokens)))

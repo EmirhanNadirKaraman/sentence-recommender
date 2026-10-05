@@ -57,7 +57,7 @@ class ExportDeckCommand:
                 + "\n    ".join(known or ["(none — run `build-roadmap`)"]))
 
         stamp = store.stamp(label)
-        if stamp and stamp != _current():
+        if stamp and stamp != _current(app.settings.language):
             # Said, not refused. An old plan is still a perfectly good
             # document; it just no longer matches the corpus, and a reader
             # who prints it should know that before they wonder why a
@@ -116,6 +116,6 @@ class ExportDeckCommand:
             print(f"  {path}  {path.stat().st_size / 1e6:.1f} MB")
 
 
-def _current() -> str:
+def _current(language: str) -> str:
     from roadmap.store import current_stamp    # noqa: PLC0415
-    return current_stamp()
+    return current_stamp(language)

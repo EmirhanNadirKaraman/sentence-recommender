@@ -75,8 +75,10 @@ class VideoHunter:
         import yt_dlp                            # noqa: PLC0415 — heavy
 
         options = scrape(extract_flat="in_playlist", playlistend=limit)
+        from languages import language as profile         # noqa: PLC0415
+        suffix = profile(self._ingestor.language).search_suffix
         url = ("https://www.youtube.com/results?search_query="
-               f"{quote_plus(word + ' deutsch')}&sp=EgIoAQ%253D%253D")
+               f"{quote_plus(word + suffix)}&sp=EgIoAQ%253D%253D")
         try:
             with yt_dlp.YoutubeDL(options) as ydl:
                 found = ydl.extract_info(url, download=False)
@@ -141,10 +143,12 @@ class VideoHunter:
             except SystemExit as why:
                 first = str(why).splitlines()[0]
                 hunt.refused.append((video_id, first))
-                outcome = AttemptLog.classify(str(why))
+                outcome = (getattr(why, "outcome", "")
+                           or AttemptLog.classify(str(why)))
                 self._record(video_id, outcome, str(why))
                 say("says none of them" if outcome == "off-target"
-                    else "no German subtitles")
+                    else "a translation" if outcome == "translated"
+                    else "no subtitles in the language asked for")
             except Exception as error:           # noqa: BLE001 — one bad video
                 hunt.refused.append((video_id, f"{type(error).__name__}"))
                 self._record(video_id, "error", f"{type(error).__name__}: {error}")

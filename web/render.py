@@ -22,11 +22,17 @@ difference is missed.
 from __future__ import annotations
 
 import hashlib
+import threading
 from html import escape
 from urllib.parse import quote
 from pathlib import Path
 
 from vocab.entry import Unit
+
+# Who the page being built is for. Set by the server at the start of each
+# request -- each runs on a thread of its own -- and read by `layout`, so
+# the masthead can say whose page this is without every handler passing it.
+ACTIVE = threading.local()
 
 STATIC = Path(__file__).resolve().parent / "static"
 
@@ -57,7 +63,7 @@ ANKI_REMIND = 15
 
 
 def layout(title: str, body: str, here: str = "/", source: str = "",
-           wordlist: str = "", anki_new: int = 0) -> str:
+           wordlist: str = "", anki_new: int = 0, bare: bool = False) -> str:
     # Both carried, because a nav link that drops either one silently puts
     # the reader back on the default corpus or the default goal list, which
     # looks like the switch did not work.
@@ -77,7 +83,13 @@ def layout(title: str, body: str, here: str = "/", source: str = "",
         return (f'<a href="{href}{suffix}" class="{here_now}">'
                 f"{escape(label)}{badge}</a>")
 
-    links = "".join(link(href, label) for href, label in NAV)
+    links = "" if bare else "".join(link(href, label) for href, label in NAV)
+    # Whose page this is, once there is more than one person it could be.
+    reader = getattr(ACTIVE, "reader", "") if getattr(ACTIVE, "shared", False) else ""
+    if reader and not bare:
+        links += (f"<span class='who'>{escape(reader)}"
+                  "<form method='post' action='/logout'>"
+                  "<button type='submit'>sign out</button></form></span>")
     return (
         "<!doctype html><html lang='en'><head><meta charset='utf-8'>"
         # `viewport-fit=cover` lets the page paint under the notch and the
@@ -244,3 +256,22 @@ def clickable(words: list[list[str]], surface: str | None, known=None) -> str:
         out.append(f"<button type='button' class='w{state}' data-kind='{escape(kind)}'"
                    f" data-key='{escape(key)}'>{escape(token)}</button>")
     return " ".join(out)
+
+
+def login_page(error: str, target: str, name: str = "") -> str:
+    """The door: a name and a password, and where to go after."""
+    warning = f"<p class='note due'>{escape(error)}</p>" if error else ""
+    body = (
+        "<h1>Sign in</h1>"
+        f"{warning}"
+        "<form method='post' action='/login' class='login'>"
+        f"<input type='hidden' name='next' value='{escape(target, quote=True)}'>"
+        "<label>Name <input name='name' autocomplete='username' "
+        "autocapitalize='none' autocorrect='off' spellcheck='false' required "
+        f"value='{escape(name, quote=True)}'></label>"
+        "<label>Password <input name='password' type='password' "
+        "autocomplete='current-password' required></label>"
+        "<button type='submit'>Sign in</button>"
+        "</form>"
+    )
+    return layout("Sign in", body, bare=True)

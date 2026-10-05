@@ -7,6 +7,8 @@ queried at any point with whatever the learner knows *now*.
 """
 from __future__ import annotations
 
+from pathlib import Path
+
 import re
 from collections import defaultdict
 
@@ -245,6 +247,19 @@ ALIKE = 0.4
 SAME_TOPIC = 0.55
 
 _VECTORS: dict[str, "object"] | None = None
+# The state files the vectors are read from: every one an `Application` in
+# this process has opened. A web server serving two readers has two, and the
+# union is the right answer for both -- vectors are keyed by sentence text,
+# and two readers learning different languages share no sentence.
+_VECTOR_FILES: set[Path] = set()
+
+
+def read_vectors_from(path: Path) -> None:
+    """Count `path`'s stored vectors in, the next time any are wanted."""
+    global _VECTORS
+    if path not in _VECTOR_FILES:
+        _VECTOR_FILES.add(path)
+        _VECTORS = None
 
 
 def _known_vectors() -> dict:
@@ -253,13 +268,24 @@ def _known_vectors() -> dict:
     Loaded lazily rather than at import: most callers of this module never
     compare two sentences, and a corpus with no vectors yet must still rank.
     An empty store simply means this test never fires.
+
+    From the state files the applications in this process use, rather than
+    a fresh `Settings()`: that was always the first reader's file, so a
+    second reader's examples were spread by the first reader's vectors.
     """
     global _VECTORS
     if _VECTORS is None:
         from config import Settings                         # noqa: PLC0415
         from corpus.vectors import VectorStore              # noqa: PLC0415
 
-        _VECTORS = VectorStore(Settings().state_path).load()
+        found: dict = {}
+        # With no application to say whose, the installation's own reader:
+        # what this always read, and what a caller ranking examples
+        # directly still means.
+        for path in sorted(_VECTOR_FILES or {Settings().state_path}):
+            if path.exists():
+                found.update(VectorStore(path).load())
+        _VECTORS = found
     return _VECTORS
 
 

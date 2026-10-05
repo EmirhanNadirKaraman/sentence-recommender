@@ -7,6 +7,15 @@ from vocab.study_list import StudyListBuilder
 class BuildStudyListCommand:
     def run(self, app, force: bool = False) -> None:
         settings = app.settings
+        if settings.order_words is None or settings.form_words is None:
+            # The merge exists because German's ranking and its valency
+            # dictionary are two files. A list in any other language is
+            # already the study list as it stands.
+            raise SystemExit(
+                "build-study-list merges the German ranking with the German "
+                "valency dictionary. For any other language the word list is "
+                f"the study list: put it at {settings.goal_words}, one word "
+                "or expression per line.")
         for path in (settings.order_words, settings.form_words):
             if not path.exists():
                 raise SystemExit(f"missing {path}")

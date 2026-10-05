@@ -1,0 +1,247 @@
+# English expressions: units of their own, found by their words.
+#
+# One a line, `canonical<TAB>pattern`. The canonical is the unit's key: what
+# the card is titled and the study list names. Being in this file is what
+# registers it -- see `Application.registered_patterns`. A sentence that says
+# an expression yields it *instead of* the words it is made of: `She gave up`
+# is `she` and `give up`, not `give` and `up` as well, because knowing `give`
+# is not knowing `give up` and reading the sentence needs only the second.
+#
+# The pattern says how it is found (`corpus.english.Expression`):
+#
+#     give :: up            a verb, and words hanging from it anywhere in its
+#                           clause: `gave up`, `gave it up`, `has given up`.
+#                           A word with `sth` or `sb` after it leads a phrase
+#                           of its own (`depend :: on sth` -- `depends on the
+#                           weather`); one without must not, which is what
+#                           keeps `went to London on Monday` from being `go on`
+#     in spite of           words in a row, each matched by its form or its
+#                           lemma; `[x]` may be absent, `*` is any one word
+#                           or none, `a/b` is either
+#
+# With no pattern, the canonical's own words are looked for in order with up
+# to two others between them, and `sb`, `sth`, `one's` stand for a phrase.
+#
+# Only what is a word of its own belongs here. Every line is a unit a reader
+# has to learn, and a sentence saying one that is not on their list is one
+# they cannot count as readable under strict counting until they do.
+#
+# Changing this file changes how the English corpus is analysed: rebuild it
+# (`build-corpus subtitle --reader NAME`) after editing.
+
+## Phrasal verbs: a verb and a particle that mean something neither does
+add up	add :: up
+back up	back :: up
+blow up	blow :: up
+break down	break :: down
+break out	break :: out
+break up	break :: up
+bring about	bring :: about
+bring up	bring :: up
+call off	call :: off
+calm down	calm :: down
+carry on	carry :: on
+carry out	carry :: out
+catch up	catch :: up
+check out	check :: out
+cheer up	cheer :: up
+come across	come :: across sth
+come out	come :: out
+come up	come :: up
+come up with	come :: up with sth
+count on	count :: on sb
+cut down	cut :: down
+cut off	cut :: off
+drop out	drop :: out
+end up	end :: up
+fall apart	fall :: apart
+fall behind	fall :: behind
+figure out	figure :: out
+fill in	fill :: in
+fill out	fill :: out
+find out	find :: out
+get along	get :: along
+get away with	get :: away with sth
+get by	get :: by
+get over	get :: over sth
+get rid of	get rid of
+get through	get :: through sth
+get up	get :: up
+give away	give :: away
+give in	give :: in
+give up	give :: up
+go ahead	go :: ahead
+go off	go :: off
+go on	go :: on
+go over	go :: over sth
+go through	go :: through sth
+grow up	grow :: up
+hand in	hand :: in
+hand out	hand :: out
+hang on	hang :: on
+hang out	hang :: out
+hold back	hold :: back
+hold on	hold :: on
+hold up	hold :: up
+keep on	keep :: on
+keep up	keep :: up
+keep up with	keep :: up with sth
+leave out	leave :: out
+let down	let :: down
+look after	look :: after sb
+look down on	look :: down on sb
+look forward to	look :: forward to sth
+look into	look :: into sth
+look out	look :: out
+look up	look :: up
+look up to	look :: up to sb
+make out	make :: out
+make up	make :: up
+make up for	make :: up for sth
+move on	move :: on
+pass away	pass :: away
+pass out	pass :: out
+pay back	pay :: back
+pay off	pay :: off
+pick up	pick :: up
+point out	point :: out
+put away	put :: away
+put off	put :: off
+put on	put :: on
+put out	put :: out
+put up with	put :: up with sth
+rule out	rule :: out
+run into	run :: into sb
+run out of	run :: out of sth
+set off	set :: off
+set up	set :: up
+settle down	settle :: down
+show off	show :: off
+show up	show :: up
+shut down	shut :: down
+sign up	sign :: up
+sort out	sort :: out
+stand for	stand :: for sth
+stand out	stand :: out
+stand up for	stand :: up for sb
+take after	take :: after sb
+take off	take :: off
+take on	take :: on
+take over	take :: over
+take up	take :: up
+throw away	throw :: away
+try out	try :: out
+turn down	turn :: down
+turn into	turn :: into sth
+turn off	turn :: off
+turn on	turn :: on
+turn out	turn :: out
+turn up	turn :: up
+wake up	wake :: up
+wear out	wear :: out
+work out	work :: out
+write down	write :: down
+
+## Verbs and the preposition they take
+account for	account :: for sth
+adapt to	adapt :: to sth
+apply for	apply :: for sth
+approve of	approve :: of sth
+believe in	believe :: in sth
+belong to	belong :: to sb
+cope with	cope :: with sth
+concentrate on	concentrate :: on sth
+consist of	consist :: of sth
+contribute to	contribute :: to sth
+deal with	deal :: with sth
+depend on	depend :: on sth
+focus on	focus :: on sth
+insist on	insist :: on sth
+lead to	lead :: to sth
+object to	object :: to sth
+participate in	participate :: in sth
+refer to	refer :: to sth
+rely on	rely :: on sth
+respond to	respond :: to sth
+result from	result :: from sth
+result in	result :: in sth
+succeed in	succeed :: in sth
+suffer from	suffer :: from sth
+
+## Verbs and the noun they make one word with
+bear in mind	bear :: in mind
+come true	come :: true
+get used to	get used to
+give rise to	give :: rise to sth
+keep in mind	keep :: in mind
+make sense	make :: sense
+make sure	make :: sure
+pay attention to	pay :: attention to sth
+take advantage of	take :: advantage of sth
+take care of	take :: care of sth
+take for granted	take :: for granted
+take into account	take :: into account
+take part in	take :: part in sth
+take place	take :: place
+
+## Fixed phrases
+a lot of	a lot of
+according to	according to
+after all	after all
+all of a sudden	all of a sudden
+apart from	apart from
+as a result	as a result
+as far as	as far as
+as if	as if
+as long as	as long as
+as opposed to	as opposed to
+as soon as	as soon as
+as well as	as well as
+at all	at all
+at first	at first
+at last	at last
+at least	at least
+at the moment	at the moment
+at the same time	at the same time
+because of	because of
+by means of	by means of
+by the way	by the way
+due to	due to
+each other	each other
+even if	even if
+even though	even though
+for example	for example
+for instance	for instance
+from time to time	from time to time
+in addition	in addition
+in case	in case
+in charge of	in charge of
+in contrast	in contrast
+in fact	in fact
+in favour of	in favour/favor of
+in front of	in front of
+in general	in general
+in order to	in order to
+in other words	in other words
+in particular	in particular
+in spite of	in spite of
+in terms of	in terms of
+in the end	in the end
+instead of	instead of
+more or less	more or less
+no longer	no longer
+of course	of course
+on behalf of	on behalf of
+on purpose	on purpose
+on the other hand	on the other hand
+one another	one another
+owing to	owing to
+prior to	prior to
+rather than	rather than
+regardless of	regardless of
+so far	so far
+so that	so that
+sooner or later	sooner or later
+such as	such as
+thanks to	thanks to
+with regard to	with regard to

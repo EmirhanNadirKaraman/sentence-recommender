@@ -20,6 +20,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.parse import quote
 
+from languages import GERMAN, language as _language
+
 ROOT = Path(__file__).resolve().parent
 
 
@@ -70,7 +72,7 @@ class DatabaseConfig:
         )
 
     @classmethod
-    def owned(cls) -> "DatabaseConfig":
+    def owned(cls, suffix: str = "") -> "DatabaseConfig":
         """This project's database — the one it reads, writes and migrates.
 
         `DB_NAME` names it, because it is now the only database this project
@@ -81,9 +83,13 @@ class DatabaseConfig:
         the index it wanted could not be added to a database under their
         migrations. That index exists here, and the same lookup is 57x
         faster for it.
+
+        `suffix` names a language's own copy of it: German's is `DB_NAME`
+        itself, English's is `DB_NAME` with `_en` after it. See `languages`.
         """
         load_dotenv()
-        return cls.named(os.environ.get("DB_NAME", "sentence_recommender"))
+        return cls.named(os.environ.get("DB_NAME", "sentence_recommender")
+                         + suffix)
 
     def url(self) -> str:
         """SQLAlchemy URL, for alembic. Nothing else here speaks SQLAlchemy.
@@ -133,7 +139,12 @@ class Settings:
     # the target of every read and write. Anything else on the same server is
     # reached with `DatabaseConfig.named` by the one command that wants it.
     own: DatabaseConfig = field(default_factory=DatabaseConfig.owned)
-    language: str = "de"
+    # The language being learned, and the one translations are made into.
+    language: str = GERMAN.code
+    native: str = "en"
+    # Whose state this is: a name from the registry (see `readers`), or
+    # empty for an installation that has only ever had one reader.
+    reader: str = ""
 
     # Which browser yt-dlp should borrow cookies from, or "" for none.
     #
@@ -152,32 +163,30 @@ class Settings:
     # Vocabulary sources.  `known_words` and `function_words` together form the
     # starting known set; `priority_words` supplies the teaching-order ranking.
     known_words: Path = ROOT / "data" / "known_words.txt"
-    function_words: Path = ROOT / "data" / "function_words.txt"
+    function_words: Path = GERMAN.function_words
     # The study list is built from two halves and used everywhere.
     #   order_words  supplies the ranking — curated, most useful first
     #   form_words   supplies the shape the matcher speaks
     # `build-study-list` joins them into `goal_words`, which is what the
     # roadmap reads for both what to learn and in what order.
-    order_words: Path = ROOT / "data" / "old_data" / "words_4000.txt"
-    form_words: Path = ROOT / "data" / "final_result.txt"
+    # German only: no other language has the valency dictionary to merge.
+    order_words: Path | None = GERMAN.order_words
+    form_words: Path | None = GERMAN.form_words
     goal_words: Path = ROOT / "data" / "study_list.txt"
     # Fixed expressions — units found by their words. The matcher reads how;
     # the application and the study list read only the names.
-    expressions: Path = ROOT / "data" / "expressions.txt"
+    expressions: Path = GERMAN.expressions
     # A list the reader built and saved, handed over instead of read. The
     # path above still names it — a plan's label carries the stem — but the
     # entries come from `word_list` in the state file. See `vocab.word_lists`.
     goal_entries: tuple[str, ...] | None = None
-    goal_lemmas: Path = ROOT / "data" / "goal_lemmas.txt"
+    goal_lemmas: Path = GERMAN.goal_lemmas
 
     # Local mutable state (SRS cards, generated roadmap).
     state_path: Path = ROOT / "data" / "state.sqlite3"
 
-    # Cached builds the program no longer studies from.  Tatoeba's sentences
-    # were imported once and are kept — deleting them is irreversible now the
-    # importer is gone — but nothing reads them: this corpus is video
-    # subtitles, so that is what the roadmap and the blocked list mean.
-    ignored_builds: frozenset[str] = frozenset({"tatoeba"})
+    # Cached builds the program no longer studies from. See `languages`.
+    ignored_builds: frozenset[str] = GERMAN.ignored_builds
 
     # Sentence acceptance band, in words. Four-word sentences carry too little
     # context to learn a word from; the floor is a taste setting, so
@@ -225,3 +234,35 @@ class Settings:
     # high-priority unit may outrank a higher-gain one.  Corpus gains are small
     # (median 0 at step 0), so this dominates in practice — deliberately.
     priority_weight: float = 3.0
+
+    @classmethod
+    def for_reader(cls, reader) -> "Settings":
+        """Everything one reader's commands and pages read and write.
+
+        Their own files live in their `home`; what belongs to the language
+        they are learning comes from `languages`. The first reader's home is
+        `data/` itself, and for them this is exactly `Settings()` -- the
+        layout the program had before it had a second reader.
+        """
+        lang = _language(reader.language)
+        home = reader.home
+        # Their own copy of the closed classes, where `reader add` made one:
+        # the quiz comments out what they say they do not know, and the
+        # language's file is in the repository for every reader of it.
+        mine = home / lang.function_words.name
+        return cls(
+            own=DatabaseConfig.owned(lang.database_suffix),
+            language=lang.code,
+            native=reader.native,
+            reader=reader.name,
+            data_dir=home,
+            known_words=home / "known_words.txt",
+            function_words=mine if mine.exists() else lang.function_words,
+            order_words=lang.order_words,
+            form_words=lang.form_words,
+            goal_words=home / "study_list.txt",
+            expressions=lang.expressions,
+            goal_lemmas=lang.goal_lemmas,
+            state_path=home / "state.sqlite3",
+            ignored_builds=lang.ignored_builds,
+        )

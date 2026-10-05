@@ -20,7 +20,8 @@ from alembic import context
 from sqlalchemy import create_engine, pool
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from config import Settings          # noqa: E402 — after the path is set
+from config import DatabaseConfig    # noqa: E402 — after the path is set
+from languages import language       # noqa: E402
 
 config = context.config
 if config.config_file_name is not None:
@@ -30,7 +31,13 @@ if config.config_file_name is not None:
 # that value to ConfigParser unescaped, so a password containing a percent
 # sign is read as an interpolation and the run dies with a KeyError naming
 # whatever followed it. The ini never sees the credentials this way.
-DATABASE_URL = Settings().own.url()
+#
+# Each language has a database of its own (see `languages`), so which one is
+# migrated is asked for: `alembic -x language=en upgrade head`. German's is
+# the default, and the one there was before there were others.
+_LANGUAGE = language(context.get_x_argument(as_dictionary=True)
+                     .get("language", "de"))
+DATABASE_URL = DatabaseConfig.owned(_LANGUAGE.database_suffix).url()
 target_metadata = None
 
 

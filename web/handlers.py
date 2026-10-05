@@ -72,7 +72,7 @@ from roadmap.videos import VideoRoadmapStore
 from roadmap.store import ALL, RoadmapStore, current_stamp
 from vocab.entry import LEMMA, PATTERN, Unit
 from web import watch as video
-from web.render import ANKI_REMIND, layout, sentence, stamped
+from web.render import ACTIVE, ANKI_REMIND, layout, sentence, stamped
 
 PAGE_SIZE = 40
 # Sentences kept per stranded word, for the arrows on its row. Enough to
@@ -1084,7 +1084,7 @@ class Viewer:
         live index, which is the same answer computed the slow way.
         """
         label = self._stored_label(source, list_only, unblock)
-        if self._store.stamp(label) != current_stamp():
+        if self._store.stamp(label) != current_stamp(self.app.settings.language):
             return None
         known = self.known
         steps = self._store.load(label)
@@ -3515,6 +3515,24 @@ class Viewer:
 
     # --- settings ---------------------------------------------------------
 
+    def _account(self) -> str:
+        """Who is signed in, on an installation with more than one reader.
+
+        Here as well as in the masthead, because the phone's tab bar has no
+        room for it and Settings is where anyone looks for a way out.
+        """
+        settings = self.app.settings
+        if not (getattr(ACTIVE, "shared", False) and settings.reader):
+            return ""
+        from languages import NATIVE, language          # noqa: PLC0415
+        learning = language(settings.language).name
+        helped = NATIVE.get(settings.native, settings.native)
+        return ("<h2>Signed in</h2>"
+                f"<p class='note'>As <b>{escape(settings.reader)}</b>, learning "
+                f"{escape(learning)} with {escape(helped)} translations.</p>"
+                "<form method='post' action='/logout'>"
+                "<button type='submit'>Sign out</button></form>")
+
     def settings(self, query: dict) -> str:
         """What you have removed, and the means to remove more or relent."""
         source = self.source(query)
@@ -3582,6 +3600,7 @@ class Viewer:
             if channel not in gone and counts.get(channel))
         body = (
             "<h1>Settings</h1>"
+            f"{self._account()}"
             "<h2>Colours</h2>"
             "<p class='note'>Colour the words you do not know yet, wherever "
             "words are drawn — captions, transcripts, the sentences on the "
@@ -5191,7 +5210,8 @@ class Viewer:
         whole point of them.
         """
         at = self._corpus_stamp() if corpus_at is None else corpus_at
-        basis = f"{analyser_fingerprint()}|{SCORE_VERSION}|{at}"
+        basis = (f"{analyser_fingerprint(self.app.settings.language)}"
+                 f"|{SCORE_VERSION}|{at}")
         return basis, f"{basis}|{self.app.marked_known.version()}"
 
     def _forget_corpus(self) -> None:

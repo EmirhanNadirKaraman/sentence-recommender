@@ -38,6 +38,17 @@ class Application:
 
     def __init__(self, settings: Settings | None = None) -> None:
         self.settings = settings or Settings()
+        # The language being learned, and what changes with it. German's
+        # placeholders are the class's own, below; another language's are
+        # the markers and slots its lists write.
+        from languages import language as profile           # noqa: PLC0415
+        self.language = profile(self.settings.language)
+        if self.language.code != "de":
+            self.PLACEHOLDERS = self.language.markers | self.language.slots
+        # Example spreading compares sentences by their stored vectors,
+        # which live in this reader's state file. See `roadmap.examples`.
+        from roadmap.examples import read_vectors_from      # noqa: PLC0415
+        read_vectors_from(self.settings.state_path)
         # ((blacklist version, removals version), the videos they hide)
         # -- see `banned_videos`.
         self._banned: tuple[int, frozenset[str]] | None = None
@@ -50,7 +61,8 @@ class Application:
     @cached_property
     def corpus_store(self) -> CorpusStore:
         return CorpusStore(self.settings.own,
-                           self.settings.ignored_builds)
+                           self.settings.ignored_builds,
+                           self.settings.language)
 
     @cached_property
     def card_store(self) -> CardStore:
@@ -80,13 +92,18 @@ class Application:
 
     @cached_property
     def analyzer(self) -> UnitAnalyzer:
-        return UnitAnalyzer(
+        from corpus.parallel import analyzer_class           # noqa: PLC0415
+        return analyzer_class(self.settings.language)(
             self.registered_patterns, self.settings.language,
             self.settings.analysis_processes,
         )
 
     def filter(self, min_words: int | None = None) -> SentenceFilter:
-        return SentenceFilter(
+        made = SentenceFilter
+        if self.settings.language == "en":
+            from corpus.english import EnglishFilter         # noqa: PLC0415
+            made = EnglishFilter
+        return made(
             min_words or self.settings.min_tokens, self.settings.max_tokens
         )
 
@@ -325,11 +342,14 @@ class Application:
         this project did for a whole session: a page that looked right, was
         not, and had nothing to indicate which.
         """
+        whose = (f" --reader {self.settings.reader}"
+                 if self.settings.reader else "")
         for build, made_with in self.corpus_store.stale().items():
             source = build.split(":")[0]
             print(f"warning: corpus '{build}' was analysed by different rules "
                   f"(fingerprint {made_with}) — rebuild it with "
-                  f"`python main.py build-corpus {source}`", file=sys.stderr)
+                  f"`python main.py build-corpus {source}{whose}`",
+                  file=sys.stderr)
         return lambda: None
 
     # Bits of a pattern that name a role rather than a word. Without these
@@ -431,7 +451,7 @@ class Application:
     @cached_property
     def aliases(self) -> Aliases:
         """The list's own name for each word it teaches. See `Aliases`."""
-        return Aliases(self.goal_units)
+        return Aliases(self.goal_units, self.settings.language)
 
     def _unit_rule(self, strict: bool, list_only: bool):
         """What each unit counts as, applied while the units are read.
@@ -558,7 +578,7 @@ class Application:
 
     @cached_property
     def resolved(self) -> ResolvedCache:
-        return ResolvedCache(self.settings.state_path)
+        return ResolvedCache(self.settings.state_path, self.settings.language)
 
     @cached_property
     def marked_known(self) -> KnownStore:
@@ -627,7 +647,9 @@ class Application:
     def beginner_set(self) -> KnownSet:
         """What someone opening this for the first time knows.
 
-        The function words and nothing else. `known_set` also carries
+        The function words and nothing else -- and in a language with a
+        starter list, those words too (`languages.Language.starter_words`).
+        `known_set` also carries
         `known_words.txt` and everything this reader has marked while
         reading, which is one person's vocabulary rather than a new one's — a
         plan built on it is a plan for them.
@@ -639,8 +661,18 @@ class Application:
         """
         from vocab.loader import WordListLoader          # noqa: PLC0415
 
-        surfaces = set(WordListLoader().load(
-            self.settings.function_words).surfaces)
+        loader = WordListLoader(self.language.markers)
+        surfaces = set(loader.load(self.settings.function_words).surfaces)
+        # And, in a language that has them, the starter words: the first
+        # thousand of English are what anyone opening this already has.
+        # Read from the language's list, and kept only where the reader's
+        # own known set still holds them, so a word they struck stays struck.
+        if self.language.starter_words is not None:
+            starters = list(loader.load(self.language.starter_words).surfaces)
+            # Under the lemmas they resolve to as well, which is what the
+            # known set holds: a list entry is written the way a dictionary
+            # writes it, and the parser may file it under another form.
+            surfaces |= set(starters) | self.analyzer.lemmas(starters)
         units = {unit for unit in self.known_set().units
                  if unit.key in surfaces or unit.key.lower() in surfaces}
         units |= {self.aliases.of(unit) for unit in units}
@@ -653,6 +685,8 @@ class Application:
         Cached because the resolution needs the corpus's lemma inventory, and
         the vocabulary is re-resolved on every request.
         """
+        if not self.language.compounds:
+            return Compounds()
         inventory = {Unit.exact(key) for key in self.corpus_store.lemma_keys()}
         inventory |= {Unit.exact(lemma) for lemma in self._known_lemmas()}
         # `covered_by` as well as the corpus, because strict counting
@@ -697,7 +731,8 @@ class Application:
             cached = self.resolved.get("goals", files)
             if cached is not None:
                 return tuple(Unit(kind, key) for kind, key in cached)
-        units = GoalList(self.settings.goal_words, stored).units(
+        units = GoalList(self.settings.goal_words, stored,
+                         self.language.markers).units(
             self.registered_patterns, self.analyzer.lemmatise_each,
             GoalList.corrections(self.settings.goal_lemmas),
         )
@@ -715,7 +750,7 @@ class Application:
         return UnitPriority.build(self.goal_units)
 
     def _surfaces(self) -> list[str]:
-        loader = WordListLoader()
+        loader = WordListLoader(self.language.markers)
         surfaces: list[str] = []
         for path in (self.settings.known_words, self.settings.function_words):
             if path.exists():

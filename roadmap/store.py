@@ -50,7 +50,7 @@ ALL = "all"
 ROADMAP_VERSION = 5
 
 
-def current_stamp() -> str:
+def current_stamp(language: str = "de") -> str:
     """What a roadmap built right now would be stamped with.
 
     The analyser, because a rebuilt corpus holds different sentences and the
@@ -58,7 +58,8 @@ def current_stamp() -> str:
     decides which sentences reach a deck and in what order; and this module's
     own version.
     """
-    return f"{analyser_fingerprint()}|{ROADMAP_VERSION}|{QUALITY_VERSION}"
+    return (f"{analyser_fingerprint(language)}|{ROADMAP_VERSION}"
+            f"|{QUALITY_VERSION}")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS roadmap (

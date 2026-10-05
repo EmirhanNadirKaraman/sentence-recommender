@@ -48,8 +48,25 @@ SOURCES = (
 # parser change that had not happened.
 PACKAGES = ("spacy", "de_core_news_md")
 
+# English decides its units in a module of its own, on the filter German's
+# is built on, from one data file of its own. Kept apart from German's so
+# that neither language's rules moving says the other's corpus is stale --
+# an English rule changed here must not send the German pages off their
+# stored plans, and the other way round.
+ENGLISH_SOURCES = (
+    ROOT / "corpus" / "english.py",
+    ROOT / "corpus" / "filter.py",
+    ROOT / "data" / "en" / "expressions.txt",
+    # The slots an expression's words may stand for (`take sth into
+    # account`) are English's entry in this file.
+    ROOT / "languages.py",
+)
+ENGLISH_PACKAGES = ("spacy", "en_core_web_md")
 
-def analyser_fingerprint() -> str:
+_RULES = {"de": (SOURCES, PACKAGES), "en": (ENGLISH_SOURCES, ENGLISH_PACKAGES)}
+
+
+def analyser_fingerprint(language: str = "de") -> str:
     """A short digest of the rules currently in force.
 
     The rules only — the files above. The installed package versions used to
@@ -65,7 +82,7 @@ def analyser_fingerprint() -> str:
     warned about rather than used to invalidate. See `CorpusStore.stale`.
     """
     digest = hashlib.sha256()
-    for path in SOURCES:
+    for path in _RULES[language][0]:
         digest.update(path.name.encode())
         try:
             digest.update(path.read_bytes())
@@ -74,7 +91,7 @@ def analyser_fingerprint() -> str:
     return digest.hexdigest()[:16]
 
 
-def packages_fingerprint() -> str:
+def packages_fingerprint(language: str = "de") -> str:
     """A short digest of the parser that produced a cache.
 
     A missing package hashes as "-", so a machine that never installed spaCy
@@ -82,7 +99,7 @@ def packages_fingerprint() -> str:
     point of keeping this apart from the rules.
     """
     digest = hashlib.sha256()
-    for name in PACKAGES:
+    for name in _RULES[language][1]:
         try:
             version = metadata.version(name)
         except metadata.PackageNotFoundError:

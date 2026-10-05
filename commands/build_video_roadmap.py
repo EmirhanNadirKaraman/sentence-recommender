@@ -59,7 +59,7 @@ class BuildVideoRoadmapCommand:
                              "sentences need two or more new words")
 
         VideoRoadmapStore(settings.state_path).save(
-            plan, source, analyser_fingerprint())
+            plan, source, analyser_fingerprint(app.settings.language))
 
         taught = len(walk.known) - len(known)
         print(f"\nvideo roadmap [{source}]: {len(plan)} videos in order")

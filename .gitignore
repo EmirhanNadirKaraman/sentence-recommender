@@ -6,6 +6,9 @@ __pycache__/
 *.pyc
 .venv/
 data/state.sqlite3
+# Every reader but the first: their state, their words, their password
+# hashes, and the key their sessions are signed with. Nobody else's.
+data/readers/
 
 # Imported once, kept, and read by nothing. Moved out of the working
 # database because it was half the bytes of every cold read.

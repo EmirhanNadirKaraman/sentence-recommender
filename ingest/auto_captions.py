@@ -103,6 +103,8 @@ class Judgement:
     lines: int
     punctuation: float
     german: float
+    """The share of the track in the language asked for -- German's, first."""
+    language: str = "de"
 
     @property
     def ok(self) -> bool:
@@ -110,9 +112,11 @@ class Judgement:
 
     def why(self) -> str:
         """One sentence for a person, saying which test it failed."""
+        from languages import language as profile         # noqa: PLC0415
+        name = profile(self.language).name
         if self.verdict == "ok":
             return (f"{self.lines} lines, {self.punctuation:.0%} punctuated, "
-                    f"{self.german:.0%} German")
+                    f"{self.german:.0%} {name}")
         if self.verdict == "too-short":
             return (f"only {self.lines} caption lines — too little to be "
                     "worth keeping.")
@@ -121,9 +125,9 @@ class Judgement:
                     f"({self.punctuation:.0%} of {self.lines} lines end in "
                     "one), which collapse into a single sentence that "
                     "teaches nothing.")
-        if self.verdict == "not-german":
-            return (f"machine captions only {self.german:.0%} German — this "
-                    "is a video explaining German in another language.")
+        if self.verdict == f"not-{name.lower()}":
+            return (f"machine captions only {self.german:.0%} {name} — this "
+                    f"is a video explaining {name} in another language.")
         return self.verdict
 
 
@@ -135,8 +139,8 @@ def punctuation_rate(lines) -> float:
     return ended / len(lines)
 
 
-def german_share(lines, window: int = WINDOW) -> float:
-    """The share of the track that reads as German.
+def german_share(lines, window: int = WINDOW, language: str = "de") -> float:
+    """The share of the track that reads as German -- or as `language`.
 
     Detection is seeded. `langdetect` is probabilistic and picks its own seed
     per process otherwise, so an unseeded gate gives different answers to the
@@ -166,7 +170,7 @@ def german_share(lines, window: int = WINDOW) -> float:
     german = 0
     for text in windows:
         try:
-            german += detect(text) == "de"
+            german += detect(text) == language
         except LangDetectException:
             # Too little to call — music cues, applause markers. Counted as
             # neither, by being counted in the denominator and not the
@@ -175,7 +179,7 @@ def german_share(lines, window: int = WINDOW) -> float:
     return german / len(windows)
 
 
-def judge(lines, floor: int = MIN_LINES) -> Judgement:
+def judge(lines, floor: int = MIN_LINES, language: str = "de") -> Judgement:
     """Whether this machine track is worth putting in the catalogue.
 
     Ordered cheapest test first, and each one is a separate verdict rather
@@ -187,7 +191,11 @@ def judge(lines, floor: int = MIN_LINES) -> Judgement:
         return Judgement("too-short", len(lines), punctuation, 0.0)
     if punctuation < PUNCTUATED:
         return Judgement("unpunctuated", len(lines), punctuation, 0.0)
-    german = german_share(lines)
+    from languages import language as profile             # noqa: PLC0415
+    german = german_share(lines, language=language)
     if german < GERMAN:
-        return Judgement("not-german", len(lines), punctuation, german)
-    return Judgement("ok", len(lines), punctuation, german)
+        # `not-german` for German, as the attempt log has always settled it;
+        # `not-english` for English, and so on.
+        return Judgement(f"not-{profile(language).name.lower()}", len(lines),
+                         punctuation, german, language)
+    return Judgement("ok", len(lines), punctuation, german, language)

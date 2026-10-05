@@ -51,14 +51,16 @@ def _parser() -> argparse.ArgumentParser:
     )
     video.add_argument("video", metavar="ID_OR_URL",
                        help="a YouTube video id, or any URL containing one")
-    video.add_argument("--language", help="subtitle language (default: de)")
+    video.add_argument("--language", help="subtitle language (default and "
+                       "only choice: the reader's own; see --reader)")
 
     many = sub.add_parser(
         "add-videos", help="scrape a list of videos into the catalogue")
     many.add_argument("source", metavar="FILE|lexy|-",
                       help="a file of ids or URLs, 'lexy' to read them from "
                            "that database, or '-' for standard input")
-    many.add_argument("--language", help="subtitle language (default: de)")
+    many.add_argument("--language", help="subtitle language (default and "
+                      "only choice: the reader's own; see --reader)")
     many.add_argument("--dry-run", action="store_true",
                       help="list what would be fetched, and stop; with "
                            "--auto, fetch and judge each track without "
@@ -96,7 +98,8 @@ def _parser() -> argparse.ArgumentParser:
     channel.add_argument("channel", metavar="ID|@HANDLE|URL")
     channel.add_argument("--limit", type=int, default=0,
                          help="stop after N videos (default: the whole channel)")
-    channel.add_argument("--language", help="subtitle language (default: de)")
+    channel.add_argument("--language", help="subtitle language (default "
+                         "and only choice: the reader's own; see --reader)")
     channel.add_argument("--dry-run", action="store_true",
                          help="list what would be fetched, and stop; with "
                               "--auto, fetch and judge each track without "
@@ -560,8 +563,9 @@ def _parser() -> argparse.ArgumentParser:
     sampler.add_argument("channel", metavar="ID|@HANDLE|URL")
     sampler.add_argument("--sample", type=int, default=12,
                          help="how many videos to probe (default 12)")
-    sampler.add_argument("--language", default="de",
-                         help="subtitle language (default: de)")
+    sampler.add_argument("--language",
+                         help="subtitle language (default and only choice: "
+                              "the reader's own; see --reader)")
     sampler.add_argument("--pause", type=float, default=1.0,
                          help="seconds between probes")
 
@@ -601,7 +605,108 @@ def _parser() -> argparse.ArgumentParser:
     look.add_argument("--source", nargs="+", default=[], metavar="BUILD",
                       help=SOURCE_HELP)
 
+    people = sub.add_parser(
+        "reader", help="the people this installation serves: add one, set a "
+                       "password, list them")
+    people.add_argument("action", choices=["list", "add", "password"])
+    people.add_argument("name", nargs="?",
+                        help="lowercase letters, digits, - and _")
+    people.add_argument("--language", default="de",
+                        help="the language they are learning (default: de)")
+    people.add_argument("--native", default="en",
+                        help="the language translations are made into "
+                             "(default: en)")
+    people.add_argument("--home", type=Path,
+                        help="where their files live (default: "
+                             "data/readers/NAME). `--home data` registers "
+                             "the files this installation already has")
+
+    # On every command, after its name, because that is where a flag gets
+    # typed: `build-roadmap --reader NAME`. Whose state is read and written,
+    # and therefore which language's corpus; without it, the reader whose
+    # files are at the top of `data/`.
+    for name, command in sub.choices.items():
+        if name == "reader":
+            continue
+        command.add_argument(
+            "--reader", metavar="NAME",
+            help="whose vocabulary, cards and plans to use "
+                 "(see `python main.py reader list`)")
+
     return parser
+
+
+def _settings(name: str | None) -> Settings:
+    """The settings for `name`, or for whoever this installation is by
+    default: the reader at the top of `data/`, or -- with no registry at
+    all -- the single reader it always had."""
+    from readers import Registry                          # noqa: PLC0415
+    registry = Registry()
+    if name:
+        reader = registry.get(name)
+        if reader is None:
+            known = ", ".join(registry.names()) or "none yet"
+            raise SystemExit(f"no reader called {name!r} (readers: {known})")
+        return Settings.for_reader(reader)
+    reader = registry.default()
+    if reader is not None:
+        return Settings.for_reader(reader)
+    if registry.names():
+        raise SystemExit("this installation has several readers and none at "
+                         "the top of data/ -- say which with --reader NAME")
+    return Settings()
+
+
+def _same_language(args, settings: Settings) -> None:
+    """Refuse a `--language` that is not the reader's own.
+
+    Each language keeps its catalogue in a database of its own, and the
+    reader decides which: an English video added under a German reader would
+    land in the German catalogue, parsed by the German model, where nothing
+    reads it. The flag can only agree with the reader now -- `--reader`
+    is the way to say which language.
+    """
+    wanted = getattr(args, "language", None)
+    if args.command != "reader" and wanted and wanted != settings.language:
+        from readers import Registry                      # noqa: PLC0415
+        learners = [r.name for r in Registry().readers().values()
+                    if r.language == wanted]
+        hint = (f" — `--reader {learners[0]}` learns {wanted}" if learners
+                else f" — no reader learns {wanted} yet (`reader add NAME "
+                     f"--language {wanted}`)")
+        raise SystemExit(f"this reader learns {settings.language}, not "
+                         f"{wanted}{hint}")
+
+
+def manage_readers(args) -> None:
+    """`reader list | add NAME | password NAME`."""
+    import getpass                                        # noqa: PLC0415
+    from readers import Registry                          # noqa: PLC0415
+    registry = Registry()
+    if args.action == "list":
+        readers = registry.readers()
+        if not readers:
+            print("no readers yet -- one installation, one reader, no login. "
+                  "`reader add NAME` makes it shared.")
+        for reader in readers.values():
+            door = "password set" if reader.password else "no password"
+            print(f"  {reader.name:<16} learns {reader.language}, "
+                  f"translated into {reader.native}   {door}   {reader.home}")
+        return
+    if not args.name:
+        raise SystemExit(f"`reader {args.action}` needs a NAME")
+    if args.action == "add":
+        reader = registry.add(args.name, args.language, args.native, args.home)
+        print(f"added {reader.name}: learns {reader.language}, translated into "
+              f"{reader.native}, files in {reader.home}")
+        print(f"now give them a password: python main.py reader password "
+              f"{reader.name}")
+        return
+    first = getpass.getpass(f"new password for {args.name}: ")
+    if first != getpass.getpass("again: "):
+        raise SystemExit("the two did not match -- nothing changed")
+    registry.set_password(args.name, first)
+    print(f"password set for {args.name}; their other devices are signed out")
 
 
 def function_words(app: Application) -> None:
@@ -670,7 +775,10 @@ def search_vocabulary(app: Application, term: str, limit: int,
 
 def main() -> int:
     args = _parser().parse_args()
-    settings = Settings()
+    if args.command == "reader":
+        manage_readers(args)
+        return 0
+    settings = _settings(args.reader)
     if getattr(args, "goals_list", None):
         # Named rather than pathed, but still given a path: the stem is what
         # a plan's label carries, and a stored list needs a name there like
@@ -694,6 +802,7 @@ def main() -> int:
         if not chosen.exists():
             raise SystemExit(f"no word list at {chosen}")
         settings = replace(settings, goal_words=chosen)
+    _same_language(args, settings)
     app = Application(settings)
     if args.command == "add-video":
         AddVideoCommand().run(app, args.video, args.language)
@@ -811,7 +920,8 @@ def main() -> int:
     elif args.command == "sample-channel":
         from commands.sample_channel import SampleChannelCommand  # noqa: PLC0415
         SampleChannelCommand().run(app, args.channel, args.sample,
-                                   args.language, args.pause)
+                                   args.language or app.settings.language,
+                                   args.pause)
     elif args.command == "lookup":
         from commands.lookup_links import LookupCommand      # noqa: PLC0415
         LookupCommand().run(app, args.limit, tuple(args.source),

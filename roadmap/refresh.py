@@ -217,10 +217,10 @@ class RoadmapRefresher:
             # sentences by text alone, so a roadmap outlives the corpus that
             # produced them without any outward sign.
             if rebuild:
-                self._store.save(fresh, label, current_stamp(),
+                self._store.save(fresh, label, current_stamp(self._app.settings.language),
                                  len(sentences))
             else:
-                self._store.append(fresh, label, current_stamp(),
+                self._store.append(fresh, label, current_stamp(self._app.settings.language),
                                    len(sentences))
             out[label] = len(fresh)
         return out

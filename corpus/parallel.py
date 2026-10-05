@@ -30,10 +30,19 @@ CHUNK = 2_000
 _WORKER: UnitAnalyzer | None = None
 
 
+def analyzer_class(language: str):
+    """German's analyser, or the one for the language named. Both answer
+    the same questions; see `corpus.english`."""
+    if language == "en":
+        from corpus.english import EnglishAnalyzer           # noqa: PLC0415
+        return EnglishAnalyzer
+    return UnitAnalyzer
+
+
 def _start(patterns: frozenset[str], language: str) -> None:
     """Once per worker: the analyser, with spaCy and its tables loaded."""
     global _WORKER
-    _WORKER = UnitAnalyzer(patterns, language)
+    _WORKER = analyzer_class(language)(patterns, language)
     _WORKER.verb_lemmas
 
 

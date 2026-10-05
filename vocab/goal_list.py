@@ -41,8 +41,12 @@ class GoalList:
     """A target vocabulary, resolved into the units the roadmap deals in."""
 
     def __init__(self, path: Path,
-                 entries: tuple[str, ...] | None = None) -> None:
+                 entries: tuple[str, ...] | None = None,
+                 markers: frozenset[str] = ARTICLES) -> None:
         self._path = path
+        # The words an entry may start with that are not the word -- see
+        # `languages.Language.markers`.
+        self._markers = markers
         # A list the reader assembled by searching, handed over rather than
         # read. The path is still carried because it names the list —
         # `build-roadmap` puts its stem in the plan's label, and a stored
@@ -183,13 +187,12 @@ class GoalList:
                      or u.key != u.key.lower()      # a noun, keeping its capital
                      or u.key not in frames)
 
-    @staticmethod
-    def _alternatives(entry: str) -> list[str]:
+    def _alternatives(self, entry: str) -> list[str]:
         """One entry, as the separate words it actually names."""
         out: list[str] = []
         for part in entry.split(","):
             words = part.split()
-            if len(words) > 1 and words[0].lower() in ARTICLES:
+            if len(words) > 1 and words[0].lower() in self._markers:
                 words = words[1:]          # "das Leben" -> "Leben"
             if words:
                 out.append(" ".join(words))

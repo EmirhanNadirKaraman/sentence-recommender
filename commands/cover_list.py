@@ -77,5 +77,6 @@ class CoverListCommand:
             print("\n  (dry run — nothing stored)")
             return
         VideoCoverStore(settings.state_path).save(
-            cover, settings.goal_words.stem, build, current_stamp(), depth)
+            cover, settings.goal_words.stem, build,
+            current_stamp(settings.language), depth)
         print(f"\n  stored against {settings.goal_words.stem} · {build}")

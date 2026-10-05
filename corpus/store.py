@@ -26,6 +26,7 @@ fails, which is better than a half-built schema created on the fly.
 """
 from __future__ import annotations
 
+import re
 from collections import Counter
 from contextlib import contextmanager
 from datetime import datetime
@@ -47,8 +48,16 @@ BATCH = 5_000
 class CorpusStore:
     """Reads and writes stored corpus builds."""
 
-    def __init__(self, config, ignored: frozenset[str] = frozenset()) -> None:
+    def __init__(self, config, ignored: frozenset[str] = frozenset(),
+                 language: str = "de") -> None:
         self._config = config
+        # The language this database's corpus is in, which decides whose
+        # rules a build is checked against and which detected lines count
+        # as its own. Written into SQL as it stands, so it is held to the
+        # shape a language code has.
+        if not re.fullmatch(r"[a-z]{2,3}", language):
+            raise ValueError(f"not a language code: {language!r}")
+        self._language = language
         # Builds that exist but are not studied from. Hidden here rather than
         # deleted, so the rows survive and one setting brings them back.
         # `load` still returns them if asked by name — only the "every build"
@@ -154,7 +163,7 @@ class CorpusStore:
         recorded are skipped rather than reported: they predate this column,
         and warning about every one of them would be noise.
         """
-        now = packages_fingerprint()
+        now = packages_fingerprint(self._language)
         with self._read() as cur:
             cur.execute("SELECT build, packages FROM build_meta")
             stored = dict(cur.fetchall())
@@ -168,7 +177,7 @@ class CorpusStore:
         all counts as stale: it predates this bookkeeping, so nothing can
         vouch for it.
         """
-        now = analyser_fingerprint()
+        now = analyser_fingerprint(self._language)
         with self._read() as cur:
             cur.execute("SELECT build, fingerprint FROM build_meta")
             stored = dict(cur.fetchall())
@@ -300,9 +309,9 @@ class CorpusStore:
                 " VALUES (%s, %s, %s, %s) ON CONFLICT (build) DO UPDATE SET"
                 " fingerprint = excluded.fingerprint,"
                 " made_at = excluded.made_at, packages = excluded.packages",
-                (build, analyser_fingerprint(),
+                (build, analyser_fingerprint(self._language),
                  datetime.now().isoformat(timespec="seconds"),
-                 packages_fingerprint()))
+                 packages_fingerprint(self._language)))
         # Outside the transaction: neither of these can run inside one.
         # CONCURRENTLY so a rebuild does not lock out whatever is reading.
         with self._read() as cur:
@@ -387,7 +396,7 @@ class CorpusStore:
              holding: tuple[str, str] | None = None,
              text: str | None = None,
              resolve=None,
-             german_only: bool = True,
+             same_language: bool = True,
              limit: int = 0) -> list[Sentence]:
         """Stored sentences. By default only the ones worth studying from —
         pass `teachable_only=False` for the full transcript, which is what an
@@ -417,21 +426,22 @@ class CorpusStore:
         if not builds:
             return []          # `= ANY('{}')` matches nothing, but say so here
         teachable = " AND teachable" if teachable_only else ""
-        # English sentences are kept in the corpus and skipped by everything
-        # that learns from it. The transcripts are bilingual, and 5,228 of
-        # these rows are English — two of them were teaching steps 5 and 20
-        # of the beginner roadmap. They stay because they were still *said*,
-        # and the overlay is assembled from everything said; `german_only=
-        # False` is how the overlay asks for them.
+        # Sentences in another language are kept in the corpus and skipped
+        # by everything that learns from it. The German transcripts are
+        # bilingual, and 5,228 of their rows are English — two of them were
+        # teaching steps 5 and 20 of the beginner roadmap. They stay because
+        # they were still *said*, and the overlay is assembled from
+        # everything said; `same_language=False` is how it asks for them.
         #
         # `IS NULL` is kept, and that is the whole reason this is safe to add
         # to a corpus already built: NULL means nobody has looked, which is
-        # not the same as not-German. A build that has never run
+        # not the same as another language. A build that has never run
         # `detect-language` loads exactly as it did before.
-        german = (" AND (language IS NULL OR language = 'de')"
-                  if german_only else "")
-        joined_german = (" AND (s.language IS NULL OR s.language = 'de')"
-                         if german_only else "")
+        own = self._language
+        same = (f" AND (language IS NULL OR language = '{own}')"
+                if same_language else "")
+        joined_same = (f" AND (s.language IS NULL OR s.language = '{own}')"
+                       if same_language else "")
         # Narrowing both halves matters: the unit join is the larger of the
         # two, and filtering only the sentences would still walk every unit
         # row in the corpus to find the handful belonging to this video.
@@ -464,7 +474,7 @@ class CorpusStore:
                 "SELECT id, origin, text, translation, raw_text, source_ids,"
                 " video_id, start_time, end_time, teachable"
                 f" FROM corpus_sentence WHERE build = ANY(%s){teachable}"
-                f"{german}{one_video}{said_here}{one_text}{capped}", picked)
+                f"{same}{one_video}{said_here}{one_text}{capped}", picked)
             rows = cur.fetchall()
             units: dict[int, set[Unit]] = {}
             surfaces: dict[int, list[tuple[Unit, str]]] = {}
@@ -495,7 +505,7 @@ class CorpusStore:
                     "SELECT su.sentence_id, su.kind, su.key, su.surface"
                     " FROM corpus_unit su"
                     " JOIN corpus_sentence s ON s.id = su.sentence_id"
-                    f" WHERE s.build = ANY(%s){joined_german}{joined_video}"
+                    f" WHERE s.build = ANY(%s){joined_same}{joined_video}"
                     f"{joined_here}{joined_text}", args)
             for sid, kind, key, surface in cur:
                 unit = seen.get((kind, key), unseen)

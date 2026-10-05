@@ -1,25 +1,35 @@
-"""A local, single-user web viewer.
+"""The web viewer, for one reader or several.
 
 Built on `http.server` rather than a framework: the site is six routes and a
 form, and a dependency that has to be installed before the results can be
 looked at is a worse trade than forty lines of routing.
 
-Loopback by default. There is still no authentication of any kind, and the
-pages read and write whatever the local database holds — so binding it
-anywhere else puts that on the network for anyone who can reach the port.
-`serve --host` exists for reaching it from a phone on the same wifi, and says
-so out loud when it is used; anything beyond that wants a real front door
-(see IOS.md).
+An installation with no registry of readers is the program as it always
+was: one reader, no login, loopback by default -- binding it anywhere else
+puts what it holds on the network for anyone who can reach the port, and
+`serve --host` says so out loud when it is used.
+
+Once readers are registered with passwords (`python main.py reader`), every
+page but the login page and the static files wants a session cookie, and
+each reader is served from their own `Viewers` -- their own known set,
+cards, plans and corpus -- so nothing one of them does reaches the other.
+That is the front door a server on the open internet needs, and it is the
+only one: HTTPS belongs to whatever proxy stands in front of this.
 """
 from __future__ import annotations
 
 import os
 import socket
+import time
 import webbrowser
+from http.cookies import CookieError, SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, unquote, urlparse
+from threading import Lock
+from urllib.parse import parse_qs, quote, unquote, urlparse
 
+from readers import SESSION_SECONDS as _SESSION_SECONDS
+from web import render
 from web.handlers import Viewer
 
 LOOPBACK = "127.0.0.1"
@@ -31,6 +41,16 @@ TYPES = {
     ".webmanifest": "application/manifest+json; charset=utf-8",
     ".woff2": "font/woff2", ".json": "application/json; charset=utf-8",
 }
+
+# The session cookie. `__Host-` would pin it to this host and path, and is
+# refused by browsers over plain HTTP, which is what a proxy speaks to us.
+COOKIE = "i1_session"
+
+# What anyone may fetch without a session: the door itself, and the files a
+# browser asks for before it has one -- an icon on a home screen, the
+# manifest of an installed app.
+OPEN = {"/login", "/favicon.ico", "/apple-touch-icon.png",
+        "/apple-touch-icon-precomposed.png", "/manifest.webmanifest"}
 
 
 class Viewers:
@@ -48,6 +68,9 @@ class Viewers:
         self._default = app
         self._stem = app.settings.goal_words.stem
         self._made: dict[str, Viewer] = {self._stem: Viewer(app)}
+        # Two first requests for the same list at once would otherwise make
+        # two viewers, and each loads the corpus.
+        self._lock = Lock()
 
     def names(self) -> list[str]:
         """The list this process was started with, and every saved one."""
@@ -61,32 +84,75 @@ class Viewers:
         wanted = (query.get("list") or "").strip() or self._stem
         if wanted not in self.names():
             wanted = self._stem
-        if wanted not in self._made:
-            from dataclasses import replace              # noqa: PLC0415
-            from context import Application              # noqa: PLC0415
-            from vocab.word_lists import WordListStore   # noqa: PLC0415
-            store = WordListStore(self._default.settings.state_path)
-            settings = replace(
-                self._default.settings,
-                goal_words=self._default.settings.data_dir / f"{wanted}.txt",
-                goal_entries=store.entries(wanted))
-            self._made[wanted] = Viewer(Application(settings))
+        with self._lock:
+            if wanted not in self._made:
+                from dataclasses import replace              # noqa: PLC0415
+                from context import Application              # noqa: PLC0415
+                from vocab.word_lists import WordListStore   # noqa: PLC0415
+                store = WordListStore(self._default.settings.state_path)
+                settings = replace(
+                    self._default.settings,
+                    goal_words=self._default.settings.data_dir / f"{wanted}.txt",
+                    goal_entries=store.entries(wanted))
+                self._made[wanted] = Viewer(Application(settings))
         viewer = self._made[wanted]
         viewer.lists = self                              # for the switch
         return viewer
 
 
+class Door:
+    """Who is asking, and each reader's own viewers.
+
+    Without a registry there is one reader and no question to ask: every
+    request is theirs, as it always was. With one, a request belongs to the
+    reader its session cookie names, and to nobody without it.
+    """
+
+    def __init__(self, app, registry=None, apps: dict | None = None) -> None:
+        from readers import Registry                     # noqa: PLC0415
+        self.registry = registry if registry is not None else Registry()
+        self._default = app
+        # Applications already made -- by `serve`, which warms each reader
+        # before opening the socket -- so the first page does not make them
+        # again.
+        self._apps = dict(apps or {})
+        self._viewers: dict[str, Viewers] = {}
+        self._lock = Lock()
+
+    @property
+    def shared(self) -> bool:
+        return self.registry.shared
+
+    def viewers(self, reader=None) -> Viewers:
+        """`reader`'s viewers, made on first use; the default reader's when
+        there is no registry to name anyone."""
+        name = reader.name if reader is not None else ""
+        with self._lock:
+            if name not in self._viewers:
+                self._viewers[name] = Viewers(self._app_for(reader))
+            return self._viewers[name]
+
+    def _app_for(self, reader):
+        if reader is None or reader.name == self._default.settings.reader:
+            return self._default
+        if reader.name not in self._apps:
+            from config import Settings                  # noqa: PLC0415
+            from context import Application              # noqa: PLC0415
+            self._apps[reader.name] = Application(Settings.for_reader(reader))
+        return self._apps[reader.name]
+
+
 class LocalServer:
     """Routes requests to `Viewer` and serves the HTML it returns."""
 
-    def __init__(self, app, port: int = 8765, host: str = LOOPBACK) -> None:
-        self._viewers = Viewers(app)
-        self._viewer = self._viewers.pick({})
+    def __init__(self, app, port: int = 8765, host: str = LOOPBACK,
+                 apps: dict | None = None) -> None:
+        self._door = Door(app, apps=apps)
         self._port = port
         self._host = host
 
     def serve(self, open_browser: bool = True) -> None:
-        handler = _make_handler(self._viewers)
+        handler = _make_handler(self._door)
         server = ThreadingHTTPServer((self._host, self._port), handler)
         where = self._reachable_at()
         url = f"http://{where}:{self._port}/"
@@ -98,9 +164,15 @@ class LocalServer:
         # Keyed on where it is reachable, not where it is bound. In a
         # container the bind is always `0.0.0.0` and this fired every time,
         # while compose publishes on loopback and nobody else could reach it.
-        if where != LOOPBACK:
+        if self._door.shared:
+            able = [r.name for r in self._door.registry.readers().values()
+                    if r.password]
+            print(f"  readers: {', '.join(sorted(able))} — each signs in",
+                  flush=True)
+        elif where != LOOPBACK:
             print("  no authentication — anyone who can reach this port can "
-                  "read your corpus and mark words known", flush=True)
+                  "read your corpus and mark words known. `python main.py "
+                  "reader add` gives it a login", flush=True)
         if open_browser:
             webbrowser.open(url)
         try:
@@ -138,14 +210,65 @@ class LocalServer:
         return name if name.endswith(".local") else f"{name}.local"
 
 
-def _make_handler(viewers: "Viewers"):
-    """One handler, and the goal list chosen per request.
+def _make_handler(door: "Door"):
+    """One handler; the reader and the goal list chosen per request.
 
-    `?list=NAME` picks it; the form carries the same key back so a POST
-    lands on the list the page was showing rather than on the default.
+    The reader comes from the session cookie, when the installation has
+    readers to sign in. `?list=NAME` picks the list; the form carries the
+    same key back so a POST lands on the list the page was showing rather
+    than on the default.
     """
     class Handler(BaseHTTPRequestHandler):
         protocol_version = "HTTP/1.1"
+
+        def _reader(self):
+            """The signed-in reader, or None."""
+            try:
+                jar = SimpleCookie(self.headers.get("Cookie", ""))
+            except CookieError:
+                return None
+            morsel = jar.get(COOKIE)
+            return door.registry.session(morsel.value) if morsel else None
+
+        def _admit(self, path: str, posting: bool):
+            """(allowed, reader): who this request is from, and whether it
+            may go on. Answers the refusal itself when it may not."""
+            render.ACTIVE.reader = ""
+            render.ACTIVE.shared = False
+            if not door.shared:
+                return True, None
+            render.ACTIVE.shared = True
+            reader = self._reader()
+            if reader is not None:
+                render.ACTIVE.reader = reader.name
+                return True, reader
+            if posting:
+                self._send(_signed_out(), status=403)
+            elif path.startswith("/api/"):
+                self._send_json({"error": "signed out"}, status=401)
+            else:
+                self._redirect("/login?next=" + quote(self.path, safe=""))
+            return False, None
+
+        def _same_origin(self) -> bool:
+            """Whether a POST came from one of this site's own pages.
+
+            The session cookie is `SameSite=Lax`, so a browser will not send
+            it with a form another site submits here -- this is the second
+            lock, for a browser that ignores the first. A request with no
+            `Origin` is a script, not a page someone was tricked into.
+            """
+            origin = self.headers.get("Origin")
+            if origin is None:
+                return True
+            hosts = {self.headers.get("Host", ""),
+                     self.headers.get("X-Forwarded-Host", "")} - {""}
+            if urlparse(origin).netloc in hosts:
+                return True
+            print(f"refused a POST from {origin!r} (host {sorted(hosts)}) — "
+                  "a proxy in front must pass Host or X-Forwarded-Host "
+                  "through", flush=True)
+            return False
 
         def log_message(self, fmt, *args):        # quiet; the terminal is the user's
             pass
@@ -166,7 +289,14 @@ def _make_handler(viewers: "Viewers"):
             query = {k: v[0] for k, v in parse_qs(parsed.query).items()}
             path = parsed.path.rstrip("/") or "/"
             try:
-                html, status = self._route(path, query)
+                if path.startswith("/static/") or path in OPEN:
+                    html, status = self._route_open(path, query)
+                else:
+                    allowed, reader = self._admit(path, posting=False)
+                    if not allowed:
+                        return
+                    html, status = self._route(path, query,
+                                               door.viewers(reader))
                 if status:                     # 0 means the route already replied
                     self._send(html, status)
             except (BrokenPipeError, ConnectionResetError):
@@ -186,6 +316,23 @@ def _make_handler(viewers: "Viewers"):
             length = int(self.headers.get("Content-Length") or 0)
             body = self.rfile.read(length).decode("utf-8")
             posted = urlparse(self.path).path.rstrip("/")
+            if door.shared and not self._same_origin():
+                self._send(_signed_out(), status=403)
+                return
+            # Joined rather than truncated: a set of checkboxes posts one name
+            # many times, and keeping only the first silently drops the rest.
+            form = ({} if posted == "/api/heard" else
+                    {k: "\x00".join(v) for k, v in parse_qs(body).items()})
+            if posted == "/login":
+                self._login(form)
+                return
+            if posted == "/logout":
+                self._logout()
+                return
+            allowed, reader = self._admit(posted, posting=True)
+            if not allowed:
+                return
+            viewers = door.viewers(reader)
             if posted == "/api/heard":
                 # JSON, not a form: the page sends the lines it played
                 # through, a batch at a time and once more on leaving.
@@ -196,9 +343,6 @@ def _make_handler(viewers: "Viewers"):
                     heard = []
                 self._send_json(viewers.pick({}).heard(heard))
                 return
-            # Joined rather than truncated: a set of checkboxes posts one name
-            # many times, and keeping only the first silently drops the rest.
-            form = {k: "\x00".join(v) for k, v in parse_qs(body).items()}
             viewer = viewers.pick(form)
             try:
                 if posted == "/known":
@@ -257,14 +401,71 @@ def _make_handler(viewers: "Viewers"):
                 _report(error, self.path)
                 self._send(_oops(error), status=500)
 
-        def _redirect(self, target: str) -> None:
-            """303 after a state change, so a refresh does not repeat it."""
+        def _redirect(self, target: str, cookie: str = "") -> None:
+            """303 after a state change, so a refresh does not repeat it.
+
+            Only ever to a path on this site. Several forms say where to come
+            back to in a `back` field, and a target taken from a form as it
+            stands is a link that sends a reader anywhere at all.
+            """
             self.send_response(303)
-            self.send_header("Location", target)
+            self.send_header("Location", _local(target))
+            if cookie:
+                self.send_header("Set-Cookie", cookie)
             self.send_header("Content-Length", "0")
             self.end_headers()
 
-        def _route(self, path: str, query: dict) -> tuple[str, int]:
+        # --- the door --------------------------------------------------
+
+        def _login(self, form: dict) -> None:
+            name = (form.get("name") or "").strip().lower()
+            password = form.get("password") or ""
+            target = _local(form.get("next") or "/")
+            value = door.registry.login(name, password) if door.shared else None
+            if value is None:
+                # A second's wait on every miss, so a guesser cannot hurry;
+                # a person who mistyped does not notice it.
+                time.sleep(1)
+                locked = door.registry.locked(name)
+                self._send(render.login_page(
+                    "Too many tries -- wait a quarter of an hour." if locked
+                    else "That name and password do not match.",
+                    target, name), status=401)
+                return
+            self._redirect(target, self._cookie(value, _SESSION_SECONDS))
+
+        def _logout(self) -> None:
+            self._redirect("/login", self._cookie("", 0))
+
+        def _cookie(self, value: str, seconds: int) -> str:
+            # `Secure` when the browser's side of the proxy was HTTPS: this
+            # process only ever sees plain HTTP from whatever stands in
+            # front, and a cookie marked Secure on a plain-HTTP site (a
+            # phone on the home wifi) would never come back.
+            secure = ("; Secure" if self.headers.get("X-Forwarded-Proto") ==
+                      "https" else "")
+            return (f"{COOKIE}={value}; Max-Age={seconds}; Path=/; HttpOnly; "
+                    f"SameSite=Lax{secure}")
+
+        def _route_open(self, path: str, query: dict) -> tuple[str, int]:
+            """What answers without a session."""
+            if path == "/login":
+                if not door.shared:
+                    return self._redirect("/"), 0
+                if self._reader() is not None:
+                    return self._redirect(query.get("next") or "/"), 0
+                return render.login_page("", _local(query.get("next") or "/")), 200
+            # Safari asks for both of these unprompted the moment you add the
+            # page to a home screen. They used to fall through and come back
+            # as an HTML 404 with a 200-shaped body.
+            if path in ("/favicon.ico", "/apple-touch-icon.png",
+                        "/apple-touch-icon-precomposed.png"):
+                return self._send_static("/static/icon-512.png"), 0
+            if path == "/manifest.webmanifest":
+                return self._send_static("/static/manifest.webmanifest"), 0
+            return self._send_static(path), 0
+
+        def _route(self, path: str, query: dict, viewers) -> tuple[str, int]:
             viewer = viewers.pick(query)
             if path == "/":
                 return viewer.next_up(query), 200
@@ -335,16 +536,6 @@ def _make_handler(viewers: "Viewers"):
             if path.startswith("/unit/"):
                 _, _, kind, key = path.split("/", 3)
                 return viewer.unit(kind, unquote(key), query), 200
-            # Safari asks for both of these unprompted the moment you add the
-            # page to a home screen. They used to fall through and come back
-            # as an HTML 404 with a 200-shaped body.
-            if path in ("/favicon.ico", "/apple-touch-icon.png",
-                        "/apple-touch-icon-precomposed.png"):
-                return self._send_static("/static/icon-512.png"), 0
-            if path == "/manifest.webmanifest":
-                return self._send_static("/static/manifest.webmanifest"), 0
-            if path.startswith("/static/"):
-                return self._send_static(path), 0
             return _missing(path), 404
 
         def _send_static(self, path: str) -> str:
@@ -372,10 +563,10 @@ def _make_handler(viewers: "Viewers"):
             self.wfile.write(body)
             return ""
 
-        def _send_json(self, data) -> None:
+        def _send_json(self, data, status: int = 200) -> None:
             import json
             payload = json.dumps(data).encode("utf-8")
-            self.send_response(200)
+            self.send_response(status)
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Content-Length", str(len(payload)))
             self.end_headers()
@@ -402,6 +593,24 @@ def _make_handler(viewers: "Viewers"):
             self.wfile.write(payload)
 
     return Handler
+
+
+def _local(target: str) -> str:
+    """`target` if it is a path on this site, else the front page.
+
+    `//elsewhere.example` and `/\\elsewhere.example` both start with a slash
+    and are both read by browsers as another host.
+    """
+    if (not target.startswith("/") or target.startswith("//")
+            or "\\" in target):
+        return "/"
+    return target
+
+
+def _signed_out() -> str:
+    from web.render import layout
+    return layout("Signed out", "<h1>Signed out</h1><p class='sub'>"
+                  "<a href='/login'>Sign in</a> and try again.</p>")
 
 
 def _report(error: Exception, path: str) -> None:

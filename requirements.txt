@@ -11,6 +11,10 @@ requests>=2.31                 # the local model client, and captions:
 # for lemmatisation, and under `sm` it returns `schreie` for `schreien` and
 # `samen` for `gesamt`.  See matcher/phrase_finder.py.
 #   python -m spacy download de_core_news_md
+#
+# And for a reader learning English, the English one, medium for the same
+# reason: the phrasal verbs are read off the parse, and `sm` parses worse.
+#   python -m spacy download en_core_web_md
 
 pulp>=3.0                      # `cover` only; the wheel carries its own CBC
 

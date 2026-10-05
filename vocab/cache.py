@@ -23,8 +23,10 @@ from fingerprint import analyser_fingerprint
 class ResolvedCache:
     """Resolved vocabulary, keyed on the files it came from."""
 
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: Path, language: str = "de") -> None:
         self._path = path.with_name("resolved.json")
+        # Whose rules resolved it: each language's parser is its own.
+        self._language = language
 
     def get(self, name: str, sources: list[Path]) -> list | None:
         """The stored value for `name`, or None if the files have moved on."""
@@ -46,8 +48,7 @@ class ResolvedCache:
             # the work has to be done again.
             return {}
 
-    @staticmethod
-    def _stamp(sources: list[Path]) -> list:
+    def _stamp(self, sources: list[Path]) -> list:
         """What the inputs look like now: a content hash, per file.
 
         It used to be the absolute path, the mtime and the size, which is
@@ -69,7 +70,7 @@ class ResolvedCache:
         # The rules join the stamp: the vocabulary is resolved *by* the
         # parser, so changing the model changes every lemma in here while
         # every file it was read from stays exactly as it was.
-        out = [["rules", analyser_fingerprint(), 0]]
+        out = [["rules", analyser_fingerprint(self._language), 0]]
         for path in sources:
             try:
                 data = path.read_bytes()

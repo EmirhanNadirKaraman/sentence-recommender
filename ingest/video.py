@@ -39,6 +39,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from db import Database, WritableDatabase
+from languages import language as profile
 
 SCRAPER = Path("/Users/emir/Documents/GitHub/language-app/subtitle-scraper")
 
@@ -84,6 +85,11 @@ class VideoIngestor:
             import pipeline                    # noqa: PLC0415 — heavy, deferred
             self._pipeline = pipeline
         return self._pipeline
+
+    @property
+    def language(self) -> str:
+        """The language this ingestor fetches subtitles in by default."""
+        return self._settings.language
 
     def already_have(self, video_id: str) -> bool:
         with Database(self._settings.own) as db:
@@ -172,6 +178,18 @@ class VideoIngestor:
             refusal.outcome = "too-long"
             raise refusal
         track = offered.manual(wanted_lang)
+        heard = offered.heard()
+        if track and heard and wanted_lang not in heard \
+                and profile(wanted_lang).spoken_only:
+            # Subtitles written in the language asked for over speech in
+            # another: a translation for viewers of the other. It reads like
+            # the language, and it is not what anybody said in it.
+            refusal = SystemExit(
+                f"{video_id}: {wanted_lang} subtitles over speech YouTube "
+                f"heard as {', '.join(sorted(heard))} — a translation, not "
+                f"{profile(wanted_lang).name} anyone said.")
+            refusal.outcome = "translated"
+            raise refusal
         transcript = snippets(offered.read(track)) if track else []
         source = "manual"
         if transcript and len(transcript) < MIN_LINES:
@@ -268,7 +286,7 @@ class VideoIngestor:
                 f"{video_id}: no {language} machine track — YouTube's speech "
                 f"recognition did not hear {language} in it.",
                 "auto-no-track")
-        verdict = judge(lines, floor=MIN_LINES)
+        verdict = judge(lines, floor=MIN_LINES, language=language)
         if not verdict.ok:
             raise Refused(f"{video_id}: {verdict.why()}",
                           f"auto-{verdict.verdict}")
