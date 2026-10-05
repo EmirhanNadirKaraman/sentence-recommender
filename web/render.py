@@ -311,6 +311,16 @@ def signup_page(error: str, token: str, found: dict, name: str = "") -> str:
     return layout("Make your account", body, bare=True)
 
 
+def owner_only() -> str:
+    """What a reader is told when they reach for something only the
+    installation's owner may do."""
+    return layout("Not yours to change", "<h1>Only the owner can do that</h1>"
+                  "<p class='sub'>Adding videos and channels, and recalculating "
+                  "the plan, change what every reader here sees, so they are "
+                  "for whoever runs this installation.</p>"
+                  "<p><a href='/'>Back to reading</a></p>")
+
+
 def invitation_gone() -> str:
     return layout("Invitation", "<h1>This invitation has expired</h1>"
                   "<p class='sub'>Or it has already been used. Ask for a new "

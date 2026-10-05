@@ -276,6 +276,10 @@ class _Viewer:
     def heard(self, lines):
         return {"whose": self.whose, "lines": len(lines)}
 
+    def add_video(self, form):
+        self.marked.append(form)
+        return "/subtitles"
+
 
 class _Viewers:
     def __init__(self, whose: str) -> None:
@@ -283,6 +287,52 @@ class _Viewers:
 
     def pick(self, query):
         return self.viewer
+
+
+class GuestTest(unittest.TestCase):
+    """Everyone but the installation's own reader is rationed."""
+
+    def test_every_reader_but_the_default_one_is_a_guest(self) -> None:
+        from web.server import Door
+        own, theirs = mock.Mock(guest=None), mock.Mock(guest=None)
+        own.settings.reader = "emir"
+        Door(own, registry=mock.Mock(), apps={"emir": own, "ahmet": theirs})
+        self.assertIsNone(own.guest)
+        self.assertTrue(theirs.guest.take("model"))
+
+    def test_an_allowance_runs_out_and_comes_back_after_an_hour(self) -> None:
+        from web.limits import Allowance
+        clock = [1000.0]
+        with mock.patch("web.limits.time.monotonic", lambda: clock[0]):
+            allowance = Allowance({"model": 2})
+            self.assertTrue(allowance.take("model"))
+            self.assertTrue(allowance.take("model"))
+            self.assertFalse(allowance.take("model"))
+            self.assertTrue(allowance.take("unrationed"))
+            clock[0] += 3600
+            self.assertTrue(allowance.take("model"))
+
+    def test_a_guest_keeps_one_other_list_open_and_its_ration(self) -> None:
+        """Each list is an application of its own, a parser and caches."""
+        from web import server
+        app = mock.Mock(guest=object())
+        app.settings = Settings()
+        made = lambda settings: mock.Mock(settings=settings, guest=None)  # noqa: E731
+        with mock.patch.object(server, "Viewer", side_effect=lambda a: mock.Mock(app=a)), \
+                mock.patch("context.Application", side_effect=made), \
+                mock.patch("vocab.word_lists.WordListStore"), \
+                mock.patch.object(server.Viewers, "names", return_value=[
+                    app.settings.goal_words.stem, "a", "b"]):
+            viewers = server.Viewers(app, keep=1)
+            first = viewers.pick({"list": "a"})
+            self.assertIs(first.app.guest, app.guest)
+            viewers.pick({"list": "b"})
+            self.assertEqual(sorted(viewers._made),
+                             sorted([app.settings.goal_words.stem, "b"]))
+            owner = server.Viewers(mock.Mock(guest=None, settings=Settings()))
+            for name in ("a", "b"):
+                owner.pick({"list": name})
+            self.assertEqual(len(owner._made), 3)
 
 
 class DoorTest(unittest.TestCase):
@@ -388,6 +438,25 @@ class DoorTest(unittest.TestCase):
             "POST", "/api/heard", '[{"text": "x"}]',
             headers={"Cookie": cookie, "Content-Type": "application/json"})
         self.assertEqual(json.loads(data), {"whose": "ahmet", "lines": 1})
+
+    def test_only_the_owner_reaches_past_their_own_schema(self) -> None:
+        """Adding a video scrapes with the owner's cookies into the corpus
+        every reader shares; recalculating writes everyone's plan file."""
+        owner = mock.patch.object(self.registry, "owner",
+                                  return_value=self.registry.get("emir"))
+        with owner:
+            cookie = self.sign_in("ahmet")
+            for route in ("/add-video", "/add-channel", "/replan"):
+                response, data = self.request("POST", route, "video=abc",
+                                              headers={"Cookie": cookie})
+                self.assertEqual(response.status, 403, route)
+                self.assertIn("Only the owner", data)
+            self.assertEqual(self.door._viewers["ahmet"].viewer.marked, [])
+            cookie = self.sign_in("emir")
+            response, _ = self.request("POST", "/add-video", "video=abc",
+                                       headers={"Cookie": cookie})
+            self.assertEqual(response.status, 303)
+            self.assertEqual(len(self.door._viewers["emir"].viewer.marked), 1)
 
     def test_a_post_from_another_site_is_refused(self) -> None:
         cookie = self.sign_in("ahmet")

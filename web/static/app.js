@@ -647,7 +647,7 @@ function glossPopup(button, lineText) {
         if (d.error || !d.german) {
           checked.hidden = false;
           checked.querySelector('.de').textContent = '';
-          checked.querySelector('.gloss-note').textContent = 'The local model is not answering.';
+          checked.querySelector('.gloss-note').textContent = d.say || 'The local model is not answering.';
           checked.querySelector('.en').textContent = '';
           checked.querySelector('.keep').hidden = true;
           return;

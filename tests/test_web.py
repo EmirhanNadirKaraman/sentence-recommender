@@ -1488,6 +1488,47 @@ class KeepKeyTest(unittest.TestCase):
         self.assertIn("(V)", (ROOT / "web" / "watch.py").read_text(encoding="utf-8"))
 
 
+class GuestRationTest(unittest.TestCase):
+    """A reader other than the owner: the model rationed, the corpus not
+    theirs to write."""
+
+    def viewer(self, spend: bool):
+        from types import SimpleNamespace
+        from unittest import mock
+        v = Viewer.__new__(Viewer)
+        v.app = SimpleNamespace(guest=object(), spend=lambda kind: spend,
+                                own=mock.Mock(), adopt=mock.Mock(),
+                                attempts=mock.Mock())
+        return v
+
+    def test_a_spent_reader_is_told_why_and_the_model_is_not_asked(self) -> None:
+        from unittest import mock
+        v = self.viewer(spend=False)
+        with mock.patch("generation.client.LLMClient",
+                        side_effect=AssertionError("the model was asked")):
+            out = v.try_json({"sentence": "Ich gehe.", "word": "gehen"})
+            self.assertIsNone(v._ask_gloss("Er geht.", "geht", "gehen"))
+            self.assertEqual(v._into_german("I am going home now."),
+                             ("", "I am going home now."))
+        self.assertEqual(out["error"], "spent")
+        self.assertIn("this hour", out["say"])
+
+    def test_a_guest_is_not_offered_the_boxes_that_add_videos(self) -> None:
+        v = self.viewer(spend=True)
+        html = v._add_video_form({})
+        self.assertNotIn("action='/add-video'", html)
+        self.assertIn("whoever runs this installation", html)
+        v.app.guest = None
+        self.assertIn("action='/add-video'", v._add_video_form({}))
+
+    def test_a_guest_keeps_a_sentence_without_writing_the_shared_corpus(self) -> None:
+        v = self.viewer(spend=True)
+        v.save_mine({"action": "keep", "german": "Ich lerne.",
+                     "english": "I am learning."})
+        v.app.own.add.assert_called_once_with("Ich lerne.", "I am learning.")
+        v.app.adopt.assert_not_called()
+
+
 class RecalculatePlanTest(unittest.TestCase):
     """The Plan page's button: walk this order again, knowing what I know now.
 
@@ -1501,8 +1542,10 @@ class RecalculatePlanTest(unittest.TestCase):
         Viewer._replanning = {}          # class state; do not leak between tests
         self.addCleanup(lambda: setattr(Viewer, "_replanning", {}))
 
-    def viewer(self):
+    def viewer(self, guest=None):
+        from types import SimpleNamespace
         v = Viewer.__new__(Viewer)
+        v.app = SimpleNamespace(guest=guest)    # the owner's, unless a guest
         self.walked = []
         v._replan_now = self.walked.append
         return v
@@ -1548,6 +1591,14 @@ class RecalculatePlanTest(unittest.TestCase):
         html = v._replan_panel(self.knobs(k="0"), "07-cover-i1-k0", "subtitle")
         self.assertNotIn("<button", html)
         self.assertIn("solved, not walked", html)
+
+    def test_a_guest_is_not_offered_the_button(self) -> None:
+        """The plan files are one set, walked from the owner's words."""
+        from web.limits import Allowance
+        v = self.viewer(guest=Allowance())
+        html = v._replan_panel(self.knobs(k="5"), "07-any", "subtitle")
+        self.assertNotIn("<button", html)
+        self.assertIn("whoever runs this installation", html)
 
     def test_a_failed_walk_is_shown_rather_than_swallowed(self) -> None:
         v = self.viewer()

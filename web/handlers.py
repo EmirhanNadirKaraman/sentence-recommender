@@ -1301,6 +1301,9 @@ class Viewer:
         word = (form.get("word") or "").strip()
         if not said:
             return {"error": "nothing written"}
+        if not self.app.spend("model"):
+            from web.limits import SPENT                     # noqa: PLC0415
+            return {"error": "spent", "say": SPENT}
         client = LLMClient(timeout=60)
         if not client.available:
             return {"error": "no model"}
@@ -1321,6 +1324,10 @@ class Viewer:
 
     def _ask_gloss(self, text: str, word: str, named: str) -> str | None:
         from generation.client import LLMClient              # noqa: PLC0415
+        # Counted only here, where the model is asked: a gloss already
+        # stored costs nothing and is not rationed.
+        if not self.app.spend("model"):
+            return None
         client = LLMClient(timeout=30)
         if not client.available:
             return None
@@ -3227,10 +3234,16 @@ class Viewer:
         if action == "keep":
             english = (form.get("english") or "").strip()
             if text and english:
-                self.app.adopt(text, english)
-                # The corpus in memory predates the sentence.
-                self._forget_corpus()
-                self._quiz.clear()
+                if self.app.guest is None:
+                    self.app.adopt(text, english)
+                    # The corpus in memory predates the sentence.
+                    self._forget_corpus()
+                    self._quiz.clear()
+                else:
+                    # Theirs to review, but not into the corpus: that is
+                    # shared by every reader of the language, and what one
+                    # of them writes is not the others' to read.
+                    self.app.own.add(text, english)
         elif action in ("good", "again") and text:
             self.app.own.grade(text, action == "good")
         elif action == "forget" and text:
@@ -3249,8 +3262,13 @@ class Viewer:
         from generation.client import LLMClient              # noqa: PLC0415
         from lingua import Language, LanguageDetectorBuilder  # noqa: PLC0415
         detector = LanguageDetectorBuilder.from_languages(Language.GERMAN, Language.ENGLISH).build()
+        english_given = language_of(said, detector) == "en"
+        # Out of model calls, the other half is left for the reader to
+        # write, as when the model is not answering.
+        if not self.app.spend("model"):
+            return ("", said) if english_given else (said, "")
         client = LLMClient(timeout=60)
-        if language_of(said, detector) == "en":
+        if english_given:
             german = self._model_line(client, INTO_GERMAN, said) or ""
             return german, said
         english = self._model_line(client, INTO_ENGLISH, said) or ""
@@ -4061,6 +4079,11 @@ class Viewer:
         `cover`, not `one_walk` — so the button says so instead of offering to
         rebuild it with the wrong machine.
         """
+        if self.app.guest is not None:
+            # The plan files are one set for the installation, walked from
+            # its owner's known words -- see `OWNER_ONLY` in `web.server`.
+            return ("<p class='tally'>These plans are recalculated by whoever "
+                    "runs this installation, from the words they know.</p>")
         state = Viewer._replanning
         mine = state.get("knobs") == chosen
         if state and not state.get("finished"):
@@ -5643,8 +5666,7 @@ class Viewer:
         return sorted(rows, key=lambda r: -r["watch"] * taste_weight(
             taste.get(channel.get(r["video"]))))
 
-    @staticmethod
-    def _add_video_form(query: dict) -> str:
+    def _add_video_form(self, query: dict) -> str:
         """Paste a video in. Says what it is about to do, because unlike every
         other button here this one reaches out to YouTube and then writes to
         the catalogue."""
@@ -5655,6 +5677,9 @@ class Viewer:
                     "Analysed and folded into the roadmap already.</p>")
         elif query.get("problem"):
             said = (f"<p class='note said bad'>{escape(query['problem'])}</p>")
+        if self.app.guest is not None:
+            return (said + "<p class='note'>Videos and channels are added by "
+                    "whoever runs this installation.</p>")
         return (
             said +
             "<form class='bar' method='post' action='/add-video'>"

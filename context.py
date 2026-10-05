@@ -51,6 +51,10 @@ class Application:
         self._machine: tuple[int, frozenset[str]] | None = None
         self._own_texts: frozenset[str] | None = None
         self._tools = None
+        # What this reader may spend, when they are not the installation's
+        # own: set by the web server's door (`web.limits.Allowance`). None is
+        # the owner, and the owner is never limited.
+        self.guest = None
 
     # --- storage ---------------------------------------------------------
 
@@ -182,6 +186,11 @@ class Application:
         """What the reader wrote with each word. See `vocab.attempts`."""
         from vocab.attempts import Attempts                  # noqa: PLC0415
         return Attempts(self.settings.state)
+
+    def spend(self, kind: str) -> bool:
+        """Whether this reader may do one more costly `kind` of thing --
+        a model call -- now. Always, for the installation's own reader."""
+        return self.guest is None or self.guest.take(kind)
 
     def adopt(self, text: str, english: str) -> None:
         """Take a sentence the reader wrote into the corpus and the schedule.

@@ -52,6 +52,13 @@ COOKIE = "i1_session"
 OPEN = {"/login", "/signup", "/favicon.ico", "/apple-touch-icon.png",
         "/apple-touch-icon-precomposed.png", "/manifest.webmanifest"}
 
+# What only the installation's owner may do, because it reaches past the
+# reader's own schema: adding a video or a channel scrapes YouTube with the
+# owner's browser cookies and writes the corpus every reader of the language
+# shares, and recalculating writes the plan file every reader's Plan page
+# reads.
+OWNER_ONLY = {"/add-video", "/add-channel", "/replan"}
+
 
 class Viewers:
     """One `Viewer` per goal list, built when first asked for.
@@ -64,10 +71,14 @@ class Viewers:
     dimension inside `_scopes`.
     """
 
-    def __init__(self, app) -> None:
+    def __init__(self, app, keep: int | None = None) -> None:
         self._default = app
         self._stem = app.settings.goal_words.stem
         self._made: dict[str, Viewer] = {self._stem: Viewer(app)}
+        # How many other lists stay open at once, least recently used going
+        # first; None for the owner, who may keep every one. See
+        # `web.limits.LISTS_OPEN`.
+        self._keep = keep
         # Two first requests for the same list at once would otherwise make
         # two viewers, and each loads the corpus.
         self._lock = Lock()
@@ -94,10 +105,28 @@ class Viewers:
                     self._default.settings,
                     goal_words=self._default.settings.data_dir / f"{wanted}.txt",
                     goal_entries=store.entries(wanted))
-                self._made[wanted] = Viewer(Application(settings))
+                made = Application(settings)
+                # The same reader, so the same allowance: a list is not a
+                # way round the model's ration.
+                made.guest = self._default.guest
+                self._made[wanted] = Viewer(made)
+                self._bound(wanted)
+            else:
+                # Most recently used last, so the oldest is first to go.
+                self._made[wanted] = self._made.pop(wanted)
         viewer = self._made[wanted]
         viewer.lists = self                              # for the switch
         return viewer
+
+    def _bound(self, opened: str) -> None:
+        """Keep `keep` lists besides the reader's own -- the one just opened
+        among them -- dropping the least recently used. A request still
+        holding a dropped one finishes with it; nothing else does."""
+        if self._keep is None:
+            return
+        others = [n for n in self._made if n not in (self._stem, opened)]
+        for name in others[:max(0, len(others) - (self._keep - 1))]:
+            del self._made[name]
 
 
 class Door:
@@ -116,6 +145,11 @@ class Door:
         # before opening the socket -- so the first page does not make them
         # again.
         self._apps = dict(apps or {})
+        # Everyone but the installation's own reader is a guest: rationed
+        # (see `web.limits`), and kept from what reaches past their schema.
+        for name, made in self._apps.items():
+            if made is not app:
+                self._make_guest(made)
         self._viewers: dict[str, Viewers] = {}
         self._lock = Lock()
 
@@ -129,8 +163,19 @@ class Door:
         name = reader.name if reader is not None else ""
         with self._lock:
             if name not in self._viewers:
-                self._viewers[name] = Viewers(self._app_for(reader))
+                from web.limits import LISTS_OPEN            # noqa: PLC0415
+                app = self._app_for(reader)
+                self._viewers[name] = Viewers(
+                    app, keep=None if app.guest is None else LISTS_OPEN)
             return self._viewers[name]
+
+    def is_owner(self, reader) -> bool:
+        """Whether `reader` runs this installation. Nobody signed in, on an
+        installation without readers, is the one reader there is."""
+        if reader is None:
+            return not self.shared
+        owner = self.registry.owner()
+        return owner is not None and owner.name == reader.name
 
     def _app_for(self, reader):
         if reader is None or reader.name == self._default.settings.reader:
@@ -138,8 +183,15 @@ class Door:
         if reader.name not in self._apps:
             from config import Settings                  # noqa: PLC0415
             from context import Application              # noqa: PLC0415
-            self._apps[reader.name] = Application(Settings.for_reader(reader))
+            self._apps[reader.name] = self._make_guest(
+                Application(Settings.for_reader(reader)))
         return self._apps[reader.name]
+
+    @staticmethod
+    def _make_guest(app):
+        from web.limits import Allowance                 # noqa: PLC0415
+        app.guest = Allowance()
+        return app
 
 
 class LocalServer:
@@ -340,6 +392,9 @@ def _make_handler(door: "Door"):
                 return
             if posted == "/invite":
                 self._invite(form, reader)
+                return
+            if posted in OWNER_ONLY and not door.is_owner(reader):
+                self._send(render.owner_only(), status=403)
                 return
             viewers = door.viewers(reader)
             if posted == "/api/heard":
