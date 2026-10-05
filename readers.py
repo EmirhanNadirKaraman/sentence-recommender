@@ -113,9 +113,9 @@ LOCKOUT_SECONDS = 15 * 60
 INVITE_DAYS = 7
 
 # Readers who may sign up on their own, with a Google account, unless
-# `SIGNUP_LIMIT` in `.env` says otherwise; 0 closes sign-up. Each reader
-# reading is an application of their own, about 250 MB measured, so this is
-# what bounds the memory strangers can take. Invitations do not count.
+# `SIGNUP_LIMIT` in `.env` says otherwise; 0 closes sign-up. Invitations do
+# not count. What bounds the memory they take is how many are held at once
+# (`web.limits.SIGNUPS_IN_MEMORY`); this bounds the accounts.
 SIGNUP_LIMIT = 10
 
 

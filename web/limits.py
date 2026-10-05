@@ -10,6 +10,7 @@ A reader's `Application` carries their `Allowance` as `guest` (see
 """
 from __future__ import annotations
 
+import os
 import time
 from collections import deque
 from threading import Lock
@@ -20,17 +21,36 @@ from threading import Lock
 # ceiling on what one account can take from everyone else.
 MODEL_PER_HOUR = 60
 
-# Word lists besides their own that a reader other than the owner keeps
-# open at once. Each is an application of its own -- a parser and its
-# caches, about 250 MB measured -- so an account that saved a dozen lists
-# and opened each would otherwise hold a dozen of those.
+# Word lists besides their own that an invited reader keeps open at once,
+# and that someone who signed up on their own may open at all. Each is an
+# application of its own, and one without a stored plan walks the whole
+# corpus on its first page: 2.1 GB and 25 s measured for German. An account
+# that saved a dozen lists and opened each would otherwise hold a dozen.
 LISTS_OPEN = 1
+LISTS_OPEN_SIGNED_UP = 0
+
+# Readers who signed up on their own whose pages are held in memory at once,
+# unless `SIGNUPS_IN_MEMORY` in `.env` says otherwise; the least recently
+# reading goes first, and their next page builds it again. At 2.1 GB each,
+# this, not the number of accounts, is what bounds the memory strangers
+# can take. The owner and invited readers are never let go.
+SIGNUPS_IN_MEMORY = 2
 
 # What a reader is told when the hour's model calls are spent.
 SPENT = ("You have asked the model a lot this hour; it will answer again "
          "within the hour.")
 
 HOUR = 3600.0
+
+
+def signups_in_memory() -> int:
+    from config import load_dotenv                       # noqa: PLC0415
+    load_dotenv()
+    try:
+        return max(1, int(os.environ.get("SIGNUPS_IN_MEMORY",
+                                         SIGNUPS_IN_MEMORY)))
+    except ValueError:
+        return SIGNUPS_IN_MEMORY
 
 
 class Allowance:

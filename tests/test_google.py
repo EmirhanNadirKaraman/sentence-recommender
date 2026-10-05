@@ -176,6 +176,10 @@ class ClientTest(unittest.TestCase):
 
 class RegistryGoogleTest(unittest.TestCase):
     def setUp(self) -> None:
+        # The limit these tests expect, whatever the developer's `.env` says.
+        limit = mock.patch.dict(os.environ, {"SIGNUP_LIMIT": "10"})
+        limit.start()
+        self.addCleanup(limit.stop)
         self._dir = tempfile.TemporaryDirectory()
         self.addCleanup(self._dir.cleanup)
         self.homes = Path(self._dir.name) / "readers"
@@ -298,6 +302,9 @@ class RoundTripTest(unittest.TestCase):
 
     def setUp(self) -> None:
         from web.server import Door, _make_handler
+        limit = mock.patch.dict(os.environ, {"SIGNUP_LIMIT": "10"})
+        limit.start()
+        self.addCleanup(limit.stop)
         self._dir = tempfile.TemporaryDirectory()
         self.addCleanup(self._dir.cleanup)
         self.registry = Registry(pg.schema(self, "accounts"),

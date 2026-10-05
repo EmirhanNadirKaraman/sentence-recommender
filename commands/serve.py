@@ -20,7 +20,8 @@ class ServeCommand:
         # other's pages from being served: a reader whose language has no
         # corpus yet still has to be able to sign in and see that it has
         # none. Readers who signed up on their own are made on their first
-        # page instead: each is about 250 MB, and there may be many.
+        # page instead: there may be many, and each holds a corpus of its
+        # own -- 2.1 GB measured for German (`web.limits`).
         from config import Settings                      # noqa: PLC0415
         from context import Application                  # noqa: PLC0415
         apps = {}

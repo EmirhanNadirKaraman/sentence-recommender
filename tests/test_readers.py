@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import http.client
 import json
+import os
 import tempfile
 import threading
 import time
@@ -296,7 +297,8 @@ class GuestTest(unittest.TestCase):
         from web.server import Door
         own, theirs = mock.Mock(guest=None), mock.Mock(guest=None)
         own.settings.reader = "emir"
-        Door(own, registry=mock.Mock(), apps={"emir": own, "ahmet": theirs})
+        Door(own, registry=mock.Mock(), apps={"emir": own, "ahmet": theirs},
+             google=None)
         self.assertIsNone(own.guest)
         self.assertTrue(theirs.guest.take("model"))
 
@@ -311,6 +313,63 @@ class GuestTest(unittest.TestCase):
             self.assertTrue(allowance.take("unrationed"))
             clock[0] += 3600
             self.assertTrue(allowance.take("model"))
+
+    def door_with(self, *readers):
+        """A door whose readers' applications are stand-ins."""
+        from web.server import Door
+        own = mock.Mock(guest=None)
+        own.settings.reader = "emir"
+        door = Door(own, registry=mock.Mock(), google=None)
+        door._app_for = lambda r: mock.Mock(guest=object(), name=r.name)
+        return door
+
+    def test_only_so_many_strangers_are_held_and_never_the_invited(self) -> None:
+        """Each holds a corpus of their own -- 2.1 GB measured."""
+        door = self.door_with()
+        with mock.patch("web.server.Viewers", side_effect=lambda app, keep: mock.Mock(keep=keep)), \
+                mock.patch.dict(os.environ, {"SIGNUPS_IN_MEMORY": "2"}):
+            friend = Reader("ayla", Path("/tmp/ayla"), "en", "tr", joined="invite")
+            door.viewers(friend)
+            for name in ("s1", "s2", "s3"):
+                door.viewers(Reader(name, Path(f"/tmp/{name}"), "de", "en",
+                                    joined="google"))
+            self.assertEqual(sorted(door._viewers), ["ayla", "s2", "s3"])
+            door.viewers(Reader("s2", Path("/tmp/s2"), "de", "en", joined="google"))
+            door.viewers(Reader("s4", Path("/tmp/s4"), "de", "en", joined="google"))
+            self.assertEqual(sorted(door._viewers), ["ayla", "s2", "s4"])
+            self.assertEqual(door._viewers["s4"].keep, 0)
+            self.assertEqual(door._viewers["ayla"].keep, 1)
+
+    def test_one_stranger_s_first_page_is_built_at_a_time(self) -> None:
+        door = self.door_with()
+        first = Reader("s1", Path("/tmp/s1"), "de", "en", joined="google")
+        second = Reader("s2", Path("/tmp/s2"), "de", "en", joined="google")
+        friend = Reader("ayla", Path("/tmp/ayla"), "en", "tr", joined="invite")
+        entered = threading.Event()
+        with door.building(first):
+            def build_second():
+                with door.building(second):
+                    entered.set()
+            waiting = threading.Thread(target=build_second)
+            waiting.start()
+            self.assertFalse(entered.wait(0.3), "a second build did not wait")
+            with door.building(friend):                  # never waits
+                pass
+        self.assertTrue(entered.wait(5))
+        waiting.join(5)
+        with door.building(first):                       # built: no waiting
+            pass
+
+    def test_a_stranger_opens_no_list_but_their_own(self) -> None:
+        from web import server
+        app = mock.Mock(guest=object())
+        app.settings = Settings()
+        with mock.patch.object(server, "Viewer", side_effect=lambda a: mock.Mock(app=a)), \
+                mock.patch.object(server.Viewers, "names", return_value=[
+                    app.settings.goal_words.stem, "a"]):
+            viewers = server.Viewers(app, keep=0)
+            self.assertIs(viewers.pick({"list": "a"}), viewers.pick({}))
+            self.assertEqual(list(viewers._made), [app.settings.goal_words.stem])
 
     def test_a_guest_keeps_one_other_list_open_and_its_ration(self) -> None:
         """Each list is an application of its own, a parser and caches."""
@@ -348,7 +407,8 @@ class DoorTest(unittest.TestCase):
             self.registry.set_password(name, f"{name} password")
         app = mock.Mock()
         app.settings.reader = "emir"
-        self.door = Door(app, registry=self.registry)
+        # No Google, whatever the developer's `.env` says.
+        self.door = Door(app, registry=self.registry, google=None)
         self.door._viewers = {name: _Viewers(name) for name in ("emir", "ahmet", "")}
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), _make_handler(self.door))
         self.port = self.server.server_address[1]

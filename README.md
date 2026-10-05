@@ -468,10 +468,19 @@ With strangers able to read here, the owner is the only one who:
   in their own schema.
 
 Everyone else gets sixty model calls an hour: a gloss asked for the first
-time, a sentence tried, a sentence put into the other language. They can
-keep one saved word list open besides their own. `SIGNUP_LIMIT` (default
-10, 0 closes sign-up) caps how many sign up on their own; invitations do
-not count. A reader reading holds about 250 MB.
+time, a sentence tried, a sentence put into the other language. Invited
+readers can keep one saved word list open besides their own.
+`SIGNUP_LIMIT` (default 10, 0 closes sign-up) caps how many sign up on
+their own; invitations do not count.
+
+Memory is the real limit. A reader with no stored plan -- anyone who
+signed up, since plans are built at the server -- walks the whole corpus on
+their first page and keeps it: 2.1 GB and 25 seconds, measured for German.
+So at most `SIGNUPS_IN_MEMORY` (default 2) of them are held at once, the
+least recently reading let go first and rebuilt on their next page; one is
+built at a time, so the rest of the site stays responsive; and they get no
+saved word lists beyond their own. You and invited readers are never let
+go.
 `python main.py reader list` says who joined how;
 `python main.py reader remove NAME` deletes a reader and everything they
 stored, and never the owner.

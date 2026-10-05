@@ -22,6 +22,8 @@ import os
 import socket
 import time
 import webbrowser
+from collections import OrderedDict
+from contextlib import contextmanager
 from http.cookies import CookieError, SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -100,7 +102,7 @@ class Viewers:
 
     def pick(self, query: dict) -> Viewer:
         wanted = (query.get("list") or "").strip() or self._stem
-        if wanted not in self.names():
+        if wanted not in self.names() or self._keep == 0:
             wanted = self._stem
         with self._lock:
             if wanted not in self._made:
@@ -166,6 +168,15 @@ class Door:
                 self._make_guest(made)
         self._viewers: dict[str, Viewers] = {}
         self._lock = Lock()
+        # Readers who signed up on their own and are held in memory, least
+        # recently reading first (`web.limits.SIGNUPS_IN_MEMORY`), and the
+        # ones whose pages have been built since they were last let go.
+        self._signed_up: OrderedDict[str, None] = OrderedDict()
+        self._built: set[str] = set()
+        # One such reader's first page built at a time: it walks the whole
+        # corpus, 25 s of a core, and two at once would starve every other
+        # page of the process's one interpreter.
+        self._building = Lock()
 
     @property
     def shared(self) -> bool:
@@ -175,13 +186,43 @@ class Door:
         """`reader`'s viewers, made on first use; the default reader's when
         there is no registry to name anyone."""
         name = reader.name if reader is not None else ""
+        signed_up = reader is not None and reader.joined == "google"
         with self._lock:
+            if signed_up:
+                self._hold(name)
             if name not in self._viewers:
-                from web.limits import LISTS_OPEN            # noqa: PLC0415
+                from web.limits import (LISTS_OPEN,          # noqa: PLC0415
+                                        LISTS_OPEN_SIGNED_UP)
                 app = self._app_for(reader)
-                self._viewers[name] = Viewers(
-                    app, keep=None if app.guest is None else LISTS_OPEN)
+                keep = (None if app.guest is None else
+                        LISTS_OPEN_SIGNED_UP if signed_up else LISTS_OPEN)
+                self._viewers[name] = Viewers(app, keep=keep)
             return self._viewers[name]
+
+    def _hold(self, name: str) -> None:
+        """`name` most recently reading; let go of whoever is past
+        `SIGNUPS_IN_MEMORY`. A request still holding their pages finishes
+        with them, and their next request builds them again."""
+        from web.limits import signups_in_memory         # noqa: PLC0415
+        self._signed_up.pop(name, None)
+        self._signed_up[name] = None
+        while len(self._signed_up) > signups_in_memory():
+            gone, _ = self._signed_up.popitem(last=False)
+            self._viewers.pop(gone, None)
+            self._apps.pop(gone, None)
+            self._built.discard(gone)
+
+    @contextmanager
+    def building(self, reader):
+        """Around a page: for someone who signed up on their own and whose
+        pages are not built yet, wait for any other such build to finish."""
+        name = reader.name if reader is not None else ""
+        if reader is None or reader.joined != "google" or name in self._built:
+            yield
+            return
+        with self._building:
+            yield
+            self._built.add(name)
 
     def is_owner(self, reader) -> bool:
         """Whether `reader` runs this installation. Nobody signed in, on an
@@ -365,8 +406,9 @@ def _make_handler(door: "Door"):
                     allowed, reader = self._admit(path, posting=False)
                     if not allowed:
                         return
-                    html, status = self._route(path, query,
-                                               door.viewers(reader))
+                    viewers = door.viewers(reader)
+                    with door.building(reader):
+                        html, status = self._route(path, query, viewers)
                 if status:                     # 0 means the route already replied
                     self._send(html, status)
             except (BrokenPipeError, ConnectionResetError):
