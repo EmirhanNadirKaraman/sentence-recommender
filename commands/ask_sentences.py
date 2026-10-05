@@ -172,15 +172,16 @@ class AskSentencesCommand:
             raise SystemExit("nothing left to ask about the sentence itself")
         sentences = app.corpus("subtitle")
         have = app.answers.answered(model, questions.VERSION, asking)
-        # Every stored plan, or the one whose label matches `plan`.
+        # Every stored plan, or the one whose label matches `plan`. ILIKE,
+        # because SQLite's LIKE ignored case and this was written against it.
         like = f"%{plan}%" if plan else "%"
         with open_state(settings.state) as conn:
             shown = {t for (t,) in conn.execute(
-                "SELECT sentence FROM roadmap WHERE source LIKE %s"
-                " UNION SELECT text FROM roadmap_example WHERE source LIKE %s AND n < 3",
+                "SELECT sentence FROM roadmap WHERE source ILIKE %s"
+                " UNION SELECT text FROM roadmap_example WHERE source ILIKE %s AND n < 3",
                 (like, like))}
             weighed = {t for (t,) in conn.execute(
-                "SELECT DISTINCT text FROM roadmap_example WHERE source LIKE %s", (like,))}
+                "SELECT DISTINCT text FROM roadmap_example WHERE source ILIKE %s", (like,))}
 
         def tier(s) -> int:
             return 0 if s.text in shown else 1 if s.text in weighed else 2
