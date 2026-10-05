@@ -735,6 +735,12 @@ button.w.target { color: var(--target); border-bottom: 1px solid var(--target); 
 .login input { font: 400 17px/1.4 var(--sans); padding: 8px 10px;
   border: 1px solid var(--faint); border-radius: 6px; background: var(--paper);
   color: var(--ink); }
+.login select { font: 400 16px/1.4 var(--sans); padding: 6px 8px;
+  border: 1px solid var(--faint); border-radius: 6px; background: var(--paper);
+  color: var(--ink); }
+.invite-link { width: 100%; font: 400 14px/1.4 var(--mono, monospace);
+  padding: 8px 10px; border: 1px solid var(--faint); border-radius: 6px;
+  background: var(--paper); color: var(--ink); }
 .login button { justify-self: start; font: 600 15px/1 var(--sans);
   padding: 10px 18px; border-radius: 6px; border: 0; background: var(--ink);
   color: var(--paper); cursor: pointer; }

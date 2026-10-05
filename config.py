@@ -16,7 +16,7 @@ All other mutable state lives in `Settings.state_path` (local SQLite).
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from urllib.parse import quote
 
@@ -45,6 +45,13 @@ class DatabaseConfig:
     password: str
     host: str
     port: int
+    # The schema every query on this connection reads and writes, or "" for
+    # the server's default, `public`. A language other than German keeps its
+    # catalogue and corpus in a schema of its own inside the one database:
+    # the tables are the same tables, with the same names, so nothing that
+    # queries them has to know which language it is in -- and nothing one
+    # language writes can land among the other's rows. See `languages`.
+    schema: str = ""
 
     @classmethod
     def named(cls, name: str) -> "DatabaseConfig":
@@ -72,7 +79,7 @@ class DatabaseConfig:
         )
 
     @classmethod
-    def owned(cls, suffix: str = "") -> "DatabaseConfig":
+    def owned(cls, schema: str = "") -> "DatabaseConfig":
         """This project's database — the one it reads, writes and migrates.
 
         `DB_NAME` names it, because it is now the only database this project
@@ -84,12 +91,12 @@ class DatabaseConfig:
         migrations. That index exists here, and the same lookup is 57x
         faster for it.
 
-        `suffix` names a language's own copy of it: German's is `DB_NAME`
-        itself, English's is `DB_NAME` with `_en` after it. See `languages`.
+        `schema` is the language's part of it: German's is the default,
+        `public`; English's is `en`. See `languages`.
         """
         load_dotenv()
-        return cls.named(os.environ.get("DB_NAME", "sentence_recommender")
-                         + suffix)
+        made = cls.named(os.environ.get("DB_NAME", "sentence_recommender"))
+        return replace(made, schema=schema) if schema else made
 
     def url(self) -> str:
         """SQLAlchemy URL, for alembic. Nothing else here speaks SQLAlchemy.
@@ -101,8 +108,12 @@ class DatabaseConfig:
         """
         user = quote(self.user, safe="")
         password = quote(self.password, safe="")
+        # The schema rides on the connection's options, so what the
+        # migrations create lands in it -- see `migrations/env.py`.
+        options = (f"?options={quote(f'-c search_path={self.schema}', safe='')}"
+                   if self.schema else "")
         return (f"postgresql+psycopg2://{user}:{password}"
-                f"@{self.host}:{self.port}/{self.name}")
+                f"@{self.host}:{self.port}/{self.name}{options}")
 
     # Raised from the 4MB default, on the connection rather than the server.
     #
@@ -127,7 +138,12 @@ class DatabaseConfig:
             "password": self.password,
             "host": self.host,
             "port": self.port,
-            "options": f"-c work_mem={self.WORK_MEM}",
+            "options": f"-c work_mem={self.WORK_MEM}" + (
+                # One schema and nothing behind it. A path that fell back to
+                # `public` would answer for a table the language's schema
+                # lacks -- a migration not run there yet -- with German rows,
+                # silently; with nothing behind it, the query fails instead.
+                f" -c search_path={self.schema}" if self.schema else ""),
         }
 
 
@@ -251,7 +267,7 @@ class Settings:
         # language's file is in the repository for every reader of it.
         mine = home / lang.function_words.name
         return cls(
-            own=DatabaseConfig.owned(lang.database_suffix),
+            own=DatabaseConfig.owned(lang.schema),
             language=lang.code,
             native=reader.native,
             reader=reader.name,

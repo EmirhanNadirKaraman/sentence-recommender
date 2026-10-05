@@ -17,7 +17,7 @@ from logging.config import fileConfig
 from pathlib import Path
 
 from alembic import context
-from sqlalchemy import create_engine, pool
+from sqlalchemy import create_engine, pool, text
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from config import DatabaseConfig    # noqa: E402 — after the path is set
@@ -32,12 +32,12 @@ if config.config_file_name is not None:
 # sign is read as an interpolation and the run dies with a KeyError naming
 # whatever followed it. The ini never sees the credentials this way.
 #
-# Each language has a database of its own (see `languages`), so which one is
+# Each language has a schema of its own (see `languages`), so which one is
 # migrated is asked for: `alembic -x language=en upgrade head`. German's is
-# the default, and the one there was before there were others.
+# the default, `public`, and the one there was before there were others.
 _LANGUAGE = language(context.get_x_argument(as_dictionary=True)
                      .get("language", "de"))
-DATABASE_URL = DatabaseConfig.owned(_LANGUAGE.database_suffix).url()
+DATABASE_URL = DatabaseConfig.owned(_LANGUAGE.schema).url()
 target_metadata = None
 
 
@@ -51,6 +51,14 @@ def run_migrations_offline() -> None:
 def run_migrations_online() -> None:
     engine = create_engine(DATABASE_URL, poolclass=pool.NullPool)
     with engine.connect() as connection:
+        if _LANGUAGE.schema:
+            # Made here, by the migration that needs it, so a new language
+            # is one command. The connection's search path names it already,
+            # and a path naming a schema that does not exist yet has nowhere
+            # to create the first table.
+            connection.execute(text(
+                f'CREATE SCHEMA IF NOT EXISTS "{_LANGUAGE.schema}"'))
+            connection.commit()
         context.configure(connection=connection, target_metadata=target_metadata)
         with context.begin_transaction():
             context.run_migrations()

@@ -49,7 +49,7 @@ COOKIE = "i1_session"
 # What anyone may fetch without a session: the door itself, and the files a
 # browser asks for before it has one -- an icon on a home screen, the
 # manifest of an installed app.
-OPEN = {"/login", "/favicon.ico", "/apple-touch-icon.png",
+OPEN = {"/login", "/signup", "/favicon.ico", "/apple-touch-icon.png",
         "/apple-touch-icon-precomposed.png", "/manifest.webmanifest"}
 
 
@@ -329,8 +329,17 @@ def _make_handler(door: "Door"):
             if posted == "/logout":
                 self._logout()
                 return
+            if posted == "/signup":
+                self._signup(form)
+                return
             allowed, reader = self._admit(posted, posting=True)
             if not allowed:
+                return
+            if posted == "/password":
+                self._password(form, reader)
+                return
+            if posted == "/invite":
+                self._invite(form, reader)
                 return
             viewers = door.viewers(reader)
             if posted == "/api/heard":
@@ -437,6 +446,76 @@ def _make_handler(door: "Door"):
         def _logout(self) -> None:
             self._redirect("/login", self._cookie("", 0))
 
+        def _signup(self, form: dict) -> None:
+            """An invitation spent: the account made, and signed in."""
+            token = form.get("invite") or ""
+            name = (form.get("name") or "").strip().lower()
+            password = form.get("password") or ""
+            found = door.registry.invitation(token)
+            if found is None:
+                self._send(render.invitation_gone(), status=410)
+                return
+            if password != (form.get("again") or ""):
+                self._send(render.signup_page(
+                    "The two passwords do not match.", token, found, name),
+                    status=400)
+                return
+            try:
+                from db.migrate import prepare           # noqa: PLC0415
+                prepare(found["language"])
+                reader = door.registry.redeem(token, name, password)
+            except SystemExit as refused:
+                self._send(render.signup_page(str(refused), token, found, name),
+                           status=400)
+                return
+            value = door.registry.sign(reader, int(time.time()) + _SESSION_SECONDS)
+            self._redirect("/", self._cookie(value, _SESSION_SECONDS))
+
+        def _password(self, form: dict, reader) -> None:
+            """A new password, and this device kept signed in under it."""
+            from readers import check_password             # noqa: PLC0415
+            if reader is None:
+                self._redirect("/settings")
+                return
+            fresh = form.get("password") or ""
+            if not check_password(form.get("current") or "", reader.password):
+                time.sleep(1)
+                self._redirect("/settings?account=wrong")
+                return
+            if fresh != (form.get("again") or ""):
+                self._redirect("/settings?account=mismatch")
+                return
+            try:
+                door.registry.set_password(reader.name, fresh)
+            except SystemExit:
+                self._redirect("/settings?account=short")
+                return
+            renewed = door.registry.get(reader.name)
+            value = door.registry.sign(renewed, int(time.time()) + _SESSION_SECONDS)
+            self._redirect("/settings?account=changed",
+                           self._cookie(value, _SESSION_SECONDS))
+
+        def _invite(self, form: dict, reader) -> None:
+            """A link for someone new, made by the installation's owner."""
+            owner = door.registry.owner()
+            if reader is None or owner is None or reader.name != owner.name:
+                self._send(_signed_out(), status=403)
+                return
+            try:
+                token = door.registry.invite(form.get("language") or "en",
+                                             form.get("native") or "tr")
+            except SystemExit as refused:
+                self._send(render.layout("Invite", f"<h1>Invite</h1><p class='note "
+                                         f"due'>{render.escape(str(refused))}</p>"),
+                           status=400)
+                return
+            scheme = self.headers.get("X-Forwarded-Proto") or "http"
+            host = (self.headers.get("X-Forwarded-Host")
+                    or self.headers.get("Host") or "")
+            found = door.registry.invitation(token)
+            self._send(render.invited_page(
+                f"{scheme}://{host}/signup?invite={token}", found), 200)
+
         def _cookie(self, value: str, seconds: int) -> str:
             # `Secure` when the browser's side of the proxy was HTTPS: this
             # process only ever sees plain HTTP from whatever stands in
@@ -449,6 +528,14 @@ def _make_handler(door: "Door"):
 
         def _route_open(self, path: str, query: dict) -> tuple[str, int]:
             """What answers without a session."""
+            render.ACTIVE.reader = ""
+            render.ACTIVE.shared = False
+            if path == "/signup":
+                token = query.get("invite") or ""
+                found = door.registry.invitation(token)
+                if found is None:
+                    return render.invitation_gone(), 410
+                return render.signup_page("", token, found), 200
             if path == "/login":
                 if not door.shared:
                     return self._redirect("/"), 0

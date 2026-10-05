@@ -31,7 +31,7 @@ import secrets
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from threading import Lock
+from threading import RLock
 
 from languages import NATIVE, language
 
@@ -55,6 +55,10 @@ SESSION_SECONDS = 180 * 24 * 3600
 # Two people with real passwords never hit this; a script guessing does.
 TRIES = 5
 LOCKOUT_SECONDS = 15 * 60
+
+# How long an invitation link stays good. Long enough to reach someone who
+# is away for a weekend; short enough that one lying in an old chat is dead.
+INVITE_DAYS = 7
 
 
 @dataclass(frozen=True)
@@ -106,7 +110,9 @@ class Registry:
         self._root = root
         self._file = root / "readers.json"
         self._key_file = root / "session.key"
-        self._lock = Lock()
+        # Re-entrant: spending an invitation makes the account under the same
+        # lock, so two people holding one link cannot both use it.
+        self._lock = RLock()
         self._failures: dict[str, list[float]] = {}
 
     # --- who there is -----------------------------------------------------
@@ -138,6 +144,13 @@ class Registry:
     def shared(self) -> bool:
         """Whether anyone has to log in: true once any reader has a password."""
         return any(reader.password for reader in self.readers().values())
+
+    def owner(self) -> Reader | None:
+        """The reader whose files are the ones at the top of `data/`: who
+        this installation belonged to before it had other readers, and who
+        may invite them."""
+        return next((r for r in self.readers().values()
+                     if r.home == ROOT / "data"), None)
 
     def default(self) -> Reader | None:
         """Who a command run without `--reader` is.
@@ -191,12 +204,82 @@ class Registry:
     def set_password(self, name: str, password: str) -> None:
         if len(password) < 8:
             raise SystemExit("a password needs at least eight characters")
+        if len(password) > 1024:
+            raise SystemExit("that password is longer than anyone types")
         with self._lock:
             raw = self._read()
             if name not in raw["readers"]:
                 raise SystemExit(f"no reader called {name!r}")
             raw["readers"][name]["password"] = hash_password(password)
             self._write(raw)
+
+    # --- invitations ------------------------------------------------------
+    #
+    # How a reader comes to exist without anyone typing at the server: the
+    # owner makes a link -- in Settings, or `reader invite` -- and whoever
+    # opens it picks a name and a password. The link carries a token kept
+    # only as a digest, good once, for `INVITE_DAYS`; the language and the
+    # language of the translations are the invitation's, not the visitor's
+    # to choose. The first account of all is an invitation too, made with
+    # `reader invite --owner`, and takes over the files already in `data/`.
+
+    def invite(self, lang: str, native: str, days: int = INVITE_DAYS,
+               owner: bool = False) -> str:
+        """A token for `/signup?invite=...`, good once and for `days`."""
+        language(lang)
+        if native not in NATIVE:
+            raise SystemExit(f"no native language {native!r} -- this project "
+                             f"translates into {', '.join(sorted(NATIVE))}")
+        if owner and self.owner() is not None:
+            raise SystemExit(f"{self.owner().name} already owns this "
+                             "installation's data")
+        token = secrets.token_urlsafe(18)
+        now = time.time()
+        with self._lock:
+            raw = self._read()
+            # Expired ones go whenever a new one is made, and an owner's
+            # replaces any earlier owner's: only the newest such link works.
+            invites = {key: found for key, found in raw.get("invites", {}).items()
+                       if found["expires"] > now
+                       and not (owner and found.get("owner"))}
+            invites[_digest(token)] = {
+                "language": lang, "native": native,
+                "expires": int(now + days * 86400),
+                **({"owner": True} if owner else {})}
+            raw["invites"] = invites
+            self._write(raw)
+        return token
+
+    def invitation(self, token: str) -> dict | None:
+        """What `token` invites someone to be, if it is still good."""
+        found = self._read().get("invites", {}).get(_digest(token or ""))
+        if not found or found["expires"] < time.time():
+            return None
+        return found
+
+    def redeem(self, token: str, name: str, password: str) -> Reader:
+        """Make the account `token` was for, and spend it."""
+        if not NAME.match(name):
+            raise SystemExit("a name is lowercase letters, digits, - and _, "
+                             "starting with a letter")
+        if not 8 <= len(password) <= 1024:
+            raise SystemExit("a password needs at least eight characters")
+        with self._lock:
+            found = self.invitation(token)
+            if found is None:
+                raise SystemExit("this invitation has expired or has already "
+                                 "been used")
+            if name in self.readers():
+                raise SystemExit(f"the name {name!r} is taken")
+            if found.get("owner") and self.owner() is not None:
+                raise SystemExit("this installation's data already has an owner")
+            raw = self._read()
+            raw["invites"].pop(_digest(token), None)
+            self._write(raw)
+            reader = self.add(name, found["language"], found["native"],
+                              home=ROOT / "data" if found.get("owner") else None)
+            self.set_password(name, password)
+        return self.get(reader.name)
 
     def _read(self) -> dict:
         try:
@@ -300,6 +383,10 @@ def _dummy() -> str:
     if not _DUMMY:
         _DUMMY.append(hash_password(secrets.token_hex(16)))
     return _DUMMY[0]
+
+
+def _digest(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 def _relative(path: Path) -> str:

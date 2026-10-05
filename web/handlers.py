@@ -3515,8 +3515,18 @@ class Viewer:
 
     # --- settings ---------------------------------------------------------
 
-    def _account(self) -> str:
-        """Who is signed in, on an installation with more than one reader.
+    # What `/password` came back to say, by the code it put in the query.
+    ACCOUNT_NOTES = {
+        "changed": "Password changed. Every other device is signed out.",
+        "wrong": "That is not your current password; nothing changed.",
+        "mismatch": "The two new passwords did not match; nothing changed.",
+        "short": "A password needs at least eight characters; nothing changed.",
+    }
+
+    def _account(self, query: dict | None = None) -> str:
+        """Who is signed in, on an installation with more than one reader:
+        a way out, a new password, and -- for the owner -- a way to invite
+        someone.
 
         Here as well as in the masthead, because the phone's tab bar has no
         room for it and Settings is where anyone looks for a way out.
@@ -3524,14 +3534,49 @@ class Viewer:
         settings = self.app.settings
         if not (getattr(ACTIVE, "shared", False) and settings.reader):
             return ""
-        from languages import NATIVE, language          # noqa: PLC0415
+        from languages import LANGUAGES, NATIVE, language   # noqa: PLC0415
+        from readers import Registry                    # noqa: PLC0415
         learning = language(settings.language).name
         helped = NATIVE.get(settings.native, settings.native)
-        return ("<h2>Signed in</h2>"
-                f"<p class='note'>As <b>{escape(settings.reader)}</b>, learning "
-                f"{escape(learning)} with {escape(helped)} translations.</p>"
-                "<form method='post' action='/logout'>"
-                "<button type='submit'>Sign out</button></form>")
+        said = self.ACCOUNT_NOTES.get((query or {}).get("account", ""), "")
+        note = f"<p class='note due'>{escape(said)}</p>" if said else ""
+        out = ("<h2>Signed in</h2>"
+               f"<p class='note'>As <b>{escape(settings.reader)}</b>, learning "
+               f"{escape(learning)} with {escape(helped)} translations.</p>"
+               "<form method='post' action='/logout'>"
+               "<button type='submit'>Sign out</button></form>"
+               "<h2>Password</h2>"
+               f"{note}"
+               "<form method='post' action='/password' class='login'>"
+               "<label>Current password <input name='current' type='password' "
+               "autocomplete='current-password' required></label>"
+               "<label>New password <input name='password' type='password' "
+               "autocomplete='new-password' minlength='8' required></label>"
+               "<label>New password again <input name='again' type='password' "
+               "autocomplete='new-password' minlength='8' required></label>"
+               "<button type='submit'>Change password</button></form>")
+        owner = Registry().owner()
+        if owner is None or owner.name != settings.reader:
+            return out
+
+        def options(choices: dict[str, str], chosen: str) -> str:
+            return "".join(
+                f"<option value='{escape(code)}'"
+                f"{' selected' if code == chosen else ''}>{escape(name)}</option>"
+                for code, name in choices.items())
+
+        return out + (
+            "<h2>Invite someone</h2>"
+            "<p class='note'>A link that makes one account, good for a week. "
+            "Their words, cards and plans are their own, and nothing they do "
+            "reaches yours.</p>"
+            "<form method='post' action='/invite' class='login'>"
+            "<label>Learning <select name='language'>"
+            f"{options({c: l.name for c, l in LANGUAGES.items()}, 'en')}"
+            "</select></label>"
+            "<label>Translated into <select name='native'>"
+            f"{options(NATIVE, 'tr')}</select></label>"
+            "<button type='submit'>Make an invitation link</button></form>")
 
     def settings(self, query: dict) -> str:
         """What you have removed, and the means to remove more or relent."""
@@ -3600,7 +3645,7 @@ class Viewer:
             if channel not in gone and counts.get(channel))
         body = (
             "<h1>Settings</h1>"
-            f"{self._account()}"
+            f"{self._account(query)}"
             "<h2>Colours</h2>"
             "<p class='note'>Colour the words you do not know yet, wherever "
             "words are drawn — captions, transcripts, the sentences on the "

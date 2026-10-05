@@ -606,9 +606,9 @@ def _parser() -> argparse.ArgumentParser:
                       help=SOURCE_HELP)
 
     people = sub.add_parser(
-        "reader", help="the people this installation serves: add one, set a "
-                       "password, list them")
-    people.add_argument("action", choices=["list", "add", "password"])
+        "reader", help="the people this installation serves: list them, add "
+                       "one, set a password, or make an invitation link")
+    people.add_argument("action", choices=["list", "add", "password", "invite"])
     people.add_argument("name", nargs="?",
                         help="lowercase letters, digits, - and _")
     people.add_argument("--language", default="de",
@@ -620,6 +620,12 @@ def _parser() -> argparse.ArgumentParser:
                         help="where their files live (default: "
                              "data/readers/NAME). `--home data` registers "
                              "the files this installation already has")
+    people.add_argument("--owner", action="store_true",
+                        help="with `invite`: the link makes the account that "
+                             "owns the data already at the top of data/")
+    people.add_argument("--days", type=int, default=7,
+                        help="with `invite`: how long the link works "
+                             "(default 7)")
 
     # On every command, after its name, because that is where a flag gets
     # typed: `build-roadmap --reader NAME`. Whose state is read and written,
@@ -679,7 +685,7 @@ def _same_language(args, settings: Settings) -> None:
 
 
 def manage_readers(args) -> None:
-    """`reader list | add NAME | password NAME`."""
+    """`reader list | add NAME | password NAME | invite`."""
     import getpass                                        # noqa: PLC0415
     from readers import Registry                          # noqa: PLC0415
     registry = Registry()
@@ -693,9 +699,30 @@ def manage_readers(args) -> None:
             print(f"  {reader.name:<16} learns {reader.language}, "
                   f"translated into {reader.native}   {door}   {reader.home}")
         return
+    if args.action == "invite":
+        if args.owner:
+            # The data at the top of `data/` is the first reader's, German.
+            token = registry.invite("de", "en", args.days, owner=True)
+            print("an invitation to make the account that owns the data "
+                  "already here:")
+        else:
+            token = registry.invite(args.language, args.native, args.days)
+            print(f"an invitation to learn {args.language}, translated into "
+                  f"{args.native}:")
+        print(f"\n  /signup?invite={token}\n")
+        print(f"Open it on this server's address — good once, for "
+              f"{args.days} days.")
+        if not args.owner and registry.owner() is None:
+            print("Nobody owns the data at the top of data/ yet: once this "
+                  "is used, signing in is needed, and that data is reachable "
+                  "only after `reader invite --owner` is used too.")
+        return
     if not args.name:
         raise SystemExit(f"`reader {args.action}` needs a NAME")
     if args.action == "add":
+        from db.migrate import prepare                    # noqa: PLC0415
+        if prepare(args.language):
+            print(f"made the {args.language} tables in the database")
         reader = registry.add(args.name, args.language, args.native, args.home)
         print(f"added {reader.name}: learns {reader.language}, translated into "
               f"{reader.native}, files in {reader.home}")

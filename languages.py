@@ -12,11 +12,12 @@ and must stay so. The German corpus is fingerprinted on the files its rules
 live in (see `fingerprint`), and a German value changed here would quietly
 change every German plan.
 
-Each language keeps its corpus in a database of its own. The catalogue and
-the analysed corpus are keyed by build name -- `subtitle`, `generated` --
+Each language keeps its catalogue and corpus in a schema of its own, inside
+the one database. Both are keyed by build name -- `subtitle`, `generated` --
 and a second language writing a `subtitle` build into the same tables would
-delete the first's on its next rebuild. A database per language shares
-nothing that could collide, and asks nothing of the German one.
+delete the first's on its next rebuild. A schema holds tables of the same
+names, so every query in the program reads one language's without knowing
+it, and German's stays in `public`, where it always was.
 """
 from __future__ import annotations
 
@@ -36,9 +37,9 @@ class Language:
     # In English, because that is what the prompts and the pages are written
     # in -- "Translate this German sentence", not "Deutsch".
     name: str
-    # Appended to `DB_NAME`. Empty for German, whose database predates there
-    # being a second one and keeps its name.
-    database_suffix: str
+    # The Postgres schema its catalogue and corpus live in. Empty for German,
+    # which predates there being a second language and keeps `public`.
+    schema: str
     # The closed classes, counted as known before anything is taught.
     function_words: Path
     # Fixed expressions, found by their words. See `vocab.expressions`.
@@ -80,7 +81,7 @@ class Language:
 GERMAN = Language(
     code="de",
     name="German",
-    database_suffix="",
+    schema="",
     function_words=DATA / "function_words.txt",
     expressions=DATA / "expressions.txt",
     goal_lemmas=DATA / "goal_lemmas.txt",
@@ -100,7 +101,7 @@ GERMAN = Language(
 ENGLISH = Language(
     code="en",
     name="English",
-    database_suffix="_en",
+    schema="en",
     function_words=DATA / "en" / "function_words.txt",
     expressions=DATA / "en" / "expressions.txt",
     goal_lemmas=DATA / "en" / "goal_lemmas.txt",

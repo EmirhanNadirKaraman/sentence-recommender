@@ -275,3 +275,62 @@ def login_page(error: str, target: str, name: str = "") -> str:
         "</form>"
     )
     return layout("Sign in", body, bare=True)
+
+
+def _invited_to(found: dict) -> str:
+    """What an invitation is for, in a sentence."""
+    from languages import NATIVE, language               # noqa: PLC0415
+    if found.get("owner"):
+        return ("It makes the account that owns what is already here: the "
+                "words marked known, the cards, the plans.")
+    learning = language(found["language"]).name
+    helped = NATIVE.get(found["native"], found["native"])
+    return (f"It is to learn {escape(learning)}, with {escape(helped)} "
+            "translations.")
+
+
+def signup_page(error: str, token: str, found: dict, name: str = "") -> str:
+    """An invitation, and the form that spends it."""
+    warning = f"<p class='note due'>{escape(error)}</p>" if error else ""
+    body = (
+        "<h1>Make your account</h1>"
+        f"<p class='note'>You have an invitation. {_invited_to(found)} "
+        "Pick the name you will sign in with, and a password.</p>"
+        f"{warning}"
+        "<form method='post' action='/signup' class='login'>"
+        f"<input type='hidden' name='invite' value='{escape(token, quote=True)}'>"
+        "<label>Name <input name='name' autocomplete='username' "
+        "autocapitalize='none' autocorrect='off' spellcheck='false' required "
+        "pattern='[a-z][a-z0-9_-]{0,31}' "
+        "title='lowercase letters, digits, - and _, starting with a letter' "
+        f"value='{escape(name, quote=True)}'></label>"
+        "<label>Password <input name='password' type='password' "
+        "autocomplete='new-password' minlength='8' required></label>"
+        "<label>Password again <input name='again' type='password' "
+        "autocomplete='new-password' minlength='8' required></label>"
+        "<button type='submit'>Make my account</button>"
+        "</form>"
+    )
+    return layout("Make your account", body, bare=True)
+
+
+def invitation_gone() -> str:
+    return layout("Invitation", "<h1>This invitation has expired</h1>"
+                  "<p class='sub'>Or it has already been used. Ask for a new "
+                  "link, or <a href='/login'>sign in</a>.</p>", bare=True)
+
+
+def invited_page(url: str, found: dict) -> str:
+    """The link to send, shown once: only its digest is kept."""
+    from datetime import datetime                         # noqa: PLC0415
+    until = datetime.fromtimestamp(found["expires"]).strftime("%-d %B")
+    body = (
+        "<h1>Invitation made</h1>"
+        f"<p class='note'>{_invited_to(found)}</p>"
+        "<p class='note'>Send this link. It works once, until "
+        f"{escape(until)}, and this is the only time it is shown.</p>"
+        f"<p><input class='invite-link' readonly value='{escape(url, quote=True)}' "
+        "onclick='this.select()'></p>"
+        "<p><a href='/settings'>Back to Settings</a></p>"
+    )
+    return layout("Invitation made", body)

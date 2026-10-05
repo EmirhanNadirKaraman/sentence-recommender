@@ -154,6 +154,59 @@ class SessionTest(unittest.TestCase):
             self.assertIsNotNone(self.registry.login("ahmet", "a long password"))
 
 
+class InvitationTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self._dir = tempfile.TemporaryDirectory()
+        self.registry = Registry(Path(self._dir.name) / "readers")
+
+    def tearDown(self) -> None:
+        self._dir.cleanup()
+
+    def test_an_invitation_makes_one_account_and_is_spent(self) -> None:
+        token = self.registry.invite("en", "tr")
+        self.assertEqual(self.registry.invitation(token)["language"], "en")
+        reader = self.registry.redeem(token, "ahmet", "a long password")
+        self.assertEqual((reader.language, reader.native), ("en", "tr"))
+        self.assertIsNotNone(self.registry.login("ahmet", "a long password"))
+        self.assertIsNone(self.registry.invitation(token))
+        with self.assertRaises(SystemExit):
+            self.registry.redeem(token, "other", "a long password")
+
+    def test_the_token_itself_is_never_stored(self) -> None:
+        token = self.registry.invite("en", "tr")
+        stored = (self.registry._root / "readers.json").read_text()
+        self.assertNotIn(token, stored)
+
+    def test_an_expired_invitation_is_nothing(self) -> None:
+        token = self.registry.invite("en", "tr", days=1)
+        later = time.time() + 2 * 86400
+        with mock.patch("readers.time.time", return_value=later):
+            self.assertIsNone(self.registry.invitation(token))
+            with self.assertRaises(SystemExit):
+                self.registry.redeem(token, "ahmet", "a long password")
+
+    def test_a_taken_name_does_not_spend_the_invitation(self) -> None:
+        self.registry.add("ahmet", "en", "tr")
+        token = self.registry.invite("en", "tr")
+        with self.assertRaises(SystemExit):
+            self.registry.redeem(token, "ahmet", "a long password")
+        self.assertIsNotNone(self.registry.invitation(token))
+
+    def test_the_owner_invitation_takes_over_the_data_already_here(self) -> None:
+        token = self.registry.invite("de", "en", owner=True)
+        reader = self.registry.redeem(token, "emir", "a long password")
+        self.assertEqual(reader.home, ROOT / "data")
+        self.assertEqual(self.registry.owner().name, "emir")
+        with self.assertRaises(SystemExit):
+            self.registry.invite("de", "en", owner=True)
+
+    def test_only_the_newest_owner_invitation_works(self) -> None:
+        first = self.registry.invite("de", "en", owner=True)
+        second = self.registry.invite("de", "en", owner=True)
+        self.assertIsNone(self.registry.invitation(first))
+        self.assertIsNotNone(self.registry.invitation(second))
+
+
 class ReaderSettingsTest(unittest.TestCase):
     def test_the_first_reader_has_exactly_the_settings_there_always_were(self) -> None:
         owner = Settings.for_reader(Reader("emir", ROOT / "data", "de", "en"))
@@ -175,17 +228,23 @@ class ReaderSettingsTest(unittest.TestCase):
         self.assertEqual(settings.data_dir, home)
         self.assertEqual((settings.language, settings.native), ("en", "tr"))
 
-    def test_a_second_language_has_a_database_of_its_own(self) -> None:
+    def test_a_second_language_has_a_schema_of_its_own(self) -> None:
         german = Settings.for_reader(Reader("a", Path("/tmp/a"), "de", "en"))
         english = Settings.for_reader(Reader("b", Path("/tmp/b"), "en", "tr"))
-        self.assertEqual(german.own.name + ENGLISH.database_suffix,
-                         english.own.name)
+        self.assertEqual(german.own.name, english.own.name)
+        self.assertEqual(english.own.schema, "en")
+        self.assertIn("-c search_path=en", english.own.dsn_kwargs()["options"])
+        self.assertIn("options=-c%20search_path%3Den", english.own.url())
+        # German's connection is the one it always had.
+        self.assertEqual(german.own.dsn_kwargs()["options"],
+                         f"-c work_mem={german.own.WORK_MEM}")
+        self.assertNotIn("options", german.own.url())
         self.assertEqual(english.function_words, ENGLISH.function_words)
         self.assertEqual(english.ignored_builds, frozenset())
         self.assertIsNone(english.order_words)
 
     def test_german_keeps_the_names_it_had(self) -> None:
-        self.assertEqual(GERMAN.database_suffix, "")
+        self.assertEqual(GERMAN.schema, "")
         self.assertEqual(GERMAN.ignored_builds, frozenset({"tatoeba"}))
 
 
@@ -371,6 +430,64 @@ class DoorTest(unittest.TestCase):
         response, _ = self.request(
             "POST", "/login", "name=ahmet&password=ahmet+password")
         self.assertNotIn("Secure", response.getheader("Set-Cookie"))
+
+    def test_an_invitation_link_opens_a_form_and_a_dead_one_says_so(self) -> None:
+        token = self.registry.invite("en", "tr")
+        response, data = self.request("GET", f"/signup?invite={token}")
+        self.assertEqual(response.status, 200)
+        self.assertIn("English, with Turkish translations", data)
+        response, _ = self.request("GET", "/signup?invite=nonsense")
+        self.assertEqual(response.status, 410)
+
+    def test_signing_up_makes_the_account_and_signs_it_in(self) -> None:
+        token = self.registry.invite("en", "tr")
+        self.door._viewers["newbie"] = _Viewers("newbie")
+        with mock.patch("db.migrate.prepare", return_value=False) as prepared:
+            response, data = self.request(
+                "POST", "/signup", f"invite={token}&name=newbie"
+                                   "&password=newbie+pass&again=other+pass")
+            self.assertEqual(response.status, 400)
+            self.assertIn("do not match", data)
+            response, _ = self.request(
+                "POST", "/signup", f"invite={token}&name=newbie"
+                                   "&password=newbie+pass&again=newbie+pass")
+        self.assertEqual(response.status, 303)
+        prepared.assert_called_with("en")
+        cookie = response.getheader("Set-Cookie").split(";")[0]
+        response, data = self.request("GET", "/", headers={"Cookie": cookie})
+        self.assertIn("next for newbie", data)
+        self.assertEqual(self.registry.get("newbie").language, "en")
+
+    def test_changing_a_password_keeps_this_device_and_drops_the_rest(self) -> None:
+        here = self.sign_in("ahmet")
+        there = self.sign_in("ahmet")
+        with mock.patch("web.server.time.sleep"):
+            response, _ = self.request(
+                "POST", "/password", "current=wrong&password=brand+new+one"
+                                     "&again=brand+new+one",
+                headers={"Cookie": here})
+        self.assertEqual(response.getheader("Location"), "/settings?account=wrong")
+        response, _ = self.request(
+            "POST", "/password", "current=ahmet+password&password=brand+new+one"
+                                 "&again=brand+new+one", headers={"Cookie": here})
+        self.assertEqual(response.getheader("Location"), "/settings?account=changed")
+        renewed = response.getheader("Set-Cookie").split(";")[0]
+        self.assertEqual(self.request("GET", "/", headers={"Cookie": renewed})[0].status, 200)
+        self.assertEqual(self.request("GET", "/", headers={"Cookie": there})[0].status, 303)
+
+    def test_only_the_owner_makes_invitations(self) -> None:
+        cookie = self.sign_in("ahmet")
+        response, _ = self.request("POST", "/invite", "language=en&native=tr",
+                                   headers={"Cookie": cookie})
+        self.assertEqual(response.status, 403)
+        with mock.patch.object(Registry, "owner",
+                               return_value=self.registry.get("ahmet")):
+            response, data = self.request(
+                "POST", "/invite", "language=en&native=tr",
+                headers={"Cookie": cookie, "X-Forwarded-Proto": "https",
+                         "X-Forwarded-Host": "i1.example.org"})
+        self.assertEqual(response.status, 200)
+        self.assertIn("https://i1.example.org/signup?invite=", data)
 
     def test_without_passwords_there_is_no_door(self) -> None:
         with tempfile.TemporaryDirectory() as empty:
