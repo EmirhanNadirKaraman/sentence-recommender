@@ -176,9 +176,9 @@ def layout(title: str, body: str, here: str = "/", source: str = "",
         # `default`, not `black-translucent`: the latter shifts content up
         # under the notch and brings a class of layout bugs with it.
         "<meta name='apple-mobile-web-app-status-bar-style' content='default'>"
-        "<meta name='theme-color' content='#f7f8f2' "
+        "<meta name='theme-color' content='#f7f5ff' "
         "media='(prefers-color-scheme: light)'>"
-        "<meta name='theme-color' content='#131c18' "
+        "<meta name='theme-color' content='#151226' "
         "media='(prefers-color-scheme: dark)'>"
         "<link rel='manifest' href='/manifest.webmanifest'>"
         "<link rel='apple-touch-icon' href='/static/icon-512.png'>"

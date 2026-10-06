@@ -9,8 +9,8 @@ not outcomes that visual changes alone can promise.
 
 - [Duolingo: redesigning the core tabs](https://blog.duolingo.com/core-tabs-redesign/):
   consistent heading placement, typography, spacing, and components make separate
-  features feel like one product. Applied through a shared shell, warm surfaces,
-  a green accent, reading typography, and reusable cards across every route.
+  features feel like one product. Applied through a shared shell, lilac surfaces,
+  a vivid purple accent with coral, cyan, and amber supporting colors, reading typography, and reusable cards across every route.
 - [Duolingo: the home-screen learning path](https://blog.duolingo.com/new-duolingo-home-screen-design/):
   provide a clear next step and incorporate review into the learning journey.
   The home page prioritizes continuing the next i+1 sentence, with direct routes
