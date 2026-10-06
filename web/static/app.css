@@ -1,26 +1,26 @@
 /* Shared learning components. Local assets, readable type, calm surfaces. */
 :root {
-  --paper:   #f7f5ff;
+  --paper:   #f5f5f7;
   --surface: #ffffff;
-  --ink:     #28244a;
-  --ink-2:   #6a6586;
-  --rail:    #c43b63;
-  --target:  #7040d7;
-  --new:     #a74900;
-  --faint:   #e5def4;
+  --ink:     #1d1d1f;
+  --ink-2:   #6e6e73;
+  --rail:    #1d1d1f;
+  --target:  #0066cc;
+  --new:     #0066cc;
+  --faint:   #d2d2d7;
   /* i+1: the sentence with one unknown word in it. Tinted towards --target,
      which is already the colour of the word being taught, so the line and
      the word in it read as the same idea. */
-  --i1:      #efe6ff;
-  --i1-on:   #e2d2ff;
+  --i1:      #eaf3ff;
+  --i1-on:   #d6e8ff;
   --serif: Literata, Charter, "Iowan Old Style", Georgia, serif;
   --sans: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #151226; --surface: #211b36; --ink: #f3eeff; --ink-2: #beb2d7;
-    --rail: #ff92b0; --target: #bd9bff; --new: #ffbb6b; --faint: #413456;
-    --i1: #35244f; --i1-on: #483164;
+    --paper: #1d1d1f; --surface: #2c2c2e; --ink: #f5f5f7; --ink-2: #b8b8bd;
+    --rail: #f5f5f7; --target: #80bfff; --new: #80bfff; --faint: #48484a;
+    --i1: #20344d; --i1-on: #29476b;
   }
 }
 * { box-sizing: border-box; }
@@ -485,9 +485,9 @@ button.w:hover { border-bottom-color: var(--target); border-color: transparent;
    to a dictionary. In the middle of the screen, in a colour of its own
    -- a warm card on the cool page -- so it reads as something laid over
    the page rather than another part of it. */
-:root { --pop: #fff3f7; --pop-ink: #452139; --pop-ink-2: #7e536d; --pop-line: #f1d5e2; }
+:root { --pop: #ffffff; --pop-ink: #1d1d1f; --pop-ink-2: #6e6e73; --pop-line: #d2d2d7; }
 @media (prefers-color-scheme: dark) {
-  :root { --pop: #322034; --pop-ink: #ffedf5; --pop-ink-2: #d6b4ca; --pop-line: #60425a; }
+  :root { --pop: #2c2c2e; --pop-ink: #f5f5f7; --pop-ink-2: #b8b8bd; --pop-line: #48484a; }
 }
 .gloss {
   position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
@@ -625,11 +625,11 @@ button.w.target { color: var(--target); border-bottom: 1px solid var(--target); 
   margin: 0;
   padding: .6rem .8rem;
   background: rgba(0, 0, 0, .82);
-  color: #f2f5ff;
+  color: #f5f5f7;
   font-size: .9rem;
   text-align: center;
 }
-.player .trouble a { color: #aab7ff; margin-left: .35rem; }
+.player .trouble a { color: #80bfff; margin-left: .35rem; }
 
 /* A player the page drives itself: the frame shows no controls and takes no
    clicks, so the picture is ours to toggle on. */
@@ -752,14 +752,14 @@ button.w.target { color: var(--target); border-bottom: 1px solid var(--target); 
 
 /* The workspace: a quiet rail, generous reading area, and one visual family. */
 :root {
-  --accent-soft: #eee5ff;
-  --hero: #ece1ff;
-  --shadow: 0 5px 22px #5530b510;
+  --accent-soft: #eaf3ff;
+  --hero: #f5f5f7;
+  --shadow: 0 5px 22px #1d1d1f10;
   --radius: 20px;
   --sans: "Avenir Next", Avenir, ui-sans-serif, system-ui, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
-  :root { --accent-soft: #392957; --hero: #322148; --shadow: 0 5px 22px #0002; }
+  :root { --accent-soft: #20344d; --hero: #2c2c2e; --shadow: 0 5px 22px #0002; }
 }
 body { font-size: 15px; line-height: 1.65; }
 a, button, summary { -webkit-tap-highlight-color: transparent; }
@@ -828,7 +828,7 @@ h2 { font-size: 18px; font-weight: 600; letter-spacing: -.3px; color: var(--ink)
 .garden-orbit { position: absolute; width: 235px; height: 235px; border: 1px dashed #ffffff60;
   border-radius: 50%; top: 0; left: 5px; }
 .garden-card { position: absolute; background: var(--surface); border: 1px solid var(--faint);
-  box-shadow: 0 14px 24px #361a6826; border-radius: 15px; font-family: var(--serif); }
+  box-shadow: 0 14px 24px #1d1d1f26; border-radius: 15px; font-family: var(--serif); }
 .garden-card small { display: block; font: 500 11px/1.5 var(--sans); color: var(--ink-2); letter-spacing: 0; }
 .garden-back { padding: 18px 23px; font-size: 22px; transform: rotate(-12deg); left: 0; top: 22px; }
 .garden-front { padding: 27px 31px 21px; font-size: 58px; line-height: 1.2; letter-spacing: -3px;
@@ -837,7 +837,7 @@ h2 { font-size: 18px; font-weight: 600; letter-spacing: -.3px; color: var(--ink)
 .garden-front small { margin-top: 8px; }
 .garden-spark { position: absolute; left: 200px; top: 30px; font-size: 37px; color: var(--target); }
 .garden-dot { position: absolute; left: 25px; top: 190px; width: 15px; height: 15px;
-  background: #ff8e77; border-radius: 50%; }
+  background: #ffffff; border-radius: 50%; }
 .practice-paths { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 36px; }
 .practice-path { display: flex; align-items: center; gap: 10px; padding: 17px 14px;
   border: 1px solid var(--faint); background: var(--surface); border-radius: 15px; text-decoration: none; }
@@ -868,7 +868,7 @@ progress::-moz-progress-bar { background: var(--target); border-radius: 999px; }
 .deck { padding: 18px 6px; }
 .de.i1 { border-radius: 8px; }
 .level, .step, .tag { border-radius: 6px; padding: 3px 6px; }
-.player { border-radius: 15px; background: #191329; border: 0; }
+.player { border-radius: 15px; background: #1d1d1f; border: 0; }
 .controls { gap: 7px; padding: 12px 0 0; }
 .controls button { border-radius: 8px; min-height: 38px; font-size: 11px; padding: 7px 10px; }
 .controls button[data-act='toggle'] { background: var(--target); color: var(--surface); border-color: var(--target); }
@@ -924,7 +924,7 @@ button.w { border-radius: 2px; padding: 0 1px; font-weight: inherit; font-size: 
 .quizcard { padding: 36px 28px; }
 .quizcard h2 { font-size: 42px; }
 .quizcard .example { background: var(--paper); border-radius: 14px; padding: 22px; }
-.gloss { border-radius: 20px; padding: 24px; box-shadow: 0 15px 80px #32144f38; }
+.gloss { border-radius: 20px; padding: 24px; box-shadow: 0 15px 80px #1d1d1f38; }
 .gloss-actions .link { border-radius: 10px; }
 .keys { border-radius: 16px; box-shadow: var(--shadow); padding: 20px; }
 .keys-open { font-size: 10px; min-height: 36px; padding: 10px 13px; }
@@ -980,7 +980,7 @@ button.w { border-radius: 2px; padding: 0 1px; font-weight: inherit; font-size: 
   .more-nav > summary::-webkit-details-marker { display: none; }
   .more-panel { position: fixed; bottom: calc(74px + env(safe-area-inset-bottom)); left: 12px; right: 12px;
     max-height: 70dvh; overflow-y: auto; overscroll-behavior: contain; background: var(--surface);
-    border: 1px solid var(--faint); box-shadow: 0 8px 60px #31125433; border-radius: 20px; padding: 24px;
+    border: 1px solid var(--faint); box-shadow: 0 8px 60px #1d1d1f33; border-radius: 20px; padding: 24px;
     display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .more-panel .nav-group { margin: 0; }
   .more-panel .nav-group p { margin-left: 0; font-size: 8px; }
@@ -1037,8 +1037,8 @@ body[data-page='/mine'] main, body[data-page='/quiz'] main, body[data-page='/set
 .video-cover { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: var(--accent-soft); }
 .video-cover img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .video-play { position: absolute; width: 38px; height: 38px; display: grid; place-items: center;
-  top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 50%; color: #fff; background: #49248bd9; }
-.video-duration { position: absolute; right: 9px; bottom: 9px; background: #241140dd; color: #fff;
+  top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 50%; color: #fff; background: #0066ccd9; }
+.video-duration { position: absolute; right: 9px; bottom: 9px; background: #1d1d1fdd; color: #fff;
   border-radius: 5px; padding: 1px 7px; font-size: 10px; }
 .video-duration:empty { display: none; }
 .video-info { padding: 16px; }
@@ -1062,29 +1062,28 @@ body[data-page='/mine'] main, body[data-page='/quiz'] main, body[data-page='/set
   #reel-board > .switch { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-/* Vivid accents give practice, exploration, and writing distinct identities. */
-:root { --coral: #b63c59; --coral-soft: #ffe8ee; --cyan: #087b86; --cyan-soft: #dcf8fb;
-  --sun: #986000; --sun-soft: #fff1cc; }
-@media (prefers-color-scheme: dark) {
-  :root { --coral: #ff9ab3; --coral-soft: #44243b; --cyan: #64dce7; --cyan-soft: #193e48;
-    --sun: #ffcf66; --sun-soft: #443520; }
+/* Apple palette from https://mobbin.com/colors/brand/apple.
+   Blue carries action; black, gray, and white carry the reading surfaces. */
+:root {
+  --apple-blue: #0066cc; --apple-black: #1d1d1f;
+  --apple-gray: #f5f5f7; --apple-white: #ffffff;
 }
-.welcome { background: linear-gradient(120deg, #6735d2 0%, #8e3acb 65%, #b43ca1 100%);
-  border-color: transparent; color: #fff; box-shadow: 0 12px 35px #7040d721; }
-.welcome .eyebrow, .welcome p, .welcome-foot { color: #f4e9ff; }
-.welcome a.go { background: #fff; color: #6233c3; border-color: #fff; box-shadow: 0 4px 12px #35106820; }
-.welcome a.go:hover { background: #f2eaff; border-color: #f2eaff; }
-.garden-back { background: #f4edff; color: #51298d; border-color: #f4edff; }
-.garden-back small { color: #745998; }
-.garden-front { background: #fff; color: #542a99; border-color: #fff; }
-.garden-front b { color: #d34d70; }
-.garden-front small { color: #745998; }
-.garden-spark { color: #71eddd; }
-.practice-path .nav-icon { width: 36px; height: 36px; flex-basis: 36px; padding: 8px; border-radius: 11px; }
-.practice-path:nth-child(1) .nav-icon { background: var(--coral-soft); color: var(--coral); }
-.practice-path:nth-child(2) .nav-icon { background: var(--cyan-soft); color: var(--cyan); }
-.practice-path:nth-child(3) .nav-icon { background: var(--sun-soft); color: var(--sun); }
-.practice-path:nth-child(1):hover { background: var(--coral-soft); border-color: var(--coral); }
-.practice-path:nth-child(2):hover { background: var(--cyan-soft); border-color: var(--cyan); }
-.practice-path:nth-child(3):hover { background: var(--sun-soft); border-color: var(--sun); }
-@media (max-width: 480px) { .welcome::after { color: #71eddd; opacity: .5; } }
+.welcome { background: var(--apple-blue); border-color: transparent;
+  color: var(--apple-white); box-shadow: 0 12px 35px #0066cc21; }
+.welcome .eyebrow, .welcome p, .welcome-foot { color: var(--apple-white); }
+.welcome a.go { background: var(--apple-white); color: var(--apple-blue);
+  border-color: var(--apple-white); box-shadow: 0 4px 12px #1d1d1f20; }
+.welcome a.go:hover { background: var(--apple-gray); border-color: var(--apple-gray); }
+.garden-back { background: var(--apple-gray); color: var(--apple-black); border-color: var(--apple-gray); }
+.garden-back small, .garden-front small { color: #6e6e73; }
+.garden-front { background: var(--apple-white); color: var(--apple-black); border-color: var(--apple-white); }
+.garden-front b { color: var(--apple-blue); }
+.garden-spark { color: var(--apple-white); }
+.practice-path .nav-icon { width: 36px; height: 36px; flex-basis: 36px; padding: 8px; border-radius: 11px;
+  background: var(--accent-soft); color: var(--target); }
+.practice-path:hover { background: var(--accent-soft); border-color: var(--target); }
+button.go, a.go, .quizcard .actions .yes, .login button, .brand-mark,
+.controls button[data-act='toggle'] {
+  background: var(--apple-blue); color: var(--apple-white); border-color: var(--apple-blue);
+}
+@media (max-width: 480px) { .welcome::after { color: var(--apple-white); opacity: .2; } }

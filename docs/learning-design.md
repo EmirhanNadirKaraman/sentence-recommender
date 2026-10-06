@@ -9,8 +9,8 @@ not outcomes that visual changes alone can promise.
 
 - [Duolingo: redesigning the core tabs](https://blog.duolingo.com/core-tabs-redesign/):
   consistent heading placement, typography, spacing, and components make separate
-  features feel like one product. Applied through a shared shell, lilac surfaces,
-  a vivid purple accent with coral, cyan, and amber supporting colors, reading typography, and reusable cards across every route.
+  features feel like one product. Applied through a shared shell, neutral gray and white surfaces,
+  a blue accent, reading typography, and reusable cards across every route.
 - [Duolingo: the home-screen learning path](https://blog.duolingo.com/new-duolingo-home-screen-design/):
   provide a clear next step and incorporate review into the learning journey.
   The home page prioritizes continuing the next i+1 sentence, with direct routes
@@ -26,6 +26,14 @@ not outcomes that visual changes alone can promise.
   achievements are fabricated. Video cards expose familiarity and list words,
   with all detailed comparisons available in a disclosure. Empty home states
   offer usable next actions instead of terminal commands.
+
+## Selected palette
+
+The user's latest reference is [Mobbin's Apple palette](https://mobbin.com/colors/brand/apple):
+Science Blue `#0066CC`, Shark `#1D1D1F`, Athens Gray `#F5F5F7`, and White `#FFFFFF`.
+The hero, primary actions, and branding use the exact blue. Surfaces and reading
+use the neutral colors. Supporting neutral shades and a lighter blue preserve
+readability in dark mode; the earlier purple/coral palette has been replaced.
 
 ## Implementation
 
