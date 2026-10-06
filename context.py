@@ -55,6 +55,9 @@ class Application:
         # own: set by the web server's door (`web.limits.Allowance`). None is
         # the owner, and the owner is never limited.
         self.guest = None
+        # Installed by the web Door. CLI applications keep their normal
+        # lifetime; web readers share only immutable corpus inputs/indexes.
+        self.corpus_pool = None
 
     # --- storage ---------------------------------------------------------
 
@@ -336,12 +339,35 @@ class Application:
         # the reader had learned `die Angst`, so the word came back marked new
         # in a sentence they could read. Narrowed in SQL either way — the
         # panel must not materialise the corpus to show two hundred lines.
-        return self.apply_overrides(self.corpus_store.load(
-            *(builds or self.corpus_store.builds()),
-            teachable_only=teachable_only, holding=holding, text=text,
-            limit=limit,
-            video=video, resolve=resolve,
-        ), resolve)
+        def load():
+            return self.corpus_store.load(
+                *(builds or self.corpus_store.builds()),
+                teachable_only=teachable_only, holding=holding, text=text,
+                limit=limit, video=video, resolve=resolve,
+            )
+        if getattr(self, "corpus_pool", None) is None or holding or text or video or limit:
+            return self.apply_overrides(load(), resolve)
+        # Resolution depends on the list, not on what a reader knows.
+        # Corrections, hidden lines, removed videos and judge exclusions
+        # remain part of the view key: different decisions never share a view.
+        from corpus.shared import CorpusRows
+        names = tuple(sorted(builds or self.corpus_store.builds()))
+        key = (self.settings.own, self.settings.language, names,
+               self.corpus_store.vintage(), teachable_only, strict, list_only,
+               frozenset(self.goal_units) if strict or list_only else frozenset())
+        base = self.corpus_pool.get(('base', key), load)
+        hidden = frozenset(self.overrides.hidden())
+        corrected = self.overrides.corrected()
+        fixes = frozenset((text, frozenset(items.items())) for text, items in corrected.items())
+        banned = self.banned_videos()
+        doubts = frozenset((text, frozenset(units))
+                          for text, units in self.judged.doubted().items())
+        view_key = ('view', key, hidden, fixes, banned, doubts)
+        def view():
+            rows = self.apply_overrides(base, resolve,
+                                        snapshot=(hidden, corrected, banned, dict(doubts)))
+            return base if rows is base else CorpusRows(rows, base=base)
+        return self.corpus_pool.get(view_key, view)
 
     @cached_property
     def check_freshness(self):
@@ -520,7 +546,7 @@ class Application:
         # itself; everything else is asked whether the list has a name for it.
         return lambda unit: unit if unit in goals else aliases.of(unit)
 
-    def apply_overrides(self, sentences: list, resolve=None) -> list:
+    def apply_overrides(self, sentences: list, resolve=None, *, snapshot=None) -> list:
         """What the reader has said about particular sentences, applied.
 
         Public because the reading page needs it too: a deck stored with a
@@ -529,19 +555,18 @@ class Application:
         the overrides rather than anything to do with a corpus, so they can be
         applied to stored sentences on the way out.
         """
-        hidden = self.overrides.hidden()
-        corrected = self.overrides.corrected()
+        hidden, corrected, banned, doubted = (snapshot if snapshot is not None else
+            (self.overrides.hidden(), self.overrides.corrected(),
+             self.banned_videos(), self.judged.doubted()))
         # A removed channel is applied here too, and for the same reason: a
         # stored deck predates the decision as much as it predates a hidden
         # sentence, and every live load passes this way as well.
-        banned = self.banned_videos()
         # And the judge's no: a pattern whose letters the matcher found in
         # a sentence that says another word -- `gehört` read as `gehören`
         # -- leaves the sentence here, with the bare lemma the parser
         # produced beside it, so the pair stops counting as an occurrence
         # on every page rather than sorting last on one card. A hand
         # correction says more than the judge and is left as written.
-        doubted = self.judged.doubted()
         if not hidden and not corrected and not banned and not doubted:
             return sentences
         out = []

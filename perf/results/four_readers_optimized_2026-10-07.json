@@ -1,0 +1,2066 @@
+{
+  "staged": [
+    {
+      "event": "corpus",
+      "builds": [
+        [
+          "generated",
+          290
+        ],
+        [
+          "subtitle",
+          293837
+        ],
+        [
+          "transcript",
+          53134
+        ]
+      ],
+      "peak_rss_mb": 45,
+      "cpu_seconds": 0.129
+    },
+    {
+      "event": "begin",
+      "phase": "cold_reader_1",
+      "peak_rss_mb": 46,
+      "cpu_seconds": 0.16
+    },
+    {
+      "event": "phase",
+      "phase": "cold_reader_1",
+      "wall_seconds": 13.7,
+      "requests": [
+        {
+          "user": 1,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 13.7003,
+          "bytes": 62737,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1306,
+      "cpu_seconds": 11.303,
+      "physical_footprint_mb": 1693
+    },
+    {
+      "event": "begin",
+      "phase": "first_reels_reader_1",
+      "peak_rss_mb": 1306,
+      "cpu_seconds": 11.303
+    },
+    {
+      "event": "phase",
+      "phase": "first_reels_reader_1",
+      "wall_seconds": 1.07,
+      "requests": [
+        {
+          "user": 1,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 1.0695,
+          "bytes": 57233,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1306,
+      "cpu_seconds": 12.1,
+      "physical_footprint_mb": 1698
+    },
+    {
+      "event": "begin",
+      "phase": "cold_reader_2",
+      "peak_rss_mb": 1306,
+      "cpu_seconds": 12.101
+    },
+    {
+      "event": "phase",
+      "phase": "cold_reader_2",
+      "wall_seconds": 2.668,
+      "requests": [
+        {
+          "user": 2,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 2.6675,
+          "bytes": 62737,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1306,
+      "cpu_seconds": 14.063,
+      "physical_footprint_mb": 1767
+    },
+    {
+      "event": "begin",
+      "phase": "first_reels_reader_2",
+      "peak_rss_mb": 1306,
+      "cpu_seconds": 14.064
+    },
+    {
+      "event": "phase",
+      "phase": "first_reels_reader_2",
+      "wall_seconds": 1.429,
+      "requests": [
+        {
+          "user": 2,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 1.4286,
+          "bytes": 57233,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1306,
+      "cpu_seconds": 15.01,
+      "physical_footprint_mb": 1768
+    },
+    {
+      "event": "begin",
+      "phase": "cold_reader_3",
+      "peak_rss_mb": 1306,
+      "cpu_seconds": 15.01
+    },
+    {
+      "event": "phase",
+      "phase": "cold_reader_3",
+      "wall_seconds": 6.012,
+      "requests": [
+        {
+          "user": 3,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 6.0121,
+          "bytes": 62737,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1495,
+      "cpu_seconds": 19.733,
+      "physical_footprint_mb": 1852
+    },
+    {
+      "event": "begin",
+      "phase": "first_reels_reader_3",
+      "peak_rss_mb": 1495,
+      "cpu_seconds": 19.733
+    },
+    {
+      "event": "phase",
+      "phase": "first_reels_reader_3",
+      "wall_seconds": 1.259,
+      "requests": [
+        {
+          "user": 3,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 1.2593,
+          "bytes": 57233,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1495,
+      "cpu_seconds": 20.635,
+      "physical_footprint_mb": 1872
+    },
+    {
+      "event": "begin",
+      "phase": "cold_reader_4",
+      "peak_rss_mb": 1495,
+      "cpu_seconds": 20.635
+    },
+    {
+      "event": "phase",
+      "phase": "cold_reader_4",
+      "wall_seconds": 4.224,
+      "requests": [
+        {
+          "user": 4,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 4.2235,
+          "bytes": 62737,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1495,
+      "cpu_seconds": 23.599,
+      "physical_footprint_mb": 1963
+    },
+    {
+      "event": "begin",
+      "phase": "first_reels_reader_4",
+      "peak_rss_mb": 1495,
+      "cpu_seconds": 23.6
+    },
+    {
+      "event": "phase",
+      "phase": "first_reels_reader_4",
+      "wall_seconds": 1.917,
+      "requests": [
+        {
+          "user": 4,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 1.9174,
+          "bytes": 57233,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1495,
+      "cpu_seconds": 24.759,
+      "physical_footprint_mb": 1990
+    },
+    {
+      "event": "begin",
+      "phase": "warm_four_readers",
+      "peak_rss_mb": 1495,
+      "cpu_seconds": 24.76
+    },
+    {
+      "event": "phase",
+      "phase": "warm_four_readers",
+      "wall_seconds": 2.05,
+      "requests": [
+        {
+          "user": 1,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.4722,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.4751,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.4721,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.4587,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1803,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1703,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1724,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1649,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0231,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0309,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0298,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.023,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.4322,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.4259,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.4225,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.421,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0048,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0043,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0046,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0037,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0053,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0055,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0078,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0056,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1606,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1592,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1587,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1572,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0465,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0491,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0483,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.048,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.021,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.019,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0191,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0195,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.3172,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.3172,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.3161,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.3136,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0086,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0053,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0078,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0081,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0064,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0064,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0085,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0081,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1654,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1645,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1602,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1612,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0459,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.046,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0456,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0464,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0131,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0132,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0135,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0129,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1402,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1399,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1373,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1619,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0044,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.014,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0137,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0182,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.009,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0095,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0038,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0032,
+          "bytes": 15304,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1495,
+      "cpu_seconds": 26.358,
+      "physical_footprint_mb": 2015
+    },
+    {
+      "event": "begin",
+      "phase": "mark_and_reels",
+      "peak_rss_mb": 1495,
+      "cpu_seconds": 26.359
+    },
+    {
+      "event": "phase",
+      "phase": "mark_and_reels",
+      "results": [
+        {
+          "user": 1,
+          "ack_seconds": 0.0174,
+          "settled_seconds": 0.0655,
+          "reels": {
+            "user": 1,
+            "route": "/reels",
+            "source": "subtitle",
+            "status": 200,
+            "seconds": 0.0436,
+            "bytes": 57254,
+            "error": null
+          }
+        },
+        {
+          "user": 2,
+          "ack_seconds": 0.0158,
+          "settled_seconds": 0.0717,
+          "reels": {
+            "user": 2,
+            "route": "/reels",
+            "source": "subtitle",
+            "status": 200,
+            "seconds": 0.0428,
+            "bytes": 57254,
+            "error": null
+          }
+        },
+        {
+          "user": 3,
+          "ack_seconds": 0.0248,
+          "settled_seconds": 0.0733,
+          "reels": {
+            "user": 3,
+            "route": "/reels",
+            "source": "subtitle",
+            "status": 200,
+            "seconds": 0.0428,
+            "bytes": 57254,
+            "error": null
+          }
+        },
+        {
+          "user": 4,
+          "ack_seconds": 0.0144,
+          "settled_seconds": 0.0694,
+          "reels": {
+            "user": 4,
+            "route": "/reels",
+            "source": "subtitle",
+            "status": 200,
+            "seconds": 0.0438,
+            "bytes": 57254,
+            "error": null
+          }
+        }
+      ],
+      "peak_rss_mb": 1495,
+      "cpu_seconds": 26.61,
+      "physical_footprint_mb": 2015
+    },
+    {
+      "event": "begin",
+      "phase": "second_source_reader_1",
+      "peak_rss_mb": 1495,
+      "cpu_seconds": 26.61
+    },
+    {
+      "event": "phase",
+      "phase": "second_source_reader_1",
+      "wall_seconds": 0.065,
+      "requests": [
+        {
+          "user": 1,
+          "route": "/",
+          "source": "all",
+          "status": 200,
+          "seconds": 0.0651,
+          "bytes": 62902,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1495,
+      "cpu_seconds": 26.648,
+      "physical_footprint_mb": 2015
+    },
+    {
+      "event": "summary",
+      "mode": "staged",
+      "memory_metric": "physical_footprint",
+      "peak_memory_mb": 2071,
+      "exit_code": 0
+    }
+  ],
+  "cold_parallel": [
+    {
+      "event": "corpus",
+      "builds": [
+        [
+          "generated",
+          290
+        ],
+        [
+          "subtitle",
+          293837
+        ],
+        [
+          "transcript",
+          53134
+        ]
+      ],
+      "peak_rss_mb": 63,
+      "cpu_seconds": 0.206
+    },
+    {
+      "event": "begin",
+      "phase": "four_simultaneous_first_visits",
+      "peak_rss_mb": 63,
+      "cpu_seconds": 0.24
+    },
+    {
+      "event": "phase",
+      "phase": "four_simultaneous_first_visits",
+      "wall_seconds": 37.037,
+      "requests": [
+        {
+          "user": 1,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 37.0362,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 36.5592,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 36.3877,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 34.7317,
+          "bytes": 62737,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1439,
+      "cpu_seconds": 34.705,
+      "physical_footprint_mb": 2169
+    },
+    {
+      "event": "summary",
+      "mode": "cold-parallel",
+      "memory_metric": "physical_footprint",
+      "peak_memory_mb": 3375,
+      "exit_code": 0
+    }
+  ],
+  "initial_staged": [
+    {
+      "event": "corpus",
+      "builds": [
+        [
+          "generated",
+          290
+        ],
+        [
+          "subtitle",
+          293837
+        ],
+        [
+          "transcript",
+          53134
+        ]
+      ],
+      "peak_rss_mb": 42,
+      "cpu_seconds": 0.235
+    },
+    {
+      "event": "begin",
+      "phase": "cold_reader_1",
+      "peak_rss_mb": 42,
+      "cpu_seconds": 0.271
+    },
+    {
+      "event": "phase",
+      "phase": "cold_reader_1",
+      "wall_seconds": 18.255,
+      "requests": [
+        {
+          "user": 1,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 18.2549,
+          "bytes": 62737,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1076,
+      "cpu_seconds": 13.909,
+      "physical_footprint_mb": 1663
+    },
+    {
+      "event": "begin",
+      "phase": "first_reels_reader_1",
+      "peak_rss_mb": 1076,
+      "cpu_seconds": 13.909
+    },
+    {
+      "event": "phase",
+      "phase": "first_reels_reader_1",
+      "wall_seconds": 1.374,
+      "requests": [
+        {
+          "user": 1,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 1.3741,
+          "bytes": 57233,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1076,
+      "cpu_seconds": 14.873,
+      "physical_footprint_mb": 1671
+    },
+    {
+      "event": "begin",
+      "phase": "cold_reader_2",
+      "peak_rss_mb": 1076,
+      "cpu_seconds": 14.873
+    },
+    {
+      "event": "phase",
+      "phase": "cold_reader_2",
+      "wall_seconds": 3.19,
+      "requests": [
+        {
+          "user": 2,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 3.19,
+          "bytes": 62737,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1076,
+      "cpu_seconds": 17.233,
+      "physical_footprint_mb": 1745
+    },
+    {
+      "event": "begin",
+      "phase": "first_reels_reader_2",
+      "peak_rss_mb": 1076,
+      "cpu_seconds": 17.233
+    },
+    {
+      "event": "phase",
+      "phase": "first_reels_reader_2",
+      "wall_seconds": 1.406,
+      "requests": [
+        {
+          "user": 2,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 1.4062,
+          "bytes": 57233,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1076,
+      "cpu_seconds": 18.217,
+      "physical_footprint_mb": 1768
+    },
+    {
+      "event": "begin",
+      "phase": "cold_reader_3",
+      "peak_rss_mb": 1076,
+      "cpu_seconds": 18.218
+    },
+    {
+      "event": "phase",
+      "phase": "cold_reader_3",
+      "wall_seconds": 7.028,
+      "requests": [
+        {
+          "user": 3,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 7.0275,
+          "bytes": 62737,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1465,
+      "cpu_seconds": 23.414,
+      "physical_footprint_mb": 1846
+    },
+    {
+      "event": "begin",
+      "phase": "first_reels_reader_3",
+      "peak_rss_mb": 1465,
+      "cpu_seconds": 23.415
+    },
+    {
+      "event": "phase",
+      "phase": "first_reels_reader_3",
+      "wall_seconds": 1.188,
+      "requests": [
+        {
+          "user": 3,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 1.1882,
+          "bytes": 57233,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1465,
+      "cpu_seconds": 24.33,
+      "physical_footprint_mb": 1877
+    },
+    {
+      "event": "begin",
+      "phase": "cold_reader_4",
+      "peak_rss_mb": 1465,
+      "cpu_seconds": 24.33
+    },
+    {
+      "event": "phase",
+      "phase": "cold_reader_4",
+      "wall_seconds": 3.772,
+      "requests": [
+        {
+          "user": 4,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 3.7715,
+          "bytes": 62737,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1465,
+      "cpu_seconds": 27.124,
+      "physical_footprint_mb": 1963
+    },
+    {
+      "event": "begin",
+      "phase": "first_reels_reader_4",
+      "peak_rss_mb": 1465,
+      "cpu_seconds": 27.124
+    },
+    {
+      "event": "phase",
+      "phase": "first_reels_reader_4",
+      "wall_seconds": 1.325,
+      "requests": [
+        {
+          "user": 4,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 1.325,
+          "bytes": 57233,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1465,
+      "cpu_seconds": 28.115,
+      "physical_footprint_mb": 1997
+    },
+    {
+      "event": "begin",
+      "phase": "warm_four_readers",
+      "peak_rss_mb": 1465,
+      "cpu_seconds": 28.115
+    },
+    {
+      "event": "phase",
+      "phase": "warm_four_readers",
+      "wall_seconds": 1.281,
+      "requests": [
+        {
+          "user": 1,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1737,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1741,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1736,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1739,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.047,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0477,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0467,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0454,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0307,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0306,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0303,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0159,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.3447,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.333,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.3322,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.3305,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0031,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0041,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0037,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0038,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0045,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0042,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0041,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0045,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.109,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1074,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1064,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1055,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0342,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0394,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0381,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0354,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0229,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0247,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0228,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0248,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1983,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.194,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1932,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.2094,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0121,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0155,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0142,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0113,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0047,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.004,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0041,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0039,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0986,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0958,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.096,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0949,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.034,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0341,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0341,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0335,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.014,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.014,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0142,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0131,
+          "bytes": 45405,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1539,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1533,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1536,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1527,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0038,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0039,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0033,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0039,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0039,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.004,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.004,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0038,
+          "bytes": 15304,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1465,
+      "cpu_seconds": 29.316,
+      "physical_footprint_mb": 2017
+    },
+    {
+      "event": "begin",
+      "phase": "mark_and_reels",
+      "peak_rss_mb": 1465,
+      "cpu_seconds": 29.316
+    },
+    {
+      "event": "phase",
+      "phase": "mark_and_reels",
+      "results": [
+        {
+          "user": 1,
+          "ack_seconds": 0.0066,
+          "settled_seconds": 0.0391,
+          "reels": {
+            "user": 1,
+            "route": "/reels",
+            "source": "subtitle",
+            "status": 200,
+            "seconds": 0.0407,
+            "bytes": 57254,
+            "error": null
+          }
+        },
+        {
+          "user": 2,
+          "ack_seconds": 0.0092,
+          "settled_seconds": 0.0404,
+          "reels": {
+            "user": 2,
+            "route": "/reels",
+            "source": "subtitle",
+            "status": 200,
+            "seconds": 0.0366,
+            "bytes": 57254,
+            "error": null
+          }
+        },
+        {
+          "user": 3,
+          "ack_seconds": 0.0075,
+          "settled_seconds": 0.0407,
+          "reels": {
+            "user": 3,
+            "route": "/reels",
+            "source": "subtitle",
+            "status": 200,
+            "seconds": 0.0399,
+            "bytes": 57254,
+            "error": null
+          }
+        },
+        {
+          "user": 4,
+          "ack_seconds": 0.018,
+          "settled_seconds": 0.0347,
+          "reels": {
+            "user": 4,
+            "route": "/reels",
+            "source": "subtitle",
+            "status": 200,
+            "seconds": 0.0586,
+            "bytes": 57254,
+            "error": null
+          }
+        }
+      ],
+      "peak_rss_mb": 1465,
+      "cpu_seconds": 29.529,
+      "physical_footprint_mb": 2017
+    },
+    {
+      "event": "begin",
+      "phase": "second_source_reader_1",
+      "peak_rss_mb": 1465,
+      "cpu_seconds": 29.529
+    },
+    {
+      "event": "phase",
+      "phase": "second_source_reader_1",
+      "wall_seconds": 0.054,
+      "requests": [
+        {
+          "user": 1,
+          "route": "/",
+          "source": "all",
+          "status": 200,
+          "seconds": 0.0542,
+          "bytes": 62902,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1465,
+      "cpu_seconds": 29.565,
+      "physical_footprint_mb": 2017
+    },
+    {
+      "event": "summary",
+      "mode": "staged",
+      "memory_metric": "physical_footprint",
+      "peak_memory_mb": 2044,
+      "exit_code": 0
+    }
+  ],
+  "notes": [
+    "Production corpus connections were read-only; all marks used disposable PostgreSQL schemas.",
+    "Initial staged preceded vector-source cache invalidation; final staged and cold_parallel use the final implementation.",
+    "macOS physical footprint includes compressed memory; PostgreSQL and operating system are excluded.",
+    "Baseline sampling began at the fourth reader; optimized sampling spans the child lifetime.",
+    "Four copies of one reader state; HTTP adapter bypasses auth and browser JavaScript.",
+    "Corpus counts and cold-home HTML sizes match baseline; no external LLM calls."
+  ]
+}

@@ -1215,9 +1215,26 @@ class CatalogueSearchTest(unittest.TestCase):
                          "uP_ernGddlA")
 
     def test_the_catalogue_links_to_the_video_page(self) -> None:
-        src = (ROOT / "web" / "handlers.py").read_text(encoding="utf-8")
-        self.assertIn("<tr><td><a href='/video?id=", src,
-                      "the catalogue must open a video on its own page")
+        from pathlib import Path
+        from types import SimpleNamespace
+        from urllib.parse import parse_qs, urlsplit
+        from tests.test_design import Links
+        viewer = Viewer.__new__(Viewer)
+        viewer.app = SimpleNamespace(settings=SimpleNamespace(goal_words=Path("travel.txt")))
+        viewer.source = lambda query: "subtitle"
+        viewer.ordering = lambda query: "watch"
+        viewer._plan_for = lambda *args: {}
+        viewer._watchable = lambda *a, **k: [
+            dict(video="abc12345678", title="A video", comprehension=.8,
+                 level=1., watch=.7, teaches=12, lines=100, minutes=8, **{"i+1": 30})]
+        viewer._wrote_it = viewer._order_switch = viewer._add_video_form = lambda *a: ""
+        viewer._page = lambda title, body, *args: body
+        links = [urlsplit(link["href"]) for link in Links(viewer.subtitles({})).links]
+        videos = [link for link in links if link.path == "/video"]
+        self.assertEqual(len(videos), 2)  # visible card and comparison row
+        for link in videos:
+            self.assertEqual(parse_qs(link.query),
+                             {"id": ["abc12345678"], "src": ["subtitle"], "list": ["travel"]})
 
 
 class ChannelVerdictTest(unittest.TestCase):

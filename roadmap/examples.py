@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
+from types import MappingProxyType
 
 from corpus.quality import score as quality, variety
 from corpus.sentence import Sentence
@@ -261,6 +262,11 @@ def read_vectors_from(state) -> None:
         _VECTORS = None
 
 
+def vector_sources() -> frozenset:
+    """Example diversity must be recomputed when another reader adds vectors."""
+    return frozenset(_VECTOR_STATES)
+
+
 def forget_vectors(state) -> None:
     """Stop counting `state`'s vectors in -- a schema about to be dropped."""
     global _VECTORS
@@ -419,10 +425,15 @@ class ExampleIndex:
     """Every sentence containing a given unit, ranked for usefulness."""
 
     def __init__(self, sentences: list[Sentence]) -> None:
-        self._by_unit: dict[Unit, list[Sentence]] = defaultdict(list)
-        for sentence in sentences:
-            for unit in sentence.units:
-                self._by_unit[unit].append(sentence)
+        from corpus.shared import CorpusRows
+        def build():
+            found = defaultdict(list)
+            for sentence in sentences:
+                for unit in sentence.units:
+                    found[unit].append(sentence)
+            return MappingProxyType({unit: tuple(rows) for unit, rows in found.items()})
+        self._by_unit = (sentences.memo('examples', build)
+                         if isinstance(sentences, CorpusRows) else build())
 
     def count(self, unit: Unit) -> int:
         return len(self._by_unit.get(unit, ()))

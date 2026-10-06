@@ -115,6 +115,7 @@ class Viewers:
                     goal_words=self._default.settings.data_dir / f"{wanted}.txt",
                     goal_entries=store.entries(wanted))
                 made = Application(settings)
+                made.corpus_pool = self._default.corpus_pool
                 # The same reader, so the same allowance: a list is not a
                 # way round the model's ration.
                 made.guest = self._default.guest
@@ -157,6 +158,9 @@ class Door:
             google = GoogleSignIn.from_env()
         self.google = google
         self._default = app
+        from corpus.shared import CorpusPool
+        self._corpus_pool = CorpusPool()
+        app.corpus_pool = self._corpus_pool
         # Applications already made -- by `serve`, which warms each reader
         # before opening the socket -- so the first page does not make them
         # again.
@@ -164,6 +168,7 @@ class Door:
         # Everyone but the installation's own reader is a guest: rationed
         # (see `web.limits`), and kept from what reaches past their schema.
         for name, made in self._apps.items():
+            made.corpus_pool = self._corpus_pool
             if made is not app:
                 self._make_guest(made)
         self._viewers: dict[str, Viewers] = {}
@@ -240,6 +245,7 @@ class Door:
             from context import Application              # noqa: PLC0415
             self._apps[reader.name] = self._make_guest(
                 Application(Settings.for_reader(reader)))
+            self._apps[reader.name].corpus_pool = self._corpus_pool
         return self._apps[reader.name]
 
     @staticmethod

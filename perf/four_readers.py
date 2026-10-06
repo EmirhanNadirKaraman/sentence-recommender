@@ -61,6 +61,7 @@ def worker(args):
     from config import DatabaseConfig, Settings
     from context import Application
     from web.server import Viewers
+    from corpus.shared import CorpusPool
 
     settings = Settings()
     original = DatabaseConfig.dsn_kwargs
@@ -83,6 +84,7 @@ def worker(args):
             emit({'event': 'corpus', 'builds': cur.fetchall()})
 
     viewers = []
+    corpus_pool = CorpusPool()
     for n in range(1, 5):
         home = Path(args.scratch) / f'files{n}'
         shutil.copytree(settings.data_dir, home,
@@ -96,7 +98,9 @@ def worker(args):
                        function_words=home / 'function_words.txt'
                        if (home / 'function_words.txt').exists()
                        else settings.function_words)
-        viewers.append(Viewers(Application(made), keep=1))
+        app = Application(made)
+        app.corpus_pool = corpus_pool
+        viewers.append(Viewers(app, keep=1))
 
     routes = {'/': 'next_up', '/reels': 'reels', '/subtitles': 'subtitles',
               '/review': 'review', '/words': 'word_search', '/lists': 'word_lists'}

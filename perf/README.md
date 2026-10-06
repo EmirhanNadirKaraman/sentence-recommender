@@ -3,7 +3,8 @@
 The four-reader hosting probe added on 2026-10-07 is documented in
 `FOUR_READERS.md`. `four_readers.py` reads the production corpus with a
 read-only guard, but writes to a disposable PostgreSQL copy of reader state.
-It never changes real accounts. It is separate from the historical audit below.
+It never changes real accounts.
+The implemented improvements and before/after results are in OPTIMIZATIONS.md. It is separate from the historical audit below.
 
 Read-only. None of these write to Postgres or `state.sqlite3`; the roadmap
 scripts run the walk in-process and never call `RoadmapStore.save`. Nothing

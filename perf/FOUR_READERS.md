@@ -1,5 +1,8 @@
 # Dört kullanıcı için kapasite ve optimizasyon incelemesi
 
+Bu rapor optimizasyon öncesi sürümü kaydeder. Uygulanan değişiklikler ve yeni
+ölçümler [OPTIMIZATIONS.md](OPTIMIZATIONS.md) dosyasındadır.
+
 Ölçüm: 7 Ekim 2026. Mevcut tasarım branch'i üzerinde, macOS/ARM64 geliştirici
 bilgisayarında çalıştırıldı. **Öncelik soğuk başlangıç maliyeti ve kullanıcı
 başına çoğalan bellektir. Mevcut sürüm için 8 GB VPS rahat kapasite olarak

@@ -18,7 +18,7 @@ from __future__ import annotations
 import csv
 import io
 from collections import Counter, defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 import json
 import re
@@ -66,7 +66,7 @@ from roadmap import (
 )
 from roadmap.reach import reachable
 from roadmap.refresh import read_label
-from roadmap.examples import DECK_SIZE, teaching_sentence
+from roadmap.examples import DECK_SIZE, teaching_sentence, vector_sources
 from roadmap.step import RoadmapStep
 from roadmap.videos import VideoRoadmapStore
 from roadmap.store import ALL, RoadmapStore, current_stamp
@@ -75,6 +75,7 @@ from web import watch as video
 from web.render import ACTIVE, ANKI_REMIND, layout, sentence, stamped, video_tile
 
 PAGE_SIZE = 40
+CATALOGUE_PAGE = 24
 # Sentences kept per stranded word, for the arrows on its row. Enough to
 # find a blocker you already know, few enough not to weigh the page down.
 EXAMPLES = 6
@@ -111,6 +112,28 @@ class Scope:
     builder: RoadmapBuilder
     examples: ExampleIndex
     priority: UnitPriority
+    _reading_lock: Lock = field(default_factory=Lock, repr=False)
+    _reading_key: tuple | None = field(default=None, repr=False)
+    _reading_value: tuple | None = field(default=None, repr=False)
+
+    def reading(self, skip, kinds, known, verdicts, judged):
+        # One retained proposal, not a cache entry for every learned word.
+        # Each dependency is a value snapshot; learn/undo/pass/verdict changes
+        # cannot serve a proposal computed for the previous state.
+        with self._reading_lock:
+            key = (self.index.known, known, skip, kinds,
+                   frozenset(verdicts.items()), judged, vector_sources())
+            if key != self._reading_key:
+                step = self.builder.peek(exclude=skip, kinds=kinds)
+                deck = (self.examples.examples(step.unit, known, limit=DECK_SIZE,
+                                               verdicts=verdicts, judged=judged)
+                        if step is not None else [])
+                self._reading_value = ((step, deck, self.index.readable,
+                                        self.examples.count(step.unit), len(self.sentences))
+                                       if step is not None else
+                                       (None, [], self.index.readable, 0, len(self.sentences)))
+                self._reading_key = key
+            return self._reading_value
 
 
 # The orders a list of videos can be put in. One table, because the reel and
@@ -621,6 +644,11 @@ class Viewer:
             # sixteen seconds, and this viewer already holds the answer.
             index = CorpusIndex(sentences, KnownSet(self.known),
                                 self.app.compounds)
+            # Prepare the immutable reverse video index during the cold
+            # pass, once for all matching readers, rather than on their tap.
+            from corpus.shared import CorpusRows
+            if isinstance(sentences, CorpusRows):
+                sentences.videos()
             priority = self.priority()
             return Scope(
                 sentences=sentences,
@@ -1164,20 +1192,9 @@ class Viewer:
         skip = set(self.app.snoozes.asleep())
         if only == "word":
             skip |= {u for u in scope.index.known_units_of_kind(PATTERN)}
-        step = scope.builder.peek(
-            exclude=frozenset(skip),
-            kinds=frozenset({LEMMA}) if only == "word" else frozenset(),
-        )
-        if step is None:
-            return None, [], scope.index.readable, 0, len(scope.sentences)
-        return (step,
-                scope.examples.examples(step.unit, self.known,
-                                        limit=DECK_SIZE,
-                                        verdicts=self.app.verdicts(),
-                                        judged=self.app.judged),
-                scope.index.readable,
-                scope.examples.count(step.unit),
-                len(scope.sentences))
+        return scope.reading(frozenset(skip),
+                             frozenset({LEMMA}) if only == "word" else frozenset(),
+                             self.known, self.app.verdicts(), self.app.judged)
 
     @staticmethod
     def _audio_toggle() -> str:
@@ -2026,7 +2043,8 @@ class Viewer:
                 self._known.learn(unit)
             for scope in self._scopes.values():
                 if unit not in scope.index.known:
-                    scope.index.learn(unit)
+                    with scope._reading_lock:
+                        scope.index.learn(unit)
             # Last, and the order is the whole point: `_rescore` reads the
             # known set, and reading it before `learn` scored every video
             # against a vocabulary that did not yet contain the word just
@@ -5129,8 +5147,12 @@ class Viewer:
         learned cannot change the score of a video that never says it.
         """
         if source not in self._unit_videos:
+            groups = self._grouped(source)
+            # A shared corpus grouping installs both indexes in one pass.
+            if source in self._unit_videos:
+                return self._unit_videos[source]
             index: dict = defaultdict(set)
-            for video_id, sentences in self._grouped(source).items():
+            for video_id, sentences in groups.items():
                 for sentence in sentences:
                     for unit in sentence.units:
                         index[unit].add(video_id)
@@ -5435,6 +5457,13 @@ class Viewer:
         the evidence that panel reasons from.
         """
         if source not in self._videos:
+            from corpus.shared import CorpusRows
+            rows = self.corpus_for(source, list_only=False)
+            if isinstance(rows, CorpusRows):
+                groups, units = rows.videos()
+                self._videos[source] = groups
+                self._unit_videos[source] = units
+                return groups
             groups: dict[str, list] = defaultdict(list)
             # `corpus_for(source, False)` is this exact call — `strict=True`
             # over the same builds — and the page that sent the reader here
@@ -5444,7 +5473,7 @@ class Viewer:
             # already held them, sharing not one object. The grouping is
             # still kept, because grouping is not free either; it is the rows
             # underneath it that are now shared.
-            for sentence in self.corpus_for(source, list_only=False):
+            for sentence in rows:
                 if sentence.timing:
                     groups[sentence.timing.video_id].append(sentence)
             self._videos[source] = dict(groups)
@@ -5600,21 +5629,34 @@ class Viewer:
             found = (f"<p class='tally'><b>{len(ranked):,}</b> "
                      f"{'match' if len(ranked) != 1 else 'match'} for "
                      f"&ldquo;{escape(needle)}&rdquo; · "
-                     f"<a class='link' href='/subtitles?src={quote(source)}'>"
+                     f"<a class='link' href='{escape(self._link('/subtitles', source, sort=order), quote=True)}'>"
                      f"show all</a></p>"
                      if ranked else
                      f"<p class='empty'>Nothing in the catalogue matches "
                      f"&ldquo;{escape(needle)}&rdquo;. Paste a YouTube link "
                      f"to add it below, or "
-                     f"<a class='link' href='/subtitles?src={quote(source)}'>"
+                     f"<a class='link' href='{escape(self._link('/subtitles', source, sort=order), quote=True)}'>"
                      f"show all</a>.</p>")
+        pages = max(1, (len(ranked) + CATALOGUE_PAGE - 1) // CATALOGUE_PAGE)
+        try:
+            page = min(max(int(query.get('page') or 1), 1), pages)
+        except ValueError:
+            page = 1
+        visible = ranked[(page - 1) * CATALOGUE_PAGE:page * CATALOGUE_PAGE]
+        def page_link(number, title):
+            url = self._link('/subtitles', source, page=number, sort=order, q=needle)
+            return f"<a href='{escape(url, quote=True)}'>{title}</a>"
+        pager = ("<nav class='pager' aria-label='Video catalogue pages'>"
+                 + (page_link(page - 1, 'Previous') if page > 1 else '')
+                 + f"<span class='quiet'>Page {page} of {pages}</span>"
+                 + (page_link(page + 1, 'Next') if page < pages else '') + '</nav>'
+                 if pages > 1 else '')
         rows = "".join(
             # To `/video` and not into the reel: the catalogue lists videos
             # the reel's floor refuses, and sending those to `/reels?video=`
             # opened whatever was first instead. One destination that works
             # for every row, which links on into the reel where there is one.
-            f"<tr><td><a href='/video?id={quote(r['video'], safe='')}"
-            f"&src={quote(source)}'>"
+            f"<tr><td><a href='{escape(self._link('/video', source, id=r['video']), quote=True)}'>"
             f"{escape((r['title'] or r['video'])[:58])}</a>"
             f"{self._wrote_it(r['video'])}</td>"
             f"<td class='n'>{r['comprehension']:.0%}</td>"
@@ -5626,7 +5668,7 @@ class Viewer:
             f"<td class='n'>"
             + (f"{r['minutes']:.0f} min" if r["minutes"] is not None else "—")
             + "</td></tr>"
-            for r in ranked
+            for r in visible
         )
         table = (f"<table class='rows'><tr><th>video</th>"
                  f"<th class='n'>words</th><th class='n'>level</th>"
@@ -5637,7 +5679,7 @@ class Viewer:
                  else "<p class='empty'>No aligned subtitles yet.</p>")
         cards = "".join(video_tile(
             {**r, "level_label": label(r["level"]) if r.get("level") is not None else ""},
-            self._link("/video", source, id=r["video"])) for r in ranked[:24])
+            self._link("/video", source, id=r["video"])) for r in visible)
         picker = self._order_switch("/subtitles", source, order)
         body = ("<h1>Find your next discovery.</h1>"
                 "<p class='note'>Real voices, at your level. Find something "
@@ -5655,7 +5697,8 @@ class Viewer:
                 + self._add_video_form(query)
                 + (f"<h2>{len(ranked)} in the catalogue</h2>" if not needle else "")
                 + (f"<div class='video-grid'>{cards}</div>" if cards else "")
-                + ("<details class='catalogue-details'><summary>Compare all videos & learning scores</summary>"
+                + pager
+                + ("<details class='catalogue-details'><summary>Compare learning scores on this page</summary>"
                    "<p class='note'>Words: the share you know. Level: the judged language level. "
                    "Watch: ease of following. i+1/min: sentences with one new word per minute. "
                    "Teaches: words from your list. In-order plans build on earlier videos.</p>"

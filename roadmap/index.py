@@ -19,11 +19,13 @@ subtitle corpus alone holds 200,193 rows, 115,462 of them teachable.)
 from __future__ import annotations
 
 from collections import defaultdict
+from types import MappingProxyType
 
 from corpus.sentence import Sentence
 from roadmap.known_set import KnownSet
 from vocab.compounds import Compounds
 from vocab.entry import Unit
+from corpus.shared import CorpusRows
 
 
 class CorpusIndex:
@@ -45,20 +47,26 @@ class CorpusIndex:
         # `Unit`, because everything outside this file does. Only
         # `RoadmapBuilder`, which is the thing doing it millions of times,
         # reaches for the `_ids` variants.
-        self._id: dict[Unit, int] = {}
-        self._unit: list[Unit] = []
-        self._by_unit: dict[int, set[int]] = defaultdict(set)
-        # One frozenset of ids per sentence, built once. This is what makes
-        # the difference in `_register` an integer operation rather than a
-        # conversion pretending to be one.
-        self._sentence_units: list[frozenset[int]] = []
-        for position, sentence in enumerate(sentences):
-            here = set()
-            for unit in sentence.units:
-                identifier = self._intern(unit)
-                here.add(identifier)
-                self._by_unit[identifier].add(position)
-            self._sentence_units.append(frozenset(here))
+        def topology():
+            ids, units, containing, rows = {}, [], defaultdict(set), []
+            for position, sentence in enumerate(sentences):
+                here = set()
+                for unit in sentence.units:
+                    identifier = ids.get(unit)
+                    if identifier is None:
+                        identifier = ids[unit] = len(units)
+                        units.append(unit)
+                    here.add(identifier)
+                    containing[identifier].add(position)
+                rows.append(frozenset(here))
+            return (ids, tuple(units), MappingProxyType({k: frozenset(v) for k, v in containing.items()}),
+                    tuple(rows))
+        static = (sentences.memo('topology', topology)
+                  if isinstance(sentences, CorpusRows) else topology())
+        # _intern may add known units absent from this corpus. Those small
+        # dictionaries are private; the big occurrence maps never mutate.
+        self._id, self._unit = dict(static[0]), list(static[1])
+        self._by_unit, self._sentence_units = static[2], static[3]
 
         # A snapshot, not the caller's object. The index learns as it walks,
         # and writing that back would silently redefine what the caller thinks
@@ -256,7 +264,7 @@ class CorpusIndex:
         """`pairs`, by number."""
         return self._pending
 
-    def containing(self, unit: Unit) -> set[int]:
+    def containing(self, unit: Unit) -> frozenset[int]:
         """Every sentence with `unit` in it, readable or not.
 
         `candidates` gives only the sentences where `unit` is the sole
@@ -268,7 +276,7 @@ class CorpusIndex:
         ones `candidates` hands back. `get` rather than indexing, so asking
         about an absent unit does not mint an entry for it.
         """
-        return self._by_unit.get(self._id.get(unit, -1), set())
+        return self._by_unit.get(self._id.get(unit, -1), frozenset())
 
     def unlocks(self, unit: Unit) -> int:
         """Sentences that would drop from two unknowns to one — the lookahead.
