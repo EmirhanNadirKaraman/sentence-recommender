@@ -64,7 +64,7 @@ h2 { font: 400 15px/1.3 var(--sans); color: var(--ink-2);
 
 /* The one unknown thing: marked when shown, ruled when withheld. */
 .target { color: var(--target); text-decoration: underline;
-  text-decoration-thickness: 2px; text-underline-offset: 5px;
+  text-decoration-thickness: 1px; text-underline-offset: .16em;
   text-decoration-color: var(--target); }
 .blank { display: inline-block; min-width: 7ch;
   border-bottom: 2px solid var(--target); }
@@ -545,7 +545,9 @@ form.mine .actions { margin-top: 0; }
 #reading-top .en { margin: 0 0 6px; }
 
 /* A word button that is the new word keeps the mark. */
-button.w.target { color: var(--target); border-bottom: 1px solid var(--target); }
+button.w.target, button.w.target:hover { color: var(--target); border-bottom-color: transparent;
+  text-decoration: underline; text-decoration-thickness: 1px;
+  text-underline-offset: .16em; text-decoration-skip-ink: auto; }
 
 /* Colours (Settings): with them on, a word you do not know yet is amber,
    wherever words are drawn -- captions, transcripts, the sentences on the
@@ -643,18 +645,11 @@ button.w.target { color: var(--target); border-bottom: 1px solid var(--target); 
 .taught table { margin-top: .4rem; }
 .taught .tag { margin-left: .5rem; }
 
-/* i+1: the sentence you can read but for one word. The whole app exists to
-   find these and on the page they looked like every other line, so they get
-   their own background wherever a sentence is drawn — the study card, the
-   word page, the caption under the picture, the transcript read along with.
-
-   Where the sentence has no padding of its own the tint is grown sideways by
-   a shadow rather than by padding, so learning a word and turning a line i+1
-   never moves anything on the page. */
-.de.i1, .en.i1, .cue.i1 { background: var(--i1); }
-.de.i1 { box-shadow: -.45rem 0 0 var(--i1), .45rem 0 0 var(--i1); }
-.stage .de.i1, .stage .en.i1 { box-shadow: none; }
-.cue.i1.on { background: var(--i1-on); }
+/* i+1 is identified by its badge and the target word, rather than separate
+   painted strips behind the sentence and translation. Transcript rows retain
+   their small leading marker and normal active-row treatment. */
+.de.i1, .en.i1 { background: transparent; box-shadow: none; }
+.cue.i1.on { background: var(--accent-soft); }
 
 /* The transcript's own left bar. `.cue.now` marks the line being spoken with
    the same inset trick, and it is repeated after this one so it still wins:
@@ -866,7 +861,6 @@ progress::-moz-progress-bar { background: var(--target); border-radius: 999px; }
 .de.lead { font-size: 32px; line-height: 1.5; }
 .en { font-size: 14px; margin-top: 10px; }
 .deck { padding: 18px 6px; }
-.de.i1 { border-radius: 8px; }
 .level, .step, .tag { border-radius: 6px; padding: 3px 6px; }
 .player { border-radius: 15px; background: #1d1d1f; border: 0; }
 .controls { gap: 7px; padding: 12px 0 0; }
@@ -1087,3 +1081,15 @@ button.go, a.go, .quizcard .actions .yes, .login button, .brand-mark,
   background: var(--apple-blue); color: var(--apple-white); border-color: var(--apple-blue);
 }
 @media (max-width: 480px) { .welcome::after { color: var(--apple-white); opacity: .2; } }
+
+/* Sentence metadata stays secondary to the sentence itself. */
+.de .step { display: inline-block; border: 0; border-radius: 999px;
+  background: var(--accent-soft); padding: 5px 9px; margin-left: 10px;
+  font: 600 11px/1 var(--sans); vertical-align: middle; letter-spacing: .02em; }
+.de .level { display: inline-block; padding: 4px 7px; margin-left: 7px;
+  font: 500 11px/1 var(--sans); vertical-align: middle; }
+.de .star { min-height: 28px; padding: 4px 8px; margin-left: 4px;
+  border: 0; border-radius: 8px; background: transparent; color: var(--ink-2);
+  font: 400 16px/1 var(--sans); vertical-align: middle; }
+.de .star:hover { background: var(--accent-soft); color: var(--target); }
+.de .star.on { color: var(--target); }

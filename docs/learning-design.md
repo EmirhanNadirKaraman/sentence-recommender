@@ -45,6 +45,9 @@ readability in dark mode; the earlier purple/coral palette has been replaced.
   keeps the selected word list and matches titles or YouTube URLs as before.
 - Small screens use a bottom bar with a scrollable two-column section picker.
   Escape and clicking outside dismiss it; it remains usable without scripting.
+- i+1 sentences use an understated pill and a single underline on the target
+  word. Sentence and translation sit directly on the card surface; transcript
+  rows keep their leading marker without separate full-width color bands.
 - Native progress, labeled navigation, current-page markers, skip-to-content,
   keyboard focus indicators, dark mode, reduced motion, safe-area insets, and
   zoom support remain part of the design.
