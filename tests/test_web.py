@@ -2501,9 +2501,13 @@ class AnkiReminderTest(unittest.TestCase):
 
     def test_the_count_sits_on_the_anki_link_and_nowhere_else(self) -> None:
         html = render.layout("T", "<p>x</p>", anki_new=7)
-        self.assertEqual(html.count("badge"), 1)
-        anki = [a for a in html.split("<a ") if 'href="/anki' in a][0]
-        self.assertIn("badge", anki)
+        # The desktop rail and mobile More menu each show the same queue.
+        anki = [a.split("</a>", 1)[0] for a in html.split("<a ") if 'href="/anki' in a]
+        self.assertEqual(len(anki), 2)
+        self.assertEqual(html.count("badge"), len(anki))
+        for link in anki:
+            self.assertIn("badge", link)
+            self.assertIn(">7</span>", link)
 
     def test_a_word_is_waiting_until_it_has_been_exported(self) -> None:
         from corpus.overrides import SentenceOverrides

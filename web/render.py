@@ -1,23 +1,7 @@
-"""The look of the local viewer.
+"""Shared learning workspace: navigation, page identity, and reading scaffolding.
 
-The palette and structure come from a German school exercise book: cool
-squared paper, königsblau fountain-pen ink for the text, and the red margin
-rule down the left. That last one is load-bearing rather than decorative — it
-separates the rail carrying step numbers from the reading column, which is
-exactly what a margin is for. Red also means one thing here, the same thing it
-means on returned schoolwork: a correction.
-
-Typographic register carries the pedagogy: German in a reading face, the
-interface and the English translations in a plainer one. The German is the
-material; everything else is scaffolding.
-
-Both used to be webfonts — Literata and Atkinson Hyperlegible. They are asked
-of the device now. A phone reaching this over wifi with no route to the wider
-internet spent the whole font timeout showing nothing, and a render-blocking
-request to a third party is a poor trade for a face the reader has a close
-match to already: Charter ships on Apple platforms and holds the same register.
-Self-hosting the originals through `/static/` is the way back if the
-difference is missed.
+System fonts and local SVGs keep the first paint independent of third-party
+assets. Every route uses the same shell, including account and empty states.
 """
 from __future__ import annotations
 
@@ -48,14 +32,71 @@ def stamped(name: str) -> str:
     digest = hashlib.sha256((STATIC / name).read_bytes()).hexdigest()[:12]
     return f"/static/{name}?v={digest}"
 
-NAV = (("/", "Next"), ("/reels", "Reels"), ("/review", "Review"), ("/hear", "Hearing"), ("/anki", "Anki"),
-       ("/mine", "Mine"),
-       ("/starred", "Starred"),
-       ("/roadmap", "Roadmap"), ("/words", "Words"),
-       ("/quiz", "Quiz"), ("/blocked", "Blocked"), ("/lists", "Lists"),
-       ("/frontier", "Frontier"), ("/subtitles", "Videos"),
-       ("/plan", "Plan"), ("/channels", "Channels"),
+NAV = (("/", "Learn"), ("/reels", "Reels"), ("/review", "Review"), ("/hear", "Listening"),
+       ("/anki", "Anki cards"), ("/mine", "Writing"), ("/starred", "Saved sentences"),
+       ("/roadmap", "Learning path"), ("/words", "Dictionary"), ("/quiz", "Vocabulary check"),
+       ("/blocked", "Learning gaps"), ("/lists", "Word lists"), ("/frontier", "Next milestones"),
+       ("/subtitles", "Video library"), ("/plan", "Watch plan"), ("/channels", "Channels"),
        ("/settings", "Settings"))
+
+NAV_GROUPS = (
+    ("YOUR PRACTICE", ("/", "/review", "/hear", "/mine", "/quiz")),
+    ("EXPLORE", ("/reels", "/subtitles", "/channels")),
+    ("YOUR COLLECTION", ("/starred", "/words", "/lists", "/anki")),
+    ("YOUR JOURNEY", ("/roadmap", "/plan", "/frontier", "/blocked", "/settings")),
+)
+
+ICON_PATHS = {
+    "/": "M4 5h6a2 2 0 0 1 2 2v13a4 4 0 0 0-4-2H4z M20 5h-6a2 2 0 0 0-2 2v13a4 4 0 0 1 4-2h4z",
+    "/review": "M4 10a8 8 0 1 1 2 8 M4 4v6h6 M12 8v5l3 2",
+    "/hear": "M4 14v-3a8 8 0 0 1 16 0v3 M4 12h3v8H4z M17 12h3v8h-3z",
+    "/mine": "m4 16 11-11 4 4-11 11-5 1z M13 7l4 4",
+    "/quiz": "M9 5h10v16H5V5h4 M9 3h6v4H9z M8 13l2 2 5-5",
+    "/reels": "M5 3h14v18H5z m5 5 5 4-5 4z",
+    "/subtitles": "M3 5h18v14H3z m7 4 5 3-5 3z",
+    "/channels": "M8 4h8 M5 8h14v12H5z m5 3 5 3-5 3z",
+    "/starred": "m12 3 3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z",
+    "/words": "M4 4h15v16H4z M8 8h7 M8 12h5 M19 4v16h2",
+    "/lists": "M8 6h12 M8 12h12 M8 18h12 M4 6h.01 M4 12h.01 M4 18h.01",
+    "/anki": "M4 7h13v14H4z M8 3h13v14 M8 12h5 M8 16h3",
+    "/roadmap": "M6 4a2 2 0 1 0 0 .01 M18 20a2 2 0 1 0 0 .01 M6 8v4h12v4",
+    "/plan": "M5 4h14v17H5z M8 9h8 M8 13h8 M8 17h4",
+    "/frontier": "M4 20V4 M4 4h14l-3 4 3 4H4",
+    "/blocked": "M4 20h16 M7 20V13h4v7 M13 20V6h4v14",
+    "/settings": "M4 7h16 M4 17h16 M8 4v6 M16 14v6",
+}
+
+
+def icon(path: str) -> str:
+    return ("<svg class='nav-icon' viewBox='0 0 24 24' fill='none' "
+            "stroke='currentColor' stroke-width='1.7' stroke-linecap='round' "
+            "stroke-linejoin='round' aria-hidden='true'>"
+            f"<path d='{ICON_PATHS.get(path, ICON_PATHS['/'])}'/></svg>")
+
+
+def welcome(suffix: str) -> str:
+    """A clear next action, plus familiar alternatives, without invented stats."""
+    return (
+        "<section class='welcome' aria-labelledby='welcome-title'>"
+        "<div class='welcome-copy'><span class='eyebrow'>ONE NEW WORD. A WHOLE NEW WORLD.</span>"
+        "<h1 id='welcome-title'>Make yourself<br>at home in a language.</h1>"
+        "<p>Real voices. Useful sentences. One small discovery at a time.</p>"
+        "<a class='go' href='#reading-top'>Continue learning</a>"
+        "<span class='welcome-foot'>Go at your own pace. Every word counts.</span></div>"
+        "<div class='word-garden' aria-hidden='true'>"
+        "<span class='garden-orbit'></span><span class='garden-spark'>✦</span>"
+        "<span class='garden-card garden-back'>A little more,<small>every day.</small></span>"
+        "<span class='garden-card garden-front'>i + <b>1</b><small>Your next discovery</small></span>"
+        "<span class='garden-dot'></span></div></section>"
+        "<section class='practice-paths' aria-label='Choose your practice'>"
+        f"<a href='/review{suffix}' class='practice-path'>{icon('/review')}"
+        "<span><strong>Make it stick</strong><small>Revisit words with spaced practice</small></span><span>↗</span></a>"
+        f"<a href='/reels{suffix}' class='practice-path'>{icon('/reels')}"
+        "<span><strong>Follow your curiosity</strong><small>Discover language in real videos</small></span><span>↗</span></a>"
+        f"<a href='/mine{suffix}' class='practice-path'>{icon('/mine')}"
+        "<span><strong>Make it yours</strong><small>Put your own thoughts into words</small></span><span>↗</span></a>"
+        "</section>"
+    )
 
 
 # How many words may pile up before the nav stops being quiet about it.
@@ -74,22 +115,53 @@ def layout(title: str, body: str, here: str = "/", source: str = "",
     # because a reminder that lives on the Anki page is one only the person
     # already going there will read.
     def link(href: str, label: str) -> str:
-        here_now = "here" if href == here else ""
+        here_now = "here" if href == active_path else ""
         badge = ""
         if href == "/anki" and anki_new:
             due = " due" if anki_new >= ANKI_REMIND else ""
             badge = (f"<span class='badge{due}' title='queued since your last "
                      f"export'>{anki_new:,}</span>")
-        return (f'<a href="{href}{suffix}" class="{here_now}">'
-                f"{escape(label)}{badge}</a>")
+        return (f'<a href="{href}{suffix}" class="{here_now}"'
+                + (' aria-current="page"' if here_now else "") + ">"
+                f"{icon(href)}<span>{escape(label)}</span>{badge}</a>")
 
-    links = "" if bare else "".join(link(href, label) for href, label in NAV)
-    # Whose page this is, once there is more than one person it could be.
+    labels = dict(NAV)
+    active_path = here if here in labels else "/words" if here.startswith("/word/") else here
+    groups = "".join(
+        f"<div class='nav-group'><p>{heading}</p>"
+        + "".join(link(path, labels[path]) for path in paths) + "</div>"
+        for heading, paths in NAV_GROUPS
+    )
     reader = getattr(ACTIVE, "reader", "") if getattr(ACTIVE, "shared", False) else ""
-    if reader and not bare:
-        links += (f"<span class='who'>{escape(reader)}"
-                  "<form method='post' action='/logout'>"
-                  "<button type='submit'>sign out</button></form></span>")
+    account = (f"<div class='who'><span class='avatar'>{escape(reader[:1].upper())}</span>"
+               f"<span>{escape(reader)}</span><form method='post' action='/logout'>"
+               "<button type='submit'>Sign out</button></form></div>" if reader and not bare else "")
+    brand = (f"<a class='brand' href='/{suffix}' aria-label='i+1 home'>"
+             "<span class='brand-mark'>i<span>+1</span></span>"
+             "<span>little by little<small>A LANGUAGE LEARNING SPACE</small></span></a>")
+    shell = ("<header class='masthead'><div class='inner'>" + brand
+             + "<nav class='desktop-nav' aria-label='Main navigation'>" + groups + "</nav>"
+             + "<div class='rail-note'><span>✦</span><p>A little practice.<br>A little more possibility.</p></div>"
+             + account + "</div></header>" if not bare else "<header class='auth-brand'>" + brand + "</header>")
+    section = next((heading for heading, paths in NAV_GROUPS if active_path in paths), "YOUR LEARNING SPACE")
+    current = labels.get(active_path, title)
+    context = "".join(f"<span class='context-chip'>{escape(str(value).replace('_', ' '))}</span>"
+                      for value in (source, wordlist) if value)
+    toolbar = (f"<div class='workspace-top'><div><span class='workspace-section'>{section}</span>"
+               f"<span class='workspace-page'>{escape(current)}</span></div>"
+               f"<div class='workspace-context'>{context}<span class='space-mark'>✦</span></div></div>"
+               if not bare else "")
+    # Four primary destinations and a native disclosure keep all other routes
+    # reachable on a phone, including without JavaScript.
+    mobile = ("<nav class='mobile-nav' aria-label='Quick navigation'>"
+              + "".join(link(path, "Saved" if path == "/starred" else labels[path]) for path in ("/", "/reels", "/review", "/starred"))
+              + "<details class='more-nav'><summary>" + icon('/lists') + "<span>More</span></summary>"
+              + "<nav class='more-panel' aria-label='All sections'>" + groups + account + "</nav></details></nav>"
+              if not bare else "")
+    intro = welcome(suffix) if here == "/" and not bare and "id='reading-top'" in body else ""
+    # Some handlers already insert the script beside their player. The shell's
+    # shortcuts must also work on account pages, and must never bind twice.
+    script = "" if "app.js" in body else f"<script src='{stamped('app.js')}'></script>"
     return (
         "<!doctype html><html lang='en'><head><meta charset='utf-8'>"
         # `viewport-fit=cover` lets the page paint under the notch and the
@@ -104,9 +176,9 @@ def layout(title: str, body: str, here: str = "/", source: str = "",
         # `default`, not `black-translucent`: the latter shifts content up
         # under the notch and brings a class of layout bugs with it.
         "<meta name='apple-mobile-web-app-status-bar-style' content='default'>"
-        "<meta name='theme-color' content='#eef1f6' "
+        "<meta name='theme-color' content='#f7f8f2' "
         "media='(prefers-color-scheme: light)'>"
-        "<meta name='theme-color' content='#0f1626' "
+        "<meta name='theme-color' content='#131c18' "
         "media='(prefers-color-scheme: dark)'>"
         "<link rel='manifest' href='/manifest.webmanifest'>"
         "<link rel='apple-touch-icon' href='/static/icon-512.png'>"
@@ -117,10 +189,10 @@ def layout(title: str, body: str, here: str = "/", source: str = "",
         # before the body, so the first paint is already the right one.
         "<script>try{if(localStorage.getItem('colours')==='1')"
         "document.documentElement.classList.add('coloured')}catch(e){}</script>"
-        "</head><body>"
-        "<header class='masthead'><div class='inner'>"
-        f"<span class='name'>i+1</span>{links}</div></header>"
-        f"<main>{body}</main>"
+        f"</head><body class='{'auth-page' if bare else 'learning-page'}' data-page='{escape(here, quote=True)}'>"
+        "<a class='skip-link' href='#main-content'>Skip to content</a>"
+        f"{shell}<div class='workspace'>{toolbar}"
+        f"<main id='main-content'>{intro}{body}</main></div>{mobile}"
         # The keys, on every page, because they were written down in one
         # `.hint` on one card and nowhere else -- so the reel, the video page
         # and the review queue each had shortcuts nobody was told about. What
@@ -131,9 +203,30 @@ def layout(title: str, body: str, here: str = "/", source: str = "",
         "keys</button>"
         "<div id='keys' class='keys' hidden role='dialog' "
         "aria-label='Keyboard shortcuts'></div>"
-        "</body></html>"
+        f"{script}</body></html>"
     )
 
+
+
+def video_tile(row: dict, href: str) -> str:
+    """A catalogue entry with the same measured data as the detailed table."""
+    title = row.get("title") or row["video"]
+    percent = min(100, max(0, round(row["comprehension"] * 100)))
+    duration = f"{row['minutes']:.0f} min" if row.get("minutes") is not None else ""
+    level = f" · {escape(row['level_label'])}" if row.get("level_label") else ""
+    return (
+        f"<a class='video-tile' href='{escape(href, quote=True)}'>"
+        "<div class='video-cover'>"
+        f"<img src='https://i.ytimg.com/vi/{quote(row['video'], safe='')}/hqdefault.jpg' "
+        "alt='' width='480' height='360' loading='lazy' decoding='async'>"
+        f"<span class='video-play'>{icon('/subtitles')}</span>"
+        f"<span class='video-duration'>{duration}</span></div>"
+        f"<div class='video-info'><h3>{escape(title)}</h3>"
+        f"<span class='video-fit'>{percent}% of words familiar{level}</span>"
+        f"<span class='video-meter' aria-hidden='true'><span style='width:{percent}%'></span></span>"
+        f"<span class='video-learn'>{row['teaches']:,} words from your list <span>Watch & explore ↗</span></span>"
+        "</div></a>"
+    )
 
 def mark(text: str, surface: str | None) -> str:
     """The sentence with its one new thing marked.

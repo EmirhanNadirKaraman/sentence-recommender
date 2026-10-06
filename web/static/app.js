@@ -1532,3 +1532,23 @@ document.addEventListener('keydown', function (e) {
   });
   }
 })();
+
+// The phone's section picker remains a native disclosure without JavaScript.
+// Escape and clicking outside dismiss it when scripting is available.
+(function () {
+  function bind() {
+    var more = document.querySelector('.more-nav');
+    if (!more) return;
+    document.addEventListener('click', function (e) {
+      if (more.open && !more.contains(e.target)) more.open = false;
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && more.open) {
+        more.open = false;
+        more.querySelector('summary').focus();
+      }
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
+  else bind();
+})();

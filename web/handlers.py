@@ -72,7 +72,7 @@ from roadmap.videos import VideoRoadmapStore
 from roadmap.store import ALL, RoadmapStore, current_stamp
 from vocab.entry import LEMMA, PATTERN, Unit
 from web import watch as video
-from web.render import ACTIVE, ANKI_REMIND, layout, sentence, stamped
+from web.render import ACTIVE, ANKI_REMIND, layout, sentence, stamped, video_tile
 
 PAGE_SIZE = 40
 # Sentences kept per stranded word, for the arrows on its row. Enough to
@@ -717,7 +717,7 @@ class Viewer:
             f" <small>{c:,}</small></a>"
             for n, c, _ in saved)
         body = [
-            "<h1>Word lists</h1>",
+            "<h1>Your word collections</h1>",
             self.list_switch(query, "/lists"),
             f"<div class='switch'><span>Lists</span>{picker or empty}</div>",
             "<form method='get' action='/lists' class='row'>",
@@ -938,20 +938,22 @@ class Viewer:
             # in yet. "Nothing left" would say they had read it all.
             from languages import language                  # noqa: PLC0415
             name = language(self.app.settings.language).name
-            whose = (f" --reader {self.app.settings.reader}"
-                     if self.app.settings.reader else "")
-            body = (f"<h1>No {escape(name)} videos yet</h1>"
-                    "<p class='empty'>There is nothing to read in "
-                    f"{escape(name)} until some video is in. On the server: "
-                    f"<code>python main.py add-channel @HANDLE{escape(whose)}"
-                    "</code>, then <code>python main.py build-corpus subtitle"
-                    f"{escape(whose)}</code>.</p>")
+            body = (f"<h1>Your {escape(name)} journey starts here.</h1>"
+                    "<p class='empty'>Your learning space is ready. Add a video "
+                    "with subtitles to discover words in real conversations.</p>"
+                    f"<a class='go' href='{escape(self._link('/subtitles', source), quote=True)}'>"
+                    "Explore the video library</a>")
             return self._page("i+1", body, "/", source)
         if step is None:
-            body = (switch + picker + "<h1>Nothing left that is i+1</h1>"
-                    "<p class='empty'>Every remaining sentence needs two or more "
-                    "new things. Widen the filter, add another corpus, or "
-                    "run <code>python main.py review</code>.</p>")
+            body = (switch + picker + "<h1>Ready for a different kind of practice?</h1>"
+                    "<p class='empty'>The remaining sentences introduce more than "
+                    "one new thing. Revisit what you have learned, explore "
+                    "another video, or widen the filters above.</p>"
+                    "<div class='actions'>"
+                    f"<a class='go' href='{escape(self._link('/review', source), quote=True)}'>"
+                    "Review your words</a>"
+                    f"<a class='link' href='{escape(self._link('/subtitles', source), quote=True)}'>"
+                    "Find another video</a></div>")
             return self._page("i+1", body, "/", source)
 
         unit = step.unit
@@ -1203,9 +1205,14 @@ class Viewer:
         guessing at one.
         """
         if not total:
-            return f"<h1>{readable:,} sentences you can already read</h1>"
-        return (f"<h1>{readable:,} of {total:,} sentences you can already "
-                f"read</h1>")
+            return f"<h2 class='reading-heading'>{readable:,} sentences you can already read</h2>"
+        percent = min(100, max(0, round(readable / total * 100)))
+        return (f"<h2 class='reading-heading'>{readable:,} of {total:,} sentences you can already "
+                f"read</h2>"
+                "<div class='reading-progress'>"
+                f"<progress value='{min(readable, total)}' max='{total}' "
+                "aria-label='Readable sentences in the selected corpus'></progress>"
+                f"<span>{percent}% of this corpus is within reach</span></div>")
 
     @staticmethod
     def _first_video(deck: list[Sentence]) -> str:
@@ -1814,7 +1821,7 @@ class Viewer:
         source = self.source(query)
         kept = self.app.overrides.starred()
         if not kept:
-            return self._page("Starred", "<h1>Starred</h1><p class='empty'>"
+            return self._page("Starred", "<h1>Saved sentences</h1><p class='empty'>"
                               "Nothing kept yet. The star sits after a "
                               "sentence wherever one is drawn to be read — "
                               "on Next, Review, Mine and the word pages.</p>",
@@ -1826,7 +1833,7 @@ class Viewer:
                        level=self.app.judged.level(text), starred=True)
             + f"<p class='note'>kept {escape(when[:10])}</p></li>"
             for text, when in kept.items())
-        body = (f"<h1>Starred</h1><p class='tally'><b>{len(kept):,}</b> "
+        body = (f"<h1>Saved sentences</h1><p class='tally'><b>{len(kept):,}</b> "
                 "sentence" + ("s" if len(kept) != 1 else "") + " kept</p>"
                 "<p class='lede'>Newest first. The star toggles here too, so "
                 "this is also where one comes off.</p>"
@@ -2104,7 +2111,7 @@ class Viewer:
                    else "<p class='empty'>Nothing here matches that.</p>")
         body = (self.list_switch(query, "/roadmap")
                 + self.counting_switch(query, "/roadmap")
-                + "<h1>Roadmap</h1>"
+                + "<h1>Your learning path</h1>"
                 f"<p class='note'>{len(steps):,} steps in the order they were "
                 f"planned, saved by the last build of <code>{escape(label)}</code>. The marked word was the only "
                 "unknown one in its sentence at that point — anything you have "
@@ -3195,7 +3202,7 @@ class Viewer:
             "</div></div>"
             for r in saved)
         body = (
-            "<h1>Mine</h1>"
+            "<h1>Make it yours</h1>"
             "<p class='note'>Sentences you want to be able to say. Write one in "
             "English or German; the local model puts it into German, you read it "
             "over and keep it. A kept sentence joins the corpus as yours — it leads "
@@ -5628,23 +5635,17 @@ class Viewer:
                  f"<th class='n'>teaches</th><th class='n'>cues</th>"
                  f"<th class='n'>length</th></tr>{rows}</table>" if rows
                  else "<p class='empty'>No aligned subtitles yet.</p>")
+        cards = "".join(video_tile(
+            {**r, "level_label": label(r["level"]) if r.get("level") is not None else ""},
+            self._link("/video", source, id=r["video"])) for r in ranked[:24])
         picker = self._order_switch("/subtitles", source, order)
-        body = ("<h1>Videos</h1>"
+        body = ("<h1>Find your next discovery.</h1>"
+                "<p class='note'>Real voices, at your level. Find something "
+                "you want to watch, and let curiosity do the rest.</p>"
                 f"{picker}"
-                "<p class='note'><em>Words</em> is the share of its words "
-                "you already know, <em>level</em> is what the judge makes "
-                "of thirty of its lines, and <em>watch</em> combines the two "
-                "with length. Those favour videos you understand already. "
-                "<em>i+1/min</em> asks the opposite question — how "
-                "much this video could teach you per minute — and picks "
-                "almost entirely different films: of the top fifty by each, "
-                "two are the same. Both move as you mark words known. "
-                "<em>In order</em> is different again — a plan rather than a "
-                "ranking, where each video is scored against what the ones "
-                "before it taught you, so it does not change as you watch."
-                "</p>"
                 + "<form class='find' method='get' action='/subtitles'>"
                 + f"<input type='hidden' name='src' value='{escape(source)}'>"
+                + f"<input type='hidden' name='list' value='{escape(self.list_name())}'>"
                 + (f"<input type='hidden' name='sort' value='{escape(order)}'>"
                    if order != "watch" else "")
                 + f"<input name='q' value='{escape(needle)}' "
@@ -5653,7 +5654,12 @@ class Viewer:
                 + found
                 + self._add_video_form(query)
                 + (f"<h2>{len(ranked)} in the catalogue</h2>" if not needle else "")
-                + table)
+                + (f"<div class='video-grid'>{cards}</div>" if cards else "")
+                + ("<details class='catalogue-details'><summary>Compare all videos & learning scores</summary>"
+                   "<p class='note'>Words: the share you know. Level: the judged language level. "
+                   "Watch: ease of following. i+1/min: sentences with one new word per minute. "
+                   "Teaches: words from your list. In-order plans build on earlier videos.</p>"
+                   + table + "</details>" if cards else table))
         return self._page("Videos", body, "/subtitles", source)
 
     @staticmethod
