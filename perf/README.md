@@ -1,5 +1,10 @@
 # perf — one-off profiling scripts for the 2026-09-22 audit
 
+The four-reader hosting probe added on 2026-10-07 is documented in
+`FOUR_READERS.md`. `four_readers.py` reads the production corpus with a
+read-only guard, but writes to a disposable PostgreSQL copy of reader state.
+It never changes real accounts. It is separate from the historical audit below.
+
 Read-only. None of these write to Postgres or `state.sqlite3`; the roadmap
 scripts run the walk in-process and never call `RoadmapStore.save`. Nothing
 here is imported by the application, and the whole directory can be deleted.

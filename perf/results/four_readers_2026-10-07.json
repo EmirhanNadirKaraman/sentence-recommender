@@ -1,0 +1,2439 @@
+{
+  "staged": [
+    {
+      "event": "corpus",
+      "builds": [
+        [
+          "generated",
+          290
+        ],
+        [
+          "subtitle",
+          293837
+        ],
+        [
+          "transcript",
+          53134
+        ]
+      ],
+      "peak_rss_mb": 44
+    },
+    {
+      "event": "begin",
+      "phase": "cold_reader_1",
+      "peak_rss_mb": 46
+    },
+    {
+      "event": "phase",
+      "phase": "cold_reader_1",
+      "wall_seconds": 23.49,
+      "requests": [
+        {
+          "user": 1,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 23.4904,
+          "bytes": 62737,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1225
+    },
+    {
+      "event": "begin",
+      "phase": "first_reels_reader_1",
+      "peak_rss_mb": 1225
+    },
+    {
+      "event": "phase",
+      "phase": "first_reels_reader_1",
+      "wall_seconds": 2.082,
+      "requests": [
+        {
+          "user": 1,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 2.0818,
+          "bytes": 57233,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1225
+    },
+    {
+      "event": "begin",
+      "phase": "cold_reader_2",
+      "peak_rss_mb": 1225
+    },
+    {
+      "event": "phase",
+      "phase": "cold_reader_2",
+      "wall_seconds": 57.979,
+      "requests": [
+        {
+          "user": 2,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 57.9786,
+          "bytes": 62737,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1399
+    },
+    {
+      "event": "begin",
+      "phase": "first_reels_reader_2",
+      "peak_rss_mb": 1399
+    },
+    {
+      "event": "phase",
+      "phase": "first_reels_reader_2",
+      "wall_seconds": 3.559,
+      "requests": [
+        {
+          "user": 2,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 3.5585,
+          "bytes": 57233,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1399
+    },
+    {
+      "event": "begin",
+      "phase": "cold_reader_3",
+      "peak_rss_mb": 1399
+    },
+    {
+      "event": "phase",
+      "phase": "cold_reader_3",
+      "wall_seconds": 72.745,
+      "requests": [
+        {
+          "user": 3,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 72.7452,
+          "bytes": 62737,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1457
+    },
+    {
+      "event": "begin",
+      "phase": "first_reels_reader_3",
+      "peak_rss_mb": 1457
+    },
+    {
+      "event": "phase",
+      "phase": "first_reels_reader_3",
+      "wall_seconds": 3.734,
+      "requests": [
+        {
+          "user": 3,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 3.7338,
+          "bytes": 57233,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1457
+    },
+    {
+      "event": "begin",
+      "phase": "cold_reader_4",
+      "peak_rss_mb": 1457
+    },
+    {
+      "event": "phase",
+      "phase": "cold_reader_4",
+      "wall_seconds": 95.45,
+      "requests": [
+        {
+          "user": 4,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 95.4498,
+          "bytes": 62737,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 2215
+    },
+    {
+      "event": "begin",
+      "phase": "first_reels_reader_4",
+      "peak_rss_mb": 2215
+    },
+    {
+      "event": "phase",
+      "phase": "first_reels_reader_4",
+      "wall_seconds": 3.294,
+      "requests": [
+        {
+          "user": 4,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 3.2938,
+          "bytes": 57233,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 2215
+    },
+    {
+      "event": "begin",
+      "phase": "warm_four_readers",
+      "peak_rss_mb": 2215
+    },
+    {
+      "event": "phase",
+      "phase": "warm_four_readers",
+      "wall_seconds": 10.602,
+      "requests": [
+        {
+          "user": 1,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 1.6611,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 1.6095,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 1.61,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 1.4061,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.2533,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1518,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.173,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1234,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1285,
+          "bytes": 861279,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1738,
+          "bytes": 861279,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1853,
+          "bytes": 861279,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.2032,
+          "bytes": 861279,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.8212,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.6786,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.6475,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.6254,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0081,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0085,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0086,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0079,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0101,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0106,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0101,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0104,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 1.0695,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.9756,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 2.6073,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 2.6124,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 1.0062,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 1.4942,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.6235,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.4884,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.4401,
+          "bytes": 861279,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.4458,
+          "bytes": 861279,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.4391,
+          "bytes": 861279,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.2152,
+          "bytes": 861279,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.8001,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.7987,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.7982,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.5996,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0099,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0124,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0152,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0114,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0175,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.018,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0172,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0193,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 2.0341,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 2.8052,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 3.1683,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 3.1606,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.7955,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.359,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.3384,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.2302,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1953,
+          "bytes": 861279,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.2277,
+          "bytes": 861279,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.2139,
+          "bytes": 861279,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.263,
+          "bytes": 861279,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.602,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.5849,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.5914,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.4547,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0309,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0155,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.022,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0184,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0179,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 2,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0153,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 3,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0098,
+          "bytes": 15304,
+          "error": null
+        },
+        {
+          "user": 4,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0083,
+          "bytes": 15304,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 2215
+    },
+    {
+      "event": "begin",
+      "phase": "mark_and_reels",
+      "peak_rss_mb": 2215
+    },
+    {
+      "event": "phase",
+      "phase": "mark_and_reels",
+      "results": [
+        {
+          "user": 1,
+          "ack_seconds": 0.1108,
+          "settled_seconds": 13.3911,
+          "reels": {
+            "user": 1,
+            "route": "/reels",
+            "source": "subtitle",
+            "status": 200,
+            "seconds": 0.4724,
+            "bytes": 57257,
+            "error": null
+          }
+        },
+        {
+          "user": 2,
+          "ack_seconds": 0.1901,
+          "settled_seconds": 13.6654,
+          "reels": {
+            "user": 2,
+            "route": "/reels",
+            "source": "subtitle",
+            "status": 200,
+            "seconds": 0.0422,
+            "bytes": 57257,
+            "error": null
+          }
+        },
+        {
+          "user": 3,
+          "ack_seconds": 0.1097,
+          "settled_seconds": 13.1852,
+          "reels": {
+            "user": 3,
+            "route": "/reels",
+            "source": "subtitle",
+            "status": 200,
+            "seconds": 0.585,
+            "bytes": 57257,
+            "error": null
+          }
+        },
+        {
+          "user": 4,
+          "ack_seconds": 0.197,
+          "settled_seconds": 13.0785,
+          "reels": {
+            "user": 4,
+            "route": "/reels",
+            "source": "subtitle",
+            "status": 200,
+            "seconds": 0.6757,
+            "bytes": 57257,
+            "error": null
+          }
+        }
+      ],
+      "peak_rss_mb": 2215
+    },
+    {
+      "event": "begin",
+      "phase": "second_source_reader_1",
+      "peak_rss_mb": 2215
+    },
+    {
+      "event": "phase",
+      "phase": "second_source_reader_1",
+      "wall_seconds": 0.108,
+      "requests": [
+        {
+          "user": 1,
+          "route": "/",
+          "source": "all",
+          "status": 200,
+          "seconds": 0.1081,
+          "bytes": 62905,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 2215
+    },
+    {
+      "event": "summary",
+      "mode": "staged",
+      "peak_rss_mb": 2161,
+      "exit_code": -15
+    }
+  ],
+  "profile": [
+    {
+      "event": "corpus",
+      "builds": [
+        [
+          "generated",
+          290
+        ],
+        [
+          "subtitle",
+          293837
+        ],
+        [
+          "transcript",
+          53134
+        ]
+      ],
+      "peak_rss_mb": 45,
+      "cpu_seconds": 0.197
+    },
+    {
+      "event": "begin",
+      "phase": "profile_cold_home",
+      "peak_rss_mb": 45,
+      "cpu_seconds": 0.242
+    },
+    {
+      "event": "profile",
+      "route": "/",
+      "top_cumulative": [
+        {
+          "function": "selectors.py:402:select",
+          "calls": 107,
+          "self_seconds": 3.036,
+          "cumulative_seconds": 232.055
+        },
+        {
+          "function": "~:0:<method 'poll' of 'select.poll' objects>",
+          "calls": 107,
+          "self_seconds": 41.144,
+          "cumulative_seconds": 66.303
+        },
+        {
+          "function": "handlers.py:926:next_up",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 65.596
+        },
+        {
+          "function": "handlers.py:1056:next_step",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 65.58
+        },
+        {
+          "function": "handlers.py:1154:_walked",
+          "calls": 1,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 65.58
+        },
+        {
+          "function": "handlers.py:604:scope",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 62.382
+        },
+        {
+          "function": "handlers.py:207:get",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 62.382
+        },
+        {
+          "function": "handlers.py:643:corpus_for",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 48.969
+        },
+        {
+          "function": "index.py:112:_intern",
+          "calls": 2434501,
+          "self_seconds": 0.407,
+          "cumulative_seconds": 6.029
+        },
+        {
+          "function": "functools.py:979:__get__",
+          "calls": 18,
+          "self_seconds": 0.031,
+          "cumulative_seconds": 5.816
+        },
+        {
+          "function": "~:0:<method 'get' of 'dict' objects>",
+          "calls": 7059240,
+          "self_seconds": 5.189,
+          "cumulative_seconds": 5.607
+        },
+        {
+          "function": "~:0:<method 'execute' of 'psycopg2.extensions.cursor' objects>",
+          "calls": 55,
+          "self_seconds": 2.801,
+          "cumulative_seconds": 2.802
+        },
+        {
+          "function": "~:0:<method 'add' of 'set' objects>",
+          "calls": 8174554,
+          "self_seconds": 2.116,
+          "cumulative_seconds": 2.74
+        },
+        {
+          "function": "context.py:632:verdicts",
+          "calls": 1,
+          "self_seconds": 0.002,
+          "cumulative_seconds": 2.557
+        },
+        {
+          "function": "context.py:218:machine_made",
+          "calls": 1,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 2.527
+        },
+        {
+          "function": "handlers.py:558:known",
+          "calls": 4,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 2.162
+        },
+        {
+          "function": "context.py:605:known_set",
+          "calls": 1,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 2.162
+        },
+        {
+          "function": "context.py:133:judged",
+          "calls": 1,
+          "self_seconds": 0.213,
+          "cumulative_seconds": 1.849
+        },
+        {
+          "function": "~:0:<method 'setdefault' of 'dict' objects>",
+          "calls": 6372881,
+          "self_seconds": 1.207,
+          "cumulative_seconds": 1.207
+        },
+        {
+          "function": "entry.py:44:__hash__",
+          "calls": 8513861,
+          "self_seconds": 1.068,
+          "cumulative_seconds": 1.068
+        },
+        {
+          "function": "index.py:32:__init__",
+          "calls": 1,
+          "self_seconds": 0.393,
+          "cumulative_seconds": 0.895
+        },
+        {
+          "function": "builder.py:37:__init__",
+          "calls": 1,
+          "self_seconds": 0.044,
+          "cumulative_seconds": 0.863
+        },
+        {
+          "function": "context.py:292:corpus",
+          "calls": 1,
+          "self_seconds": 0.797,
+          "cumulative_seconds": 0.847
+        },
+        {
+          "function": "~:0:<method 'append' of 'list' objects>",
+          "calls": 6062521,
+          "self_seconds": 0.835,
+          "cumulative_seconds": 0.835
+        },
+        {
+          "function": "connection.py:45:rows",
+          "calls": 2,
+          "self_seconds": 0.003,
+          "cumulative_seconds": 0.786
+        }
+      ],
+      "peak_rss_mb": 1357,
+      "cpu_seconds": 29.15
+    },
+    {
+      "event": "phase",
+      "phase": "profile_cold_home",
+      "wall_seconds": 65.724,
+      "requests": [
+        {
+          "user": 1,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 65.7239,
+          "bytes": 62737,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1357,
+      "cpu_seconds": 29.152,
+      "physical_footprint_mb": 1613
+    },
+    {
+      "event": "begin",
+      "phase": "profile_first_reels",
+      "peak_rss_mb": 1357,
+      "cpu_seconds": 29.152
+    },
+    {
+      "event": "profile",
+      "route": "/reels",
+      "top_cumulative": [
+        {
+          "function": "handlers.py:4617:reels",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 1.56
+        },
+        {
+          "function": "handlers.py:4852:_settled",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 1.526
+        },
+        {
+          "function": "handlers.py:4867:_watchable",
+          "calls": 1,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 1.522
+        },
+        {
+          "function": "handlers.py:4922:_compute",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 1.117
+        },
+        {
+          "function": "handlers.py:4935:<genexpr>",
+          "calls": 3004,
+          "self_seconds": 0.004,
+          "cumulative_seconds": 0.996
+        },
+        {
+          "function": "handlers.py:5068:_score_video",
+          "calls": 3003,
+          "self_seconds": 0.499,
+          "cumulative_seconds": 0.989
+        },
+        {
+          "function": "~:0:<built-in method builtins.sorted>",
+          "calls": 4395,
+          "self_seconds": 0.029,
+          "cumulative_seconds": 0.909
+        },
+        {
+          "function": "<string>:2:__eq__",
+          "calls": 1819584,
+          "self_seconds": 0.343,
+          "cumulative_seconds": 0.343
+        },
+        {
+          "function": "handlers.py:4948:_levels",
+          "calls": 1,
+          "self_seconds": 0.002,
+          "cumulative_seconds": 0.27
+        },
+        {
+          "function": "levels.py:49:video_level",
+          "calls": 3003,
+          "self_seconds": 0.011,
+          "cumulative_seconds": 0.206
+        },
+        {
+          "function": "~:0:<method 'execute' of 'psycopg2.extensions.cursor' objects>",
+          "calls": 24,
+          "self_seconds": 0.204,
+          "cumulative_seconds": 0.204
+        },
+        {
+          "function": "levels.py:36:sample",
+          "calls": 3003,
+          "self_seconds": 0.022,
+          "cumulative_seconds": 0.149
+        },
+        {
+          "function": "scores.py:119:save",
+          "calls": 1,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.119
+        },
+        {
+          "function": "handlers.py:5061:_spoken_lines",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.111
+        },
+        {
+          "function": "store.py:135:lines_per_video",
+          "calls": 1,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.111
+        },
+        {
+          "function": "state.py:107:executemany",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.089
+        },
+        {
+          "function": "extras.py:1194:execute_batch",
+          "calls": 1,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.089
+        },
+        {
+          "function": "handlers.py:5422:_grouped",
+          "calls": 2,
+          "self_seconds": 0.045,
+          "cumulative_seconds": 0.063
+        },
+        {
+          "function": "~:0:<built-in method builtins.len>",
+          "calls": 961615,
+          "self_seconds": 0.049,
+          "cumulative_seconds": 0.049
+        },
+        {
+          "function": "answers.py:164:expected",
+          "calls": 76749,
+          "self_seconds": 0.009,
+          "cumulative_seconds": 0.045
+        },
+        {
+          "function": "~:0:<method 'get' of 'dict' objects>",
+          "calls": 101415,
+          "self_seconds": 0.044,
+          "cumulative_seconds": 0.044
+        },
+        {
+          "function": "connection.py:30:__enter__",
+          "calls": 5,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.044
+        },
+        {
+          "function": "random.py:359:sample",
+          "calls": 2074,
+          "self_seconds": 0.012,
+          "cumulative_seconds": 0.041
+        },
+        {
+          "function": "handlers.py:4965:<genexpr>",
+          "calls": 245966,
+          "self_seconds": 0.039,
+          "cumulative_seconds": 0.039
+        },
+        {
+          "function": "__init__.py:80:connect",
+          "calls": 5,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.035
+        }
+      ],
+      "peak_rss_mb": 1357,
+      "cpu_seconds": 30.417
+    },
+    {
+      "event": "phase",
+      "phase": "profile_first_reels",
+      "wall_seconds": 1.564,
+      "requests": [
+        {
+          "user": 1,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 1.5644,
+          "bytes": 57233,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1357,
+      "cpu_seconds": 30.417,
+      "physical_footprint_mb": 1615
+    },
+    {
+      "event": "begin",
+      "phase": "profile_warm_pages",
+      "peak_rss_mb": 1357,
+      "cpu_seconds": 30.418
+    },
+    {
+      "event": "profile",
+      "route": "/",
+      "top_cumulative": [
+        {
+          "function": "handlers.py:926:next_up",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.105
+        },
+        {
+          "function": "handlers.py:1056:next_step",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.095
+        },
+        {
+          "function": "handlers.py:1154:_walked",
+          "calls": 1,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.091
+        },
+        {
+          "function": "builder.py:142:peek",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.053
+        },
+        {
+          "function": "builder.py:155:_next_step",
+          "calls": 1,
+          "self_seconds": 0.015,
+          "cumulative_seconds": 0.053
+        },
+        {
+          "function": "context.py:632:verdicts",
+          "calls": 1,
+          "self_seconds": 0.002,
+          "cumulative_seconds": 0.024
+        },
+        {
+          "function": "examples.py:160:<lambda>",
+          "calls": 850,
+          "self_seconds": 0.004,
+          "cumulative_seconds": 0.024
+        },
+        {
+          "function": "builder.py:324:_score",
+          "calls": 18066,
+          "self_seconds": 0.009,
+          "cumulative_seconds": 0.022
+        },
+        {
+          "function": "overrides.py:233:verdicts",
+          "calls": 1,
+          "self_seconds": 0.01,
+          "cumulative_seconds": 0.021
+        },
+        {
+          "function": "state.py:100:execute",
+          "calls": 10,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.016
+        },
+        {
+          "function": "~:0:<method 'execute' of 'psycopg2.extensions.cursor' objects>",
+          "calls": 10,
+          "self_seconds": 0.016,
+          "cumulative_seconds": 0.016
+        },
+        {
+          "function": "~:0:<method 'get' of 'dict' objects>",
+          "calls": 68033,
+          "self_seconds": 0.014,
+          "cumulative_seconds": 0.014
+        },
+        {
+          "function": "examples.py:430:examples",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.013
+        },
+        {
+          "function": "builder.py:228:_deck",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.013
+        },
+        {
+          "function": "quality.py:267:score",
+          "calls": 915,
+          "self_seconds": 0.002,
+          "cumulative_seconds": 0.012
+        },
+        {
+          "function": "~:0:<built-in method builtins.sorted>",
+          "calls": 17,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.012
+        },
+        {
+          "function": "heapq.py:463:nsmallest",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.012
+        },
+        {
+          "function": "index.py:282:unlocks_id",
+          "calls": 18066,
+          "self_seconds": 0.003,
+          "cumulative_seconds": 0.012
+        },
+        {
+          "function": "handlers.py:2138:_stored_label",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.009
+        },
+        {
+          "function": "store.py:121:sources",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.008
+        },
+        {
+          "function": "quality.py:202:unbound",
+          "calls": 915,
+          "self_seconds": 0.002,
+          "cumulative_seconds": 0.007
+        },
+        {
+          "function": "handlers.py:865:counting_switch",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.007
+        },
+        {
+          "function": "quality.py:255:variety",
+          "calls": 915,
+          "self_seconds": 0.002,
+          "cumulative_seconds": 0.004
+        },
+        {
+          "function": "~:0:<built-in method builtins.max>",
+          "calls": 22847,
+          "self_seconds": 0.003,
+          "cumulative_seconds": 0.004
+        },
+        {
+          "function": "handlers.py:1078:_planned",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.003
+        }
+      ],
+      "peak_rss_mb": 1357,
+      "cpu_seconds": 30.509
+    },
+    {
+      "event": "profile",
+      "route": "/reels",
+      "top_cumulative": [
+        {
+          "function": "handlers.py:4617:reels",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.018
+        },
+        {
+          "function": "handlers.py:4780:_to_follow",
+          "calls": 1,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.009
+        },
+        {
+          "function": "encounters.py:141:rungs",
+          "calls": 1,
+          "self_seconds": 0.003,
+          "cumulative_seconds": 0.008
+        },
+        {
+          "function": "handlers.py:4852:_settled",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.007
+        },
+        {
+          "function": "handlers.py:4867:_watchable",
+          "calls": 1,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.007
+        },
+        {
+          "function": "~:0:<method 'execute' of 'psycopg2.extensions.cursor' objects>",
+          "calls": 8,
+          "self_seconds": 0.005,
+          "cumulative_seconds": 0.005
+        },
+        {
+          "function": "handlers.py:5396:_corpus_moved",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.004
+        },
+        {
+          "function": "handlers.py:5301:_corpus_stamp",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.004
+        },
+        {
+          "function": "store.py:187:vintage",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.004
+        },
+        {
+          "function": "handlers.py:5676:_ordered",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.002
+        },
+        {
+          "function": "~:0:<built-in method builtins.sorted>",
+          "calls": 3,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.002
+        },
+        {
+          "function": "handlers.py:5716:<lambda>",
+          "calls": 1798,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.002
+        },
+        {
+          "function": "state.py:100:execute",
+          "calls": 7,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.001
+        },
+        {
+          "function": "entry.py:30:__post_init__",
+          "calls": 3372,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.001
+        },
+        {
+          "function": "<string>:2:__init__",
+          "calls": 3353,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.001
+        },
+        {
+          "function": "watch.py:234:merged_script",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.001
+        },
+        {
+          "function": "handlers.py:822:_page",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.001
+        },
+        {
+          "function": "~:0:<method 'fetchall' of 'psycopg2.extensions.cursor' objects>",
+          "calls": 1,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.001
+        },
+        {
+          "function": "~:0:<method 'get' of 'dict' objects>",
+          "calls": 3639,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.001
+        },
+        {
+          "function": "watch.py:220:known_script",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "render.py:31:stamped",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "~:0:<method 'join' of 'str' objects>",
+          "calls": 26,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "render.py:106:layout",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "~:0:<built-in method builtins.hash>",
+          "calls": 3379,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "entry.py:44:__hash__",
+          "calls": 7456,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        }
+      ],
+      "peak_rss_mb": 1357,
+      "cpu_seconds": 30.523
+    },
+    {
+      "event": "profile",
+      "route": "/subtitles",
+      "top_cumulative": [
+        {
+          "function": "handlers.py:5562:subtitles",
+          "calls": 1,
+          "self_seconds": 0.002,
+          "cumulative_seconds": 0.042
+        },
+        {
+          "function": "~:0:<method 'join' of 'str' objects>",
+          "calls": 44,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.032
+        },
+        {
+          "function": "handlers.py:5611:<genexpr>",
+          "calls": 3004,
+          "self_seconds": 0.01,
+          "cumulative_seconds": 0.03
+        },
+        {
+          "function": "parse.py:849:quote",
+          "calls": 6125,
+          "self_seconds": 0.003,
+          "cumulative_seconds": 0.011
+        },
+        {
+          "function": "parse.py:925:quote_from_bytes",
+          "calls": 6125,
+          "self_seconds": 0.004,
+          "cumulative_seconds": 0.008
+        },
+        {
+          "function": "handlers.py:4867:_watchable",
+          "calls": 1,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.005
+        },
+        {
+          "function": "__init__.py:12:escape",
+          "calls": 3104,
+          "self_seconds": 0.002,
+          "cumulative_seconds": 0.004
+        },
+        {
+          "function": "answers.py:301:label",
+          "calls": 1548,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.003
+        },
+        {
+          "function": "handlers.py:5676:_ordered",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.003
+        },
+        {
+          "function": "~:0:<built-in method builtins.sorted>",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.003
+        },
+        {
+          "function": "handlers.py:822:_page",
+          "calls": 1,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.003
+        },
+        {
+          "function": "handlers.py:5716:<lambda>",
+          "calls": 3003,
+          "self_seconds": 0.002,
+          "cumulative_seconds": 0.003
+        },
+        {
+          "function": "~:0:<built-in method builtins.min>",
+          "calls": 1572,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.003
+        },
+        {
+          "function": "~:0:<method 'encode' of 'str' objects>",
+          "calls": 12251,
+          "self_seconds": 0.003,
+          "cumulative_seconds": 0.003
+        },
+        {
+          "function": "~:0:<method 'replace' of 'str' objects>",
+          "calls": 15522,
+          "self_seconds": 0.002,
+          "cumulative_seconds": 0.002
+        },
+        {
+          "function": "~:0:<method 'get' of 'dict' objects>",
+          "calls": 12166,
+          "self_seconds": 0.002,
+          "cumulative_seconds": 0.002
+        },
+        {
+          "function": "answers.py:303:<lambda>",
+          "calls": 7740,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.002
+        },
+        {
+          "function": "render.py:106:layout",
+          "calls": 1,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.001
+        },
+        {
+          "function": "~:0:<built-in method builtins.isinstance>",
+          "calls": 18385,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.001
+        },
+        {
+          "function": "~:0:<method 'rstrip' of 'bytes' objects>",
+          "calls": 6125,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.001
+        },
+        {
+          "function": "~:0:<method 'execute' of 'psycopg2.extensions.cursor' objects>",
+          "calls": 5,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.001
+        },
+        {
+          "function": "handlers.py:5665:_density",
+          "calls": 3003,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.001
+        },
+        {
+          "function": "handlers.py:5485:_wrote_it",
+          "calls": 3003,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.001
+        },
+        {
+          "function": "~:0:<method 'decode' of 'bytes' objects>",
+          "calls": 6125,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.001
+        },
+        {
+          "function": "handlers.py:5396:_corpus_moved",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.001
+        }
+      ],
+      "peak_rss_mb": 1357,
+      "cpu_seconds": 30.567
+    },
+    {
+      "event": "profile",
+      "route": "/review",
+      "top_cumulative": [
+        {
+          "function": "handlers.py:2670:review",
+          "calls": 1,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.29
+        },
+        {
+          "function": "context.py:210:mcp_prompt",
+          "calls": 1,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.257
+        },
+        {
+          "function": "mcp_serve.py:162:prompt_for",
+          "calls": 1,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.144
+        },
+        {
+          "function": "~:0:<method 'execute' of 'psycopg2.extensions.cursor' objects>",
+          "calls": 31,
+          "self_seconds": 0.115,
+          "cumulative_seconds": 0.115
+        },
+        {
+          "function": "<frozen importlib._bootstrap>:1343:_find_and_load",
+          "calls": 637,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.113
+        },
+        {
+          "function": "<frozen importlib._bootstrap>:1298:_find_and_load_unlocked",
+          "calls": 154,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.113
+        },
+        {
+          "function": "<frozen importlib._bootstrap>:905:_load_unlocked",
+          "calls": 141,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.112
+        },
+        {
+          "function": "<frozen importlib._bootstrap_external>:988:exec_module",
+          "calls": 131,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.112
+        },
+        {
+          "function": "<frozen importlib._bootstrap>:480:_call_with_frames_removed",
+          "calls": 320,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.112
+        },
+        {
+          "function": "~:0:<built-in method builtins.__import__>",
+          "calls": 19,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.112
+        },
+        {
+          "function": "~:0:<built-in method builtins.exec>",
+          "calls": 176,
+          "self_seconds": 0.003,
+          "cumulative_seconds": 0.111
+        },
+        {
+          "function": "__init__.py:1:<module>",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.111
+        },
+        {
+          "function": "context.py:292:corpus",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.101
+        },
+        {
+          "function": "store.py:394:load",
+          "calls": 1,
+          "self_seconds": 0.002,
+          "cumulative_seconds": 0.1
+        },
+        {
+          "function": "add_video.py:1:<module>",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.084
+        },
+        {
+          "function": "__init__.py:1:<module>",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.083
+        },
+        {
+          "function": "video.py:1:<module>",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.079
+        },
+        {
+          "function": "captions.py:1:<module>",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.076
+        },
+        {
+          "function": "__init__.py:1:<module>",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.074
+        },
+        {
+          "function": "<frozen importlib._bootstrap_external>:1061:get_code",
+          "calls": 131,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.037
+        },
+        {
+          "function": "exceptions.py:1:<module>",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.034
+        },
+        {
+          "function": "compat.py:1:<module>",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.033
+        },
+        {
+          "function": "compat.py:37:_resolve_char_detection",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.03
+        },
+        {
+          "function": "__init__.py:73:import_module",
+          "calls": 491,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.03
+        },
+        {
+          "function": "<frozen importlib._bootstrap>:1369:_gcd_import",
+          "calls": 491,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.03
+        }
+      ],
+      "peak_rss_mb": 1357,
+      "cpu_seconds": 30.72
+    },
+    {
+      "event": "profile",
+      "route": "/words",
+      "top_cumulative": [
+        {
+          "function": "handlers.py:2457:word_search",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.001
+        },
+        {
+          "function": "handlers.py:822:_page",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.001
+        },
+        {
+          "function": "render.py:31:stamped",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "render.py:106:layout",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "pathlib.py:1016:read_bytes",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "pathlib.py:1006:open",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "~:0:<built-in method _io.open>",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "overrides.py:166:anki_unexported",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "~:0:<method 'join' of 'str' objects>",
+          "calls": 10,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "state.py:100:execute",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "~:0:<method 'execute' of 'psycopg2.extensions.cursor' objects>",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "pathlib.py:447:__fspath__",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "pathlib.py:437:__str__",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "render.py:130:<genexpr>",
+          "calls": 5,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "~:0:<built-in method _hashlib.openssl_sha256>",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "pathlib.py:551:drive",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "render.py:117:link",
+          "calls": 21,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "pathlib.py:407:_load_parts",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "render.py:132:<genexpr>",
+          "calls": 21,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "~:0:<built-in method builtins.next>",
+          "calls": 3,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "~:0:<method 'disable' of '_lsprof.Profiler' objects>",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "state.py:127:open_state",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "~:0:<method 'read' of '_io.BufferedReader' objects>",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "__init__.py:12:escape",
+          "calls": 28,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "pathlib.py:720:__truediv__",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        }
+      ],
+      "peak_rss_mb": 1357,
+      "cpu_seconds": 30.723
+    },
+    {
+      "event": "profile",
+      "route": "/lists",
+      "top_cumulative": [
+        {
+          "function": "handlers.py:696:word_lists",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.002
+        },
+        {
+          "function": "word_lists.py:75:names",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.001
+        },
+        {
+          "function": "state.py:100:execute",
+          "calls": 3,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.001
+        },
+        {
+          "function": "~:0:<method 'execute' of 'psycopg2.extensions.cursor' objects>",
+          "calls": 3,
+          "self_seconds": 0.001,
+          "cumulative_seconds": 0.001
+        },
+        {
+          "function": "handlers.py:848:list_switch",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.001
+        },
+        {
+          "function": "server.py:95:names",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.001
+        },
+        {
+          "function": "handlers.py:822:_page",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.001
+        },
+        {
+          "function": "render.py:31:stamped",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "~:0:<built-in method builtins.next>",
+          "calls": 7,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "state.py:127:open_state",
+          "calls": 6,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "render.py:106:layout",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "pathlib.py:1016:read_bytes",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "~:0:<method 'join' of 'str' objects>",
+          "calls": 14,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "contextlib.py:141:__exit__",
+          "calls": 3,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "pathlib.py:1006:open",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "~:0:<built-in method _io.open>",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "~:0:<method 'commit' of 'psycopg2.extensions.connection' objects>",
+          "calls": 3,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "overrides.py:166:anki_unexported",
+          "calls": 1,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "contextlib.py:132:__enter__",
+          "calls": 3,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "~:0:<built-in method _hashlib.openssl_sha256>",
+          "calls": 3,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "state.py:48:take",
+          "calls": 3,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "render.py:130:<genexpr>",
+          "calls": 5,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "render.py:117:link",
+          "calls": 21,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "render.py:132:<genexpr>",
+          "calls": 21,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        },
+        {
+          "function": "pathlib.py:447:__fspath__",
+          "calls": 2,
+          "self_seconds": 0.0,
+          "cumulative_seconds": 0.0
+        }
+      ],
+      "peak_rss_mb": 1357,
+      "cpu_seconds": 30.725
+    },
+    {
+      "event": "phase",
+      "phase": "profile_warm_pages",
+      "wall_seconds": 0.482,
+      "requests": [
+        {
+          "user": 1,
+          "route": "/",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.1083,
+          "bytes": 62737,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/reels",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0207,
+          "bytes": 57233,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/subtitles",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0486,
+          "bytes": 861279,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/review",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.2971,
+          "bytes": 17004,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/words",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0031,
+          "bytes": 14939,
+          "error": null
+        },
+        {
+          "user": 1,
+          "route": "/lists",
+          "source": "subtitle",
+          "status": 200,
+          "seconds": 0.0043,
+          "bytes": 15304,
+          "error": null
+        }
+      ],
+      "peak_rss_mb": 1357,
+      "cpu_seconds": 30.725,
+      "physical_footprint_mb": 1620
+    },
+    {
+      "event": "summary",
+      "mode": "profile",
+      "memory_metric": "physical_footprint",
+      "peak_memory_mb": 1624,
+      "exit_code": 0
+    }
+  ],
+  "cold_parallel": [
+    {
+      "event": "corpus",
+      "builds": [
+        [
+          "generated",
+          290
+        ],
+        [
+          "subtitle",
+          293837
+        ],
+        [
+          "transcript",
+          53134
+        ]
+      ],
+      "peak_rss_mb": 45,
+      "cpu_seconds": 0.149
+    },
+    {
+      "event": "begin",
+      "phase": "four_simultaneous_first_visits",
+      "peak_rss_mb": 46,
+      "cpu_seconds": 0.18
+    },
+    {
+      "event": "memory_limit",
+      "peak_memory_mb": 6065,
+      "limit_mb": 6000
+    },
+    {
+      "event": "summary",
+      "mode": "cold-parallel",
+      "memory_metric": "physical_footprint",
+      "peak_memory_mb": 6065,
+      "exit_code": -15
+    }
+  ],
+  "physical_footprint_samples": {
+    "scope": "Reader 4 startup through end of staged requests; excludes early stages",
+    "peak_mb": 5370,
+    "by_phase": {
+      "cold_reader_4": {
+        "min_mb": 4462,
+        "max_mb": 5277
+      },
+      "first_reels_reader_4": {
+        "min_mb": 5248,
+        "max_mb": 5249
+      },
+      "mark_and_reels": {
+        "min_mb": 5279,
+        "max_mb": 5368
+      },
+      "second_source_reader_1": {
+        "min_mb": 5369,
+        "max_mb": 5370
+      },
+      "warm_four_readers": {
+        "min_mb": 5250,
+        "max_mb": 5283
+      }
+    }
+  },
+  "notes": [
+    "Staged request phases completed successfully; process terminated during final Python GC after requests were complete.",
+    "Cold parallel run intentionally stopped at 6000 MiB process footprint.",
+    "Cold cProfile totals contain implausible cumulative times; use warm profile call counts only, not cold attribution percentages.",
+    "Thin local HTTP adapter bypasses authentication; real Viewer methods and separate state schemas. No external LLM calls.",
+    "Four copies of owner state, not four fresh beginner accounts. macOS host under memory pressure; not a VPS capacity certification."
+  ]
+}
