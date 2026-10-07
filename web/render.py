@@ -191,6 +191,11 @@ def layout(title: str, body: str, here: str = "/", source: str = "",
                 + (' aria-current="page"' if here_now else "") + ">"
                 f"{icon(href)}<span>{escape(label)}</span>{badge}</a>")
 
+    from web.access import OWNER_PAGES
+    visible_groups = tuple((heading, tuple(path for path in paths
+                           if owner_access() or path not in OWNER_PAGES))
+                           for heading, paths in NAV_GROUPS)
+    visible_groups = tuple((heading, paths) for heading, paths in visible_groups if paths)
     labels = dict(NAV)
     active_path = (here if here in labels else '/words' if here.startswith(('/word/', '/unit/'))
                    else '/subtitles' if here in ('/video', '/watch')
@@ -198,7 +203,7 @@ def layout(title: str, body: str, here: str = "/", source: str = "",
     groups = "".join(
         f"<div class='nav-group'><p>{heading}</p>"
         + "".join(link(path, labels[path]) for path in paths) + "</div>"
-        for heading, paths in NAV_GROUPS
+        for heading, paths in visible_groups
     )
     desktop_groups = ''.join(
         (f"<details class='nav-group nav-disclosure'{' open' if active_path in paths else ''}>"
@@ -206,7 +211,7 @@ def layout(title: str, body: str, here: str = "/", source: str = "",
          + ''.join(link(path, labels[path]) for path in paths) + '</details>')
         if index >= 2 else
         f"<div class='nav-group'><p>{heading}</p>" + ''.join(link(path, labels[path]) for path in paths) + '</div>'
-        for index, (heading, paths) in enumerate(NAV_GROUPS)
+        for index, (heading, paths) in enumerate(visible_groups)
     )
     reader = getattr(ACTIVE, "reader", "") if getattr(ACTIVE, "shared", False) else ""
     account = (f"<div class='who'><span class='avatar'>{escape(reader[:1].upper())}</span>"
@@ -583,13 +588,18 @@ def unknown_google(email: str, can_sign_up: bool) -> str:
                   f"account{which}</h1><p class='sub'>{then}</p>", bare=True)
 
 
+def owner_access() -> bool:
+    """Request-local permission, also valid for standalone local renders."""
+    return getattr(ACTIVE, "owner", True)
+
+
 def owner_only() -> str:
     """What a reader is told when they reach for something only the
     installation's owner may do."""
     return layout("Not yours to change", "<h1>Only the owner can do that</h1>"
-                  "<p class='sub'>Adding videos and channels, and recalculating "
-                  "the plan, change what every reader here sees, so they are "
-                  "for whoever runs this installation.</p>"
+                  "<p class='sub'>This tool is reserved for the owner so shared "
+                  "learning stays responsive. You can continue reading, "
+                  "watching reels and reviewing your words.</p>"
                   "<p><a href='/'>Back to reading</a></p>")
 
 

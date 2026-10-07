@@ -23,3 +23,9 @@ backfill.log
 # The dump is mounted into Postgres, never baked into an image.
 dump/
 .env
+.env.*
+backups/
+*.pdf
+
+# All runtime vocabulary/private reader files are mounted, never baked in.
+data/

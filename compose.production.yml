@@ -1,0 +1,61 @@
+# docker compose --env-file .env.production -f compose.production.yml up -d --build
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: sentence_recommender
+      POSTGRES_USER: local_db_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env.production}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./dump:/dump:ro
+      - ./docker/restore-dump.sh:/docker-entrypoint-initdb.d/10-restore-dump.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 120
+    restart: unless-stopped
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_NAME: sentence_recommender
+      DB_USER: local_db_user
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env.production}
+      DB_HOST: db
+      DB_PORT: 5432
+      REQUIRE_AUTH: "1"
+      INVITE_ONLY: "1"
+      SERVE_ANNOUNCE: ${APP_DOMAIN:?Set APP_DOMAIN in .env.production}
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8765/healthz', timeout=5).read()"]
+      interval: 30s
+      timeout: 6s
+      start_period: 120s
+      retries: 3
+    restart: unless-stopped
+  proxy:
+    image: caddy:2
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?Set APP_DOMAIN in .env.production}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

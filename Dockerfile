@@ -28,7 +28,7 @@ EXPOSE 8765
 # gets a migrated database too.
 ENTRYPOINT ["/app/docker/entrypoint.sh"]
 
-# 0.0.0.0 so the port mapping reaches it. There is no authentication, which
-# is why compose publishes it on 127.0.0.1 only.
+# Reachable inside the container network. Production requires a registered
+# owner and exposes only the HTTPS proxy; local compose binds to loopback.
 CMD ["python", "main.py", "serve", "--host", "0.0.0.0", "--port", "8765", \
      "--no-browser"]

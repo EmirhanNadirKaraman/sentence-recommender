@@ -94,3 +94,7 @@ experiment_results/.Rapp.history
 out/*.tsv
 out/*.txt
 out/*.json
+
+# Deployment credentials and database backups.
+.env.production
+backups/

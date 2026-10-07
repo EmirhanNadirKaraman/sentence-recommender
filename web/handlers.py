@@ -72,7 +72,7 @@ from roadmap.videos import VideoRoadmapStore
 from roadmap.store import ALL, RoadmapStore, current_stamp
 from vocab.entry import LEMMA, PATTERN, Unit
 from web import watch as video
-from web.render import ACTIVE, ANKI_REMIND, layout, sentence, stamped, video_tile
+from web.render import ACTIVE, ANKI_REMIND, layout, sentence, stamped, video_tile, owner_access
 
 PAGE_SIZE = 40
 CATALOGUE_PAGE = 24
@@ -759,7 +759,8 @@ class Viewer:
             "<h1>Your word collections</h1>",
             "<p class='note'>Gather the words you want to make yours. Open a collection, "
             "or name a new one and search for words to add.</p>",
-            f"<p><a class='go' href='{self._link('/cover', source, name=name)}'>Build a video cover ↗</a></p>",
+            (f"<p><a class='go' href='{self._link('/cover', source, name=name)}'>Build a video cover ↗</a></p>"
+             if owner_access() else ""),
             self.list_switch(query, "/lists"),
             (f"<div class='switch'><span>Lists</span>{picker or empty}</div>" if name else
              f"<div class='collection-grid'>{collections}</div>" if collections else empty),
@@ -1607,14 +1608,15 @@ class Viewer:
         fields = (f"<input type='hidden' name='text' value='{escape(text)}'>"
                   f"<input type='hidden' name='src' value='{escape(source)}'>"
                   f"<input type='hidden' name='back' value='{escape(back)}'>")
+        correction = (f"<a class='link' href='/fix?text={quote(text, safe='')}"
+                      f"&src={quote(source)}&back={quote(back, safe='')}'>Fix its words</a>"
+                      if owner_access() else "")
         return (
             "<div class='tools'>"
             f"<form method='post' action='/hide'>{fields}"
             "<button name='action' value='hide'>Drop this sentence</button>"
             "</form>"
-            f"<a class='link' href='/fix?text={quote(text, safe='')}"
-            f"&src={quote(source)}&back={quote(back, safe='')}'>Fix its words</a>"
-            "</div>"
+            + correction + "</div>"
         )
 
     def fix(self, query: dict) -> str:
@@ -3901,7 +3903,7 @@ class Viewer:
             "reaches yours.</p>"
             "<form method='post' action='/invite' class='login'>"
             "<label>Learning <select name='language'>"
-            f"{options({c: l.name for c, l in LANGUAGES.items()}, 'en')}"
+            f"{options({c: l.name for c, l in LANGUAGES.items()}, settings.language)}"
             "</select></label>"
             "<label>Translated into <select name='native'>"
             f"{options(NATIVE, 'tr')}</select></label>"

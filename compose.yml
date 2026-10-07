@@ -54,7 +54,7 @@ services:
       # published port below.
       SERVE_ANNOUNCE: 127.0.0.1
     ports:
-      # 127.0.0.1 only. There is no authentication anywhere in this app.
+      # Local development only. Use compose.production.yml for HTTPS hosting.
       - "127.0.0.1:8765:8765"
     volumes:
       # The host's data directory, for the files edited by hand: the word

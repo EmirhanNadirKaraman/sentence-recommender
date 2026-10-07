@@ -32,6 +32,7 @@ from urllib.parse import parse_qs, quote, unquote, urlparse
 
 from readers import SESSION_SECONDS as _SESSION_SECONDS
 from web import render
+from web.access import OWNER_PAGES, OWNER_ACTIONS
 from web.google import COOKIE as _GOOGLE_COOKIE
 from web.google import COOKIE_PATH as _GOOGLE_PATH
 from web.google import PENDING_SECONDS as _GOOGLE_SECONDS
@@ -56,7 +57,7 @@ COOKIE = "i1_session"
 # manifest of an installed app.
 OPEN = {"/login", "/signup", "/favicon.ico", "/apple-touch-icon.png",
         "/apple-touch-icon-precomposed.png", "/manifest.webmanifest",
-        "/auth/google/callback"}
+        "/auth/google/callback", "/healthz"}
 
 # `Door`'s default for `google`: read the configuration from `.env`.
 _FROM_ENV = object()
@@ -66,7 +67,7 @@ _FROM_ENV = object()
 # owner's browser cookies and writes the corpus every reader of the language
 # shares, and recalculating writes the plan file every reader's Plan page
 # reads.
-OWNER_ONLY = {"/add-video", "/add-channel", "/replan"}
+OWNER_ONLY = OWNER_ACTIONS
 
 
 class Viewers:
@@ -261,6 +262,11 @@ class LocalServer:
     def __init__(self, app, port: int = 8765, host: str = LOOPBACK,
                  apps: dict | None = None) -> None:
         self._door = Door(app, apps=apps)
+        if os.environ.get("REQUIRE_AUTH") == "1":
+            owner = self._door.registry.owner()
+            if owner is None or not (owner.password or owner.google):
+                raise SystemExit("REQUIRE_AUTH: register an owner with a password before sharing; "
+                                 "use reader add NAME --home data, then reader password NAME")
         self._port = port
         self._host = host
 
@@ -352,12 +358,21 @@ def _make_handler(door: "Door"):
             may go on. Answers the refusal itself when it may not."""
             render.ACTIVE.reader = ""
             render.ACTIVE.shared = False
+            render.ACTIVE.owner = not door.shared
             if not door.shared:
                 return True, None
             render.ACTIVE.shared = True
             reader = self._reader()
             if reader is not None:
                 render.ACTIVE.reader = reader.name
+                render.ACTIVE.owner = door.is_owner(reader)
+                restricted = OWNER_ACTIONS if posting else OWNER_PAGES
+                if path in restricted and not render.ACTIVE.owner:
+                    if path.startswith("/api/"):
+                        self._send_json({"error": "owner only"}, status=403)
+                    else:
+                        self._send(render.owner_only(), status=403)
+                    return False, reader
                 return True, reader
             if posting:
                 self._send(_signed_out(), status=403)
@@ -431,7 +446,16 @@ def _make_handler(door: "Door"):
                 self._send(_oops(error), status=500)
 
         def do_POST(self) -> None:                # noqa: N802
-            length = int(self.headers.get("Content-Length") or 0)
+            try:
+                length = int(self.headers.get("Content-Length") or 0)
+            except ValueError:
+                self.close_connection = True
+                self._send_json({"error": "invalid content length"}, status=400)
+                return
+            if length < 0 or length > 1024 * 1024:
+                self.close_connection = True
+                self._send_json({"error": "request too large"}, status=413)
+                return
             body = self.rfile.read(length).decode("utf-8")
             posted = urlparse(self.path).path.rstrip("/")
             if door.shared and not self._same_origin():
@@ -746,7 +770,8 @@ def _make_handler(door: "Door"):
             """Whether someone may sign up here on their own: Google is set
             up, the installation has its owner -- or the first stranger
             would make it theirs -- and there are places left."""
-            return (door.google is not None and door.registry.owner() is not None
+            return (os.environ.get("INVITE_ONLY") != "1"
+                    and door.google is not None and door.registry.owner() is not None
                     and door.registry.places() > 0)
 
         def _google_back(self, query: dict) -> tuple[str, int]:
@@ -856,6 +881,10 @@ def _make_handler(door: "Door"):
             """What answers without a session."""
             render.ACTIVE.reader = ""
             render.ACTIVE.shared = False
+            render.ACTIVE.owner = False
+            if path == "/healthz":
+                self._send_json({"status": "ok"})
+                return "", 0
             if path == "/signup":
                 token = query.get("invite") or ""
                 if token:
