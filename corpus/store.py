@@ -364,6 +364,32 @@ class CorpusStore:
                         (list(builds),))
             return Counter({(kind, key): n for kind, key, n in cur.fetchall()})
 
+    def family_counts(self, families, *builds: str) -> dict:
+        """Distinct lines per dictionary family, without loading sentences.
+
+        A line may say both the lemma and its pattern (or repeat a token).
+        Summing materialized counts would count that line more than once.
+        """
+        parents = list(families)
+        rows = [(i, u.kind, u.key) for i, parent in enumerate(parents)
+                for u in families[parent]]
+        if not rows:
+            return {}
+        values = ",".join(["(%s,%s,%s)"] * len(rows))
+        params = [value for row in rows for value in row]
+        sql = (f"WITH wanted(family, kind, key) AS (VALUES {values}) "
+               "SELECT w.family, count(DISTINCT s.id)::int FROM wanted w "
+               "JOIN corpus_unit u ON u.kind = w.kind AND u.key = w.key "
+               "JOIN corpus_sentence s ON s.id = u.sentence_id")
+        if builds:
+            sql += " WHERE s.build = ANY(%s)"
+            params.append(list(builds))
+        sql += " GROUP BY w.family"
+        with self._read() as cur:
+            cur.execute(sql, params)
+            counts = dict(cur.fetchall())
+        return {parent: counts.get(i, 0) for i, parent in enumerate(parents)}
+
     def example_texts(self, kind: str, key: str, *builds: str,
                       words: tuple[int, int] | None = None,
                       limit: int = 40) -> list[str]:

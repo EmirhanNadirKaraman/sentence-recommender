@@ -29,7 +29,7 @@ from threading import Lock, Thread
 from urllib.parse import quote
 
 from config import Settings
-from vocab.search import UnitSearch
+from vocab.search import UnitSearch, word_families
 from vocab.word_lists import WordListStore
 from fingerprint import analyser_fingerprint
 from scores import ScoreStore
@@ -2679,6 +2679,11 @@ class Viewer:
         # The lemma the form belongs to, if the table knows it.
         lemma = self.app.analyzer.verb_lemmas.get(folded, "")
         said = self._units_like(source, folded, lemma)
+        families = word_families(said, self.app.settings.language)
+        grouped = {parent: members for parent, members in families.items() if len(members) > 1}
+        totals = {parent: said[parent] for parent in families}
+        if grouped:
+            totals.update(self.app.corpus_store.family_counts(grouped, *self._builds(source)))
         known = self.known
 
         def score(unit) -> tuple:
@@ -2689,14 +2694,33 @@ class Viewer:
                 rank = 1
             else:
                 rank = 2
-            return (rank, -said[unit], len(unit.key), unit.key)
+            return (rank, -totals[unit], len(unit.key), unit.key)
 
-        hits = sorted(said, key=score)[:120]
+        hits = sorted(families, key=score)[:120]
         if not hits:
             return self._page(
                 "Words", f"<h1>Nothing says {escape(needle)}</h1>"
                 "<p class='empty'>No word in the corpus matches that. Try "
                 "another form, or a part of it.</p>" + box, "/words", source)
+        def usages(parent):
+            variants = [u for u in families[parent] if u != parent]
+            if not variants:
+                return ""
+            links = []
+            for u in variants:
+                hidden = (f"<input type='hidden' name='kind' value='{escape(u.kind)}'>"
+                          f"<input type='hidden' name='key' value='{escape(u.key, quote=True)}'>"
+                          "<input type='hidden' name='back' value='/words'>")
+                links.append(
+                    "<div class='word-usage'>"
+                    f"<a href='/unit/{u.kind}/{quote(u.key, safe='')}?src={quote(source)}'>{escape(u.key)}</a>"
+                    + ("<span class='tag'>known</span>" if u in known else "")
+                    + ("<span class='tag'>on the list</span>" if u in self._goal_set() else "")
+                    + f"<span class='muted'>{said[u]:,} lines</span>"
+                    + f"<span>{self.anki_button(u, hidden)}</span></div>")
+            return (f"<details class='word-usages'><summary>{len(variants)} "
+                    f"{'usage' if len(variants) == 1 else 'usages'}</summary>{''.join(links)}</details>")
+
         rows = "".join(
             "<tr>"
             f"<td><a href='/unit/{u.kind}/{quote(u.key, safe='')}"
@@ -2704,9 +2728,9 @@ class Viewer:
             + ("<span class='tag'>known</span>" if u in known else "")
             + ("<span class='tag'>on the list</span>"
                if u in self._goal_set() else "")
-            + "</td>"
+            + usages(u) + "</td>"
             f"<td class='n'>{u.kind}</td>"
-            f"<td class='n'>{said[u]:,}</td>"
+            f"<td class='n'>{totals[u]:,}</td>"
             f"{self._anki_cell(u)}</tr>"
             for u in hits)
         body = (f"<h1>{escape(needle)}</h1>" + box
@@ -2714,7 +2738,7 @@ class Viewer:
                    f"{'' if len(hits) == 1 else 'es'}"
                    + (f" · <b>{escape(lemma)}</b> is the lemma the table gives"
                       if lemma and lemma != folded else "") + "</p>")
-                + "<table class='rows'><tr><th>word</th><th class='n'>kind</th>"
+                + "<table class='rows dictionary-results'><tr><th>word</th><th class='n'>kind</th>"
                 "<th class='n'>lines</th><th class='n'>anki</th></tr>"
                 + rows + "</table>")
         return self._page("Words", body, "/words", source)

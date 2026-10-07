@@ -17,6 +17,33 @@ from heapq import nsmallest
 from vocab.entry import Unit
 
 
+def word_families(units, language: str = "de") -> dict[Unit, tuple[Unit, ...]]:
+    """Dictionary rows, with grammar usages nested under their lexical head.
+
+    This is presentation grouping, not a knowledge alias: knowing a verb
+    does not grant knowledge of its prepositions or reflexive constructions.
+    Multiword expressions and ambiguous heads keep their own rows.
+    """
+    from vocab.aliases import heads
+    units = tuple(units)
+    lemmas = {u.key: u for u in units if u.kind == "lemma"}
+    folded = {}
+    for key, unit in lemmas.items():
+        folded.setdefault(key.casefold(), []).append(unit)
+    families = {}
+    for unit in units:
+        parent = unit
+        if unit.kind == "pattern":
+            named = heads(unit.key, language)
+            if len(named) == 1:
+                head = next(iter(named))
+                matches = folded.get(head.casefold(), ())
+                parent = lemmas.get(head) or (matches[0] if len(matches) == 1 else unit)
+        families.setdefault(parent, []).append(unit)
+    return {parent: tuple(sorted(members, key=lambda u: (u != parent, u.key, u.kind)))
+            for parent, members in families.items()}
+
+
 def trigrams(text: str) -> set[str]:
     """`haus` -> {'  h', ' ha', 'hau', 'aus', 'us '}.
 

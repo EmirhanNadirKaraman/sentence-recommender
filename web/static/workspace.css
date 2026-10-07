@@ -417,6 +417,28 @@ body[data-page='/anki'] .cloze .target { padding: 3px 7px; border-radius: 6px;
   .drawer-head { flex-shrink:0; }
   .drawer-scroll { min-height:0; }
 }
+.word-usages { margin-top:8px; font-size:13px; }
+.word-usages summary { color:var(--muted); cursor:pointer; min-height:44px; display:flex; align-items:center; gap:6px; }
+.word-usages summary::before { content:'›'; transition:transform .15s; }
+.word-usages[open] summary::before { transform:rotate(90deg); }
+.word-usage { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:10px 0 10px 12px; border-left:2px solid var(--line); }
+.word-usage > a { overflow-wrap:anywhere; }
+.word-usage .muted { white-space:nowrap; }
+.word-usage button { min-height:44px; }
+@media (max-width:640px) {
+  .dictionary-results, .dictionary-results tbody { display:block; width:100%; }
+  .dictionary-results tr { display:grid; grid-template-columns:minmax(0,1fr) auto; padding:14px; border-bottom:1px solid var(--line); }
+  .dictionary-results tr:first-child { display:none; }
+  .dictionary-results tr:last-child { border-bottom:0; }
+  .dictionary-results td { display:block; border:0; padding:4px 0; min-width:0; }
+  .dictionary-results td:first-child { grid-column:1 / -1; }
+  .dictionary-results td:nth-child(2) { display:none; }
+  .dictionary-results td:nth-child(3) { align-self:center; text-align:left; white-space:nowrap; color:var(--muted); }
+  .dictionary-results td:nth-child(3)::after { content:' lines'; }
+  .dictionary-results td:nth-child(4) { text-align:right; }
+  .dictionary-results button { white-space:nowrap; min-height:44px; }
+  .word-usage { padding-bottom:14px; }
+}
 @media (max-height:500px) and (max-width:960px) {
   .reel-topbar { padding:calc(8px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 8px max(16px, env(safe-area-inset-left)); }
   .reel-rail { bottom:calc(20px + env(safe-area-inset-bottom)); gap:5px; }
