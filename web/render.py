@@ -6,6 +6,7 @@ assets. Every route uses the same shell, including account and empty states.
 from __future__ import annotations
 
 import hashlib
+import re
 import threading
 from html import escape
 from urllib.parse import quote
@@ -45,6 +46,64 @@ NAV_GROUPS = (
     ("YOUR COLLECTION", ("/starred", "/words", "/lists", "/anki")),
     ("YOUR JOURNEY", ("/journey", "/roadmap", "/plan", "/frontier", "/blocked", "/settings")),
 )
+
+# A small amount of page framing is shared by every route. The handlers
+# remain responsible for their content, forms and empty-state messages.
+PAGE_KICKERS = {
+    '/review': 'MAKE IT STICK', '/hear': 'TUNE YOUR EAR',
+    '/mine': 'FIND YOUR VOICE', '/quiz': 'KNOW WHERE YOU STAND',
+    '/subtitles': 'FOLLOW YOUR CURIOSITY', '/channels': 'REAL VOICES',
+    '/starred': 'WORTH KEEPING', '/words': 'YOUR LANGUAGE, UP CLOSE',
+    '/lists': 'A COLLECTION OF POSSIBILITIES', '/anki': 'TAKE YOUR WORDS WITH YOU',
+    '/roadmap': 'ONE DISCOVERY AT A TIME', '/plan': 'YOUR NEXT WATCH',
+    '/frontier': 'WITHIN REACH', '/blocked': 'OPEN MORE DOORS',
+    '/settings': 'MAKE THIS SPACE YOURS', '/watch': 'LISTEN. NOTICE. UNDERSTAND.',
+    '/study': 'A LITTLE FOCUSED PRACTICE', '/video': 'EXPLORE THIS VIDEO',
+    '/fix': 'REFINE THE DETAILS',
+    '/unit': 'ONE WORD, MORE POSSIBILITIES',
+}
+PAGE_LABELS = {'/video': 'Video detail', '/watch': 'Watch in context',
+               '/study': 'Focused practice', '/fix': 'Sentence editor', '/unit': 'Word detail'}
+
+
+def page_frame(body: str, here: str) -> str:
+    """Frame the existing first heading; preserve its message and controls.
+
+    Only the initial explanatory paragraph joins the heading. Feedback,
+    cards and interactive content stay in their original position.
+    """
+    if here in ('/', '/journey', '/reels', '/study'):
+        return body
+    match = re.search(r'(<h1\b[^>]*>.*?</h1>)(\s*<p class=[\'\"](?:note|lede|quiet)[\'\"]>.*?</p>)?', body, re.S)
+    if match is None:
+        return body
+    key = '/unit' if here.startswith('/unit/') else here
+    kicker = PAGE_KICKERS.get(key, 'YOUR LEARNING SPACE')
+    framed = ("<header class='page-heading'><div class='page-heading-copy'>"
+              f"<span class='eyebrow'>{kicker}</span>{match.group(0)}</div>"
+              f"<span class='page-emblem'>{icon('/words' if key == '/unit' else '/mine' if key == '/fix' else here)}</span></header>")
+    before, after = body[:match.start()], body[match.end():]
+    # Several list pages put filter switches before their title. Give the
+    # title its expected place without moving result/validation messages.
+    if before.startswith("<div class='switch'>"):
+        return framed + "<div class='filter-panel'>" + before + "</div>" + after
+    return before + framed + after
+
+
+def settings_sections(body: str) -> str:
+    """Give each settings section a stable anchor and its own visual panel."""
+    parts = re.split(r'(<h2>.*?</h2>)', body)
+    if len(parts) < 3:
+        return body
+    panels, links = [], []
+    for index in range(1, len(parts), 2):
+        heading = parts[index]
+        label = re.sub(r'<[^>]+>', '', heading)
+        anchor = 'setting-' + re.sub(r'[^a-z0-9]+', '-', label.lower()).strip('-')
+        links.append(f"<a href='#{anchor}'>{label}</a>")
+        panels.append(f"<section class='settings-panel' id='{anchor}'>" + heading + parts[index + 1] + "</section>")
+    return (parts[0] + "<div class='settings-layout'><nav class='settings-index' aria-label='Settings sections'>"
+            + ''.join(links) + "</nav><div class='settings-panels'>" + ''.join(panels) + "</div></div>")
 
 ICON_PATHS = {
     "/": "M4 5h6a2 2 0 0 1 2 2v13a4 4 0 0 0-4-2H4z M20 5h-6a2 2 0 0 0-2 2v13a4 4 0 0 1 4-2h4z",
@@ -106,6 +165,10 @@ ANKI_REMIND = 15
 
 def layout(title: str, body: str, here: str = "/", source: str = "",
            wordlist: str = "", anki_new: int = 0, bare: bool = False, journey: dict | None = None) -> str:
+    if here == '/settings' and not bare:
+        body = settings_sections(body)
+    if not bare:
+        body = page_frame(body, here)
     # Both carried, because a nav link that drops either one silently puts
     # the reader back on the default corpus or the default goal list, which
     # looks like the switch did not work.
@@ -127,11 +190,21 @@ def layout(title: str, body: str, here: str = "/", source: str = "",
                 f"{icon(href)}<span>{escape(label)}</span>{badge}</a>")
 
     labels = dict(NAV)
-    active_path = here if here in labels else "/words" if here.startswith("/word/") else here
+    active_path = (here if here in labels else '/words' if here.startswith(('/word/', '/unit/'))
+                   else '/subtitles' if here in ('/video', '/watch')
+                   else '/' if here == '/study' else '/roadmap' if here == '/fix' else here)
     groups = "".join(
         f"<div class='nav-group'><p>{heading}</p>"
         + "".join(link(path, labels[path]) for path in paths) + "</div>"
         for heading, paths in NAV_GROUPS
+    )
+    desktop_groups = ''.join(
+        (f"<details class='nav-group nav-disclosure'{' open' if active_path in paths else ''}>"
+         f"<summary>{heading}<span aria-hidden='true'>⌄</span></summary>"
+         + ''.join(link(path, labels[path]) for path in paths) + '</details>')
+        if index >= 2 else
+        f"<div class='nav-group'><p>{heading}</p>" + ''.join(link(path, labels[path]) for path in paths) + '</div>'
+        for index, (heading, paths) in enumerate(NAV_GROUPS)
     )
     reader = getattr(ACTIVE, "reader", "") if getattr(ACTIVE, "shared", False) else ""
     account = (f"<div class='who'><span class='avatar'>{escape(reader[:1].upper())}</span>"
@@ -141,11 +214,11 @@ def layout(title: str, body: str, here: str = "/", source: str = "",
              "<span class='brand-mark'>i<span>+1</span></span>"
              "<span>little by little<small>A LANGUAGE LEARNING SPACE</small></span></a>")
     shell = ("<header class='masthead'><div class='inner'>" + brand
-             + "<nav class='desktop-nav' aria-label='Main navigation'>" + groups + "</nav>"
+             + "<nav class='desktop-nav' aria-label='Main navigation'>" + desktop_groups + "</nav>"
              + "<div class='rail-note'><span>✦</span><p>A little practice.<br>A little more possibility.</p></div>"
              + account + "</div></header>" if not bare else "<header class='auth-brand'>" + brand + "</header>")
     section = next((heading for heading, paths in NAV_GROUPS if active_path in paths), "YOUR LEARNING SPACE")
-    current = labels.get(active_path, title)
+    current = PAGE_LABELS.get('/unit' if here.startswith('/unit/') else here, labels.get(active_path, title))
     context = "".join(f"<span class='context-chip'>{escape(str(value).replace('_', ' '))}</span>"
                       for value in (source, wordlist) if value)
     toolbar = (f"<div class='workspace-top'><div><span class='workspace-section'>{section}</span>"
@@ -196,6 +269,7 @@ def layout(title: str, body: str, here: str = "/", source: str = "",
         # Single quotes inside the braces: reusing the outer quote there is
         # also PEP 701, and this file has no other reason to demand 3.12.
         f"<link rel='stylesheet' href='{stamped('app.css')}'>"
+        f"<link rel='stylesheet' href='{stamped('workspace.css')}'>"
         # Colours on or off is this browser's choice (Settings), read here,
         # before the body, so the first paint is already the right one.
         "<script>try{if(localStorage.getItem('colours')==='1')"
@@ -367,7 +441,9 @@ def login_page(error: str, target: str, name: str = "",
     """The door: a name and a password, or Google, and where to go after."""
     warning = f"<p class='note due'>{escape(error)}</p>" if error else ""
     body = (
-        "<h1>Sign in</h1>"
+        "<div class='auth-intro'><span class='eyebrow'>YOUR NEXT DISCOVERY AWAITS</span>"
+        "<h1>Welcome back.</h1>"
+        "<p class='auth-description'>A little practice. A little more of the world, yours.</p></div>"
         f"{warning}"
         f"{_google_form('signin', 'Sign in with Google', target) if google else ''}"
         "<form method='post' action='/login' class='login'>"
@@ -380,7 +456,8 @@ def login_page(error: str, target: str, name: str = "",
         "<button type='submit'>Sign in</button>"
         "</form>"
         + ("<p class='note'>New here? <a href='/signup'>Make an account with "
-           "Google</a>.</p>" if google else "")
+           "Google</a>.</p>" if google else
+           "<p class='auth-description auth-footer'>Joining a friend? Open their invitation link to create your account.</p>")
     )
     return layout("Sign in", body, bare=True)
 
@@ -411,7 +488,8 @@ def signup_page(error: str, token: str, found: dict, name: str = "",
                "name='purpose' value='signup'>Use Google instead of a "
                "password</button>" if google else "")
     body = (
-        "<h1>Make your account</h1>"
+        "<div class='auth-intro'><span class='eyebrow'>A LANGUAGE SPACE OF YOUR OWN</span>"
+        "<h1>Make your account</h1></div>"
         f"<p class='note'>You have an invitation. {_invited_to(found)} "
         "Pick the name you will sign in with, and a password"
         + (" -- or sign in with Google instead" if google else "") + ".</p>"

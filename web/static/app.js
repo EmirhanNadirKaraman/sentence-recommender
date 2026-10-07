@@ -69,6 +69,22 @@
   };
 })();
 
+// Keep the current destination visible inside the independently scrolling
+// desktop rail, including the lower sections on a short laptop display.
+(function () {
+  function revealCurrent() {
+    var nav = document.querySelector('.desktop-nav');
+    var current = nav && nav.querySelector('[aria-current="page"]');
+    if (!current) return;
+    var area = nav.getBoundingClientRect();
+    var item = current.getBoundingClientRect();
+    if (item.bottom > area.bottom) nav.scrollTop += item.bottom - area.bottom + 12;
+  }
+  // Autofocus and scroll restoration run during loading. Position the rail
+  // after them so search pages keep their current destination in view too.
+  window.addEventListener('load', function () { requestAnimationFrame(revealCurrent); });
+})();
+
 // Taking back "I know this".
 //
 // It is the only destructive thing here, and a right swipe is a gesture you

@@ -421,8 +421,12 @@ class Viewer:
         checked = self.app.checked.units()
         done = len(checked)
         if not pending:
-            return ("<p class='empty'>Every assumed-known word has been "
-                    "checked. Nothing left to ask.</p>")
+            return ("<div class='session-complete'><span class='completion-mark' aria-hidden='true'>✓</span>"
+                    "<h2>You’ve checked them all.</h2><p>Every assumed-known word has been "
+                    "checked. Nothing left to ask.</p><div class='actions'>"
+                    f"<a class='go' href='{self._link('/', source)}'>Keep learning</a>"
+                    f"<a class='link' href='{self._link('/review', source)}'>Review your words</a>"
+                    "</div></div>")
         group = pending[0]
         unit = group[0]["unit"]
         written = " / ".join(sorted({e["surface"] for e in group}))
@@ -744,15 +748,24 @@ class Viewer:
             f"class=\"{'on' if n == name else ''}\">{escape(n)}"
             f" <small>{c:,}</small></a>"
             for n, c, _ in saved)
+        collections = ''.join(
+            f"<a class='collection-card' href='/lists?name={quote(n, safe='')}&src={quote(source)}'>"
+            "<span class='collection-mark' aria-hidden='true'>Aa</span>"
+            f"<strong>{escape(n.replace('_', ' '))}</strong><span>{c:,} word{'s' if c != 1 else ''}</span>"
+            "<small>Open collection ↗</small></a>" for n, c, _ in saved)
         body = [
             "<h1>Your word collections</h1>",
+            "<p class='note'>Gather the words you want to make yours. Open a collection, "
+            "or name a new one and search for words to add.</p>",
             self.list_switch(query, "/lists"),
-            f"<div class='switch'><span>Lists</span>{picker or empty}</div>",
+            (f"<div class='switch'><span>Lists</span>{picker or empty}</div>" if name else
+             f"<div class='collection-grid'>{collections}</div>" if collections else empty),
+            "<h2>Build a collection</h2>" if not name else "<h2>Add a word</h2>",
             "<form method='get' action='/lists' class='row'>",
             f"<input type='hidden' name='src' value='{escape(source)}'>",
-            f"<input name='name' placeholder='list name' value='{escape(name)}'"
+            f"<input name='name' aria-label='Collection name' placeholder='Collection name' value='{escape(name)}'"
             " required>",
-            f"<input name='q' placeholder='search a word' value='{escape(needle)}'"
+            f"<input name='q' aria-label='Search for a word' placeholder='Search for a word' value='{escape(needle)}'"
             " autofocus>",
             "<button>Search</button></form>",
         ]
@@ -1016,7 +1029,9 @@ class Viewer:
             lede += (" The judge doubts this sentence — a fragment, or two lines "
                      "in one — and nothing cleaner says the word yet.")
         body = (
-            switch + picker
+            "<details class='learning-options'><summary>Customize your practice"
+            "<span>Study list &amp; learning preferences</span></summary>"
+            "<div class='learning-options-body'>" + switch + picker + "</div></details>"
             # Everything from here down is replaced in place when a word is
             # decided, so it is built once and shared with `/api/next`.
             # Three pieces, and the split is forced by the player: it must
@@ -1490,7 +1505,7 @@ class Viewer:
         found = holding[0] if holding else None
         if found is None:
             return self._page("Fix", "<h1>No such sentence</h1><p class='empty'>It "
-                          "may have been dropped already.</p>", "/roadmap", source)
+                          "may have been dropped already.</p>", "/fix", source)
 
         known = self.known
         boxes = "".join(
@@ -1521,7 +1536,7 @@ class Viewer:
             "<button name='action' value='reset'>Use the analyser's answer"
             "</button></div></form>"
         )
-        return self._page("Fix", body, "/roadmap", source)
+        return self._page("Fix", body, "/fix", source)
 
     def save_fix(self, form: dict) -> str:
         """Store a correction, or throw one away, and go back to the reading."""
@@ -1722,6 +1737,11 @@ class Viewer:
         found = self.anki_examples(source, queued)
         when = {Unit(k, y): t for (k, y), t in self.app.overrides.anki_queue().items()}
         order = sorted(queued, key=lambda u: (when.get(u, ""), u.key), reverse=True)
+        def preview(text, surface):
+            # Use the exported cloze itself, so the visual preview highlights
+            # exactly the deletion Anki will ask for. Escape before styling.
+            return re.sub(r'\{\{c1::(.*?)\}\}', r"<span class='target'>\1</span>",
+                          escape(self.anki_cloze(text, surface)))
         cards = []
         for unit in order:
             rows = found.get(unit, [])
@@ -1732,7 +1752,7 @@ class Viewer:
             body = "".join(
                 f"<p class='cloze"
                 + ("" if self.app.judged.checked(text) else " unchecked")
-                + f"'>{escape(self.anki_cloze(text, surface))}"
+                + f"'>{preview(text, surface)}"
                 + ("" if self.app.judged.checked(text) else
                    "<span class='tag'>unchecked</span>") + "</p>"
                 for text, surface in rows) or \
@@ -1756,24 +1776,20 @@ class Viewer:
                "<p class='note'>Everything queued has been exported at least "
                "once. Downloading again refreshes the sentences on the cards "
                "you already have.</p>")
-        body = ("<h1>Cards to make</h1>" + due
-                + "<p class='lede'>One card a word, three sentences on it, the "
-                "word blanked in each. The files carry their own note type, "
-                "deck and identity, so importing is one click and re-importing "
-                "updates the cards you have rather than making new ones — your "
-                "intervals survive a regenerated deck.</p>"
-                "<p class='lede'>Two files, because they are two different "
-                "cards. Without English the answer is the word itself, "
-                "recovered from the German around it, and nothing on the "
-                "page can give it away. With English it is a reading card. "
-                "They want separate decks and separate intervals rather "
-                "than the same note imported twice.</p>"
-                f"<p class='tally'><b>{len(order):,}</b> queued · "
-                f"<b>{ready:,}</b> with sentences · "
-                f"<a class='link' href='/anki.csv?src={quote(source)}'>"
-                "Download without English</a> · "
-                f"<a class='link' href='/anki-english.csv?src={quote(source)}'>"
-                "with English</a></p>" + "".join(cards))
+        body = ("<h1>Your words, ready for Anki</h1>" + due
+                + f"<section class='export-panel'><p class='tally'><b>{len(order):,}</b> queued · "
+                f"<b>{ready:,}</b> with sentences</p><div class='export-options'>"
+                f"<a href='/anki.csv?src={quote(source)}'><span class='export-icon' aria-hidden='true'>Aa</span>"
+                "<strong>Recall from context</strong><span>German sentences. Find the missing word.</span>"
+                "<small>Download without English ↗</small></a>"
+                f"<a href='/anki-english.csv?src={quote(source)}'><span class='export-icon' aria-hidden='true'>A↔B</span>"
+                "<strong>Read with support</strong><span>German sentences with English translations.</span>"
+                "<small>Download with English ↗</small></a></div>"
+                "<details class='method-note'><summary>Importing and updating your cards</summary>"
+                "<p>Each word has three sentences. The files include the note type, deck and identity. "
+                "Importing again updates existing cards and keeps their review intervals. "
+                "Use separate decks for the two practice styles.</p></details></section>"
+                "<h2>Preview your cards</h2><p class='note'>The highlighted word becomes the blank in Anki.</p>" + "".join(cards))
         return self._page("Anki", body, "/anki", source)
 
     def anki_csv(self, query: dict, english: bool = False) -> str:
@@ -2159,10 +2175,12 @@ class Viewer:
         body = (self.list_switch(query, "/roadmap")
                 + self.counting_switch(query, "/roadmap")
                 + "<h1>Your learning path</h1>"
-                f"<p class='note'>{len(steps):,} steps in the order they were "
-                f"planned, saved by the last build of <code>{escape(label)}</code>. The marked word was the only "
-                "unknown one in its sentence at that point — anything you have "
-                "learned since is labelled <em>known</em> in the rail.</p>"
+                f"<p class='note'>{len(steps):,} discoveries, one manageable step at a time. "
+                "Explore what comes next, or revisit the words you have made yours.</p>"
+                "<details class='method-note'><summary>About this learning path</summary>"
+                f"<p>Saved from <code>{escape(label)}</code>. The marked word was the only "
+                "unknown one when this path was built. Words learned since then are "
+                "labelled <em>known</em>.</p></details>"
                 f"{self._filters(needle, kind, source, hide)}"
                 f"{self._hidden_note(hidden)}{listing}"
                 f"{self._pager(page, pages, needle, kind, source, hide)}")
@@ -2376,15 +2394,13 @@ class Viewer:
             self.list_switch(query, "/blocked")
             + self.counting_switch(query, "/blocked")
             + f"<div class='switch'><span>Showing</span>{picker}</div>"
-            "<h1>Where the roadmap stops</h1>"
-            f"<p class='note'>{len(stranded):,} words on {escape(self.list_name())}"
-            " this corpus cannot teach, because none of them is ever the only new "
-            "thing in a sentence. Every sentence saying one says something "
-            "else you do not know as well — often a word that is not on your "
-            "list at all, which the walk will therefore never teach, so no "
-            f"amount of progress will free it. {near:,} are a single word "
-            "away — learn that word, or find a clip that says this one "
-            "plainly, and the chain continues.</p>"
+            "<h1>A little more context.</h1>"
+            f"<p class='note'>{len(stranded):,} words in {escape(self.list_name())} need more "
+            f"support from this corpus. {near:,} are just one other word away.</p>"
+            "<details class='method-note'><summary>How to open the next door</summary>"
+            "<p>These words never appear as the only unfamiliar part of a sentence in the selected corpus. "
+            "Learn a word that appears alongside them, or find a clearer clip, to make them reachable. "
+            "Some supporting words are outside your study list.</p></details>"
             + turner()
             + (f"<div class='ledger'>{entries}</div>" if entries
                else "<p class='empty'>Nothing is stranded — the roadmap "
@@ -2517,15 +2533,16 @@ class Viewer:
         needle = (query.get("q") or "").strip()
         box = ("<form class='bar' method='get' action='/words'>"
                f"<input type='hidden' name='src' value='{escape(source)}'>"
-               f"<input type='text' name='q' value='{escape(needle)}' autofocus "
+               f"<input type='text' name='q' aria-label='Look up a word' value='{escape(needle)}' autofocus "
                "placeholder='a word, in any form — gibt, gegeben, geben'>"
                "<button type='submit'>Look it up</button></form>")
         if not needle:
             return self._page(
-                "Words", "<h1>Look up a word</h1><p class='lede'>Any form will "
-                "do — the lemma table turns <b>gibt</b> into <b>geben</b>. "
-                "What comes back is the sentences that say it, each opening "
-                "its video where it was said.</p>" + box, "/words", source)
+                "Words", "<h1>Look up a word</h1><p class='lede'>Find a word in real sentences. "
+                "Any form works: <b>gibt</b>, <b>gegeben</b>, or <b>geben</b>.</p>" + box
+                + "<div class='search-starters'><span>Try a word</span>"
+                + ''.join(f"<a href='{self._link('/words', source, q=word)}'>{word} ↗</a>"
+                          for word in ('geben', 'Haus', 'Zeit')) + "</div>", "/words", source)
 
         folded = needle.casefold()
         # The lemma the form belongs to, if the table knows it.
@@ -2635,7 +2652,7 @@ class Viewer:
             body = (f"<h1>{escape(key)}</h1><p class='empty'>No sentence in this "
                     "corpus uses it. Generate one with "
                     "<code>python main.py fill-gaps</code>.</p>")
-            return self._page(key, body, "/roadmap", source)
+            return self._page(key, body, f"/unit/{kind}/{quote(key, safe='')}", source)
         body = (
             f"<h1>{escape(key)}</h1>"
             f"<p class='note'>{holding:,} sentences here use it"
@@ -2657,7 +2674,7 @@ class Viewer:
                if watchable else "")
             + video.merged_script(self.known)
         )
-        return self._page(key, body, "/roadmap", source)
+        return self._page(key, body, f"/unit/{kind}/{quote(key, safe='')}", source)
 
     def _word_deck(self, target: Unit, source: str, video_id: str = "",
                    list_only: bool = False) -> tuple[list[Sentence], int]:
@@ -3109,25 +3126,26 @@ class Viewer:
         heard = self.app.encounters.count(card.unit)
         body = (
             "<h1>Did you know it?</h1>"
-            "<p class='lede'>The word, said where it was said. No English: "
-            "listen, read the line, and say whether you had it. The answer "
-            "moves the same card the Review page moves.</p>"
+            "<p class='lede'>A familiar word in a real voice. Listen without a translation, "
+            "then decide whether you understood it.</p>"
+            "<section class='listening-session'><div class='listening-media'>"
+            + video.player(clip_video, line.timing.start)
+            + "</div><div class='listening-details'><span class='eyebrow'>LISTEN FOR THIS WORD</span>"
+            f"<h2 class='word'>{escape(card.unit.key)}</h2>"
+            f"<p class='caption'>{escape(line.text)}</p>"
             f"<p class='tally'><b>{len(queue):,}</b> due · heard while "
             f"watching <b>{heard:,}</b> time{'' if heard == 1 else 's'}</p>"
-            f"<h2 class='word'>{escape(card.unit.key)}</h2>"
-            + video.player(clip_video, line.timing.start)
-            + f"<p class='caption'>{escape(line.text)}</p>"
             f"<p class='quiet'><a class='link' href='/video?id="
             f"{quote(clip_video, safe='')}&src={quote(source)}'>"
             f"{escape(title[:64])}</a></p>"
-            "<form class='actions' method='post' action='/hear'>"
+            "<form class='actions listening-answers' method='post' action='/hear'>"
             f"<input type='hidden' name='kind' value='{escape(card.unit.kind)}'>"
             f"<input type='hidden' name='key' value='{escape(card.unit.key)}'>"
             f"<input type='hidden' name='src' value='{escape(source)}'>"
-            "<button type='submit' name='action' value='good'>I knew it</button>"
+            "<button class='go' type='submit' name='action' value='good'>I knew it</button>"
             "<button type='submit' name='action' value='again'>I did not</button>"
             "<button type='submit' name='action' value='skip'>Not this one</button>"
-            "</form>")
+            "</form><p class='field-hint'>Your answer counts toward the same review progress.</p></div></section>")
         return self._page("Hearing", body, "/hear", source)
 
     def save_hearing(self, form: dict) -> str:
@@ -3267,17 +3285,16 @@ class Viewer:
             for r in saved)
         body = (
             "<h1>Make it yours</h1>"
-            "<p class='note'>Sentences you want to be able to say. Write one in "
-            "English or German; the local model puts it into German, you read it "
-            "over and keep it. A kept sentence joins the corpus as yours — it leads "
-            "the cards of every word in it — and is asked for on Review with the "
-            "words, English first, spaced further apart each time you can say it.</p>"
+            "<p class='note'>Turn something you want to say into a sentence you can remember. "
+            "Write in English or German, refine it, and keep it for practice.</p>"
             + top
             + "<h2>Write one</h2>"
-            "<form class='mine' method='post' action='/mine'>"
+            "<form class='mine writing-studio' method='post' action='/mine'>"
             f"<input type='hidden' name='src' value='{escape(source)}'>"
-            "<textarea name='said' rows='2' placeholder='Something you wanted to say — "
+            "<label class='writing-label' for='writing-said'>What would you like to say?</label>"
+            "<textarea id='writing-said' name='said' rows='4' placeholder='Something you wanted to say — "
             "in English, or in German to have it checked'></textarea>"
+            "<p class='field-hint'>Read the suggested German before saving. Your sentences join your review practice.</p>"
             "<div class='actions'><button class='go' name='action' value='translate'>"
             "Put it into German</button></div></form>"
             + ask
@@ -3375,7 +3392,7 @@ class Viewer:
         if card is None:
             return self._page("Study", "<h1>No such video</h1><p class='empty'>"
                               "Pick one from the <a href='/reels'>reels</a>.</p>",
-                              "/reels", source)
+                              "/study", source)
         body = (
             f"<div id='reading-top'>{card['top']}</div>"
             + self._audio_toggle()
@@ -3386,7 +3403,7 @@ class Viewer:
                if card["video"] else "")
             + video.merged_script(self.known)
         )
-        return self._page(card["title"], body, "/reels", source)
+        return self._page(card["title"], body, "/study", source)
 
     def study_json(self, query: dict) -> dict:
         """The next word of the video, for swapping in without a page load."""
@@ -3538,7 +3555,10 @@ class Viewer:
         listing = (f"<div class='ledger'>{entries}</div>" if window
                    else "<p class='empty'>Nothing is one word away here.</p>")
 
-        where = (f"<h1>Frontier</h1>"
+        where = (f"<h1>Your next milestones</h1>"
+                 f"<p class='note'>At step {step:,}, {len(found):,} discoveries are only one word away. "
+                 "Explore the possibilities your learning path opens up.</p>"
+                 "<details class='method-note'><summary>The context behind these suggestions</summary>"
                  f"<p class='note'>Step {step:,} of {total:,}"
                  f"{' — after the last step' if step > total else ''} in "
                  f"<code>{escape(label)}</code>. Knowing "
@@ -3546,7 +3566,7 @@ class Viewer:
                  f"{' (the function words alone)' if plan.beginner and step == 1 else ''}"
                  f", {readable:,} sentences read outright and "
                  f"<strong>{len(found):,}</strong> units are one word away: "
-                 f"{words:,} words, {len(found) - words:,} patterns.</p>")
+                 f"{words:,} words, {len(found) - words:,} patterns.</p></details>")
         if pick is not None:
             where += (f"<p class='note'>The plan teaches "
                       f"<strong>{escape(pick.key)}</strong> here"
@@ -3793,14 +3813,12 @@ class Viewer:
             if channel not in gone and counts.get(channel))
         body = (
             "<h1>Settings</h1>"
+            "<p class='note'>Your account, your reading preferences, and the voices you want to learn from.</p>"
             f"{self._account(query)}"
             "<h2>Colours</h2>"
-            "<p class='note'>Colour the words you do not know yet, wherever "
-            "words are drawn — captions, transcripts, the sentences on the "
-            "cards. Words you know keep the ink, and so do names, numbers and "
-            "fillers, which no unit claims; the word being learned keeps its "
-            "own mark. Kept in this browser, like the listening mode.</p>"
-            "<p><label class='switch'><input type='checkbox' id='colours'> "
+            "<p class='note'>Make unfamiliar words easier to spot in captions, transcripts and practice sentences. "
+            "This preference stays in this browser.</p>"
+            "<p><label class='preference-row'><input type='checkbox' id='colours'> "
             "Colour the words I do not know</label></p>"
             # The choice lives in the browser (`render.layout` reads it before
             # the body paints), so the box is wired here, not posted.
@@ -3809,24 +3827,15 @@ class Viewer:
             "b.onchange=function(){document.documentElement.classList.toggle('coloured',b.checked);"
             "try{localStorage.setItem('colours',b.checked?'1':'0')}catch(e){}}})()</script>"
             "<h2>Machine-made channels</h2>"
-            "<p class='note'>Marked on the reel, under the picture. A "
-            "machine-made channel's videos sink in the feed as a set-aside "
-            "channel's do, and its sentences count half on every card, deck "
-            "and plan — a sentence nobody said is a worse example than one "
-            "somebody did, but it still shows where nothing spoken says the "
-            "word. Stored plans pick it up at the next rebuild.</p>"
+            "<p class='note'>Channels you marked as synthetic. Their videos appear lower in the feed "
+            "and their sentences receive less weight in practice. Saved plans update on the next rebuild.</p>"
             + machine
             + "<h2>Removed videos</h2>"
-            "<p class='note'>One video at a time, for when a channel is worth "
-            "watching and one of its videos is not. Removed on the Channels "
-            "page, under the sample. It leaves every page the way a removed "
-            "channel's videos do, and its channel keeps everything else.</p>"
+            "<p class='note'>Videos hidden from your learning space. Restore one whenever you want it back.</p>"
             + singles
             + "<h2>Removed channels</h2>"
-            "<p class='note'>A removed channel is gone from every page: its "
-            "sentences leave the roadmap, the decks and the examples, and "
-            "its videos leave the feed and the catalogue. Nothing is "
-            "deleted, so restoring one brings all of it back at once.</p>"
+            "<p class='note'>Hidden channels and their sentences stay out of your feed and practice. "
+            "Restoring a channel brings everything back.</p>"
             + removed
             + "<h2>Remove a channel</h2>"
             "<form class='bar' method='post' action='/blacklist'>"
@@ -4101,12 +4110,11 @@ class Viewer:
               "later &rarr;</a>" if start + PLAN_PAGE < len(rows) else
               "<span class='link off'>later &rarr;</span>")
         body = ("<h1>Watch it in order</h1>"
-                "<p class='lede'>The order the experiment worked out: each "
-                "one is worth the most given everything before it, so watched "
-                "top to bottom nothing is wasted. Click a video to play it "
-                "with its subtitles. Easy German episodes have no video in "
-                "the catalogue — they are watched on the channel.</p>"
-                + picker
+                "<p class='lede'>A sequence of videos that builds on what came before. "
+                "Open a video to watch with subtitles; episode links lead to YouTube.</p>"
+                + "<details class='learning-options'><summary>Adjust your watch plan"
+                "<span>Learning goals &amp; ordering</span></summary><div class='learning-options-body'>"
+                + picker + "</div></details>"
                 + self._replan_panel(chosen, which, source)
                 + f"<p class='tally'><b>{len(rows):,}</b> viewings · "
                 f"<b>{videos:,}</b> videos · <b>{total / 60:,.0f}</b> hours · "
@@ -5577,7 +5585,7 @@ class Viewer:
         if not clips:
             return self._page("Watch",
                           "<h1>Nothing to watch</h1><p class='empty'>No video "
-                          "sentence in this corpus uses that.</p>", "/", source)
+                          "sentence in this corpus uses that.</p>", "/watch", source)
 
         i = min(max(int(query.get("i") or 0), 0), len(clips) - 1)
         clip = self.app.with_english([clips[i]])[0]
@@ -5603,7 +5611,7 @@ class Viewer:
             + video.transcript(cues, here, surface, words=_words, known=self.known)
             + video.script()
         )
-        return self._page(f"{target.key} on video", body, "/subtitles", source)
+        return self._page(f"{target.key} on video", body, "/watch", source)
 
     def _cues(self, video_id: str) -> list[Sentence]:
         """Every line of one video, in the order it is spoken.
@@ -5814,6 +5822,9 @@ class Viewer:
                     "whoever runs this installation.</p>")
         return (
             said +
+            "<details class='import-panel'><summary>Add to your library"
+            "<span>YouTube videos &amp; channels</span></summary>"
+            "<div class='import-panel-body'>"
             "<form class='bar' method='post' action='/add-video'>"
             "<input type='text' name='video' autocomplete='off' "
             "placeholder='a YouTube link, or just the video id'>"
@@ -5830,6 +5841,7 @@ class Viewer:
             "catalogue, then fold the result into the roadmap. The page "
             "waits — about a minute for a video, a few for a channel, which is "
             "why a channel is capped.</p>"
+            "</div></details>"
         )
 
     def add_channel(self, form: dict) -> str:
@@ -6113,4 +6125,3 @@ def _bare(token: str) -> str:
 def _clock(seconds: float) -> str:
     minutes, secs = divmod(int(seconds), 60)
     return f"{minutes}:{secs:02d}"
-
