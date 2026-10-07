@@ -38,18 +38,19 @@ NAV = (("/", "Learn"), ("/reels", "Reels"), ("/review", "Review"), ("/hear", "Li
        ("/roadmap", "Learning path"), ("/words", "Dictionary"), ("/quiz", "Vocabulary check"),
        ("/blocked", "Learning gaps"), ("/lists", "Word lists"), ("/frontier", "Next milestones"),
        ("/subtitles", "Video library"), ("/plan", "Watch plan"), ("/channels", "Channels"),
-       ("/settings", "Settings"), ("/journey", "Your atlas"))
+       ("/settings", "Settings"), ("/journey", "Your atlas"), ("/cover", "Video cover"))
 
 NAV_GROUPS = (
     ("YOUR PRACTICE", ("/", "/review", "/hear", "/mine", "/quiz")),
     ("EXPLORE", ("/reels", "/subtitles", "/channels")),
-    ("YOUR COLLECTION", ("/starred", "/words", "/lists", "/anki")),
+    ("YOUR COLLECTION", ("/starred", "/words", "/lists", "/cover", "/anki")),
     ("YOUR JOURNEY", ("/journey", "/roadmap", "/plan", "/frontier", "/blocked", "/settings")),
 )
 
 # A small amount of page framing is shared by every route. The handlers
 # remain responsible for their content, forms and empty-state messages.
 PAGE_KICKERS = {
+    '/cover': 'YOUR WORDS. THE FEWEST VIDEOS.',
     '/review': 'MAKE IT STICK', '/hear': 'TUNE YOUR EAR',
     '/mine': 'FIND YOUR VOICE', '/quiz': 'KNOW WHERE YOU STAND',
     '/subtitles': 'FOLLOW YOUR CURIOSITY', '/channels': 'REAL VOICES',
@@ -106,6 +107,7 @@ def settings_sections(body: str) -> str:
             + ''.join(links) + "</nav><div class='settings-panels'>" + ''.join(panels) + "</div></div>")
 
 ICON_PATHS = {
+    "/cover": "M3 5h18v14H3z m7 4 5 3-5 3z M6 22h12",
     "/": "M4 5h6a2 2 0 0 1 2 2v13a4 4 0 0 0-4-2H4z M20 5h-6a2 2 0 0 0-2 2v13a4 4 0 0 1 4-2h4z",
     "/review": "M4 10a8 8 0 1 1 2 8 M4 4v6h6 M12 8v5l3 2",
     "/hear": "M4 14v-3a8 8 0 0 1 16 0v3 M4 12h3v8H4z M17 12h3v8h-3z",

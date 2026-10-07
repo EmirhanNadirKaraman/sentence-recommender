@@ -107,7 +107,8 @@ def supply(index, sentences, goals, minutes,
 
 def solve(index, sentences, goals: frozenset[Unit], minutes: dict[str, float],
           depth: int = DEPTH, floor: int = ENOUGH_LINES,
-          gap: float = 0.0, say=print) -> Cover:
+          gap: float = 0.0, say=print, objective: str = "minutes",
+          time_limit: float | None = None) -> Cover:
     """The cheapest set of videos that teaches the list `depth` deep."""
     import pulp                                   # noqa: PLC0415 — heavy
 
@@ -124,7 +125,16 @@ def solve(index, sentences, goals: frozenset[Unit], minutes: dict[str, float],
     problem = pulp.LpProblem("cover", pulp.LpMinimize)
     pick = {v: pulp.LpVariable(f"v_{i}", cat="Binary")
             for i, v in enumerate(videos)}
-    problem += pulp.lpSum(minutes[v] * pick[v] for v in videos)
+    if objective == "videos":
+        # Lexicographic: count first, minutes second. The entire duration
+        # contribution is < 1, so it can never cost an extra video.
+        total = 1 + sum(max(0, minutes[v]) for v in videos)
+        costs = {v: 1 + max(0, minutes[v]) / total for v in videos}
+    elif objective == "minutes":
+        costs = minutes
+    else:
+        raise ValueError("unknown cover objective")
+    problem += pulp.lpSum(costs[v] * pick[v] for v in videos)
 
     short: dict[Unit, tuple[int, int]] = {}
     for unit, supplies in held.items():
@@ -137,9 +147,13 @@ def solve(index, sentences, goals: frozenset[Unit], minutes: dict[str, float],
         problem += pulp.lpSum(n * pick[v] for v, n in supplies.items()) >= want
 
     started = time.perf_counter()
-    problem.solve(pulp.PULP_CBC_CMD(msg=False, gapRel=gap))
+    problem.solve(pulp.PULP_CBC_CMD(msg=False, gapRel=gap, timeLimit=time_limit))
     seconds = time.perf_counter() - started
     status = pulp.LpStatus[problem.status]
+    # CBC can return an integer incumbent as 'Optimal' after a time limit;
+    # only a proved optimum should be presented as the minimum.
+    if problem.sol_status != pulp.LpSolutionOptimal:
+        status = "Feasible" if problem.sol_status == pulp.LpSolutionIntegerFeasible else status
 
     chosen = tuple(v for v in videos if pick[v].value() and pick[v].value() > 0.5)
     taught = {
@@ -157,6 +171,46 @@ def solve(index, sentences, goals: frozenset[Unit], minutes: dict[str, float],
         gap=gap,
         seconds=seconds,
     )
+
+
+def minimum_subset(sentences, known: frozenset[Unit], goals: frozenset[Unit],
+                   minutes: dict[str, float], time_limit: float = 20) -> tuple[Cover, dict]:
+    """Fewest videos with one literal i+1 example per unknown goal.
+
+    Knowledge is frozen throughout: selected goals are never assumed learned
+    to unlock each other. No minimum video length or derived-compound grants.
+    Known targets are deliberately left to the caller to report separately.
+    """
+    candidates: dict[Unit, set[int]] = {}
+    for position, row in enumerate(sentences):
+        if not row.timing:
+            continue
+        unknown = row.units - known
+        if len(unknown) == 1:
+            target = next(iter(unknown))
+            if target in goals:
+                candidates.setdefault(target, set()).add(position)
+
+    class Frontier:
+        def candidates(self):
+            return candidates
+
+    index = Frontier()
+    held = supply(index, sentences, goals, minutes, floor=0)
+    cover = solve(index, sentences, goals, minutes, depth=1, floor=0,
+                  objective="videos", time_limit=time_limit, say=lambda *args: None)
+    if audit(cover, held, depth=1):
+        raise RuntimeError("No complete feasible cover was found. Try a smaller list.")
+    # One witness per target per chosen video: enough to verify and jump to
+    # each coverage claim without sending the entire transcript to the page.
+    witnesses = {}
+    selected = set(cover.videos)
+    for unit, positions in candidates.items():
+        for position in sorted(positions):
+            row = sentences[position]
+            if row.timing.video_id in selected:
+                witnesses.setdefault((row.timing.video_id, unit), row)
+    return cover, witnesses
 
 
 def audit(cover: Cover, held: dict[Unit, dict[str, int]],

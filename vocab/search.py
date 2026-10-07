@@ -4,18 +4,15 @@ A list built by searching needs a box that forgives: the reader half-knows
 the word, which is why they are looking it up. Exact matching answers only
 for words they could already spell.
 
-Trigrams rather than `pg_trgm`. Migration dd0d9cf4b307 declined the
-extension because nothing issued a fuzzy query, and the first query that
-does should reopen that decision rather than step past it — but not yet, on
-this evidence: `unit_counts` hands back all 46,433 units off a materialized
-view in 59ms, and scoring that many short strings in Python is cheaper than
-a round trip. If the vocabulary grows an order of magnitude, or the search
-starts running per keystroke against the whole corpus rather than its
-units, that is the reason to go back to the extension.
+The vocabulary comes from materialized unit counts. A trigram posting index
+narrows fuzzy scoring for live queries; cached lowercase strings preserve
+substring matching, even for short queries. The immutable index is reused
+instead of loading sentences or adding a database extension per keystroke.
 """
 from __future__ import annotations
 
 from collections import Counter
+from heapq import nsmallest
 
 from vocab.entry import Unit
 
@@ -34,13 +31,43 @@ def trigrams(text: str) -> set[str]:
 class UnitSearch:
     """The corpus's units, searchable by approximate spelling."""
 
-    def __init__(self, counts: Counter) -> None:
+    def __init__(self, counts: Counter, rename=None) -> None:
         # (kind, key) -> how often it is said. The count is the tie-break:
         # between two equally close spellings the commoner word is nearly
         # always the one being looked for.
+        self._origins = {}
+        for kind, key in counts:
+            raw = Unit(kind, key)
+            named = rename(raw) if rename else raw
+            self._origins.setdefault(named, set()).add(raw)
+        if rename is not None:
+            normalized = Counter()
+            for (kind, key), count in counts.items():
+                unit = rename(Unit(kind, key))
+                normalized[(unit.kind, unit.key)] += count
+            counts = normalized
         self._said = dict(counts)
         self._grams: dict[tuple[str, str], set[str]] = {
             key: trigrams(key[1]) for key in self._said}
+        self._lower = {key: key[1].lower() for key in self._said}
+        self._postings = {}
+        for key, grams in self._grams.items():
+            for gram in grams:
+                self._postings.setdefault(gram, set()).add(key)
+
+    def contains(self, unit: Unit) -> bool:
+        return (unit.kind, unit.key) in self._said
+
+    def originals(self, units) -> frozenset[Unit]:
+        return frozenset(raw for unit in units for raw in self._origins.get(unit, (unit,)))
+
+    def exact(self, key: str) -> Unit | None:
+        # Saved lists use canonical strings. A registered pattern wins over
+        # a same-spelled lemma, matching GoalList's resolution.
+        for kind in ("pattern", "lemma"):
+            if (kind, key) in self._said:
+                return Unit(kind, key)
+        return None
 
     def __len__(self) -> int:
         return len(self._said)
@@ -58,9 +85,14 @@ class UnitSearch:
         if not wanted:
             return []
         target = trigrams(wanted)
-        scored: list[tuple[float, int, Unit]] = []
-        for (kind, key), grams in self._grams.items():
-            low = key.lower()
+        scored = []
+        candidates = set().union(*(self._postings.get(g, ()) for g in target))
+        # Substrings still win outright, including one/two-letter queries
+        # whose padded trigrams need not occur inside the candidate word.
+        candidates.update(key for key, low in self._lower.items() if wanted in low)
+        for kind, key in candidates:
+            grams = self._grams[(kind, key)]
+            low = self._lower[(kind, key)]
             if wanted in low:
                 score = 1.0
             else:
@@ -70,7 +102,9 @@ class UnitSearch:
                 score = shared / len(target | grams)
                 if score < floor:
                     continue
-            scored.append((score, self._said[(kind, key)], Unit(kind, key)))
-        scored.sort(key=lambda row: (-row[0], -row[1], row[2].key))
-        return [(unit, said, round(score, 3))
-                for score, said, unit in scored[:limit]]
+            scored.append((score, self._said[(kind, key)], kind, key))
+        # Short live queries can match tens of thousands of words. Keep only
+        # the best few and construct Unit objects for those, not every match.
+        best = nsmallest(max(0, limit), scored, key=lambda row: (-row[0], -row[1], row[3], row[2]))
+        return [(Unit(kind, key), said, round(score, 3))
+                for score, said, kind, key in best]

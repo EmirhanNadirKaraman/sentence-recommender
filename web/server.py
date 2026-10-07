@@ -519,6 +519,8 @@ def _make_handler(door: "Door"):
                     self._send_json(viewer.star_sentence(form))
                 elif posted == "/api/try":
                     self._send_json(viewer.try_json(form))
+                elif posted == "/api/cover":
+                    self._send_json(viewer.cover_json(form))
                 elif posted == "/review":
                     outcome = viewer.save_review(form)
                     if isinstance(outcome, tuple):
@@ -924,6 +926,8 @@ def _make_handler(door: "Door"):
                 return viewer.reels(query), 200
             if path == "/lists":
                 return viewer.word_lists(query), 200
+            if path == "/cover":
+                return viewer.cover_page(query), 200
             if path == "/blocked":
                 return viewer.blocked(query), 200
             if path == "/quiz":
@@ -940,6 +944,9 @@ def _make_handler(door: "Door"):
                 return viewer.journey_page(query), 200
             if path == "/api/journey":
                 self._send_json(viewer.journey_json(query))
+                return "", 0
+            if path == "/api/cover-search":
+                self._send_json(viewer.cover_search_json(query))
                 return "", 0
             if path == "/api/next":
                 self._send_json(viewer.next_json(query))

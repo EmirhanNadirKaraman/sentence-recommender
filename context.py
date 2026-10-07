@@ -300,6 +300,7 @@ class Application:
     def corpus(self, *builds: str, teachable_only: bool = True,
                list_only: bool = False, strict: bool = False,
                holding: tuple[str, str] | None = None,
+               holding_many: frozenset[Unit] | None = None,
                text: str | None = None,
                video: str | None = None,
                limit: int = 0):
@@ -349,8 +350,10 @@ class Application:
                 *(builds or self.corpus_store.builds()),
                 teachable_only=teachable_only, holding=holding, text=text,
                 limit=limit, video=video, resolve=resolve,
+                **({'holding_many': holding_many} if holding_many is not None else {}),
             )
-        if getattr(self, "corpus_pool", None) is None or holding or text or video or limit:
+        if (getattr(self, "corpus_pool", None) is None or holding or holding_many is not None
+                or text or video or limit):
             return self.apply_overrides(load(), resolve)
         # Resolution depends on the list, not on what a reader knows.
         # Corrections, hidden lines, removed videos and judge exclusions

@@ -394,6 +394,7 @@ class CorpusStore:
     def load(self, *builds: str, teachable_only: bool = True,
              video: str | None = None,
              holding: tuple[str, str] | None = None,
+             holding_many: frozenset[Unit] | None = None,
              text: str | None = None,
              resolve=None,
              same_language: bool = True,
@@ -425,6 +426,8 @@ class CorpusStore:
         """
         if not builds:
             return []          # `= ANY('{}')` matches nothing, but say so here
+        if holding_many is not None and not holding_many:
+            return []
         teachable = " AND teachable" if teachable_only else ""
         # Sentences in another language are kept in the corpus and skipped
         # by everything that learns from it. The German transcripts are
@@ -454,6 +457,19 @@ class CorpusStore:
                      " WHERE kind = %s AND key = %s)" if holding else "")
         joined_here = (" AND s.id IN (SELECT sentence_id FROM corpus_unit"
                        " WHERE kind = %s AND key = %s)" if holding else "")
+        many_args = []
+        if holding_many is not None:
+            # Filter sentence IDs, never their units: strangers in the same
+            # sentence must still count against literal i+1 comprehension.
+            by_kind = {}
+            for unit in holding_many:
+                by_kind.setdefault(unit.kind, []).append(unit.key)
+            predicate = ' OR '.join('(kind = %s AND key = ANY(%s))' for _ in by_kind)
+            suffix = ' IN (SELECT sentence_id FROM corpus_unit WHERE ' + predicate + ')'
+            said_here += ' AND id' + suffix
+            joined_here += ' AND s.id' + suffix
+            for kind, keys in by_kind.items():
+                many_args.extend((kind, keys))
         # Shortest first, so a cap keeps the sentences a deck wants. The
         # word page asks for one word's examples and kept twenty-five of
         # them; for `sagen` that meant loading 11,840 sentences to throw
@@ -467,7 +483,7 @@ class CorpusStore:
         # both -- so every call with a limit raised "not all arguments
         # converted" from the second.
         args = ([list(builds)] + ([video] if video else [])
-                + (list(holding) if holding else []) + ([text] if text else []))
+                + (list(holding) if holding else []) + many_args + ([text] if text else []))
         picked = args + ([limit] if limit else [])
         with self._read() as cur:
             cur.execute(

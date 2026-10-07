@@ -299,6 +299,8 @@ class Viewer:
         # page never loads a corpus — the only page that can say that and the
         # reason it stays usable when the machine has nothing left.
         self._searches: dict[str, UnitSearch] = {}
+        self._cover_searches: dict[str, tuple[str, UnitSearch]] = {}
+        self._cover_search_lock = Lock()
         self._lists = WordListStore(app.settings.state)
         # Set by `web.server.Viewers` so a page can offer the
         # other lists; None when a Viewer is built directly.
@@ -757,6 +759,7 @@ class Viewer:
             "<h1>Your word collections</h1>",
             "<p class='note'>Gather the words you want to make yours. Open a collection, "
             "or name a new one and search for words to add.</p>",
+            f"<p><a class='go' href='{self._link('/cover', source, name=name)}'>Build a video cover ↗</a></p>",
             self.list_switch(query, "/lists"),
             (f"<div class='switch'><span>Lists</span>{picker or empty}</div>" if name else
              f"<div class='collection-grid'>{collections}</div>" if collections else empty),
@@ -828,6 +831,134 @@ class Viewer:
                 body.append("<p class='empty'>Nothing in it yet — search "
                             "above and tick what you mean to learn.</p>")
         return self._page("Lists", "".join(body), "/lists", source)
+
+    def _cover_search(self, source: str) -> UnitSearch:
+        vintage = self._corpus_stamp()
+        with self._cover_search_lock:
+            cached = self._cover_searches.get(source)
+            if cached and cached[0] == vintage:
+                return cached[1]
+            builds = self._builds(source) or tuple(self.sources())
+            counts = self.app.corpus_store.unit_counts(*(b for b in builds if b != ALL))
+            search = UnitSearch(counts, rename=self.app.aliases.of)
+            self._cover_searches[source] = (vintage, search)
+            return search
+
+    def cover_search_json(self, query: dict) -> dict:
+        source = self.source(query)
+        needle = (query.get('q') or '').strip()[:100]
+        if not needle:
+            return {'results': []}
+        return {'results': [
+            {'kind': unit.kind, 'key': unit.key, 'said': said, 'score': score,
+             'known': unit in self.known}
+            for unit, said, score in self._cover_search(source).find(needle, limit=20)]}
+
+    def cover_page(self, query: dict) -> str:
+        source = self.source(query)
+        name = (query.get('name') or '').strip()
+        # Resolve saved strings against the same vocabulary as live search.
+        selected = []
+        if name:
+            search = self._cover_search(source)
+            for key in self._lists.entries(name):
+                unit = search.exact(key)
+                selected.append({'kind': unit.kind if unit else LEMMA, 'key': key})
+        seed = escape(json.dumps(selected, ensure_ascii=False), quote=True)
+        body = (
+            "<h1>A small playlist. All your words.</h1>"
+            "<p class='note'>Choose the words you want to learn. Find the fewest videos "
+            "that contain a sentence for each word where it is your only unknown.</p>"
+            f"<section id='cover-builder' data-src='{escape(source, quote=True)}' data-selected='{seed}'>"
+            "<div class='cover-workbench'><div class='cover-discovery'>"
+            "<label class='cover-field' for='cover-query'>Find a word</label>"
+            "<div class='cover-search-box'><span aria-hidden='true'>⌕</span>"
+            "<input type='search' id='cover-query' placeholder='Type a word, even if you’re unsure of its spelling' "
+            "autocomplete='off' aria-controls='cover-search-results'></div>"
+            "<p class='field-hint'>Live trigram search · select a result to add it</p>"
+            "<p id='cover-search-status' class='quiet' role='status'>Your next discovery starts with a word.</p>"
+            "<div id='cover-search-results' class='cover-search-results'></div></div>"
+            "<aside class='cover-selection'><span class='eyebrow'>YOUR WORD COLLECTION</span>"
+            "<h2>Make it personal <span id='cover-count'>0</span></h2>"
+            f"<label class='cover-field' for='cover-name'>List name</label><input id='cover-name' "
+            f"value='{escape(name, quote=True)}' placeholder='For my next conversation' maxlength='80'>"
+            "<div id='cover-selected' class='cover-selected'></div>"
+            "<p class='field-hint'>Up to 100 words. Known words are shown separately.</p>"
+            "<button class='go' id='cover-build' type='button'>Save list &amp; find videos</button>"
+            "<p id='cover-build-status' class='quiet' role='status'></p></aside></div>"
+            "<section id='cover-result' aria-label='Your video cover' aria-live='polite'></section></section>"
+            f"<script src='{stamped('cover.js')}' defer></script>"
+        )
+        return self._page('Video cover', body, '/cover', source)
+
+    def cover_json(self, form: dict) -> dict:
+        """Save the chosen list and solve its literal, current-knowledge cover."""
+        from roadmap.cover import minimum_subset, VideoCoverStore
+
+        name = (form.get('name') or '').strip()
+        if not name or len(name) > 80 or any(c in name for c in '\x00/\\') or name in ('.', '..'):
+            return {'error': 'Give your collection a name (up to 80 characters, without slashes).'}
+        try:
+            chosen = json.loads(form.get('selected') or '[]')
+            if not isinstance(chosen, list) or not 1 <= len(chosen) <= 100:
+                raise ValueError()
+            units = tuple(dict.fromkeys(Unit(item['kind'], item['key']) for item in chosen
+                                        if isinstance(item, dict)))
+            if len(units) != len(chosen) or any(not isinstance(u.key, str) or
+                    not isinstance(u.kind, str) or len(u.key) > 300 for u in units):
+                raise ValueError()
+        except (ValueError, TypeError, KeyError):
+            return {'error': 'Choose between 1 and 100 words from the search results.'}
+        source = self.source(form)
+        search = self._cover_search(source)
+        if any(not search.contains(unit) for unit in units):
+            return {'error': 'Some words are no longer in this corpus. Search for them again.'}
+        # Avoid overwriting an existing collection just because its name was
+        # typed into the new-list form. Editing a loaded collection is explicit.
+        original = (form.get('original') or '').strip()
+        if name != original and name in {n for n, _, _ in self._lists.names()}:
+            return {'error': 'That collection already exists. Open it from Word lists, or choose a new name.'}
+        self._lists.save(name, [u.key for u in units])
+        known = self.known
+        goals = frozenset(units) - known
+        rows = self.app.corpus(*self._builds(source), strict=True,
+                               holding_many=search.originals(goals)) if goals else []
+        minutes = dict(self._minutes())
+        # Missing duration metadata must not make a timed example disappear.
+        # Its last caption supplies a lower-bound estimate for tie-breaking.
+        estimates = {}
+        for row in rows:
+            if row.timing and row.timing.video_id not in minutes:
+                v = row.timing.video_id
+                estimates[v] = max(estimates.get(v, 0), row.timing.end / 60)
+        minutes.update(estimates)
+        try:
+            cover, witnesses = minimum_subset(rows, known, goals, minutes)
+        except RuntimeError as error:
+            return {'error': str(error), 'saved': name}
+        VideoCoverStore(self.app.settings.state).save(
+            cover, name, source + ':minimum-count', self._corpus_stamp(), depth=1)
+        with Database(self.app.settings.own) as db:
+            titles = dict(db.rows('SELECT video_id, title FROM video WHERE video_id = ANY(%s)',
+                                  (list(cover.videos),))) if cover.videos else {}
+        videos = []
+        for v in cover.videos:
+            examples = []
+            for unit in units:
+                row = witnesses.get((v, unit))
+                if row is not None:
+                    examples.append({'word': unit.key, 'text': row.text,
+                                     'url': self._link('/video', source, id=v, t=row.timing.start),
+                                     'time': _clock(row.timing.start)})
+            videos.append({'id': v, 'title': titles.get(v) or v,
+                           'minutes': round(minutes[v], 1), 'estimated': v in estimates,
+                           'url': examples[0]['url'], 'examples': examples})
+        return {'name': name, 'videos': videos, 'covered': len(cover.taught),
+                'total': len(units), 'optimal': cover.status == 'Optimal',
+                'minutes': round(cover.minutes, 1),
+                'known': [u.key for u in units if u in known],
+                'unreachable': [u.key for u in cover.unreachable],
+                'list_url': self._link('/lists', source, name=name)}
 
     def save_word_list(self, form: dict) -> str:
         """Add to a list, drop one entry, or forget the whole thing.
@@ -4501,6 +4632,14 @@ class Viewer:
                               "but has no analysed lines in this corpus — try "
                               "another build, or another video.</p>",
                               "/video", source)
+        try:
+            asked_start = float(query.get('t') or 0)
+        except (TypeError, ValueError):
+            asked_start = 0
+        last = max((c.timing.end for c in cues if c.timing), default=0)
+        start = asked_start if 0 <= asked_start <= last else 0
+        current_cue = next((i for i, cue in enumerate(cues)
+                            if cue.timing and cue.timing.end >= start), 0)
         here = f"/video?id={quote(wanted, safe='')}&src={quote(source)}"
         # Where a control on this page should come back to. `here` is the page
         # itself; this is the page *in the plan*, so marking a word known does
@@ -4510,7 +4649,7 @@ class Viewer:
                      if stem and step.strip() else here)
         # In the reel too? Then say so and link there, rather than leaving
         # two pages about one video with no road between them.
-        ranked = self._watchable(source)
+        ranked = [] if 't' in query else self._watchable(source)
         at = next((n for n, r in enumerate(ranked) if r["video"] == wanted), None)
         # Why it is not in the reel, rather than the two reasons it could be.
         # "fewer than 40 lines, or its channel is set aside" read as a refusal
@@ -4518,7 +4657,9 @@ class Viewer:
         # own reasons; the reel is one way of watching and this page is
         # another, so this says which and does not imply anything about the
         # picture above it.
-        if at is not None:
+        if 't' in query:
+            also = f"<p class='note'>Your chosen example starts at {_clock(start)}.</p>"
+        elif at is not None:
             also = (f"<p class='note'><a class='link' href='/reels?src="
                     f"{quote(source)}&i={at}'>Open this in the reel</a> — "
                     f"number {at + 1:,} of {len(ranked):,} there.</p>")
@@ -4537,14 +4678,14 @@ class Viewer:
                 + f"<div id='reel-taste'>{self._taste_control(wanted, here)}</div>"
                 + self._audio_toggle()
                 + "<div class='card' id='reel'>"
-                + video.stage(wanted, 0)
+                + video.stage(wanted, start)
                 + "</div>"
                 # Under the picture rather than over it: what a video teaches
                 # is worth reading before watching and not worth pushing the
                 # video itself off the screen for, and this is where the eye
                 # already goes on the way to the transcript.
                 + self._taught_here(cues, source, back_here)
-                + video.transcript(cues, 0, None, words=_words,
+                + video.transcript(cues, current_cue, None, words=_words,
                                    known=self.known)
                 + video.merged_script(self.known))
         return self._page(titles[wanted], body, "/video", source)
