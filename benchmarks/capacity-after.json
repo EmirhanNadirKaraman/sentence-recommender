@@ -1,0 +1,5774 @@
+{
+  "host": "macOS-26.2-arm64-arm-64bit",
+  "architecture": "arm64",
+  "logical_cpus": 8,
+  "users": 4,
+  "profiled": false,
+  "memory": [
+    {
+      "stage": "imports",
+      "rss_mb": 61.71875
+    },
+    {
+      "stage": "first /",
+      "rss_mb": 1362.640625,
+      "peak_mb": 1542.015625
+    },
+    {
+      "stage": "first /words?q=geben",
+      "rss_mb": 762.5625,
+      "peak_mb": 1542.015625
+    },
+    {
+      "stage": "first /reels",
+      "rss_mb": 759.765625,
+      "peak_mb": 1542.015625
+    },
+    {
+      "stage": "first /subtitles",
+      "rss_mb": 760.125,
+      "peak_mb": 1542.015625
+    },
+    {
+      "stage": "first /channels",
+      "rss_mb": 760.9375,
+      "peak_mb": 1542.015625
+    },
+    {
+      "stage": "first /review",
+      "rss_mb": 771.984375,
+      "peak_mb": 1542.015625
+    },
+    {
+      "stage": "first /hear",
+      "rss_mb": 801.34375,
+      "peak_mb": 1542.015625
+    },
+    {
+      "stage": "first /mine",
+      "rss_mb": 801.359375,
+      "peak_mb": 1542.015625
+    },
+    {
+      "stage": "first /quiz",
+      "rss_mb": 804.125,
+      "peak_mb": 1542.015625
+    },
+    {
+      "stage": "first /starred",
+      "rss_mb": 804.609375,
+      "peak_mb": 1542.015625
+    },
+    {
+      "stage": "first /lists",
+      "rss_mb": 804.625,
+      "peak_mb": 1542.015625
+    },
+    {
+      "stage": "first /cover",
+      "rss_mb": 803.671875,
+      "peak_mb": 1542.015625
+    },
+    {
+      "stage": "first /journey",
+      "rss_mb": 803.6875,
+      "peak_mb": 1542.015625
+    },
+    {
+      "stage": "first /plan",
+      "rss_mb": 804.515625,
+      "peak_mb": 1542.015625
+    },
+    {
+      "stage": "first /roadmap",
+      "rss_mb": 812.765625,
+      "peak_mb": 1542.015625
+    },
+    {
+      "stage": "first /frontier",
+      "rss_mb": 1218.8125,
+      "peak_mb": 2155.46875
+    },
+    {
+      "stage": "first /blocked",
+      "rss_mb": 990.890625,
+      "peak_mb": 2155.46875
+    },
+    {
+      "stage": "first /study",
+      "rss_mb": 1000.796875,
+      "peak_mb": 2155.46875
+    },
+    {
+      "stage": "first /watch",
+      "rss_mb": 997.0,
+      "peak_mb": 2155.46875
+    },
+    {
+      "stage": "first /anki",
+      "rss_mb": 681.828125,
+      "peak_mb": 2155.46875
+    },
+    {
+      "stage": "first /settings",
+      "rss_mb": 687.578125,
+      "peak_mb": 2155.46875
+    },
+    {
+      "stage": "first /api/cover-search?q=haus",
+      "rss_mb": 808.75,
+      "peak_mb": 2155.46875
+    },
+    {
+      "stage": "first /api/reels?i=1",
+      "rss_mb": 797.609375,
+      "peak_mb": 2155.46875
+    },
+    {
+      "stage": "one user warm",
+      "rss_mb": 653.796875,
+      "peak_mb": 2155.46875
+    },
+    {
+      "stage": "all users warm",
+      "rss_mb": 1014.671875,
+      "peak_mb": 2155.46875
+    }
+  ],
+  "summary": [
+    {
+      "route": "/",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 24562.73,
+        "max_ms": 24562.73
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 159.44,
+        "max_ms": 223.15
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 331.87,
+        "max_ms": 11079.43
+      }
+    },
+    {
+      "route": "/words?q=geben",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 3457.17,
+        "max_ms": 3457.17
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 85.35,
+        "max_ms": 291.13
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 217.06,
+        "max_ms": 3443.18
+      }
+    },
+    {
+      "route": "/reels",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 174.33,
+        "max_ms": 174.33
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 34.52,
+        "max_ms": 43.63
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 135.97,
+        "max_ms": 299.77
+      }
+    },
+    {
+      "route": "/subtitles",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 16.6,
+        "max_ms": 16.6
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 17.59,
+        "max_ms": 21.01
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 42.61,
+        "max_ms": 150.55
+      }
+    },
+    {
+      "route": "/channels",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 70.2,
+        "max_ms": 70.2
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 49.87,
+        "max_ms": 72.52
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 62.93,
+        "max_ms": 152.99
+      }
+    },
+    {
+      "route": "/review",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 253.0,
+        "max_ms": 253.0
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 151.81,
+        "max_ms": 238.84
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 424.49,
+        "max_ms": 455.92
+      }
+    },
+    {
+      "route": "/hear",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 82.44,
+        "max_ms": 82.44
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 37.93,
+        "max_ms": 70.53
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 122.04,
+        "max_ms": 173.68
+      }
+    },
+    {
+      "route": "/mine",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 9.42,
+        "max_ms": 9.42
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 7.64,
+        "max_ms": 8.8
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 18.86,
+        "max_ms": 28.79
+      }
+    },
+    {
+      "route": "/quiz",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 441.15,
+        "max_ms": 441.15
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 8.1,
+        "max_ms": 10.84
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 20.02,
+        "max_ms": 773.54
+      }
+    },
+    {
+      "route": "/starred",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 16.51,
+        "max_ms": 16.51
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 10.62,
+        "max_ms": 15.36
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 22.87,
+        "max_ms": 30.16
+      }
+    },
+    {
+      "route": "/lists",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 11.78,
+        "max_ms": 11.78
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 14.38,
+        "max_ms": 21.34
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 26.48,
+        "max_ms": 29.62
+      }
+    },
+    {
+      "route": "/cover",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 8.99,
+        "max_ms": 8.99
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 10.68,
+        "max_ms": 14.88
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 17.1,
+        "max_ms": 21.58
+      }
+    },
+    {
+      "route": "/journey",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 13.08,
+        "max_ms": 13.08
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 14.39,
+        "max_ms": 16.56
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 21.19,
+        "max_ms": 23.48
+      }
+    },
+    {
+      "route": "/plan",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 28.04,
+        "max_ms": 28.04
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 11.62,
+        "max_ms": 18.66
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 31.43,
+        "max_ms": 80.67
+      }
+    },
+    {
+      "route": "/roadmap",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 274.74,
+        "max_ms": 274.74
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 335.58,
+        "max_ms": 342.92
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 638.11,
+        "max_ms": 680.19
+      }
+    },
+    {
+      "route": "/frontier",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 41640.16,
+        "max_ms": 41640.16
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 165.11,
+        "max_ms": 232.74
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 868.99,
+        "max_ms": 49500.42
+      }
+    },
+    {
+      "route": "/blocked",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 4773.03,
+        "max_ms": 4773.03
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 17.76,
+        "max_ms": 33.96
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 28.01,
+        "max_ms": 17315.43
+      }
+    },
+    {
+      "route": "/study",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 17.97,
+        "max_ms": 17.97
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 13.65,
+        "max_ms": 14.53
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 29.33,
+        "max_ms": 259.44
+      }
+    },
+    {
+      "route": "/watch",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 136.07,
+        "max_ms": 136.07
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 73.69,
+        "max_ms": 75.76
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 273.15,
+        "max_ms": 510.36
+      }
+    },
+    {
+      "route": "/anki",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 4421.26,
+        "max_ms": 4421.26
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 9.88,
+        "max_ms": 12.79
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 49.41,
+        "max_ms": 14684.33
+      }
+    },
+    {
+      "route": "/settings",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 118.14,
+        "max_ms": 118.14
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 29.29,
+        "max_ms": 32.58
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 63.55,
+        "max_ms": 156.85
+      }
+    },
+    {
+      "route": "/api/cover-search?q=haus",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 2149.45,
+        "max_ms": 2149.45
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 34.75,
+        "max_ms": 183.29
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 212.42,
+        "max_ms": 5454.9
+      }
+    },
+    {
+      "route": "/api/reels?i=1",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 39.66,
+        "max_ms": 39.66
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 23.05,
+        "max_ms": 25.33
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 79.71,
+        "max_ms": 271.85
+      }
+    }
+  ],
+  "requests": [
+    {
+      "route": "/",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 71420,
+      "wall_ms": 24562.73,
+      "error": ""
+    },
+    {
+      "route": "/words?q=geben",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 60158,
+      "wall_ms": 3457.17,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 174.33,
+      "error": ""
+    },
+    {
+      "route": "/subtitles",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 50682,
+      "wall_ms": 16.6,
+      "error": ""
+    },
+    {
+      "route": "/channels",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 49883,
+      "wall_ms": 70.2,
+      "error": ""
+    },
+    {
+      "route": "/review",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 22129,
+      "wall_ms": 253.0,
+      "error": ""
+    },
+    {
+      "route": "/hear",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 22284,
+      "wall_ms": 82.44,
+      "error": ""
+    },
+    {
+      "route": "/mine",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 23160,
+      "wall_ms": 9.42,
+      "error": ""
+    },
+    {
+      "route": "/quiz",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 20213,
+      "wall_ms": 441.15,
+      "error": ""
+    },
+    {
+      "route": "/starred",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 25388,
+      "wall_ms": 16.51,
+      "error": ""
+    },
+    {
+      "route": "/lists",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 21488,
+      "wall_ms": 11.78,
+      "error": ""
+    },
+    {
+      "route": "/cover",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 21220,
+      "wall_ms": 8.99,
+      "error": ""
+    },
+    {
+      "route": "/journey",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 34862,
+      "wall_ms": 13.08,
+      "error": ""
+    },
+    {
+      "route": "/plan",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 50942,
+      "wall_ms": 28.04,
+      "error": ""
+    },
+    {
+      "route": "/roadmap",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 109586,
+      "wall_ms": 274.74,
+      "error": ""
+    },
+    {
+      "route": "/frontier",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 85101,
+      "wall_ms": 41640.16,
+      "error": ""
+    },
+    {
+      "route": "/blocked",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 85827,
+      "wall_ms": 4773.03,
+      "error": ""
+    },
+    {
+      "route": "/study",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 17.97,
+      "error": ""
+    },
+    {
+      "route": "/watch",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 19754,
+      "wall_ms": 136.07,
+      "error": ""
+    },
+    {
+      "route": "/anki",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 86258,
+      "wall_ms": 4421.26,
+      "error": ""
+    },
+    {
+      "route": "/settings",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 62445,
+      "wall_ms": 118.14,
+      "error": ""
+    },
+    {
+      "route": "/api/cover-search?q=haus",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 1710,
+      "wall_ms": 2149.45,
+      "error": ""
+    },
+    {
+      "route": "/api/reels?i=1",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 12943,
+      "wall_ms": 39.66,
+      "error": ""
+    },
+    {
+      "route": "/",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 71420,
+      "wall_ms": 223.15,
+      "error": ""
+    },
+    {
+      "route": "/",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 71420,
+      "wall_ms": 128.28,
+      "error": ""
+    },
+    {
+      "route": "/",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 71420,
+      "wall_ms": 159.44,
+      "error": ""
+    },
+    {
+      "route": "/words?q=geben",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 60158,
+      "wall_ms": 291.13,
+      "error": ""
+    },
+    {
+      "route": "/words?q=geben",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 60158,
+      "wall_ms": 80.58,
+      "error": ""
+    },
+    {
+      "route": "/words?q=geben",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 60158,
+      "wall_ms": 85.35,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 43.63,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 32.75,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 34.52,
+      "error": ""
+    },
+    {
+      "route": "/subtitles",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 50682,
+      "wall_ms": 17.59,
+      "error": ""
+    },
+    {
+      "route": "/subtitles",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 50682,
+      "wall_ms": 21.01,
+      "error": ""
+    },
+    {
+      "route": "/subtitles",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 50682,
+      "wall_ms": 13.66,
+      "error": ""
+    },
+    {
+      "route": "/channels",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 49883,
+      "wall_ms": 72.52,
+      "error": ""
+    },
+    {
+      "route": "/channels",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 49883,
+      "wall_ms": 49.87,
+      "error": ""
+    },
+    {
+      "route": "/channels",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 49883,
+      "wall_ms": 35.64,
+      "error": ""
+    },
+    {
+      "route": "/review",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 22129,
+      "wall_ms": 238.84,
+      "error": ""
+    },
+    {
+      "route": "/review",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 22129,
+      "wall_ms": 151.81,
+      "error": ""
+    },
+    {
+      "route": "/review",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 22129,
+      "wall_ms": 126.31,
+      "error": ""
+    },
+    {
+      "route": "/hear",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 22284,
+      "wall_ms": 70.53,
+      "error": ""
+    },
+    {
+      "route": "/hear",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 22284,
+      "wall_ms": 37.93,
+      "error": ""
+    },
+    {
+      "route": "/hear",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 22284,
+      "wall_ms": 35.21,
+      "error": ""
+    },
+    {
+      "route": "/mine",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 23160,
+      "wall_ms": 8.8,
+      "error": ""
+    },
+    {
+      "route": "/mine",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 23160,
+      "wall_ms": 7.62,
+      "error": ""
+    },
+    {
+      "route": "/mine",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 23160,
+      "wall_ms": 7.64,
+      "error": ""
+    },
+    {
+      "route": "/quiz",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 20213,
+      "wall_ms": 10.84,
+      "error": ""
+    },
+    {
+      "route": "/quiz",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 20213,
+      "wall_ms": 8.0,
+      "error": ""
+    },
+    {
+      "route": "/quiz",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 20213,
+      "wall_ms": 8.1,
+      "error": ""
+    },
+    {
+      "route": "/starred",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 25388,
+      "wall_ms": 15.36,
+      "error": ""
+    },
+    {
+      "route": "/starred",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 25388,
+      "wall_ms": 7.97,
+      "error": ""
+    },
+    {
+      "route": "/starred",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 25388,
+      "wall_ms": 10.62,
+      "error": ""
+    },
+    {
+      "route": "/lists",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 21488,
+      "wall_ms": 21.34,
+      "error": ""
+    },
+    {
+      "route": "/lists",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 21488,
+      "wall_ms": 14.07,
+      "error": ""
+    },
+    {
+      "route": "/lists",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 21488,
+      "wall_ms": 14.38,
+      "error": ""
+    },
+    {
+      "route": "/cover",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 21220,
+      "wall_ms": 10.68,
+      "error": ""
+    },
+    {
+      "route": "/cover",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 21220,
+      "wall_ms": 14.88,
+      "error": ""
+    },
+    {
+      "route": "/cover",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 21220,
+      "wall_ms": 9.47,
+      "error": ""
+    },
+    {
+      "route": "/journey",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 34862,
+      "wall_ms": 16.56,
+      "error": ""
+    },
+    {
+      "route": "/journey",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 34862,
+      "wall_ms": 10.95,
+      "error": ""
+    },
+    {
+      "route": "/journey",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 34862,
+      "wall_ms": 14.39,
+      "error": ""
+    },
+    {
+      "route": "/plan",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 50942,
+      "wall_ms": 18.66,
+      "error": ""
+    },
+    {
+      "route": "/plan",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 50942,
+      "wall_ms": 11.62,
+      "error": ""
+    },
+    {
+      "route": "/plan",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 50942,
+      "wall_ms": 10.78,
+      "error": ""
+    },
+    {
+      "route": "/roadmap",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 109586,
+      "wall_ms": 342.92,
+      "error": ""
+    },
+    {
+      "route": "/roadmap",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 109586,
+      "wall_ms": 299.62,
+      "error": ""
+    },
+    {
+      "route": "/roadmap",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 109586,
+      "wall_ms": 335.58,
+      "error": ""
+    },
+    {
+      "route": "/frontier",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 85101,
+      "wall_ms": 232.74,
+      "error": ""
+    },
+    {
+      "route": "/frontier",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 85101,
+      "wall_ms": 152.2,
+      "error": ""
+    },
+    {
+      "route": "/frontier",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 85101,
+      "wall_ms": 165.11,
+      "error": ""
+    },
+    {
+      "route": "/blocked",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 85827,
+      "wall_ms": 33.96,
+      "error": ""
+    },
+    {
+      "route": "/blocked",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 85827,
+      "wall_ms": 15.22,
+      "error": ""
+    },
+    {
+      "route": "/blocked",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 85827,
+      "wall_ms": 17.76,
+      "error": ""
+    },
+    {
+      "route": "/study",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 14.53,
+      "error": ""
+    },
+    {
+      "route": "/study",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 13.65,
+      "error": ""
+    },
+    {
+      "route": "/study",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 11.59,
+      "error": ""
+    },
+    {
+      "route": "/watch",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 19754,
+      "wall_ms": 75.76,
+      "error": ""
+    },
+    {
+      "route": "/watch",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 19754,
+      "wall_ms": 73.69,
+      "error": ""
+    },
+    {
+      "route": "/watch",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 19754,
+      "wall_ms": 67.97,
+      "error": ""
+    },
+    {
+      "route": "/anki",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 86258,
+      "wall_ms": 12.79,
+      "error": ""
+    },
+    {
+      "route": "/anki",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 86258,
+      "wall_ms": 9.88,
+      "error": ""
+    },
+    {
+      "route": "/anki",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 86258,
+      "wall_ms": 9.68,
+      "error": ""
+    },
+    {
+      "route": "/settings",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 62445,
+      "wall_ms": 32.58,
+      "error": ""
+    },
+    {
+      "route": "/settings",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 62445,
+      "wall_ms": 27.65,
+      "error": ""
+    },
+    {
+      "route": "/settings",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 62445,
+      "wall_ms": 29.29,
+      "error": ""
+    },
+    {
+      "route": "/api/cover-search?q=haus",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 1710,
+      "wall_ms": 183.29,
+      "error": ""
+    },
+    {
+      "route": "/api/cover-search?q=haus",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 1710,
+      "wall_ms": 34.6,
+      "error": ""
+    },
+    {
+      "route": "/api/cover-search?q=haus",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 1710,
+      "wall_ms": 34.75,
+      "error": ""
+    },
+    {
+      "route": "/api/reels?i=1",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 12943,
+      "wall_ms": 25.33,
+      "error": ""
+    },
+    {
+      "route": "/api/reels?i=1",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 12943,
+      "wall_ms": 23.05,
+      "error": ""
+    },
+    {
+      "route": "/api/reels?i=1",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 12943,
+      "wall_ms": 22.9,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 0,
+      "phase": "additional-user-first",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 116.85,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 2,
+      "phase": "additional-user-first",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 18389.5,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 3,
+      "phase": "additional-user-first",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 18390.31,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 1,
+      "phase": "additional-user-first",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 18397.06,
+      "error": ""
+    },
+    {
+      "route": "/",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 71420,
+      "wall_ms": 423.83,
+      "error": ""
+    },
+    {
+      "route": "/",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 71420,
+      "wall_ms": 11078.72,
+      "error": ""
+    },
+    {
+      "route": "/",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 71420,
+      "wall_ms": 11078.33,
+      "error": ""
+    },
+    {
+      "route": "/",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 71420,
+      "wall_ms": 11079.43,
+      "error": ""
+    },
+    {
+      "route": "/",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 71420,
+      "wall_ms": 330.62,
+      "error": ""
+    },
+    {
+      "route": "/",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 71420,
+      "wall_ms": 331.8,
+      "error": ""
+    },
+    {
+      "route": "/",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 71420,
+      "wall_ms": 331.94,
+      "error": ""
+    },
+    {
+      "route": "/",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 71420,
+      "wall_ms": 333.64,
+      "error": ""
+    },
+    {
+      "route": "/",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 71420,
+      "wall_ms": 272.76,
+      "error": ""
+    },
+    {
+      "route": "/",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 71420,
+      "wall_ms": 272.87,
+      "error": ""
+    },
+    {
+      "route": "/",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 71420,
+      "wall_ms": 274.55,
+      "error": ""
+    },
+    {
+      "route": "/",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 71420,
+      "wall_ms": 274.4,
+      "error": ""
+    },
+    {
+      "route": "/words?q=geben",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 60158,
+      "wall_ms": 2488.21,
+      "error": ""
+    },
+    {
+      "route": "/words?q=geben",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 60158,
+      "wall_ms": 3414.54,
+      "error": ""
+    },
+    {
+      "route": "/words?q=geben",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 60158,
+      "wall_ms": 3416.42,
+      "error": ""
+    },
+    {
+      "route": "/words?q=geben",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 60158,
+      "wall_ms": 3443.18,
+      "error": ""
+    },
+    {
+      "route": "/words?q=geben",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 60158,
+      "wall_ms": 179.82,
+      "error": ""
+    },
+    {
+      "route": "/words?q=geben",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 60158,
+      "wall_ms": 179.38,
+      "error": ""
+    },
+    {
+      "route": "/words?q=geben",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 60158,
+      "wall_ms": 225.64,
+      "error": ""
+    },
+    {
+      "route": "/words?q=geben",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 60158,
+      "wall_ms": 232.41,
+      "error": ""
+    },
+    {
+      "route": "/words?q=geben",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 60158,
+      "wall_ms": 151.89,
+      "error": ""
+    },
+    {
+      "route": "/words?q=geben",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 60158,
+      "wall_ms": 151.79,
+      "error": ""
+    },
+    {
+      "route": "/words?q=geben",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 60158,
+      "wall_ms": 161.36,
+      "error": ""
+    },
+    {
+      "route": "/words?q=geben",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 60158,
+      "wall_ms": 208.48,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 292.88,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 299.77,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 296.11,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 298.1,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 112.5,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 112.68,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 112.6,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 113.45,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 133.35,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 136.13,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 135.82,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 138.48,
+      "error": ""
+    },
+    {
+      "route": "/subtitles",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49836,
+      "wall_ms": 147.56,
+      "error": ""
+    },
+    {
+      "route": "/subtitles",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 50682,
+      "wall_ms": 148.3,
+      "error": ""
+    },
+    {
+      "route": "/subtitles",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49836,
+      "wall_ms": 146.15,
+      "error": ""
+    },
+    {
+      "route": "/subtitles",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49836,
+      "wall_ms": 150.55,
+      "error": ""
+    },
+    {
+      "route": "/subtitles",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 50682,
+      "wall_ms": 39.72,
+      "error": ""
+    },
+    {
+      "route": "/subtitles",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49836,
+      "wall_ms": 40.1,
+      "error": ""
+    },
+    {
+      "route": "/subtitles",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49836,
+      "wall_ms": 41.96,
+      "error": ""
+    },
+    {
+      "route": "/subtitles",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49836,
+      "wall_ms": 43.25,
+      "error": ""
+    },
+    {
+      "route": "/subtitles",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 50682,
+      "wall_ms": 40.68,
+      "error": ""
+    },
+    {
+      "route": "/subtitles",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49836,
+      "wall_ms": 41.37,
+      "error": ""
+    },
+    {
+      "route": "/subtitles",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49836,
+      "wall_ms": 41.32,
+      "error": ""
+    },
+    {
+      "route": "/subtitles",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49836,
+      "wall_ms": 44.88,
+      "error": ""
+    },
+    {
+      "route": "/channels",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49883,
+      "wall_ms": 87.42,
+      "error": ""
+    },
+    {
+      "route": "/channels",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49883,
+      "wall_ms": 151.62,
+      "error": ""
+    },
+    {
+      "route": "/channels",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49883,
+      "wall_ms": 152.42,
+      "error": ""
+    },
+    {
+      "route": "/channels",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49883,
+      "wall_ms": 152.99,
+      "error": ""
+    },
+    {
+      "route": "/channels",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49883,
+      "wall_ms": 52.41,
+      "error": ""
+    },
+    {
+      "route": "/channels",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49883,
+      "wall_ms": 53.87,
+      "error": ""
+    },
+    {
+      "route": "/channels",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49883,
+      "wall_ms": 58.06,
+      "error": ""
+    },
+    {
+      "route": "/channels",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49883,
+      "wall_ms": 57.57,
+      "error": ""
+    },
+    {
+      "route": "/channels",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49883,
+      "wall_ms": 62.14,
+      "error": ""
+    },
+    {
+      "route": "/channels",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49883,
+      "wall_ms": 62.48,
+      "error": ""
+    },
+    {
+      "route": "/channels",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49883,
+      "wall_ms": 63.38,
+      "error": ""
+    },
+    {
+      "route": "/channels",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 49883,
+      "wall_ms": 63.62,
+      "error": ""
+    },
+    {
+      "route": "/review",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22129,
+      "wall_ms": 454.32,
+      "error": ""
+    },
+    {
+      "route": "/review",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22129,
+      "wall_ms": 455.2,
+      "error": ""
+    },
+    {
+      "route": "/review",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22129,
+      "wall_ms": 455.92,
+      "error": ""
+    },
+    {
+      "route": "/review",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22129,
+      "wall_ms": 455.82,
+      "error": ""
+    },
+    {
+      "route": "/review",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22129,
+      "wall_ms": 414.37,
+      "error": ""
+    },
+    {
+      "route": "/review",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22129,
+      "wall_ms": 418.4,
+      "error": ""
+    },
+    {
+      "route": "/review",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22129,
+      "wall_ms": 421.0,
+      "error": ""
+    },
+    {
+      "route": "/review",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22129,
+      "wall_ms": 420.86,
+      "error": ""
+    },
+    {
+      "route": "/review",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22129,
+      "wall_ms": 421.87,
+      "error": ""
+    },
+    {
+      "route": "/review",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22129,
+      "wall_ms": 424.18,
+      "error": ""
+    },
+    {
+      "route": "/review",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22129,
+      "wall_ms": 424.94,
+      "error": ""
+    },
+    {
+      "route": "/review",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22129,
+      "wall_ms": 424.8,
+      "error": ""
+    },
+    {
+      "route": "/hear",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22284,
+      "wall_ms": 126.79,
+      "error": ""
+    },
+    {
+      "route": "/hear",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22284,
+      "wall_ms": 172.14,
+      "error": ""
+    },
+    {
+      "route": "/hear",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22284,
+      "wall_ms": 173.03,
+      "error": ""
+    },
+    {
+      "route": "/hear",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22284,
+      "wall_ms": 173.68,
+      "error": ""
+    },
+    {
+      "route": "/hear",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22284,
+      "wall_ms": 102.05,
+      "error": ""
+    },
+    {
+      "route": "/hear",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22284,
+      "wall_ms": 102.1,
+      "error": ""
+    },
+    {
+      "route": "/hear",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22284,
+      "wall_ms": 102.43,
+      "error": ""
+    },
+    {
+      "route": "/hear",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22284,
+      "wall_ms": 103.42,
+      "error": ""
+    },
+    {
+      "route": "/hear",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22284,
+      "wall_ms": 121.06,
+      "error": ""
+    },
+    {
+      "route": "/hear",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22284,
+      "wall_ms": 121.18,
+      "error": ""
+    },
+    {
+      "route": "/hear",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22284,
+      "wall_ms": 122.9,
+      "error": ""
+    },
+    {
+      "route": "/hear",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 22284,
+      "wall_ms": 123.63,
+      "error": ""
+    },
+    {
+      "route": "/mine",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 23160,
+      "wall_ms": 20.72,
+      "error": ""
+    },
+    {
+      "route": "/mine",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 23160,
+      "wall_ms": 22.02,
+      "error": ""
+    },
+    {
+      "route": "/mine",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 23160,
+      "wall_ms": 22.65,
+      "error": ""
+    },
+    {
+      "route": "/mine",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 23160,
+      "wall_ms": 28.79,
+      "error": ""
+    },
+    {
+      "route": "/mine",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 23160,
+      "wall_ms": 18.27,
+      "error": ""
+    },
+    {
+      "route": "/mine",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 23160,
+      "wall_ms": 18.77,
+      "error": ""
+    },
+    {
+      "route": "/mine",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 23160,
+      "wall_ms": 18.94,
+      "error": ""
+    },
+    {
+      "route": "/mine",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 23160,
+      "wall_ms": 19.16,
+      "error": ""
+    },
+    {
+      "route": "/mine",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 23160,
+      "wall_ms": 14.09,
+      "error": ""
+    },
+    {
+      "route": "/mine",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 23160,
+      "wall_ms": 14.41,
+      "error": ""
+    },
+    {
+      "route": "/mine",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 23160,
+      "wall_ms": 14.15,
+      "error": ""
+    },
+    {
+      "route": "/mine",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 23160,
+      "wall_ms": 15.23,
+      "error": ""
+    },
+    {
+      "route": "/quiz",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 20213,
+      "wall_ms": 23.02,
+      "error": ""
+    },
+    {
+      "route": "/quiz",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 20213,
+      "wall_ms": 773.0,
+      "error": ""
+    },
+    {
+      "route": "/quiz",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 20213,
+      "wall_ms": 773.54,
+      "error": ""
+    },
+    {
+      "route": "/quiz",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 20213,
+      "wall_ms": 773.31,
+      "error": ""
+    },
+    {
+      "route": "/quiz",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 20213,
+      "wall_ms": 18.16,
+      "error": ""
+    },
+    {
+      "route": "/quiz",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 20213,
+      "wall_ms": 18.39,
+      "error": ""
+    },
+    {
+      "route": "/quiz",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 20213,
+      "wall_ms": 18.31,
+      "error": ""
+    },
+    {
+      "route": "/quiz",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 20213,
+      "wall_ms": 23.59,
+      "error": ""
+    },
+    {
+      "route": "/quiz",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 20213,
+      "wall_ms": 18.57,
+      "error": ""
+    },
+    {
+      "route": "/quiz",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 20213,
+      "wall_ms": 19.28,
+      "error": ""
+    },
+    {
+      "route": "/quiz",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 20213,
+      "wall_ms": 20.08,
+      "error": ""
+    },
+    {
+      "route": "/quiz",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 20213,
+      "wall_ms": 19.96,
+      "error": ""
+    },
+    {
+      "route": "/starred",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 25388,
+      "wall_ms": 29.08,
+      "error": ""
+    },
+    {
+      "route": "/starred",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 25388,
+      "wall_ms": 30.11,
+      "error": ""
+    },
+    {
+      "route": "/starred",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 25388,
+      "wall_ms": 29.94,
+      "error": ""
+    },
+    {
+      "route": "/starred",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 25388,
+      "wall_ms": 30.16,
+      "error": ""
+    },
+    {
+      "route": "/starred",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 25388,
+      "wall_ms": 15.98,
+      "error": ""
+    },
+    {
+      "route": "/starred",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 25388,
+      "wall_ms": 15.94,
+      "error": ""
+    },
+    {
+      "route": "/starred",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 25388,
+      "wall_ms": 17.33,
+      "error": ""
+    },
+    {
+      "route": "/starred",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 25388,
+      "wall_ms": 17.4,
+      "error": ""
+    },
+    {
+      "route": "/starred",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 25388,
+      "wall_ms": 18.75,
+      "error": ""
+    },
+    {
+      "route": "/starred",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 25388,
+      "wall_ms": 19.13,
+      "error": ""
+    },
+    {
+      "route": "/starred",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 25388,
+      "wall_ms": 26.61,
+      "error": ""
+    },
+    {
+      "route": "/starred",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 25388,
+      "wall_ms": 27.18,
+      "error": ""
+    },
+    {
+      "route": "/lists",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21488,
+      "wall_ms": 18.97,
+      "error": ""
+    },
+    {
+      "route": "/lists",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21488,
+      "wall_ms": 19.3,
+      "error": ""
+    },
+    {
+      "route": "/lists",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21488,
+      "wall_ms": 19.78,
+      "error": ""
+    },
+    {
+      "route": "/lists",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21488,
+      "wall_ms": 21.65,
+      "error": ""
+    },
+    {
+      "route": "/lists",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21488,
+      "wall_ms": 26.8,
+      "error": ""
+    },
+    {
+      "route": "/lists",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21488,
+      "wall_ms": 28.2,
+      "error": ""
+    },
+    {
+      "route": "/lists",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21488,
+      "wall_ms": 28.98,
+      "error": ""
+    },
+    {
+      "route": "/lists",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21488,
+      "wall_ms": 29.62,
+      "error": ""
+    },
+    {
+      "route": "/lists",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21488,
+      "wall_ms": 25.29,
+      "error": ""
+    },
+    {
+      "route": "/lists",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21488,
+      "wall_ms": 26.15,
+      "error": ""
+    },
+    {
+      "route": "/lists",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21488,
+      "wall_ms": 27.7,
+      "error": ""
+    },
+    {
+      "route": "/lists",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21488,
+      "wall_ms": 28.59,
+      "error": ""
+    },
+    {
+      "route": "/cover",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21220,
+      "wall_ms": 20.89,
+      "error": ""
+    },
+    {
+      "route": "/cover",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21220,
+      "wall_ms": 20.91,
+      "error": ""
+    },
+    {
+      "route": "/cover",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21220,
+      "wall_ms": 21.58,
+      "error": ""
+    },
+    {
+      "route": "/cover",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21220,
+      "wall_ms": 21.35,
+      "error": ""
+    },
+    {
+      "route": "/cover",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21220,
+      "wall_ms": 15.29,
+      "error": ""
+    },
+    {
+      "route": "/cover",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21220,
+      "wall_ms": 15.36,
+      "error": ""
+    },
+    {
+      "route": "/cover",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21220,
+      "wall_ms": 17.35,
+      "error": ""
+    },
+    {
+      "route": "/cover",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21220,
+      "wall_ms": 17.87,
+      "error": ""
+    },
+    {
+      "route": "/cover",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21220,
+      "wall_ms": 14.75,
+      "error": ""
+    },
+    {
+      "route": "/cover",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21220,
+      "wall_ms": 16.3,
+      "error": ""
+    },
+    {
+      "route": "/cover",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21220,
+      "wall_ms": 16.82,
+      "error": ""
+    },
+    {
+      "route": "/cover",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 21220,
+      "wall_ms": 16.85,
+      "error": ""
+    },
+    {
+      "route": "/journey",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 34862,
+      "wall_ms": 23.09,
+      "error": ""
+    },
+    {
+      "route": "/journey",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 34862,
+      "wall_ms": 22.99,
+      "error": ""
+    },
+    {
+      "route": "/journey",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 34862,
+      "wall_ms": 23.48,
+      "error": ""
+    },
+    {
+      "route": "/journey",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 34862,
+      "wall_ms": 23.24,
+      "error": ""
+    },
+    {
+      "route": "/journey",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 34862,
+      "wall_ms": 20.77,
+      "error": ""
+    },
+    {
+      "route": "/journey",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 34862,
+      "wall_ms": 21.21,
+      "error": ""
+    },
+    {
+      "route": "/journey",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 34862,
+      "wall_ms": 21.17,
+      "error": ""
+    },
+    {
+      "route": "/journey",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 34862,
+      "wall_ms": 22.89,
+      "error": ""
+    },
+    {
+      "route": "/journey",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 34862,
+      "wall_ms": 19.57,
+      "error": ""
+    },
+    {
+      "route": "/journey",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 34862,
+      "wall_ms": 19.28,
+      "error": ""
+    },
+    {
+      "route": "/journey",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 34862,
+      "wall_ms": 19.76,
+      "error": ""
+    },
+    {
+      "route": "/journey",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 34862,
+      "wall_ms": 20.03,
+      "error": ""
+    },
+    {
+      "route": "/plan",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 50942,
+      "wall_ms": 73.18,
+      "error": ""
+    },
+    {
+      "route": "/plan",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 50615,
+      "wall_ms": 79.68,
+      "error": ""
+    },
+    {
+      "route": "/plan",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 50615,
+      "wall_ms": 80.67,
+      "error": ""
+    },
+    {
+      "route": "/plan",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 50615,
+      "wall_ms": 80.62,
+      "error": ""
+    },
+    {
+      "route": "/plan",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 50615,
+      "wall_ms": 27.58,
+      "error": ""
+    },
+    {
+      "route": "/plan",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 50615,
+      "wall_ms": 28.25,
+      "error": ""
+    },
+    {
+      "route": "/plan",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 50942,
+      "wall_ms": 29.15,
+      "error": ""
+    },
+    {
+      "route": "/plan",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 50615,
+      "wall_ms": 29.65,
+      "error": ""
+    },
+    {
+      "route": "/plan",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 50942,
+      "wall_ms": 30.48,
+      "error": ""
+    },
+    {
+      "route": "/plan",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 50615,
+      "wall_ms": 31.28,
+      "error": ""
+    },
+    {
+      "route": "/plan",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 50615,
+      "wall_ms": 31.76,
+      "error": ""
+    },
+    {
+      "route": "/plan",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 50615,
+      "wall_ms": 31.58,
+      "error": ""
+    },
+    {
+      "route": "/roadmap",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 109586,
+      "wall_ms": 673.39,
+      "error": ""
+    },
+    {
+      "route": "/roadmap",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 109586,
+      "wall_ms": 674.94,
+      "error": ""
+    },
+    {
+      "route": "/roadmap",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 109586,
+      "wall_ms": 680.19,
+      "error": ""
+    },
+    {
+      "route": "/roadmap",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 109586,
+      "wall_ms": 680.18,
+      "error": ""
+    },
+    {
+      "route": "/roadmap",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 109586,
+      "wall_ms": 622.04,
+      "error": ""
+    },
+    {
+      "route": "/roadmap",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 109586,
+      "wall_ms": 637.76,
+      "error": ""
+    },
+    {
+      "route": "/roadmap",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 109586,
+      "wall_ms": 638.54,
+      "error": ""
+    },
+    {
+      "route": "/roadmap",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 109586,
+      "wall_ms": 638.46,
+      "error": ""
+    },
+    {
+      "route": "/roadmap",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 109586,
+      "wall_ms": 600.06,
+      "error": ""
+    },
+    {
+      "route": "/roadmap",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 109586,
+      "wall_ms": 603.91,
+      "error": ""
+    },
+    {
+      "route": "/roadmap",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 109586,
+      "wall_ms": 606.44,
+      "error": ""
+    },
+    {
+      "route": "/roadmap",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 109586,
+      "wall_ms": 611.5,
+      "error": ""
+    },
+    {
+      "route": "/frontier",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85101,
+      "wall_ms": 1219.3,
+      "error": ""
+    },
+    {
+      "route": "/frontier",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85101,
+      "wall_ms": 49499.25,
+      "error": ""
+    },
+    {
+      "route": "/frontier",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85101,
+      "wall_ms": 49499.94,
+      "error": ""
+    },
+    {
+      "route": "/frontier",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85101,
+      "wall_ms": 49500.42,
+      "error": ""
+    },
+    {
+      "route": "/frontier",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85101,
+      "wall_ms": 677.64,
+      "error": ""
+    },
+    {
+      "route": "/frontier",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85101,
+      "wall_ms": 705.38,
+      "error": ""
+    },
+    {
+      "route": "/frontier",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85101,
+      "wall_ms": 706.93,
+      "error": ""
+    },
+    {
+      "route": "/frontier",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85101,
+      "wall_ms": 705.97,
+      "error": ""
+    },
+    {
+      "route": "/frontier",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85101,
+      "wall_ms": 869.01,
+      "error": ""
+    },
+    {
+      "route": "/frontier",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85101,
+      "wall_ms": 868.97,
+      "error": ""
+    },
+    {
+      "route": "/frontier",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85101,
+      "wall_ms": 868.83,
+      "error": ""
+    },
+    {
+      "route": "/frontier",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85101,
+      "wall_ms": 869.17,
+      "error": ""
+    },
+    {
+      "route": "/blocked",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85827,
+      "wall_ms": 760.92,
+      "error": ""
+    },
+    {
+      "route": "/blocked",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85827,
+      "wall_ms": 17314.85,
+      "error": ""
+    },
+    {
+      "route": "/blocked",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85827,
+      "wall_ms": 17314.96,
+      "error": ""
+    },
+    {
+      "route": "/blocked",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85827,
+      "wall_ms": 17315.43,
+      "error": ""
+    },
+    {
+      "route": "/blocked",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85827,
+      "wall_ms": 27.17,
+      "error": ""
+    },
+    {
+      "route": "/blocked",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85827,
+      "wall_ms": 27.83,
+      "error": ""
+    },
+    {
+      "route": "/blocked",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85827,
+      "wall_ms": 28.58,
+      "error": ""
+    },
+    {
+      "route": "/blocked",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85827,
+      "wall_ms": 28.19,
+      "error": ""
+    },
+    {
+      "route": "/blocked",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85827,
+      "wall_ms": 25.55,
+      "error": ""
+    },
+    {
+      "route": "/blocked",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85827,
+      "wall_ms": 26.42,
+      "error": ""
+    },
+    {
+      "route": "/blocked",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85827,
+      "wall_ms": 26.27,
+      "error": ""
+    },
+    {
+      "route": "/blocked",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85827,
+      "wall_ms": 26.17,
+      "error": ""
+    },
+    {
+      "route": "/study",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 258.57,
+      "error": ""
+    },
+    {
+      "route": "/study",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 258.28,
+      "error": ""
+    },
+    {
+      "route": "/study",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 258.84,
+      "error": ""
+    },
+    {
+      "route": "/study",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 259.44,
+      "error": ""
+    },
+    {
+      "route": "/study",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 28.37,
+      "error": ""
+    },
+    {
+      "route": "/study",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 29.42,
+      "error": ""
+    },
+    {
+      "route": "/study",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 29.24,
+      "error": ""
+    },
+    {
+      "route": "/study",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 30.31,
+      "error": ""
+    },
+    {
+      "route": "/study",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 24.16,
+      "error": ""
+    },
+    {
+      "route": "/study",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 25.63,
+      "error": ""
+    },
+    {
+      "route": "/study",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 25.97,
+      "error": ""
+    },
+    {
+      "route": "/study",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 26.03,
+      "error": ""
+    },
+    {
+      "route": "/watch",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19754,
+      "wall_ms": 174.75,
+      "error": ""
+    },
+    {
+      "route": "/watch",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19754,
+      "wall_ms": 509.02,
+      "error": ""
+    },
+    {
+      "route": "/watch",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19754,
+      "wall_ms": 509.47,
+      "error": ""
+    },
+    {
+      "route": "/watch",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19754,
+      "wall_ms": 510.36,
+      "error": ""
+    },
+    {
+      "route": "/watch",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19754,
+      "wall_ms": 269.86,
+      "error": ""
+    },
+    {
+      "route": "/watch",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19754,
+      "wall_ms": 270.42,
+      "error": ""
+    },
+    {
+      "route": "/watch",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19754,
+      "wall_ms": 275.24,
+      "error": ""
+    },
+    {
+      "route": "/watch",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19754,
+      "wall_ms": 276.72,
+      "error": ""
+    },
+    {
+      "route": "/watch",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19754,
+      "wall_ms": 270.97,
+      "error": ""
+    },
+    {
+      "route": "/watch",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19754,
+      "wall_ms": 272.2,
+      "error": ""
+    },
+    {
+      "route": "/watch",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19754,
+      "wall_ms": 272.66,
+      "error": ""
+    },
+    {
+      "route": "/watch",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19754,
+      "wall_ms": 273.64,
+      "error": ""
+    },
+    {
+      "route": "/anki",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 86258,
+      "wall_ms": 49.74,
+      "error": ""
+    },
+    {
+      "route": "/anki",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 86258,
+      "wall_ms": 14683.84,
+      "error": ""
+    },
+    {
+      "route": "/anki",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 86258,
+      "wall_ms": 14682.77,
+      "error": ""
+    },
+    {
+      "route": "/anki",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 86258,
+      "wall_ms": 14684.33,
+      "error": ""
+    },
+    {
+      "route": "/anki",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 86258,
+      "wall_ms": 48.0,
+      "error": ""
+    },
+    {
+      "route": "/anki",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 86258,
+      "wall_ms": 49.07,
+      "error": ""
+    },
+    {
+      "route": "/anki",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 86258,
+      "wall_ms": 50.96,
+      "error": ""
+    },
+    {
+      "route": "/anki",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 86258,
+      "wall_ms": 53.87,
+      "error": ""
+    },
+    {
+      "route": "/anki",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 86258,
+      "wall_ms": 27.15,
+      "error": ""
+    },
+    {
+      "route": "/anki",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 86258,
+      "wall_ms": 30.9,
+      "error": ""
+    },
+    {
+      "route": "/anki",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 86258,
+      "wall_ms": 30.83,
+      "error": ""
+    },
+    {
+      "route": "/anki",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 86258,
+      "wall_ms": 32.7,
+      "error": ""
+    },
+    {
+      "route": "/settings",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 62445,
+      "wall_ms": 105.77,
+      "error": ""
+    },
+    {
+      "route": "/settings",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 62445,
+      "wall_ms": 138.88,
+      "error": ""
+    },
+    {
+      "route": "/settings",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 62445,
+      "wall_ms": 156.68,
+      "error": ""
+    },
+    {
+      "route": "/settings",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 62445,
+      "wall_ms": 156.85,
+      "error": ""
+    },
+    {
+      "route": "/settings",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 62445,
+      "wall_ms": 62.45,
+      "error": ""
+    },
+    {
+      "route": "/settings",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 62445,
+      "wall_ms": 62.35,
+      "error": ""
+    },
+    {
+      "route": "/settings",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 62445,
+      "wall_ms": 63.13,
+      "error": ""
+    },
+    {
+      "route": "/settings",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 62445,
+      "wall_ms": 73.79,
+      "error": ""
+    },
+    {
+      "route": "/settings",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 62445,
+      "wall_ms": 59.88,
+      "error": ""
+    },
+    {
+      "route": "/settings",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 62445,
+      "wall_ms": 60.17,
+      "error": ""
+    },
+    {
+      "route": "/settings",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 62445,
+      "wall_ms": 62.7,
+      "error": ""
+    },
+    {
+      "route": "/settings",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 62445,
+      "wall_ms": 63.98,
+      "error": ""
+    },
+    {
+      "route": "/api/cover-search?q=haus",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 1710,
+      "wall_ms": 496.05,
+      "error": ""
+    },
+    {
+      "route": "/api/cover-search?q=haus",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 1710,
+      "wall_ms": 5424.19,
+      "error": ""
+    },
+    {
+      "route": "/api/cover-search?q=haus",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 1710,
+      "wall_ms": 5425.13,
+      "error": ""
+    },
+    {
+      "route": "/api/cover-search?q=haus",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 1710,
+      "wall_ms": 5454.9,
+      "error": ""
+    },
+    {
+      "route": "/api/cover-search?q=haus",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 1710,
+      "wall_ms": 205.23,
+      "error": ""
+    },
+    {
+      "route": "/api/cover-search?q=haus",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 1710,
+      "wall_ms": 206.12,
+      "error": ""
+    },
+    {
+      "route": "/api/cover-search?q=haus",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 1710,
+      "wall_ms": 218.72,
+      "error": ""
+    },
+    {
+      "route": "/api/cover-search?q=haus",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 1710,
+      "wall_ms": 363.59,
+      "error": ""
+    },
+    {
+      "route": "/api/cover-search?q=haus",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 1710,
+      "wall_ms": 135.82,
+      "error": ""
+    },
+    {
+      "route": "/api/cover-search?q=haus",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 1710,
+      "wall_ms": 142.77,
+      "error": ""
+    },
+    {
+      "route": "/api/cover-search?q=haus",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 1710,
+      "wall_ms": 143.3,
+      "error": ""
+    },
+    {
+      "route": "/api/cover-search?q=haus",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 1710,
+      "wall_ms": 143.12,
+      "error": ""
+    },
+    {
+      "route": "/api/reels?i=1",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12943,
+      "wall_ms": 237.47,
+      "error": ""
+    },
+    {
+      "route": "/api/reels?i=1",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12943,
+      "wall_ms": 242.83,
+      "error": ""
+    },
+    {
+      "route": "/api/reels?i=1",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12943,
+      "wall_ms": 270.73,
+      "error": ""
+    },
+    {
+      "route": "/api/reels?i=1",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12943,
+      "wall_ms": 271.85,
+      "error": ""
+    },
+    {
+      "route": "/api/reels?i=1",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12943,
+      "wall_ms": 78.86,
+      "error": ""
+    },
+    {
+      "route": "/api/reels?i=1",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12943,
+      "wall_ms": 79.54,
+      "error": ""
+    },
+    {
+      "route": "/api/reels?i=1",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12943,
+      "wall_ms": 79.87,
+      "error": ""
+    },
+    {
+      "route": "/api/reels?i=1",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12943,
+      "wall_ms": 80.47,
+      "error": ""
+    },
+    {
+      "route": "/api/reels?i=1",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12943,
+      "wall_ms": 63.09,
+      "error": ""
+    },
+    {
+      "route": "/api/reels?i=1",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12943,
+      "wall_ms": 63.47,
+      "error": ""
+    },
+    {
+      "route": "/api/reels?i=1",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12943,
+      "wall_ms": 63.49,
+      "error": ""
+    },
+    {
+      "route": "/api/reels?i=1",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12943,
+      "wall_ms": 63.88,
+      "error": ""
+    }
+  ],
+  "server_timings": [
+    {
+      "path": "/",
+      "wall_ms": 24503.15950019285,
+      "thread_cpu_ms": 19676.318582999997
+    },
+    {
+      "path": "/words",
+      "wall_ms": 3454.6810830943286,
+      "thread_cpu_ms": 2953.342833
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 171.8087918125093,
+      "thread_cpu_ms": 94.25837499999999
+    },
+    {
+      "path": "/subtitles",
+      "wall_ms": 13.715750072151423,
+      "thread_cpu_ms": 9.051125
+    },
+    {
+      "path": "/channels",
+      "wall_ms": 67.33858305960894,
+      "thread_cpu_ms": 30.917499999999997
+    },
+    {
+      "path": "/review",
+      "wall_ms": 250.45379204675555,
+      "thread_cpu_ms": 110.227208
+    },
+    {
+      "path": "/hear",
+      "wall_ms": 80.15554212033749,
+      "thread_cpu_ms": 51.998625
+    },
+    {
+      "path": "/mine",
+      "wall_ms": 7.30750011280179,
+      "thread_cpu_ms": 2.7088750000000004
+    },
+    {
+      "path": "/quiz",
+      "wall_ms": 438.96616715937853,
+      "thread_cpu_ms": 244.421417
+    },
+    {
+      "path": "/starred",
+      "wall_ms": 14.053083024919033,
+      "thread_cpu_ms": 3.5940000000000003
+    },
+    {
+      "path": "/lists",
+      "wall_ms": 9.482332970947027,
+      "thread_cpu_ms": 2.7804159999999998
+    },
+    {
+      "path": "/cover",
+      "wall_ms": 6.991792004555464,
+      "thread_cpu_ms": 2.6125
+    },
+    {
+      "path": "/journey",
+      "wall_ms": 10.576458182185888,
+      "thread_cpu_ms": 4.678333
+    },
+    {
+      "path": "/plan",
+      "wall_ms": 25.37808334454894,
+      "thread_cpu_ms": 15.75375
+    },
+    {
+      "path": "/roadmap",
+      "wall_ms": 272.2697500139475,
+      "thread_cpu_ms": 121.047291
+    },
+    {
+      "path": "/frontier",
+      "wall_ms": 41635.99037518725,
+      "thread_cpu_ms": 32256.831958
+    },
+    {
+      "path": "/blocked",
+      "wall_ms": 4768.863749690354,
+      "thread_cpu_ms": 4382.7807920000005
+    },
+    {
+      "path": "/study",
+      "wall_ms": 15.247541014105082,
+      "thread_cpu_ms": 8.434708
+    },
+    {
+      "path": "/watch",
+      "wall_ms": 132.91487516835332,
+      "thread_cpu_ms": 60.035875000000004
+    },
+    {
+      "path": "/anki",
+      "wall_ms": 4417.812374886125,
+      "thread_cpu_ms": 2224.9350839999997
+    },
+    {
+      "path": "/settings",
+      "wall_ms": 114.82808319851756,
+      "thread_cpu_ms": 30.774333000000002
+    },
+    {
+      "path": "/api/cover-search",
+      "wall_ms": 2147.05358305946,
+      "thread_cpu_ms": 1726.295417
+    },
+    {
+      "path": "/api/reels",
+      "wall_ms": 37.471209187060595,
+      "thread_cpu_ms": 24.156083000000002
+    },
+    {
+      "path": "/",
+      "wall_ms": 219.66787474229932,
+      "thread_cpu_ms": 113.43325
+    },
+    {
+      "path": "/",
+      "wall_ms": 125.78083295375109,
+      "thread_cpu_ms": 77.70745899999999
+    },
+    {
+      "path": "/",
+      "wall_ms": 157.90562517940998,
+      "thread_cpu_ms": 91.28779200000001
+    },
+    {
+      "path": "/words",
+      "wall_ms": 289.20200001448393,
+      "thread_cpu_ms": 6.845958
+    },
+    {
+      "path": "/words",
+      "wall_ms": 78.85029213503003,
+      "thread_cpu_ms": 6.0589580000000005
+    },
+    {
+      "path": "/words",
+      "wall_ms": 82.95062510296702,
+      "thread_cpu_ms": 6.774
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 40.90150026604533,
+      "thread_cpu_ms": 25.755459
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 31.182500068098307,
+      "thread_cpu_ms": 22.099333
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 32.644415739923716,
+      "thread_cpu_ms": 21.198791
+    },
+    {
+      "path": "/subtitles",
+      "wall_ms": 14.879290945827961,
+      "thread_cpu_ms": 7.094042
+    },
+    {
+      "path": "/subtitles",
+      "wall_ms": 19.202166236937046,
+      "thread_cpu_ms": 8.683458
+    },
+    {
+      "path": "/subtitles",
+      "wall_ms": 11.979000177234411,
+      "thread_cpu_ms": 6.439
+    },
+    {
+      "path": "/channels",
+      "wall_ms": 70.32620767131448,
+      "thread_cpu_ms": 21.980667000000004
+    },
+    {
+      "path": "/channels",
+      "wall_ms": 47.97287518158555,
+      "thread_cpu_ms": 16.073125
+    },
+    {
+      "path": "/channels",
+      "wall_ms": 33.8161657564342,
+      "thread_cpu_ms": 12.574
+    },
+    {
+      "path": "/review",
+      "wall_ms": 237.0014158077538,
+      "thread_cpu_ms": 109.008583
+    },
+    {
+      "path": "/review",
+      "wall_ms": 150.3275423310697,
+      "thread_cpu_ms": 84.67304200000001
+    },
+    {
+      "path": "/review",
+      "wall_ms": 124.92775032296777,
+      "thread_cpu_ms": 78.59299999999999
+    },
+    {
+      "path": "/hear",
+      "wall_ms": 68.8352920114994,
+      "thread_cpu_ms": 53.018833
+    },
+    {
+      "path": "/hear",
+      "wall_ms": 36.41299996525049,
+      "thread_cpu_ms": 25.60425
+    },
+    {
+      "path": "/hear",
+      "wall_ms": 33.82250014692545,
+      "thread_cpu_ms": 23.388834
+    },
+    {
+      "path": "/mine",
+      "wall_ms": 7.186249829828739,
+      "thread_cpu_ms": 2.492209
+    },
+    {
+      "path": "/mine",
+      "wall_ms": 6.421292200684547,
+      "thread_cpu_ms": 2.024625
+    },
+    {
+      "path": "/mine",
+      "wall_ms": 6.490292027592659,
+      "thread_cpu_ms": 2.085292
+    },
+    {
+      "path": "/quiz",
+      "wall_ms": 9.403833653777838,
+      "thread_cpu_ms": 3.9054590000000005
+    },
+    {
+      "path": "/quiz",
+      "wall_ms": 6.810874678194523,
+      "thread_cpu_ms": 2.411458
+    },
+    {
+      "path": "/quiz",
+      "wall_ms": 6.974791642278433,
+      "thread_cpu_ms": 2.3017090000000002
+    },
+    {
+      "path": "/starred",
+      "wall_ms": 13.302875217050314,
+      "thread_cpu_ms": 2.8978750000000004
+    },
+    {
+      "path": "/starred",
+      "wall_ms": 6.74099987372756,
+      "thread_cpu_ms": 2.1864999999999997
+    },
+    {
+      "path": "/starred",
+      "wall_ms": 9.296083822846413,
+      "thread_cpu_ms": 3.346667
+    },
+    {
+      "path": "/lists",
+      "wall_ms": 19.46283271536231,
+      "thread_cpu_ms": 4.908458
+    },
+    {
+      "path": "/lists",
+      "wall_ms": 12.548041064292192,
+      "thread_cpu_ms": 3.149584
+    },
+    {
+      "path": "/lists",
+      "wall_ms": 12.897166889160872,
+      "thread_cpu_ms": 2.89425
+    },
+    {
+      "path": "/cover",
+      "wall_ms": 9.145332965999842,
+      "thread_cpu_ms": 2.792125
+    },
+    {
+      "path": "/cover",
+      "wall_ms": 13.642000034451485,
+      "thread_cpu_ms": 2.924792
+    },
+    {
+      "path": "/cover",
+      "wall_ms": 8.102625142782927,
+      "thread_cpu_ms": 1.865917
+    },
+    {
+      "path": "/journey",
+      "wall_ms": 14.73179180175066,
+      "thread_cpu_ms": 3.1405410000000002
+    },
+    {
+      "path": "/journey",
+      "wall_ms": 9.542999789118767,
+      "thread_cpu_ms": 2.921334
+    },
+    {
+      "path": "/journey",
+      "wall_ms": 12.668916955590248,
+      "thread_cpu_ms": 3.513291
+    },
+    {
+      "path": "/plan",
+      "wall_ms": 16.63416577503085,
+      "thread_cpu_ms": 7.57125
+    },
+    {
+      "path": "/plan",
+      "wall_ms": 9.981999639421701,
+      "thread_cpu_ms": 4.85075
+    },
+    {
+      "path": "/plan",
+      "wall_ms": 9.24400007352233,
+      "thread_cpu_ms": 4.400582999999999
+    },
+    {
+      "path": "/roadmap",
+      "wall_ms": 340.6760422512889,
+      "thread_cpu_ms": 145.235084
+    },
+    {
+      "path": "/roadmap",
+      "wall_ms": 297.3824576474726,
+      "thread_cpu_ms": 139.690958
+    },
+    {
+      "path": "/roadmap",
+      "wall_ms": 333.63679191097617,
+      "thread_cpu_ms": 145.54745900000003
+    },
+    {
+      "path": "/frontier",
+      "wall_ms": 230.5882079526782,
+      "thread_cpu_ms": 168.481042
+    },
+    {
+      "path": "/frontier",
+      "wall_ms": 150.0070416368544,
+      "thread_cpu_ms": 114.518708
+    },
+    {
+      "path": "/frontier",
+      "wall_ms": 163.22537511587143,
+      "thread_cpu_ms": 119.365
+    },
+    {
+      "path": "/blocked",
+      "wall_ms": 31.749334186315536,
+      "thread_cpu_ms": 7.936458
+    },
+    {
+      "path": "/blocked",
+      "wall_ms": 13.098415918648243,
+      "thread_cpu_ms": 6.4745
+    },
+    {
+      "path": "/blocked",
+      "wall_ms": 15.61662508174777,
+      "thread_cpu_ms": 6.456541
+    },
+    {
+      "path": "/study",
+      "wall_ms": 12.304665986448526,
+      "thread_cpu_ms": 6.3026670000000005
+    },
+    {
+      "path": "/study",
+      "wall_ms": 12.05737516283989,
+      "thread_cpu_ms": 5.670458
+    },
+    {
+      "path": "/study",
+      "wall_ms": 10.103958193212748,
+      "thread_cpu_ms": 4.251666999999999
+    },
+    {
+      "path": "/watch",
+      "wall_ms": 73.90179159119725,
+      "thread_cpu_ms": 34.084875000000004
+    },
+    {
+      "path": "/watch",
+      "wall_ms": 72.31987500563264,
+      "thread_cpu_ms": 35.92075
+    },
+    {
+      "path": "/watch",
+      "wall_ms": 66.38295808807015,
+      "thread_cpu_ms": 33.434000000000005
+    },
+    {
+      "path": "/anki",
+      "wall_ms": 11.133667081594467,
+      "thread_cpu_ms": 7.861042
+    },
+    {
+      "path": "/anki",
+      "wall_ms": 8.507583290338516,
+      "thread_cpu_ms": 5.507667
+    },
+    {
+      "path": "/anki",
+      "wall_ms": 8.369332645088434,
+      "thread_cpu_ms": 5.3936660000000005
+    },
+    {
+      "path": "/settings",
+      "wall_ms": 30.912500340491533,
+      "thread_cpu_ms": 13.197000000000001
+    },
+    {
+      "path": "/settings",
+      "wall_ms": 26.153583079576492,
+      "thread_cpu_ms": 12.141250000000001
+    },
+    {
+      "path": "/settings",
+      "wall_ms": 27.740124613046646,
+      "thread_cpu_ms": 12.129584000000001
+    },
+    {
+      "path": "/api/cover-search",
+      "wall_ms": 181.89550004899502,
+      "thread_cpu_ms": 157.559458
+    },
+    {
+      "path": "/api/cover-search",
+      "wall_ms": 33.16020779311657,
+      "thread_cpu_ms": 30.690583
+    },
+    {
+      "path": "/api/cover-search",
+      "wall_ms": 33.39158417657018,
+      "thread_cpu_ms": 30.942625
+    },
+    {
+      "path": "/api/reels",
+      "wall_ms": 23.667042143642902,
+      "thread_cpu_ms": 16.497500000000002
+    },
+    {
+      "path": "/api/reels",
+      "wall_ms": 21.877082996070385,
+      "thread_cpu_ms": 14.819083000000001
+    },
+    {
+      "path": "/api/reels",
+      "wall_ms": 21.798500325530767,
+      "thread_cpu_ms": 14.755875000000001
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 111.09533440321684,
+      "thread_cpu_ms": 40.114625000000004
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 18375.83883292973,
+      "thread_cpu_ms": 11528.807499999999
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 18385.292958002537,
+      "thread_cpu_ms": 724.1225
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 18393.582332879305,
+      "thread_cpu_ms": 768.4485
+    },
+    {
+      "path": "/",
+      "wall_ms": 418.22370793670416,
+      "thread_cpu_ms": 118.880167
+    },
+    {
+      "path": "/",
+      "wall_ms": 11073.947667144239,
+      "thread_cpu_ms": 3007.53725
+    },
+    {
+      "path": "/",
+      "wall_ms": 11073.236833326519,
+      "thread_cpu_ms": 3172.122875
+    },
+    {
+      "path": "/",
+      "wall_ms": 11073.95329233259,
+      "thread_cpu_ms": 2928.3847499999997
+    },
+    {
+      "path": "/",
+      "wall_ms": 326.7161250114441,
+      "thread_cpu_ms": 70.280834
+    },
+    {
+      "path": "/",
+      "wall_ms": 328.3903752453625,
+      "thread_cpu_ms": 78.067083
+    },
+    {
+      "path": "/",
+      "wall_ms": 328.9990001358092,
+      "thread_cpu_ms": 64.63991700000001
+    },
+    {
+      "path": "/",
+      "wall_ms": 330.6743325665593,
+      "thread_cpu_ms": 64.67025
+    },
+    {
+      "path": "/",
+      "wall_ms": 268.55595828965306,
+      "thread_cpu_ms": 68.92525
+    },
+    {
+      "path": "/",
+      "wall_ms": 269.0220419317484,
+      "thread_cpu_ms": 72.324042
+    },
+    {
+      "path": "/",
+      "wall_ms": 270.16020799055696,
+      "thread_cpu_ms": 68.203084
+    },
+    {
+      "path": "/",
+      "wall_ms": 271.7338749207556,
+      "thread_cpu_ms": 66.886166
+    },
+    {
+      "path": "/words",
+      "wall_ms": 2386.2926671281457,
+      "thread_cpu_ms": 18.817041
+    },
+    {
+      "path": "/words",
+      "wall_ms": 3394.9966253712773,
+      "thread_cpu_ms": 913.9125
+    },
+    {
+      "path": "/words",
+      "wall_ms": 3397.583791986108,
+      "thread_cpu_ms": 919.133584
+    },
+    {
+      "path": "/words",
+      "wall_ms": 3438.5402076877654,
+      "thread_cpu_ms": 917.278
+    },
+    {
+      "path": "/words",
+      "wall_ms": 175.10008299723268,
+      "thread_cpu_ms": 6.182584
+    },
+    {
+      "path": "/words",
+      "wall_ms": 171.79366713389754,
+      "thread_cpu_ms": 6.008875000000001
+    },
+    {
+      "path": "/words",
+      "wall_ms": 217.88662485778332,
+      "thread_cpu_ms": 6.277417000000001
+    },
+    {
+      "path": "/words",
+      "wall_ms": 225.9912919253111,
+      "thread_cpu_ms": 80.008375
+    },
+    {
+      "path": "/words",
+      "wall_ms": 147.82649977132678,
+      "thread_cpu_ms": 7.7812079999999995
+    },
+    {
+      "path": "/words",
+      "wall_ms": 148.11741700395942,
+      "thread_cpu_ms": 6.76425
+    },
+    {
+      "path": "/words",
+      "wall_ms": 157.70120872184634,
+      "thread_cpu_ms": 8.551417
+    },
+    {
+      "path": "/words",
+      "wall_ms": 203.02650006487966,
+      "thread_cpu_ms": 8.546666
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 286.7796248756349,
+      "thread_cpu_ms": 55.909958
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 288.99274999275804,
+      "thread_cpu_ms": 38.211042
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 289.3765000626445,
+      "thread_cpu_ms": 50.226541
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 294.83283311128616,
+      "thread_cpu_ms": 54.69987499999999
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 106.23174998909235,
+      "thread_cpu_ms": 25.284374999999997
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 107.95541666448116,
+      "thread_cpu_ms": 27.719834000000002
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 107.97062469646335,
+      "thread_cpu_ms": 27.508625000000002
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 110.8374590985477,
+      "thread_cpu_ms": 30.235042
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 129.07091667875648,
+      "thread_cpu_ms": 30.244958
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 130.38149988278747,
+      "thread_cpu_ms": 29.496000000000002
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 132.5399582274258,
+      "thread_cpu_ms": 31.213166
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 133.52966727688909,
+      "thread_cpu_ms": 29.170542
+    },
+    {
+      "path": "/subtitles",
+      "wall_ms": 140.6362922862172,
+      "thread_cpu_ms": 14.371333
+    },
+    {
+      "path": "/subtitles",
+      "wall_ms": 143.59808340668678,
+      "thread_cpu_ms": 12.021042000000001
+    },
+    {
+      "path": "/subtitles",
+      "wall_ms": 141.7076657526195,
+      "thread_cpu_ms": 13.584124999999998
+    },
+    {
+      "path": "/subtitles",
+      "wall_ms": 142.83729111775756,
+      "thread_cpu_ms": 14.989749999999999
+    },
+    {
+      "path": "/subtitles",
+      "wall_ms": 34.69491610303521,
+      "thread_cpu_ms": 8.186458
+    },
+    {
+      "path": "/subtitles",
+      "wall_ms": 35.839667078107595,
+      "thread_cpu_ms": 9.63475
+    },
+    {
+      "path": "/subtitles",
+      "wall_ms": 35.742499865591526,
+      "thread_cpu_ms": 9.244292000000002
+    },
+    {
+      "path": "/subtitles",
+      "wall_ms": 39.85937498509884,
+      "thread_cpu_ms": 11.276667
+    },
+    {
+      "path": "/subtitles",
+      "wall_ms": 35.84975004196167,
+      "thread_cpu_ms": 9.098082999999999
+    },
+    {
+      "path": "/subtitles",
+      "wall_ms": 36.85125010088086,
+      "thread_cpu_ms": 10.566958
+    },
+    {
+      "path": "/subtitles",
+      "wall_ms": 38.14662480726838,
+      "thread_cpu_ms": 9.638250000000001
+    },
+    {
+      "path": "/subtitles",
+      "wall_ms": 41.28900030627847,
+      "thread_cpu_ms": 10.030708
+    },
+    {
+      "path": "/channels",
+      "wall_ms": 83.46383320167661,
+      "thread_cpu_ms": 19.692292000000002
+    },
+    {
+      "path": "/channels",
+      "wall_ms": 148.22983276098967,
+      "thread_cpu_ms": 39.92025
+    },
+    {
+      "path": "/channels",
+      "wall_ms": 147.37016707658768,
+      "thread_cpu_ms": 35.949040999999994
+    },
+    {
+      "path": "/channels",
+      "wall_ms": 148.23650009930134,
+      "thread_cpu_ms": 34.021958
+    },
+    {
+      "path": "/channels",
+      "wall_ms": 48.528042156249285,
+      "thread_cpu_ms": 18.481041
+    },
+    {
+      "path": "/channels",
+      "wall_ms": 51.190999802201986,
+      "thread_cpu_ms": 19.566542
+    },
+    {
+      "path": "/channels",
+      "wall_ms": 54.07987488433719,
+      "thread_cpu_ms": 19.621040999999998
+    },
+    {
+      "path": "/channels",
+      "wall_ms": 52.61120805516839,
+      "thread_cpu_ms": 18.072625000000002
+    },
+    {
+      "path": "/channels",
+      "wall_ms": 57.69304186105728,
+      "thread_cpu_ms": 23.070417
+    },
+    {
+      "path": "/channels",
+      "wall_ms": 58.33291728049517,
+      "thread_cpu_ms": 22.143084
+    },
+    {
+      "path": "/channels",
+      "wall_ms": 59.13358414545655,
+      "thread_cpu_ms": 22.171708000000002
+    },
+    {
+      "path": "/channels",
+      "wall_ms": 58.66795824840665,
+      "thread_cpu_ms": 22.046291
+    },
+    {
+      "path": "/review",
+      "wall_ms": 451.5732089057565,
+      "thread_cpu_ms": 110.29041600000001
+    },
+    {
+      "path": "/review",
+      "wall_ms": 452.3625411093235,
+      "thread_cpu_ms": 99.084625
+    },
+    {
+      "path": "/review",
+      "wall_ms": 449.9396667815745,
+      "thread_cpu_ms": 114.637333
+    },
+    {
+      "path": "/review",
+      "wall_ms": 452.5883751921356,
+      "thread_cpu_ms": 106.785292
+    },
+    {
+      "path": "/review",
+      "wall_ms": 410.91354191303253,
+      "thread_cpu_ms": 105.20949999999999
+    },
+    {
+      "path": "/review",
+      "wall_ms": 415.41912499815226,
+      "thread_cpu_ms": 98.06304200000001
+    },
+    {
+      "path": "/review",
+      "wall_ms": 417.3319172114134,
+      "thread_cpu_ms": 102.499042
+    },
+    {
+      "path": "/review",
+      "wall_ms": 417.5877501256764,
+      "thread_cpu_ms": 100.133125
+    },
+    {
+      "path": "/review",
+      "wall_ms": 416.5096250362694,
+      "thread_cpu_ms": 107.049959
+    },
+    {
+      "path": "/review",
+      "wall_ms": 421.19595780968666,
+      "thread_cpu_ms": 97.74545900000001
+    },
+    {
+      "path": "/review",
+      "wall_ms": 421.55604204162955,
+      "thread_cpu_ms": 101.4295
+    },
+    {
+      "path": "/review",
+      "wall_ms": 421.8492079526186,
+      "thread_cpu_ms": 99.484042
+    },
+    {
+      "path": "/hear",
+      "wall_ms": 123.8967077806592,
+      "thread_cpu_ms": 38.095749999999995
+    },
+    {
+      "path": "/hear",
+      "wall_ms": 168.31895895302296,
+      "thread_cpu_ms": 51.214124999999996
+    },
+    {
+      "path": "/hear",
+      "wall_ms": 168.91858307644725,
+      "thread_cpu_ms": 43.115083
+    },
+    {
+      "path": "/hear",
+      "wall_ms": 170.77312525361776,
+      "thread_cpu_ms": 44.786083
+    },
+    {
+      "path": "/hear",
+      "wall_ms": 98.74766692519188,
+      "thread_cpu_ms": 26.569959
+    },
+    {
+      "path": "/hear",
+      "wall_ms": 98.33833388984203,
+      "thread_cpu_ms": 25.94475
+    },
+    {
+      "path": "/hear",
+      "wall_ms": 98.89533277601004,
+      "thread_cpu_ms": 28.515666000000003
+    },
+    {
+      "path": "/hear",
+      "wall_ms": 101.12979216501117,
+      "thread_cpu_ms": 26.664666
+    },
+    {
+      "path": "/hear",
+      "wall_ms": 116.83812504634261,
+      "thread_cpu_ms": 32.014583
+    },
+    {
+      "path": "/hear",
+      "wall_ms": 117.82495770603418,
+      "thread_cpu_ms": 28.045458
+    },
+    {
+      "path": "/hear",
+      "wall_ms": 118.62037517130375,
+      "thread_cpu_ms": 28.8185
+    },
+    {
+      "path": "/hear",
+      "wall_ms": 119.4355827756226,
+      "thread_cpu_ms": 29.127
+    },
+    {
+      "path": "/mine",
+      "wall_ms": 16.00449997931719,
+      "thread_cpu_ms": 4.216708000000001
+    },
+    {
+      "path": "/mine",
+      "wall_ms": 14.467999804764986,
+      "thread_cpu_ms": 3.565583
+    },
+    {
+      "path": "/mine",
+      "wall_ms": 16.701208893209696,
+      "thread_cpu_ms": 3.7041659999999994
+    },
+    {
+      "path": "/mine",
+      "wall_ms": 24.579540826380253,
+      "thread_cpu_ms": 4.2652920000000005
+    },
+    {
+      "path": "/mine",
+      "wall_ms": 15.007833018898964,
+      "thread_cpu_ms": 3.477
+    },
+    {
+      "path": "/mine",
+      "wall_ms": 15.351417008787394,
+      "thread_cpu_ms": 3.599625
+    },
+    {
+      "path": "/mine",
+      "wall_ms": 15.383333899080753,
+      "thread_cpu_ms": 3.369333
+    },
+    {
+      "path": "/mine",
+      "wall_ms": 15.365165658295155,
+      "thread_cpu_ms": 3.310667
+    },
+    {
+      "path": "/mine",
+      "wall_ms": 11.316165793687105,
+      "thread_cpu_ms": 3.370833
+    },
+    {
+      "path": "/mine",
+      "wall_ms": 10.699166916310787,
+      "thread_cpu_ms": 3.162333
+    },
+    {
+      "path": "/mine",
+      "wall_ms": 11.464457958936691,
+      "thread_cpu_ms": 3.127833
+    },
+    {
+      "path": "/mine",
+      "wall_ms": 12.349209282547235,
+      "thread_cpu_ms": 3.2981249999999998
+    },
+    {
+      "path": "/quiz",
+      "wall_ms": 19.294208846986294,
+      "thread_cpu_ms": 4.7265
+    },
+    {
+      "path": "/quiz",
+      "wall_ms": 769.2828751169145,
+      "thread_cpu_ms": 231.4475
+    },
+    {
+      "path": "/quiz",
+      "wall_ms": 769.8249998502433,
+      "thread_cpu_ms": 230.11262499999998
+    },
+    {
+      "path": "/quiz",
+      "wall_ms": 769.4417918100953,
+      "thread_cpu_ms": 229.025292
+    },
+    {
+      "path": "/quiz",
+      "wall_ms": 14.145749621093273,
+      "thread_cpu_ms": 4.849165999999999
+    },
+    {
+      "path": "/quiz",
+      "wall_ms": 14.052624814212322,
+      "thread_cpu_ms": 4.099792
+    },
+    {
+      "path": "/quiz",
+      "wall_ms": 14.58449987694621,
+      "thread_cpu_ms": 4.191040999999999
+    },
+    {
+      "path": "/quiz",
+      "wall_ms": 20.305417012423277,
+      "thread_cpu_ms": 3.53925
+    },
+    {
+      "path": "/quiz",
+      "wall_ms": 15.095707960426807,
+      "thread_cpu_ms": 4.462791
+    },
+    {
+      "path": "/quiz",
+      "wall_ms": 15.517167281359434,
+      "thread_cpu_ms": 4.531667
+    },
+    {
+      "path": "/quiz",
+      "wall_ms": 17.71712489426136,
+      "thread_cpu_ms": 4.670125
+    },
+    {
+      "path": "/quiz",
+      "wall_ms": 16.91270899027586,
+      "thread_cpu_ms": 4.262582999999999
+    },
+    {
+      "path": "/starred",
+      "wall_ms": 24.52129079028964,
+      "thread_cpu_ms": 3.871333
+    },
+    {
+      "path": "/starred",
+      "wall_ms": 25.90333390980959,
+      "thread_cpu_ms": 5.184042
+    },
+    {
+      "path": "/starred",
+      "wall_ms": 24.691250175237656,
+      "thread_cpu_ms": 4.508125
+    },
+    {
+      "path": "/starred",
+      "wall_ms": 25.851875077933073,
+      "thread_cpu_ms": 4.784959
+    },
+    {
+      "path": "/starred",
+      "wall_ms": 12.915125116705894,
+      "thread_cpu_ms": 3.696792
+    },
+    {
+      "path": "/starred",
+      "wall_ms": 12.911874800920486,
+      "thread_cpu_ms": 3.8632500000000003
+    },
+    {
+      "path": "/starred",
+      "wall_ms": 15.124750323593616,
+      "thread_cpu_ms": 3.908417
+    },
+    {
+      "path": "/starred",
+      "wall_ms": 14.968167059123516,
+      "thread_cpu_ms": 3.933875
+    },
+    {
+      "path": "/starred",
+      "wall_ms": 14.807166997343302,
+      "thread_cpu_ms": 3.996584
+    },
+    {
+      "path": "/starred",
+      "wall_ms": 15.82308392971754,
+      "thread_cpu_ms": 4.581875
+    },
+    {
+      "path": "/starred",
+      "wall_ms": 21.30825025960803,
+      "thread_cpu_ms": 3.7915419999999997
+    },
+    {
+      "path": "/starred",
+      "wall_ms": 24.07395886257291,
+      "thread_cpu_ms": 4.263583
+    },
+    {
+      "path": "/lists",
+      "wall_ms": 15.322249848395586,
+      "thread_cpu_ms": 3.581208
+    },
+    {
+      "path": "/lists",
+      "wall_ms": 16.333624720573425,
+      "thread_cpu_ms": 3.3428329999999997
+    },
+    {
+      "path": "/lists",
+      "wall_ms": 16.91591599956155,
+      "thread_cpu_ms": 3.6373340000000005
+    },
+    {
+      "path": "/lists",
+      "wall_ms": 17.99108274281025,
+      "thread_cpu_ms": 3.363083
+    },
+    {
+      "path": "/lists",
+      "wall_ms": 24.01904109865427,
+      "thread_cpu_ms": 4.3774999999999995
+    },
+    {
+      "path": "/lists",
+      "wall_ms": 24.691541213542223,
+      "thread_cpu_ms": 4.204791999999999
+    },
+    {
+      "path": "/lists",
+      "wall_ms": 25.759542360901833,
+      "thread_cpu_ms": 4.037624999999999
+    },
+    {
+      "path": "/lists",
+      "wall_ms": 27.546833734959364,
+      "thread_cpu_ms": 4.507
+    },
+    {
+      "path": "/lists",
+      "wall_ms": 21.38054184615612,
+      "thread_cpu_ms": 4.908625
+    },
+    {
+      "path": "/lists",
+      "wall_ms": 21.837708074599504,
+      "thread_cpu_ms": 4.5431669999999995
+    },
+    {
+      "path": "/lists",
+      "wall_ms": 23.908333852887154,
+      "thread_cpu_ms": 4.609
+    },
+    {
+      "path": "/lists",
+      "wall_ms": 24.945042096078396,
+      "thread_cpu_ms": 4.508333
+    },
+    {
+      "path": "/cover",
+      "wall_ms": 15.352666843682528,
+      "thread_cpu_ms": 3.3065830000000003
+    },
+    {
+      "path": "/cover",
+      "wall_ms": 16.03433396667242,
+      "thread_cpu_ms": 3.8352500000000003
+    },
+    {
+      "path": "/cover",
+      "wall_ms": 17.012707889080048,
+      "thread_cpu_ms": 3.6984999999999997
+    },
+    {
+      "path": "/cover",
+      "wall_ms": 17.121834214776754,
+      "thread_cpu_ms": 3.574542
+    },
+    {
+      "path": "/cover",
+      "wall_ms": 12.055249884724617,
+      "thread_cpu_ms": 3.870667
+    },
+    {
+      "path": "/cover",
+      "wall_ms": 11.545749846845865,
+      "thread_cpu_ms": 3.180625
+    },
+    {
+      "path": "/cover",
+      "wall_ms": 12.266959063708782,
+      "thread_cpu_ms": 3.3623330000000005
+    },
+    {
+      "path": "/cover",
+      "wall_ms": 13.101332820951939,
+      "thread_cpu_ms": 3.180125
+    },
+    {
+      "path": "/cover",
+      "wall_ms": 10.302875190973282,
+      "thread_cpu_ms": 3.525958
+    },
+    {
+      "path": "/cover",
+      "wall_ms": 12.25954107940197,
+      "thread_cpu_ms": 3.396834
+    },
+    {
+      "path": "/cover",
+      "wall_ms": 12.115791905671358,
+      "thread_cpu_ms": 3.4229169999999995
+    },
+    {
+      "path": "/cover",
+      "wall_ms": 13.85774975642562,
+      "thread_cpu_ms": 3.672791
+    },
+    {
+      "path": "/journey",
+      "wall_ms": 17.319374717772007,
+      "thread_cpu_ms": 4.5615000000000006
+    },
+    {
+      "path": "/journey",
+      "wall_ms": 16.480999998748302,
+      "thread_cpu_ms": 4.662040999999999
+    },
+    {
+      "path": "/journey",
+      "wall_ms": 17.2459171153605,
+      "thread_cpu_ms": 4.450709
+    },
+    {
+      "path": "/journey",
+      "wall_ms": 18.83854204788804,
+      "thread_cpu_ms": 5.1784170000000005
+    },
+    {
+      "path": "/journey",
+      "wall_ms": 18.033958040177822,
+      "thread_cpu_ms": 5.140624999999999
+    },
+    {
+      "path": "/journey",
+      "wall_ms": 15.949917025864124,
+      "thread_cpu_ms": 4.485209
+    },
+    {
+      "path": "/journey",
+      "wall_ms": 17.992042005062103,
+      "thread_cpu_ms": 4.510958
+    },
+    {
+      "path": "/journey",
+      "wall_ms": 17.91220810264349,
+      "thread_cpu_ms": 4.695958999999999
+    },
+    {
+      "path": "/journey",
+      "wall_ms": 15.398457646369934,
+      "thread_cpu_ms": 4.2866670000000004
+    },
+    {
+      "path": "/journey",
+      "wall_ms": 15.995749738067389,
+      "thread_cpu_ms": 3.8032500000000002
+    },
+    {
+      "path": "/journey",
+      "wall_ms": 16.965083312243223,
+      "thread_cpu_ms": 4.862875
+    },
+    {
+      "path": "/journey",
+      "wall_ms": 17.15574972331524,
+      "thread_cpu_ms": 4.166709
+    },
+    {
+      "path": "/plan",
+      "wall_ms": 70.12591697275639,
+      "thread_cpu_ms": 17.445792
+    },
+    {
+      "path": "/plan",
+      "wall_ms": 75.65370900556445,
+      "thread_cpu_ms": 18.975209
+    },
+    {
+      "path": "/plan",
+      "wall_ms": 76.63770811632276,
+      "thread_cpu_ms": 18.858458000000002
+    },
+    {
+      "path": "/plan",
+      "wall_ms": 76.59695809707046,
+      "thread_cpu_ms": 24.862416000000003
+    },
+    {
+      "path": "/plan",
+      "wall_ms": 24.527874775230885,
+      "thread_cpu_ms": 8.576249999999998
+    },
+    {
+      "path": "/plan",
+      "wall_ms": 23.970499634742737,
+      "thread_cpu_ms": 7.7277499999999995
+    },
+    {
+      "path": "/plan",
+      "wall_ms": 25.20033298060298,
+      "thread_cpu_ms": 7.66275
+    },
+    {
+      "path": "/plan",
+      "wall_ms": 26.311832945793867,
+      "thread_cpu_ms": 8.180250000000001
+    },
+    {
+      "path": "/plan",
+      "wall_ms": 26.982917450368404,
+      "thread_cpu_ms": 7.187667
+    },
+    {
+      "path": "/plan",
+      "wall_ms": 27.040125336498022,
+      "thread_cpu_ms": 6.712375
+    },
+    {
+      "path": "/plan",
+      "wall_ms": 27.432583272457123,
+      "thread_cpu_ms": 7.217207999999999
+    },
+    {
+      "path": "/plan",
+      "wall_ms": 27.87958411499858,
+      "thread_cpu_ms": 6.9195
+    },
+    {
+      "path": "/roadmap",
+      "wall_ms": 663.8423330150545,
+      "thread_cpu_ms": 163.122042
+    },
+    {
+      "path": "/roadmap",
+      "wall_ms": 668.8692909665406,
+      "thread_cpu_ms": 170.442916
+    },
+    {
+      "path": "/roadmap",
+      "wall_ms": 673.9386660046875,
+      "thread_cpu_ms": 173.249125
+    },
+    {
+      "path": "/roadmap",
+      "wall_ms": 676.1358329094946,
+      "thread_cpu_ms": 166.80375
+    },
+    {
+      "path": "/roadmap",
+      "wall_ms": 618.134040851146,
+      "thread_cpu_ms": 169.76149999999998
+    },
+    {
+      "path": "/roadmap",
+      "wall_ms": 630.8278329670429,
+      "thread_cpu_ms": 161.90395800000002
+    },
+    {
+      "path": "/roadmap",
+      "wall_ms": 632.6360842213035,
+      "thread_cpu_ms": 162.80225000000002
+    },
+    {
+      "path": "/roadmap",
+      "wall_ms": 635.3496671654284,
+      "thread_cpu_ms": 165.428875
+    },
+    {
+      "path": "/roadmap",
+      "wall_ms": 592.8650838322937,
+      "thread_cpu_ms": 162.623708
+    },
+    {
+      "path": "/roadmap",
+      "wall_ms": 596.3511248119175,
+      "thread_cpu_ms": 160.78779200000002
+    },
+    {
+      "path": "/roadmap",
+      "wall_ms": 603.8252091966569,
+      "thread_cpu_ms": 160.965542
+    },
+    {
+      "path": "/roadmap",
+      "wall_ms": 607.438875362277,
+      "thread_cpu_ms": 163.963417
+    },
+    {
+      "path": "/frontier",
+      "wall_ms": 1058.0512499436736,
+      "thread_cpu_ms": 154.355917
+    },
+    {
+      "path": "/frontier",
+      "wall_ms": 49485.3655830957,
+      "thread_cpu_ms": 6166.5732499999995
+    },
+    {
+      "path": "/frontier",
+      "wall_ms": 49478.16275013611,
+      "thread_cpu_ms": 24412.603958
+    },
+    {
+      "path": "/frontier",
+      "wall_ms": 49492.94983316213,
+      "thread_cpu_ms": 5431.9185
+    },
+    {
+      "path": "/frontier",
+      "wall_ms": 667.0430419035256,
+      "thread_cpu_ms": 148.28870799999999
+    },
+    {
+      "path": "/frontier",
+      "wall_ms": 684.7968329675496,
+      "thread_cpu_ms": 150.46925
+    },
+    {
+      "path": "/frontier",
+      "wall_ms": 693.7059997580945,
+      "thread_cpu_ms": 185.997584
+    },
+    {
+      "path": "/frontier",
+      "wall_ms": 693.8127921894193,
+      "thread_cpu_ms": 154.35508399999998
+    },
+    {
+      "path": "/frontier",
+      "wall_ms": 851.3174578547478,
+      "thread_cpu_ms": 146.99525
+    },
+    {
+      "path": "/frontier",
+      "wall_ms": 854.325084015727,
+      "thread_cpu_ms": 137.9255
+    },
+    {
+      "path": "/frontier",
+      "wall_ms": 860.6077078729868,
+      "thread_cpu_ms": 143.38029200000003
+    },
+    {
+      "path": "/frontier",
+      "wall_ms": 865.558666177094,
+      "thread_cpu_ms": 146.103084
+    },
+    {
+      "path": "/blocked",
+      "wall_ms": 720.7459998317063,
+      "thread_cpu_ms": 12.488833
+    },
+    {
+      "path": "/blocked",
+      "wall_ms": 17309.760791715235,
+      "thread_cpu_ms": 5058.4495
+    },
+    {
+      "path": "/blocked",
+      "wall_ms": 17310.763332992792,
+      "thread_cpu_ms": 4985.548584
+    },
+    {
+      "path": "/blocked",
+      "wall_ms": 17309.813166968524,
+      "thread_cpu_ms": 5010.0957499999995
+    },
+    {
+      "path": "/blocked",
+      "wall_ms": 23.03854189813137,
+      "thread_cpu_ms": 6.591708
+    },
+    {
+      "path": "/blocked",
+      "wall_ms": 23.33504194393754,
+      "thread_cpu_ms": 6.499042
+    },
+    {
+      "path": "/blocked",
+      "wall_ms": 24.797874968498945,
+      "thread_cpu_ms": 6.603875
+    },
+    {
+      "path": "/blocked",
+      "wall_ms": 23.603625129908323,
+      "thread_cpu_ms": 5.1245
+    },
+    {
+      "path": "/blocked",
+      "wall_ms": 21.301208063960075,
+      "thread_cpu_ms": 5.873375
+    },
+    {
+      "path": "/blocked",
+      "wall_ms": 20.495917182415724,
+      "thread_cpu_ms": 5.471834
+    },
+    {
+      "path": "/blocked",
+      "wall_ms": 21.465083118528128,
+      "thread_cpu_ms": 6.326083
+    },
+    {
+      "path": "/blocked",
+      "wall_ms": 21.73591684550047,
+      "thread_cpu_ms": 6.201917
+    },
+    {
+      "path": "/study",
+      "wall_ms": 251.7337091267109,
+      "thread_cpu_ms": 20.204542
+    },
+    {
+      "path": "/study",
+      "wall_ms": 252.7780421078205,
+      "thread_cpu_ms": 33.4435
+    },
+    {
+      "path": "/study",
+      "wall_ms": 255.40233310312033,
+      "thread_cpu_ms": 44.754959
+    },
+    {
+      "path": "/study",
+      "wall_ms": 255.00670820474625,
+      "thread_cpu_ms": 32.039375
+    },
+    {
+      "path": "/study",
+      "wall_ms": 23.17962469533086,
+      "thread_cpu_ms": 6.505333
+    },
+    {
+      "path": "/study",
+      "wall_ms": 23.264791816473007,
+      "thread_cpu_ms": 6.444208
+    },
+    {
+      "path": "/study",
+      "wall_ms": 23.895167279988527,
+      "thread_cpu_ms": 6.348375
+    },
+    {
+      "path": "/study",
+      "wall_ms": 23.699834011495113,
+      "thread_cpu_ms": 5.852208
+    },
+    {
+      "path": "/study",
+      "wall_ms": 20.97766613587737,
+      "thread_cpu_ms": 6.401625
+    },
+    {
+      "path": "/study",
+      "wall_ms": 23.33550015464425,
+      "thread_cpu_ms": 5.803958000000001
+    },
+    {
+      "path": "/study",
+      "wall_ms": 23.378916084766388,
+      "thread_cpu_ms": 6.368125
+    },
+    {
+      "path": "/study",
+      "wall_ms": 23.260874673724174,
+      "thread_cpu_ms": 6.267625
+    },
+    {
+      "path": "/watch",
+      "wall_ms": 170.72862526401877,
+      "thread_cpu_ms": 58.403375
+    },
+    {
+      "path": "/watch",
+      "wall_ms": 505.47925010323524,
+      "thread_cpu_ms": 91.974458
+    },
+    {
+      "path": "/watch",
+      "wall_ms": 505.52408397197723,
+      "thread_cpu_ms": 84.775875
+    },
+    {
+      "path": "/watch",
+      "wall_ms": 506.4072497189045,
+      "thread_cpu_ms": 82.273208
+    },
+    {
+      "path": "/watch",
+      "wall_ms": 266.82025007903576,
+      "thread_cpu_ms": 55.227084000000005
+    },
+    {
+      "path": "/watch",
+      "wall_ms": 266.84562489390373,
+      "thread_cpu_ms": 55.754959
+    },
+    {
+      "path": "/watch",
+      "wall_ms": 271.54945814982057,
+      "thread_cpu_ms": 54.506917
+    },
+    {
+      "path": "/watch",
+      "wall_ms": 273.4478749334812,
+      "thread_cpu_ms": 55.5545
+    },
+    {
+      "path": "/watch",
+      "wall_ms": 264.2995831556618,
+      "thread_cpu_ms": 53.970957999999996
+    },
+    {
+      "path": "/watch",
+      "wall_ms": 267.6636250689626,
+      "thread_cpu_ms": 55.692458
+    },
+    {
+      "path": "/watch",
+      "wall_ms": 268.51308392360806,
+      "thread_cpu_ms": 56.191666
+    },
+    {
+      "path": "/watch",
+      "wall_ms": 269.59954109042883,
+      "thread_cpu_ms": 57.651917000000005
+    },
+    {
+      "path": "/anki",
+      "wall_ms": 46.20662517845631,
+      "thread_cpu_ms": 27.137459
+    },
+    {
+      "path": "/anki",
+      "wall_ms": 14678.255708422512,
+      "thread_cpu_ms": 2807.8769589999997
+    },
+    {
+      "path": "/anki",
+      "wall_ms": 14677.845375146717,
+      "thread_cpu_ms": 2817.3697500000003
+    },
+    {
+      "path": "/anki",
+      "wall_ms": 14678.727332968265,
+      "thread_cpu_ms": 2747.771959
+    },
+    {
+      "path": "/anki",
+      "wall_ms": 44.32599991559982,
+      "thread_cpu_ms": 7.154833999999999
+    },
+    {
+      "path": "/anki",
+      "wall_ms": 45.654334127902985,
+      "thread_cpu_ms": 6.737292000000001
+    },
+    {
+      "path": "/anki",
+      "wall_ms": 47.706374898552895,
+      "thread_cpu_ms": 6.2907079999999995
+    },
+    {
+      "path": "/anki",
+      "wall_ms": 50.30095810070634,
+      "thread_cpu_ms": 24.199792000000002
+    },
+    {
+      "path": "/anki",
+      "wall_ms": 24.904416874051094,
+      "thread_cpu_ms": 8.079374999999999
+    },
+    {
+      "path": "/anki",
+      "wall_ms": 28.567082714289427,
+      "thread_cpu_ms": 7.592125
+    },
+    {
+      "path": "/anki",
+      "wall_ms": 28.710249811410904,
+      "thread_cpu_ms": 7.447125
+    },
+    {
+      "path": "/anki",
+      "wall_ms": 29.185624793171883,
+      "thread_cpu_ms": 7.5672500000000005
+    },
+    {
+      "path": "/settings",
+      "wall_ms": 101.22299985960126,
+      "thread_cpu_ms": 23.678125
+    },
+    {
+      "path": "/settings",
+      "wall_ms": 133.84070806205273,
+      "thread_cpu_ms": 38.731459
+    },
+    {
+      "path": "/settings",
+      "wall_ms": 153.68650015443563,
+      "thread_cpu_ms": 45.828834
+    },
+    {
+      "path": "/settings",
+      "wall_ms": 151.04599995538592,
+      "thread_cpu_ms": 46.2615
+    },
+    {
+      "path": "/settings",
+      "wall_ms": 57.47295869514346,
+      "thread_cpu_ms": 20.844208
+    },
+    {
+      "path": "/settings",
+      "wall_ms": 58.55016736313701,
+      "thread_cpu_ms": 20.744917
+    },
+    {
+      "path": "/settings",
+      "wall_ms": 60.58716680854559,
+      "thread_cpu_ms": 21.035083000000004
+    },
+    {
+      "path": "/settings",
+      "wall_ms": 68.0528343655169,
+      "thread_cpu_ms": 24.093125
+    },
+    {
+      "path": "/settings",
+      "wall_ms": 57.343624997884035,
+      "thread_cpu_ms": 18.49425
+    },
+    {
+      "path": "/settings",
+      "wall_ms": 57.53695825114846,
+      "thread_cpu_ms": 19.609084
+    },
+    {
+      "path": "/settings",
+      "wall_ms": 60.14179205521941,
+      "thread_cpu_ms": 19.670917
+    },
+    {
+      "path": "/settings",
+      "wall_ms": 61.014499980956316,
+      "thread_cpu_ms": 19.346459
+    },
+    {
+      "path": "/api/cover-search",
+      "wall_ms": 488.1803747266531,
+      "thread_cpu_ms": 244.062584
+    },
+    {
+      "path": "/api/cover-search",
+      "wall_ms": 5411.494500003755,
+      "thread_cpu_ms": 1587.960417
+    },
+    {
+      "path": "/api/cover-search",
+      "wall_ms": 5414.72191689536,
+      "thread_cpu_ms": 1561.565458
+    },
+    {
+      "path": "/api/cover-search",
+      "wall_ms": 5452.520334161818,
+      "thread_cpu_ms": 1612.743417
+    },
+    {
+      "path": "/api/cover-search",
+      "wall_ms": 186.7177919484675,
+      "thread_cpu_ms": 35.775625
+    },
+    {
+      "path": "/api/cover-search",
+      "wall_ms": 203.1571250408888,
+      "thread_cpu_ms": 33.534208
+    },
+    {
+      "path": "/api/cover-search",
+      "wall_ms": 201.97325013577938,
+      "thread_cpu_ms": 30.761791
+    },
+    {
+      "path": "/api/cover-search",
+      "wall_ms": 355.2742497995496,
+      "thread_cpu_ms": 189.79304100000002
+    },
+    {
+      "path": "/api/cover-search",
+      "wall_ms": 118.50766697898507,
+      "thread_cpu_ms": 31.777832999999998
+    },
+    {
+      "path": "/api/cover-search",
+      "wall_ms": 126.70020805671811,
+      "thread_cpu_ms": 32.462875
+    },
+    {
+      "path": "/api/cover-search",
+      "wall_ms": 140.72324987500906,
+      "thread_cpu_ms": 34.923249999999996
+    },
+    {
+      "path": "/api/cover-search",
+      "wall_ms": 140.47749992460012,
+      "thread_cpu_ms": 31.810875000000003
+    },
+    {
+      "path": "/api/reels",
+      "wall_ms": 234.96549995616078,
+      "thread_cpu_ms": 47.761958
+    },
+    {
+      "path": "/api/reels",
+      "wall_ms": 239.7372918203473,
+      "thread_cpu_ms": 30.786250000000003
+    },
+    {
+      "path": "/api/reels",
+      "wall_ms": 267.4589161761105,
+      "thread_cpu_ms": 43.250125
+    },
+    {
+      "path": "/api/reels",
+      "wall_ms": 268.87087523937225,
+      "thread_cpu_ms": 50.432167
+    },
+    {
+      "path": "/api/reels",
+      "wall_ms": 75.87379077449441,
+      "thread_cpu_ms": 21.877875
+    },
+    {
+      "path": "/api/reels",
+      "wall_ms": 77.4340839125216,
+      "thread_cpu_ms": 18.891375000000004
+    },
+    {
+      "path": "/api/reels",
+      "wall_ms": 77.39591691643,
+      "thread_cpu_ms": 21.075
+    },
+    {
+      "path": "/api/reels",
+      "wall_ms": 77.51345913857222,
+      "thread_cpu_ms": 18.775208
+    },
+    {
+      "path": "/api/reels",
+      "wall_ms": 52.42674984037876,
+      "thread_cpu_ms": 17.047667000000004
+    },
+    {
+      "path": "/api/reels",
+      "wall_ms": 52.15450003743172,
+      "thread_cpu_ms": 17.955750000000002
+    },
+    {
+      "path": "/api/reels",
+      "wall_ms": 61.48549960926175,
+      "thread_cpu_ms": 17.324625
+    },
+    {
+      "path": "/api/reels",
+      "wall_ms": 61.529832892119884,
+      "thread_cpu_ms": 17.513667
+    }
+  ],
+  "mac_footprint": [
+    "Physical footprint:         5.5G",
+    "Physical footprint (peak):  5.6G"
+  ],
+  "database": {
+    "bytes": 4436386595,
+    "sentences": 500431
+  }
+}

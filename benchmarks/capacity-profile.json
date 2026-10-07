@@ -1,0 +1,871 @@
+{
+  "host": "macOS-26.2-arm64-arm-64bit",
+  "architecture": "arm64",
+  "logical_cpus": 8,
+  "users": 1,
+  "profiled": true,
+  "memory": [
+    {
+      "stage": "imports",
+      "rss_mb": 42.296875
+    },
+    {
+      "stage": "first /frontier",
+      "rss_mb": 1495.265625,
+      "peak_mb": 1495.328125
+    },
+    {
+      "stage": "first /words?q=geben",
+      "rss_mb": 1797.5,
+      "peak_mb": 1817.1875
+    },
+    {
+      "stage": "first /anki",
+      "rss_mb": 562.875,
+      "peak_mb": 1866.90625
+    },
+    {
+      "stage": "first /api/cover-search?q=haus",
+      "rss_mb": 693.859375,
+      "peak_mb": 1866.90625
+    },
+    {
+      "stage": "one user warm",
+      "rss_mb": 775.0,
+      "peak_mb": 1866.90625
+    },
+    {
+      "stage": "all users warm",
+      "rss_mb": 754.28125,
+      "peak_mb": 1866.90625
+    }
+  ],
+  "summary": [
+    {
+      "route": "/frontier",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 55291.87,
+        "max_ms": 55291.87
+      },
+      "warm-single": {
+        "n": 1,
+        "median_ms": 3589.52,
+        "max_ms": 3589.52
+      },
+      "concurrent": {
+        "n": 1,
+        "median_ms": 3407.02,
+        "max_ms": 3407.02
+      }
+    },
+    {
+      "route": "/words?q=geben",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 6906.89,
+        "max_ms": 6906.89
+      },
+      "warm-single": {
+        "n": 1,
+        "median_ms": 150.6,
+        "max_ms": 150.6
+      },
+      "concurrent": {
+        "n": 1,
+        "median_ms": 85.14,
+        "max_ms": 85.14
+      }
+    },
+    {
+      "route": "/anki",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 9724.76,
+        "max_ms": 9724.76
+      },
+      "warm-single": {
+        "n": 1,
+        "median_ms": 16.18,
+        "max_ms": 16.18
+      },
+      "concurrent": {
+        "n": 1,
+        "median_ms": 16.28,
+        "max_ms": 16.28
+      }
+    },
+    {
+      "route": "/api/cover-search?q=haus",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 2787.69,
+        "max_ms": 2787.69
+      },
+      "warm-single": {
+        "n": 1,
+        "median_ms": 57.59,
+        "max_ms": 57.59
+      },
+      "concurrent": {
+        "n": 1,
+        "median_ms": 66.11,
+        "max_ms": 66.11
+      }
+    }
+  ],
+  "requests": [
+    {
+      "route": "/frontier",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 85101,
+      "wall_ms": 55291.87,
+      "error": ""
+    },
+    {
+      "route": "/words?q=geben",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 60158,
+      "wall_ms": 6906.89,
+      "error": ""
+    },
+    {
+      "route": "/anki",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 86258,
+      "wall_ms": 9724.76,
+      "error": ""
+    },
+    {
+      "route": "/api/cover-search?q=haus",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 1710,
+      "wall_ms": 2787.69,
+      "error": ""
+    },
+    {
+      "route": "/frontier",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 85101,
+      "wall_ms": 3589.52,
+      "error": ""
+    },
+    {
+      "route": "/words?q=geben",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 60158,
+      "wall_ms": 150.6,
+      "error": ""
+    },
+    {
+      "route": "/anki",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 86258,
+      "wall_ms": 16.18,
+      "error": ""
+    },
+    {
+      "route": "/api/cover-search?q=haus",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 1710,
+      "wall_ms": 57.59,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 0,
+      "phase": "additional-user-first",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 223.73,
+      "error": ""
+    },
+    {
+      "route": "/frontier",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 85101,
+      "wall_ms": 3407.02,
+      "error": ""
+    },
+    {
+      "route": "/words?q=geben",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 60158,
+      "wall_ms": 85.14,
+      "error": ""
+    },
+    {
+      "route": "/anki",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 86258,
+      "wall_ms": 16.28,
+      "error": ""
+    },
+    {
+      "route": "/api/cover-search?q=haus",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 1710,
+      "wall_ms": 66.11,
+      "error": ""
+    }
+  ],
+  "server_timings": [
+    {
+      "path": "/frontier",
+      "wall_ms": 55152.14400039986,
+      "thread_cpu_ms": 38431.232667000004
+    },
+    {
+      "path": "/words",
+      "wall_ms": 6903.99825014174,
+      "thread_cpu_ms": 5725.243082999999
+    },
+    {
+      "path": "/anki",
+      "wall_ms": 9720.764624886215,
+      "thread_cpu_ms": 6249.0572090000005
+    },
+    {
+      "path": "/api/cover-search",
+      "wall_ms": 2784.330792259425,
+      "thread_cpu_ms": 2578.9103339999997
+    },
+    {
+      "path": "/frontier",
+      "wall_ms": 3586.554584093392,
+      "thread_cpu_ms": 2679.22525
+    },
+    {
+      "path": "/words",
+      "wall_ms": 148.76212505623698,
+      "thread_cpu_ms": 8.219042
+    },
+    {
+      "path": "/anki",
+      "wall_ms": 14.35416704043746,
+      "thread_cpu_ms": 9.946458
+    },
+    {
+      "path": "/api/cover-search",
+      "wall_ms": 56.26437487080693,
+      "thread_cpu_ms": 50.136792
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 221.08466690406203,
+      "thread_cpu_ms": 110.855875
+    },
+    {
+      "path": "/frontier",
+      "wall_ms": 3405.0792078487575,
+      "thread_cpu_ms": 2581.069833
+    },
+    {
+      "path": "/words",
+      "wall_ms": 83.73608393594623,
+      "thread_cpu_ms": 7.560959
+    },
+    {
+      "path": "/anki",
+      "wall_ms": 14.611833728849888,
+      "thread_cpu_ms": 11.08775
+    },
+    {
+      "path": "/api/cover-search",
+      "wall_ms": 64.50058333575726,
+      "thread_cpu_ms": 55.543584
+    }
+  ],
+  "database": {
+    "bytes": 4436386595,
+    "sentences": 500431
+  },
+  "profile_by_self": [
+    {
+      "file": "corpus/overrides.py",
+      "line": 233,
+      "function": "verdicts",
+      "calls": 218,
+      "self_s": 3.847,
+      "cumulative_s": 10.404
+    },
+    {
+      "file": "vocab/entry.py",
+      "line": 44,
+      "function": "__hash__",
+      "calls": 7618429,
+      "self_s": 1.019,
+      "cumulative_s": 1.019
+    },
+    {
+      "file": "corpus/store.py",
+      "line": 420,
+      "function": "load",
+      "calls": 39,
+      "self_s": 0.977,
+      "cumulative_s": 3.234
+    },
+    {
+      "file": "corpus/store.py",
+      "line": 569,
+      "function": "<genexpr>",
+      "calls": 857948,
+      "self_s": 0.548,
+      "cumulative_s": 0.548
+    },
+    {
+      "file": "context.py",
+      "line": 665,
+      "function": "verdicts",
+      "calls": 218,
+      "self_s": 0.524,
+      "cumulative_s": 11.543
+    },
+    {
+      "file": "vocab/search.py",
+      "line": 47,
+      "function": "trigrams",
+      "calls": 78998,
+      "self_s": 0.331,
+      "cumulative_s": 0.367
+    },
+    {
+      "file": "corpus/quality.py",
+      "line": 233,
+      "function": "well_formed",
+      "calls": 289409,
+      "self_s": 0.302,
+      "cumulative_s": 1.166
+    },
+    {
+      "file": "vocab/aliases.py",
+      "line": 167,
+      "function": "of",
+      "calls": 270625,
+      "self_s": 0.262,
+      "cumulative_s": 0.521
+    },
+    {
+      "file": "vocab/entry.py",
+      "line": 30,
+      "function": "__post_init__",
+      "calls": 410307,
+      "self_s": 0.253,
+      "cumulative_s": 0.332
+    },
+    {
+      "file": "context.py",
+      "line": 557,
+      "function": "apply_overrides",
+      "calls": 39,
+      "self_s": 0.251,
+      "cumulative_s": 0.567
+    },
+    {
+      "file": "corpus/vectors.py",
+      "line": 125,
+      "function": "stored",
+      "calls": 1,
+      "self_s": 0.228,
+      "cumulative_s": 0.31
+    },
+    {
+      "file": "corpus/answers.py",
+      "line": 266,
+      "function": "load",
+      "calls": 1,
+      "self_s": 0.216,
+      "cumulative_s": 0.414
+    },
+    {
+      "file": "vocab/compounds.py",
+      "line": 107,
+      "function": "over",
+      "calls": 2,
+      "self_s": 0.17,
+      "cumulative_s": 0.451
+    },
+    {
+      "file": "web/handlers.py",
+      "line": 3627,
+      "function": "frontier",
+      "calls": 3,
+      "self_s": 0.155,
+      "cumulative_s": 17.962
+    },
+    {
+      "file": "vocab/entry.py",
+      "line": 65,
+      "function": "exact",
+      "calls": 84417,
+      "self_s": 0.153,
+      "cumulative_s": 0.395
+    },
+    {
+      "file": "roadmap/index.py",
+      "line": 34,
+      "function": "__init__",
+      "calls": 1,
+      "self_s": 0.15,
+      "cumulative_s": 0.204
+    },
+    {
+      "file": "corpus/quality.py",
+      "line": 202,
+      "function": "unbound",
+      "calls": 24240,
+      "self_s": 0.133,
+      "cumulative_s": 0.413
+    },
+    {
+      "file": "roadmap/examples.py",
+      "line": 161,
+      "function": "<lambda>",
+      "calls": 21021,
+      "self_s": 0.133,
+      "cumulative_s": 1.25
+    },
+    {
+      "file": "roadmap/examples.py",
+      "line": 429,
+      "function": "build",
+      "calls": 38,
+      "self_s": 0.122,
+      "cumulative_s": 0.187
+    },
+    {
+      "file": "corpus/quality.py",
+      "line": 255,
+      "function": "variety",
+      "calls": 24240,
+      "self_s": 0.121,
+      "cumulative_s": 0.21
+    },
+    {
+      "file": "vocab/search.py",
+      "line": 61,
+      "function": "__init__",
+      "calls": 1,
+      "self_s": 0.118,
+      "cumulative_s": 0.197
+    },
+    {
+      "file": "context.py",
+      "line": 724,
+      "function": "compounds",
+      "calls": 1,
+      "self_s": 0.115,
+      "cumulative_s": 1.246
+    },
+    {
+      "file": "corpus/quality.py",
+      "line": 267,
+      "function": "score",
+      "calls": 24240,
+      "self_s": 0.111,
+      "cumulative_s": 0.69
+    },
+    {
+      "file": "vocab/search.py",
+      "line": 102,
+      "function": "find",
+      "calls": 3,
+      "self_s": 0.109,
+      "cumulative_s": 0.142
+    },
+    {
+      "file": "context.py",
+      "line": 555,
+      "function": "<lambda>",
+      "calls": 123647,
+      "self_s": 0.102,
+      "cumulative_s": 0.394
+    },
+    {
+      "file": "roadmap/index.py",
+      "line": 50,
+      "function": "topology",
+      "calls": 1,
+      "self_s": 0.089,
+      "cumulative_s": 0.089
+    },
+    {
+      "file": "corpus/store.py",
+      "line": 120,
+      "function": "lemma_keys",
+      "calls": 1,
+      "self_s": 0.086,
+      "cumulative_s": 0.292
+    },
+    {
+      "file": "corpus/store.py",
+      "line": 351,
+      "function": "unit_counts",
+      "calls": 1,
+      "self_s": 0.066,
+      "cumulative_s": 0.252
+    },
+    {
+      "file": "roadmap/store.py",
+      "line": 235,
+      "function": "load",
+      "calls": 4,
+      "self_s": 0.047,
+      "cumulative_s": 0.298
+    },
+    {
+      "file": "corpus/quality.py",
+      "line": 190,
+      "function": "_noun_at",
+      "calls": 24240,
+      "self_s": 0.043,
+      "cumulative_s": 0.066
+    },
+    {
+      "file": "corpus/answers.py",
+      "line": 92,
+      "function": "__init__",
+      "calls": 1,
+      "self_s": 0.036,
+      "cumulative_s": 0.082
+    },
+    {
+      "file": "roadmap/index.py",
+      "line": 333,
+      "function": "_register",
+      "calls": 19258,
+      "self_s": 0.033,
+      "cumulative_s": 0.041
+    },
+    {
+      "file": "roadmap/store.py",
+      "line": 285,
+      "function": "decks",
+      "calls": 1,
+      "self_s": 0.029,
+      "cumulative_s": 0.132
+    },
+    {
+      "file": "vocab/aliases.py",
+      "line": 79,
+      "function": "heads",
+      "calls": 4614,
+      "self_s": 0.027,
+      "cumulative_s": 0.072
+    },
+    {
+      "file": "context.py",
+      "line": 499,
+      "function": "_unit_rule",
+      "calls": 39,
+      "self_s": 0.026,
+      "cumulative_s": 0.037
+    }
+  ],
+  "profile_by_cumulative": [
+    {
+      "file": "web/server.py",
+      "line": 891,
+      "function": "_route",
+      "calls": 6,
+      "self_s": 0.006,
+      "cumulative_s": 58.768
+    },
+    {
+      "file": "context.py",
+      "line": 300,
+      "function": "corpus",
+      "calls": 39,
+      "self_s": 0.003,
+      "cumulative_s": 45.23
+    },
+    {
+      "file": "web/handlers.py",
+      "line": 677,
+      "function": "corpus_for",
+      "calls": 1,
+      "self_s": 0.0,
+      "cumulative_s": 41.42
+    },
+    {
+      "file": "web/handlers.py",
+      "line": 696,
+      "function": "load",
+      "calls": 1,
+      "self_s": 0.0,
+      "cumulative_s": 41.42
+    },
+    {
+      "file": "web/handlers.py",
+      "line": 230,
+      "function": "get",
+      "calls": 1,
+      "self_s": 0.0,
+      "cumulative_s": 41.42
+    },
+    {
+      "file": "web/handlers.py",
+      "line": 3627,
+      "function": "frontier",
+      "calls": 3,
+      "self_s": 0.155,
+      "cumulative_s": 17.962
+    },
+    {
+      "file": "context.py",
+      "line": 665,
+      "function": "verdicts",
+      "calls": 218,
+      "self_s": 0.524,
+      "cumulative_s": 11.543
+    },
+    {
+      "file": "corpus/overrides.py",
+      "line": 233,
+      "function": "verdicts",
+      "calls": 218,
+      "self_s": 3.847,
+      "cumulative_s": 10.404
+    },
+    {
+      "file": "web/handlers.py",
+      "line": 1854,
+      "function": "anki_page",
+      "calls": 3,
+      "self_s": 0.01,
+      "cumulative_s": 9.743
+    },
+    {
+      "file": "state.py",
+      "line": 100,
+      "function": "execute",
+      "calls": 766,
+      "self_s": 0.001,
+      "cumulative_s": 5.688
+    },
+    {
+      "file": "context.py",
+      "line": 348,
+      "function": "load",
+      "calls": 39,
+      "self_s": 0.019,
+      "cumulative_s": 3.64
+    },
+    {
+      "file": "roadmap/examples.py",
+      "line": 441,
+      "function": "examples",
+      "calls": 38,
+      "self_s": 0.001,
+      "cumulative_s": 3.27
+    },
+    {
+      "file": "corpus/store.py",
+      "line": 420,
+      "function": "load",
+      "calls": 39,
+      "self_s": 0.977,
+      "cumulative_s": 3.234
+    },
+    {
+      "file": "web/handlers.py",
+      "line": 847,
+      "function": "cover_search_json",
+      "calls": 3,
+      "self_s": 0.007,
+      "cumulative_s": 2.889
+    },
+    {
+      "file": "roadmap/examples.py",
+      "line": 351,
+      "function": "spread",
+      "calls": 38,
+      "self_s": 0.001,
+      "cumulative_s": 1.996
+    },
+    {
+      "file": "roadmap/examples.py",
+      "line": 409,
+      "function": "<genexpr>",
+      "calls": 3836,
+      "self_s": 0.002,
+      "cumulative_s": 1.995
+    },
+    {
+      "file": "roadmap/examples.py",
+      "line": 376,
+      "function": "alike",
+      "calls": 3305,
+      "self_s": 0.016,
+      "cumulative_s": 1.993
+    },
+    {
+      "file": "roadmap/examples.py",
+      "line": 278,
+      "function": "_known_vectors",
+      "calls": 3278,
+      "self_s": 0.001,
+      "cumulative_s": 1.961
+    },
+    {
+      "file": "context.py",
+      "line": 638,
+      "function": "known_set",
+      "calls": 2,
+      "self_s": 0.002,
+      "cumulative_s": 1.44
+    },
+    {
+      "file": "web/handlers.py",
+      "line": 3653,
+      "function": "<genexpr>",
+      "calls": 6,
+      "self_s": 0.011,
+      "cumulative_s": 1.438
+    },
+    {
+      "file": "web/handlers.py",
+      "line": 587,
+      "function": "known",
+      "calls": 1203,
+      "self_s": 0.001,
+      "cumulative_s": 1.43
+    },
+    {
+      "file": "roadmap/examples.py",
+      "line": 161,
+      "function": "<lambda>",
+      "calls": 21021,
+      "self_s": 0.133,
+      "cumulative_s": 1.25
+    },
+    {
+      "file": "context.py",
+      "line": 724,
+      "function": "compounds",
+      "calls": 1,
+      "self_s": 0.115,
+      "cumulative_s": 1.246
+    },
+    {
+      "file": "corpus/quality.py",
+      "line": 233,
+      "function": "well_formed",
+      "calls": 289409,
+      "self_s": 0.302,
+      "cumulative_s": 1.166
+    },
+    {
+      "file": "vocab/entry.py",
+      "line": 44,
+      "function": "__hash__",
+      "calls": 7618429,
+      "self_s": 1.019,
+      "cumulative_s": 1.019
+    },
+    {
+      "file": "commands/__init__.py",
+      "line": 1,
+      "function": "<module>",
+      "calls": 1,
+      "self_s": 0.0,
+      "cumulative_s": 0.737
+    },
+    {
+      "file": "commands/embed_sentences.py",
+      "line": 1,
+      "function": "<module>",
+      "calls": 1,
+      "self_s": 0.0,
+      "cumulative_s": 0.711
+    },
+    {
+      "file": "corpus/vectors.py",
+      "line": 1,
+      "function": "<module>",
+      "calls": 1,
+      "self_s": 0.0,
+      "cumulative_s": 0.71
+    },
+    {
+      "file": "corpus/quality.py",
+      "line": 267,
+      "function": "score",
+      "calls": 24240,
+      "self_s": 0.111,
+      "cumulative_s": 0.69
+    },
+    {
+      "file": "context.py",
+      "line": 380,
+      "function": "check_freshness",
+      "calls": 1,
+      "self_s": 0.0,
+      "cumulative_s": 0.583
+    },
+    {
+      "file": "corpus/store.py",
+      "line": 173,
+      "function": "stale",
+      "calls": 1,
+      "self_s": 0.0,
+      "cumulative_s": 0.583
+    },
+    {
+      "file": "context.py",
+      "line": 557,
+      "function": "apply_overrides",
+      "calls": 39,
+      "self_s": 0.251,
+      "cumulative_s": 0.567
+    },
+    {
+      "file": "corpus/store.py",
+      "line": 569,
+      "function": "<genexpr>",
+      "calls": 857948,
+      "self_s": 0.548,
+      "cumulative_s": 0.548
+    },
+    {
+      "file": "web/handlers.py",
+      "line": 1732,
+      "function": "anki_examples",
+      "calls": 3,
+      "self_s": 0.007,
+      "cumulative_s": 0.534
+    },
+    {
+      "file": "vocab/aliases.py",
+      "line": 167,
+      "function": "of",
+      "calls": 270625,
+      "self_s": 0.262,
+      "cumulative_s": 0.521
+    }
+  ]
+}

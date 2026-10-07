@@ -1,0 +1,44 @@
+[
+  {
+    "targets": 20,
+    "candidate_lines": 10184,
+    "fetch_ms": 11099.53,
+    "calculation_ms": 1575.36,
+    "parent_cpu_ms": 3176.94,
+    "solver_cpu_ms": 838.27,
+    "videos": 7,
+    "covered": 19,
+    "unreachable": 1,
+    "status": "Optimal",
+    "witnesses": 21,
+    "count_note": "covered counts targets; witnesses counts (video, target) example pairs"
+  },
+  {
+    "targets": 50,
+    "candidate_lines": 20123,
+    "fetch_ms": 11334.77,
+    "calculation_ms": 4707.57,
+    "parent_cpu_ms": 2607.87,
+    "solver_cpu_ms": 3629.43,
+    "videos": 14,
+    "covered": 49,
+    "unreachable": 1,
+    "status": "Optimal",
+    "witnesses": 57,
+    "count_note": "covered counts targets; witnesses counts (video, target) example pairs"
+  },
+  {
+    "targets": 100,
+    "candidate_lines": 33105,
+    "fetch_ms": 11830.71,
+    "calculation_ms": 1384.33,
+    "parent_cpu_ms": 4399.54,
+    "solver_cpu_ms": 767.52,
+    "videos": 21,
+    "covered": 98,
+    "unreachable": 2,
+    "status": "Optimal",
+    "witnesses": 133,
+    "count_note": "covered counts targets; witnesses counts (video, target) example pairs"
+  }
+]

@@ -1,0 +1,1328 @@
+{
+  "host": "macOS-26.2-arm64-arm-64bit",
+  "architecture": "arm64",
+  "logical_cpus": 8,
+  "users": 4,
+  "profiled": false,
+  "memory": [
+    {
+      "stage": "imports",
+      "rss_mb": 45.015625
+    },
+    {
+      "stage": "first /video?id=Tw-UQAGy1Ds",
+      "rss_mb": 215.4375,
+      "peak_mb": 231.390625
+    },
+    {
+      "stage": "first /study?video=Tw-UQAGy1Ds",
+      "rss_mb": 215.453125,
+      "peak_mb": 231.390625
+    },
+    {
+      "stage": "first /unit/lemma/angeben",
+      "rss_mb": 391.203125,
+      "peak_mb": 455.234375
+    },
+    {
+      "stage": "first /api/transcript?video=Tw-UQAGy1Ds",
+      "rss_mb": 391.203125,
+      "peak_mb": 455.234375
+    },
+    {
+      "stage": "first /api/next",
+      "rss_mb": 1331.15625,
+      "peak_mb": 1611.203125
+    },
+    {
+      "stage": "one user warm",
+      "rss_mb": 1351.078125,
+      "peak_mb": 1611.203125
+    },
+    {
+      "stage": "all users warm",
+      "rss_mb": 1601.890625,
+      "peak_mb": 1762.671875
+    }
+  ],
+  "summary": [
+    {
+      "route": "/video?id=Tw-UQAGy1Ds",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 1803.79,
+        "max_ms": 1803.79
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 34.61,
+        "max_ms": 170.06
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 57.7,
+        "max_ms": 2715.57
+      }
+    },
+    {
+      "route": "/study?video=Tw-UQAGy1Ds",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 11.76,
+        "max_ms": 11.76
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 12.28,
+        "max_ms": 13.21
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 23.58,
+        "max_ms": 26.59
+      }
+    },
+    {
+      "route": "/unit/lemma/angeben",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 2248.68,
+        "max_ms": 2248.68
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 87.97,
+        "max_ms": 111.89
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 268.54,
+        "max_ms": 557.68
+      }
+    },
+    {
+      "route": "/api/transcript?video=Tw-UQAGy1Ds",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 14.19,
+        "max_ms": 14.19
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 12.39,
+        "max_ms": 12.94
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 21.2,
+        "max_ms": 24.49
+      }
+    },
+    {
+      "route": "/api/next",
+      "first-pass": {
+        "n": 1,
+        "median_ms": 21468.27,
+        "max_ms": 21468.27
+      },
+      "warm-single": {
+        "n": 3,
+        "median_ms": 79.03,
+        "max_ms": 85.08
+      },
+      "concurrent": {
+        "n": 12,
+        "median_ms": 264.27,
+        "max_ms": 6580.4
+      }
+    }
+  ],
+  "requests": [
+    {
+      "route": "/video?id=Tw-UQAGy1Ds",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 102120,
+      "wall_ms": 1803.79,
+      "error": ""
+    },
+    {
+      "route": "/study?video=Tw-UQAGy1Ds",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 11.76,
+      "error": ""
+    },
+    {
+      "route": "/unit/lemma/angeben",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 67040,
+      "wall_ms": 2248.68,
+      "error": ""
+    },
+    {
+      "route": "/api/transcript?video=Tw-UQAGy1Ds",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 12685,
+      "wall_ms": 14.19,
+      "error": ""
+    },
+    {
+      "route": "/api/next",
+      "user": 0,
+      "phase": "first-pass",
+      "status": 200,
+      "bytes": 16321,
+      "wall_ms": 21468.27,
+      "error": ""
+    },
+    {
+      "route": "/video?id=Tw-UQAGy1Ds",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 102120,
+      "wall_ms": 170.06,
+      "error": ""
+    },
+    {
+      "route": "/video?id=Tw-UQAGy1Ds",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 102120,
+      "wall_ms": 34.61,
+      "error": ""
+    },
+    {
+      "route": "/video?id=Tw-UQAGy1Ds",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 102120,
+      "wall_ms": 31.41,
+      "error": ""
+    },
+    {
+      "route": "/study?video=Tw-UQAGy1Ds",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 13.21,
+      "error": ""
+    },
+    {
+      "route": "/study?video=Tw-UQAGy1Ds",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 12.28,
+      "error": ""
+    },
+    {
+      "route": "/study?video=Tw-UQAGy1Ds",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 11.92,
+      "error": ""
+    },
+    {
+      "route": "/unit/lemma/angeben",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 67040,
+      "wall_ms": 111.89,
+      "error": ""
+    },
+    {
+      "route": "/unit/lemma/angeben",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 67040,
+      "wall_ms": 87.97,
+      "error": ""
+    },
+    {
+      "route": "/unit/lemma/angeben",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 67040,
+      "wall_ms": 86.6,
+      "error": ""
+    },
+    {
+      "route": "/api/transcript?video=Tw-UQAGy1Ds",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 12685,
+      "wall_ms": 12.94,
+      "error": ""
+    },
+    {
+      "route": "/api/transcript?video=Tw-UQAGy1Ds",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 12685,
+      "wall_ms": 12.39,
+      "error": ""
+    },
+    {
+      "route": "/api/transcript?video=Tw-UQAGy1Ds",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 12685,
+      "wall_ms": 12.18,
+      "error": ""
+    },
+    {
+      "route": "/api/next",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 16321,
+      "wall_ms": 85.08,
+      "error": ""
+    },
+    {
+      "route": "/api/next",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 16321,
+      "wall_ms": 77.5,
+      "error": ""
+    },
+    {
+      "route": "/api/next",
+      "user": 0,
+      "phase": "warm-single",
+      "status": 200,
+      "bytes": 16321,
+      "wall_ms": 79.03,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 0,
+      "phase": "additional-user-first",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 89.18,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 1,
+      "phase": "additional-user-first",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 2040.51,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 3,
+      "phase": "additional-user-first",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 2040.29,
+      "error": ""
+    },
+    {
+      "route": "/reels",
+      "user": 2,
+      "phase": "additional-user-first",
+      "status": 200,
+      "bytes": 49614,
+      "wall_ms": 2040.84,
+      "error": ""
+    },
+    {
+      "route": "/video?id=Tw-UQAGy1Ds",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 102120,
+      "wall_ms": 86.69,
+      "error": ""
+    },
+    {
+      "route": "/video?id=Tw-UQAGy1Ds",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 102120,
+      "wall_ms": 2712.59,
+      "error": ""
+    },
+    {
+      "route": "/video?id=Tw-UQAGy1Ds",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 102120,
+      "wall_ms": 2713.82,
+      "error": ""
+    },
+    {
+      "route": "/video?id=Tw-UQAGy1Ds",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 102120,
+      "wall_ms": 2715.57,
+      "error": ""
+    },
+    {
+      "route": "/video?id=Tw-UQAGy1Ds",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 102120,
+      "wall_ms": 54.41,
+      "error": ""
+    },
+    {
+      "route": "/video?id=Tw-UQAGy1Ds",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 102120,
+      "wall_ms": 56.45,
+      "error": ""
+    },
+    {
+      "route": "/video?id=Tw-UQAGy1Ds",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 102120,
+      "wall_ms": 58.76,
+      "error": ""
+    },
+    {
+      "route": "/video?id=Tw-UQAGy1Ds",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 102120,
+      "wall_ms": 59.12,
+      "error": ""
+    },
+    {
+      "route": "/video?id=Tw-UQAGy1Ds",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 102120,
+      "wall_ms": 55.07,
+      "error": ""
+    },
+    {
+      "route": "/video?id=Tw-UQAGy1Ds",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 102120,
+      "wall_ms": 55.39,
+      "error": ""
+    },
+    {
+      "route": "/video?id=Tw-UQAGy1Ds",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 102120,
+      "wall_ms": 55.58,
+      "error": ""
+    },
+    {
+      "route": "/video?id=Tw-UQAGy1Ds",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 102120,
+      "wall_ms": 56.65,
+      "error": ""
+    },
+    {
+      "route": "/study?video=Tw-UQAGy1Ds",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 23.24,
+      "error": ""
+    },
+    {
+      "route": "/study?video=Tw-UQAGy1Ds",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 23.52,
+      "error": ""
+    },
+    {
+      "route": "/study?video=Tw-UQAGy1Ds",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 23.64,
+      "error": ""
+    },
+    {
+      "route": "/study?video=Tw-UQAGy1Ds",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 24.35,
+      "error": ""
+    },
+    {
+      "route": "/study?video=Tw-UQAGy1Ds",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 20.59,
+      "error": ""
+    },
+    {
+      "route": "/study?video=Tw-UQAGy1Ds",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 21.53,
+      "error": ""
+    },
+    {
+      "route": "/study?video=Tw-UQAGy1Ds",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 22.03,
+      "error": ""
+    },
+    {
+      "route": "/study?video=Tw-UQAGy1Ds",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 22.16,
+      "error": ""
+    },
+    {
+      "route": "/study?video=Tw-UQAGy1Ds",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 24.93,
+      "error": ""
+    },
+    {
+      "route": "/study?video=Tw-UQAGy1Ds",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 25.89,
+      "error": ""
+    },
+    {
+      "route": "/study?video=Tw-UQAGy1Ds",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 26.19,
+      "error": ""
+    },
+    {
+      "route": "/study?video=Tw-UQAGy1Ds",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 19357,
+      "wall_ms": 26.59,
+      "error": ""
+    },
+    {
+      "route": "/unit/lemma/angeben",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 67040,
+      "wall_ms": 237.59,
+      "error": ""
+    },
+    {
+      "route": "/unit/lemma/angeben",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 67040,
+      "wall_ms": 555.74,
+      "error": ""
+    },
+    {
+      "route": "/unit/lemma/angeben",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 67040,
+      "wall_ms": 557.68,
+      "error": ""
+    },
+    {
+      "route": "/unit/lemma/angeben",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 67040,
+      "wall_ms": 557.49,
+      "error": ""
+    },
+    {
+      "route": "/unit/lemma/angeben",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 67040,
+      "wall_ms": 267.81,
+      "error": ""
+    },
+    {
+      "route": "/unit/lemma/angeben",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 67040,
+      "wall_ms": 269.28,
+      "error": ""
+    },
+    {
+      "route": "/unit/lemma/angeben",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 67040,
+      "wall_ms": 270.9,
+      "error": ""
+    },
+    {
+      "route": "/unit/lemma/angeben",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 67040,
+      "wall_ms": 271.83,
+      "error": ""
+    },
+    {
+      "route": "/unit/lemma/angeben",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 67040,
+      "wall_ms": 228.19,
+      "error": ""
+    },
+    {
+      "route": "/unit/lemma/angeben",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 67040,
+      "wall_ms": 228.56,
+      "error": ""
+    },
+    {
+      "route": "/unit/lemma/angeben",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 67040,
+      "wall_ms": 230.01,
+      "error": ""
+    },
+    {
+      "route": "/unit/lemma/angeben",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 67040,
+      "wall_ms": 231.28,
+      "error": ""
+    },
+    {
+      "route": "/api/transcript?video=Tw-UQAGy1Ds",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12685,
+      "wall_ms": 20.63,
+      "error": ""
+    },
+    {
+      "route": "/api/transcript?video=Tw-UQAGy1Ds",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12685,
+      "wall_ms": 22.36,
+      "error": ""
+    },
+    {
+      "route": "/api/transcript?video=Tw-UQAGy1Ds",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12685,
+      "wall_ms": 22.36,
+      "error": ""
+    },
+    {
+      "route": "/api/transcript?video=Tw-UQAGy1Ds",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12685,
+      "wall_ms": 22.62,
+      "error": ""
+    },
+    {
+      "route": "/api/transcript?video=Tw-UQAGy1Ds",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12685,
+      "wall_ms": 20.57,
+      "error": ""
+    },
+    {
+      "route": "/api/transcript?video=Tw-UQAGy1Ds",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12685,
+      "wall_ms": 20.79,
+      "error": ""
+    },
+    {
+      "route": "/api/transcript?video=Tw-UQAGy1Ds",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12685,
+      "wall_ms": 20.73,
+      "error": ""
+    },
+    {
+      "route": "/api/transcript?video=Tw-UQAGy1Ds",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12685,
+      "wall_ms": 24.49,
+      "error": ""
+    },
+    {
+      "route": "/api/transcript?video=Tw-UQAGy1Ds",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12685,
+      "wall_ms": 18.34,
+      "error": ""
+    },
+    {
+      "route": "/api/transcript?video=Tw-UQAGy1Ds",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12685,
+      "wall_ms": 19.88,
+      "error": ""
+    },
+    {
+      "route": "/api/transcript?video=Tw-UQAGy1Ds",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12685,
+      "wall_ms": 21.61,
+      "error": ""
+    },
+    {
+      "route": "/api/transcript?video=Tw-UQAGy1Ds",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 12685,
+      "wall_ms": 21.89,
+      "error": ""
+    },
+    {
+      "route": "/api/next",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 16321,
+      "wall_ms": 408.29,
+      "error": ""
+    },
+    {
+      "route": "/api/next",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 16321,
+      "wall_ms": 6575.07,
+      "error": ""
+    },
+    {
+      "route": "/api/next",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 16321,
+      "wall_ms": 6578.01,
+      "error": ""
+    },
+    {
+      "route": "/api/next",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 16321,
+      "wall_ms": 6580.4,
+      "error": ""
+    },
+    {
+      "route": "/api/next",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 16321,
+      "wall_ms": 263.61,
+      "error": ""
+    },
+    {
+      "route": "/api/next",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 16321,
+      "wall_ms": 263.24,
+      "error": ""
+    },
+    {
+      "route": "/api/next",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 16321,
+      "wall_ms": 264.94,
+      "error": ""
+    },
+    {
+      "route": "/api/next",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 16321,
+      "wall_ms": 265.24,
+      "error": ""
+    },
+    {
+      "route": "/api/next",
+      "user": 3,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 16321,
+      "wall_ms": 209.53,
+      "error": ""
+    },
+    {
+      "route": "/api/next",
+      "user": 1,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 16321,
+      "wall_ms": 211.2,
+      "error": ""
+    },
+    {
+      "route": "/api/next",
+      "user": 0,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 16321,
+      "wall_ms": 211.39,
+      "error": ""
+    },
+    {
+      "route": "/api/next",
+      "user": 2,
+      "phase": "concurrent",
+      "status": 200,
+      "bytes": 16321,
+      "wall_ms": 211.43,
+      "error": ""
+    }
+  ],
+  "server_timings": [
+    {
+      "path": "/video",
+      "wall_ms": 1739.9155832827091,
+      "thread_cpu_ms": 1017.6735419999998
+    },
+    {
+      "path": "/study",
+      "wall_ms": 9.758666157722473,
+      "thread_cpu_ms": 4.68675
+    },
+    {
+      "path": "/unit/lemma/angeben",
+      "wall_ms": 2246.5523327700794,
+      "thread_cpu_ms": 1033.075
+    },
+    {
+      "path": "/api/transcript",
+      "wall_ms": 12.48233299702406,
+      "thread_cpu_ms": 3.886459
+    },
+    {
+      "path": "/api/next",
+      "wall_ms": 21465.82716703415,
+      "thread_cpu_ms": 17985.641083000002
+    },
+    {
+      "path": "/video",
+      "wall_ms": 163.33608282729983,
+      "thread_cpu_ms": 23.023208
+    },
+    {
+      "path": "/video",
+      "wall_ms": 32.528750132769346,
+      "thread_cpu_ms": 14.895124999999998
+    },
+    {
+      "path": "/video",
+      "wall_ms": 29.466624837368727,
+      "thread_cpu_ms": 13.220542
+    },
+    {
+      "path": "/study",
+      "wall_ms": 11.460375040769577,
+      "thread_cpu_ms": 4.985666
+    },
+    {
+      "path": "/study",
+      "wall_ms": 10.838707908987999,
+      "thread_cpu_ms": 4.424333
+    },
+    {
+      "path": "/study",
+      "wall_ms": 10.526790749281645,
+      "thread_cpu_ms": 4.449624999999999
+    },
+    {
+      "path": "/unit/lemma/angeben",
+      "wall_ms": 110.21366715431213,
+      "thread_cpu_ms": 66.48633299999999
+    },
+    {
+      "path": "/unit/lemma/angeben",
+      "wall_ms": 86.55208302661777,
+      "thread_cpu_ms": 49.511624999999995
+    },
+    {
+      "path": "/unit/lemma/angeben",
+      "wall_ms": 85.20029205828905,
+      "thread_cpu_ms": 48.737292000000004
+    },
+    {
+      "path": "/api/transcript",
+      "wall_ms": 11.716000270098448,
+      "thread_cpu_ms": 3.334708
+    },
+    {
+      "path": "/api/transcript",
+      "wall_ms": 11.453500017523766,
+      "thread_cpu_ms": 3.1683749999999997
+    },
+    {
+      "path": "/api/transcript",
+      "wall_ms": 11.272375006228685,
+      "thread_cpu_ms": 3.1459159999999997
+    },
+    {
+      "path": "/api/next",
+      "wall_ms": 83.99529196321964,
+      "thread_cpu_ms": 57.431667
+    },
+    {
+      "path": "/api/next",
+      "wall_ms": 76.45583292469382,
+      "thread_cpu_ms": 52.959708
+    },
+    {
+      "path": "/api/next",
+      "wall_ms": 77.93429214507341,
+      "thread_cpu_ms": 54.696042
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 84.7272090613842,
+      "thread_cpu_ms": 36.030083000000005
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 2036.1449588090181,
+      "thread_cpu_ms": 570.283583
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 2036.803707946092,
+      "thread_cpu_ms": 616.035958
+    },
+    {
+      "path": "/reels",
+      "wall_ms": 2038.5125828906894,
+      "thread_cpu_ms": 657.551917
+    },
+    {
+      "path": "/video",
+      "wall_ms": 83.56216736137867,
+      "thread_cpu_ms": 15.327957999999999
+    },
+    {
+      "path": "/video",
+      "wall_ms": 2709.0691667981446,
+      "thread_cpu_ms": 900.4071669999998
+    },
+    {
+      "path": "/video",
+      "wall_ms": 2711.48445783183,
+      "thread_cpu_ms": 893.486542
+    },
+    {
+      "path": "/video",
+      "wall_ms": 2712.482125032693,
+      "thread_cpu_ms": 895.7057080000001
+    },
+    {
+      "path": "/video",
+      "wall_ms": 51.894832868129015,
+      "thread_cpu_ms": 15.11275
+    },
+    {
+      "path": "/video",
+      "wall_ms": 53.98345785215497,
+      "thread_cpu_ms": 13.691291999999999
+    },
+    {
+      "path": "/video",
+      "wall_ms": 56.099249981343746,
+      "thread_cpu_ms": 12.321125
+    },
+    {
+      "path": "/video",
+      "wall_ms": 56.322624906897545,
+      "thread_cpu_ms": 13.468499999999999
+    },
+    {
+      "path": "/video",
+      "wall_ms": 52.453082986176014,
+      "thread_cpu_ms": 12.920666999999998
+    },
+    {
+      "path": "/video",
+      "wall_ms": 51.9510000012815,
+      "thread_cpu_ms": 13.269417
+    },
+    {
+      "path": "/video",
+      "wall_ms": 52.72145802155137,
+      "thread_cpu_ms": 13.567124999999999
+    },
+    {
+      "path": "/video",
+      "wall_ms": 53.83737478405237,
+      "thread_cpu_ms": 14.352
+    },
+    {
+      "path": "/study",
+      "wall_ms": 18.804832827299833,
+      "thread_cpu_ms": 5.433083
+    },
+    {
+      "path": "/study",
+      "wall_ms": 19.951417110860348,
+      "thread_cpu_ms": 5.639
+    },
+    {
+      "path": "/study",
+      "wall_ms": 20.278458017855883,
+      "thread_cpu_ms": 5.498583000000001
+    },
+    {
+      "path": "/study",
+      "wall_ms": 21.17025014013052,
+      "thread_cpu_ms": 5.309958
+    },
+    {
+      "path": "/study",
+      "wall_ms": 18.180707935243845,
+      "thread_cpu_ms": 5.411042
+    },
+    {
+      "path": "/study",
+      "wall_ms": 18.7719170935452,
+      "thread_cpu_ms": 5.550708
+    },
+    {
+      "path": "/study",
+      "wall_ms": 19.216791726648808,
+      "thread_cpu_ms": 4.962542
+    },
+    {
+      "path": "/study",
+      "wall_ms": 19.93149984627962,
+      "thread_cpu_ms": 5.262999999999999
+    },
+    {
+      "path": "/study",
+      "wall_ms": 21.45012468099594,
+      "thread_cpu_ms": 5.690375
+    },
+    {
+      "path": "/study",
+      "wall_ms": 22.40579202771187,
+      "thread_cpu_ms": 7.201
+    },
+    {
+      "path": "/study",
+      "wall_ms": 23.533291183412075,
+      "thread_cpu_ms": 6.750958
+    },
+    {
+      "path": "/study",
+      "wall_ms": 23.590500000864267,
+      "thread_cpu_ms": 6.526584
+    },
+    {
+      "path": "/unit/lemma/angeben",
+      "wall_ms": 233.9423750527203,
+      "thread_cpu_ms": 79.93412500000001
+    },
+    {
+      "path": "/unit/lemma/angeben",
+      "wall_ms": 552.7327079325914,
+      "thread_cpu_ms": 104.834833
+    },
+    {
+      "path": "/unit/lemma/angeben",
+      "wall_ms": 554.1426660493016,
+      "thread_cpu_ms": 104.266834
+    },
+    {
+      "path": "/unit/lemma/angeben",
+      "wall_ms": 554.8655418679118,
+      "thread_cpu_ms": 102.048209
+    },
+    {
+      "path": "/unit/lemma/angeben",
+      "wall_ms": 263.3403753861785,
+      "thread_cpu_ms": 73.991875
+    },
+    {
+      "path": "/unit/lemma/angeben",
+      "wall_ms": 265.6725412234664,
+      "thread_cpu_ms": 64.096917
+    },
+    {
+      "path": "/unit/lemma/angeben",
+      "wall_ms": 266.5859581902623,
+      "thread_cpu_ms": 67.27295799999999
+    },
+    {
+      "path": "/unit/lemma/angeben",
+      "wall_ms": 268.5015839524567,
+      "thread_cpu_ms": 66.30887499999999
+    },
+    {
+      "path": "/unit/lemma/angeben",
+      "wall_ms": 225.6158753298223,
+      "thread_cpu_ms": 59.544083
+    },
+    {
+      "path": "/unit/lemma/angeben",
+      "wall_ms": 225.8589998818934,
+      "thread_cpu_ms": 63.16458299999999
+    },
+    {
+      "path": "/unit/lemma/angeben",
+      "wall_ms": 227.36687492579222,
+      "thread_cpu_ms": 61.374708
+    },
+    {
+      "path": "/unit/lemma/angeben",
+      "wall_ms": 228.58683299273252,
+      "thread_cpu_ms": 61.419417
+    },
+    {
+      "path": "/api/transcript",
+      "wall_ms": 17.032583709806204,
+      "thread_cpu_ms": 4.306916999999999
+    },
+    {
+      "path": "/api/transcript",
+      "wall_ms": 19.109874963760376,
+      "thread_cpu_ms": 4.1750419999999995
+    },
+    {
+      "path": "/api/transcript",
+      "wall_ms": 20.047666039317846,
+      "thread_cpu_ms": 3.937375
+    },
+    {
+      "path": "/api/transcript",
+      "wall_ms": 19.73508344963193,
+      "thread_cpu_ms": 5.217542000000001
+    },
+    {
+      "path": "/api/transcript",
+      "wall_ms": 17.71204126998782,
+      "thread_cpu_ms": 4.633832999999999
+    },
+    {
+      "path": "/api/transcript",
+      "wall_ms": 18.200917169451714,
+      "thread_cpu_ms": 3.958125
+    },
+    {
+      "path": "/api/transcript",
+      "wall_ms": 18.65954091772437,
+      "thread_cpu_ms": 4.820333
+    },
+    {
+      "path": "/api/transcript",
+      "wall_ms": 22.484375163912773,
+      "thread_cpu_ms": 4.063083000000001
+    },
+    {
+      "path": "/api/transcript",
+      "wall_ms": 17.002416774630547,
+      "thread_cpu_ms": 4.035291
+    },
+    {
+      "path": "/api/transcript",
+      "wall_ms": 18.585207872092724,
+      "thread_cpu_ms": 3.945708
+    },
+    {
+      "path": "/api/transcript",
+      "wall_ms": 19.678957760334015,
+      "thread_cpu_ms": 4.036958
+    },
+    {
+      "path": "/api/transcript",
+      "wall_ms": 19.866458140313625,
+      "thread_cpu_ms": 5.220583
+    },
+    {
+      "path": "/api/next",
+      "wall_ms": 361.3887499086559,
+      "thread_cpu_ms": 63.937042
+    },
+    {
+      "path": "/api/next",
+      "wall_ms": 6572.761749848723,
+      "thread_cpu_ms": 1483.114458
+    },
+    {
+      "path": "/api/next",
+      "wall_ms": 6575.514582917094,
+      "thread_cpu_ms": 3452.824958
+    },
+    {
+      "path": "/api/next",
+      "wall_ms": 6578.344750218093,
+      "thread_cpu_ms": 1467.217167
+    },
+    {
+      "path": "/api/next",
+      "wall_ms": 259.45416698232293,
+      "thread_cpu_ms": 62.339375
+    },
+    {
+      "path": "/api/next",
+      "wall_ms": 259.31908283382654,
+      "thread_cpu_ms": 73.80279100000001
+    },
+    {
+      "path": "/api/next",
+      "wall_ms": 261.04441564530134,
+      "thread_cpu_ms": 62.581250000000004
+    },
+    {
+      "path": "/api/next",
+      "wall_ms": 263.21912510320544,
+      "thread_cpu_ms": 61.598917
+    },
+    {
+      "path": "/api/next",
+      "wall_ms": 206.088833976537,
+      "thread_cpu_ms": 54.675792
+    },
+    {
+      "path": "/api/next",
+      "wall_ms": 207.01158326119184,
+      "thread_cpu_ms": 55.235125000000004
+    },
+    {
+      "path": "/api/next",
+      "wall_ms": 208.3287090063095,
+      "thread_cpu_ms": 54.099417
+    },
+    {
+      "path": "/api/next",
+      "wall_ms": 209.14604095742106,
+      "thread_cpu_ms": 50.661249999999995
+    }
+  ],
+  "mac_footprint": [
+    "Physical footprint:         1.9G",
+    "Physical footprint (peak):  2.0G"
+  ],
+  "database": {
+    "bytes": 4436386595,
+    "sentences": 500431
+  }
+}

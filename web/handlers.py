@@ -1809,15 +1809,18 @@ class Viewer:
         # store was ranked, and read uncapped: the cap the word page fetches
         # under orders by `length(text)`, which is the very bias this exists
         # to undo.
+        verdicts = None
         for unit in units:
             if unit in picked:
                 continue
+            if verdicts is None:
+                verdicts = self.app.verdicts()
             holding = self.app.corpus(*self._builds(source), strict=True,
                                       holding=(unit.kind, unit.key))
             picked[unit] = carried(ExampleIndex(holding).examples(
                 unit, self.known, limit=deep,
                 minutes=self.app.video_minutes,
-                verdicts=self.app.verdicts(), judged=judged), unit)
+                verdicts=verdicts, judged=judged), unit)
 
         self._anki_examples = (key, picked)
         return picked
@@ -3681,9 +3684,12 @@ class Viewer:
 
         # One sentence each, chosen as the walk chooses its own: what a
         # reader or the judge has said about it, then how it reads.
+        # One snapshot per render. Reading the full verdict table for each
+        # of forty entries spent seconds reconstructing the same dictionary.
+        verdicts = self.app.verdicts() if window else {}
         examples = self.app.with_english([
             teaching_sentence((sentences[p] for p in positions), u,
-                              self.app.verdicts(), self.app.judged)
+                              verdicts, self.app.judged)
             for u, positions in window])
 
         def link(**params) -> str:
