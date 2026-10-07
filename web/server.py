@@ -680,9 +680,18 @@ def _make_handler(door: "Door"):
                                          f"due'>{render.escape(str(refused))}</p>"),
                            status=400)
                 return
-            scheme = self.headers.get("X-Forwarded-Proto") or "http"
-            host = (self.headers.get("X-Forwarded-Host")
-                    or self.headers.get("Host") or "")
+            public = os.environ.get("PUBLIC_URL", "").strip().rstrip("/")
+            if public:
+                parsed = urlparse(public)
+                if (parsed.scheme not in ("http", "https") or not parsed.netloc
+                        or parsed.username or parsed.password or parsed.path
+                        or parsed.query or parsed.fragment):
+                    self._send_json({"error": "PUBLIC_URL must be an HTTP(S) origin"}, status=503)
+                    return
+                scheme, host = parsed.scheme, parsed.netloc
+            else:
+                scheme = self.headers.get("X-Forwarded-Proto") or "http"
+                host = self._host()
             found = door.registry.invitation(token)
             self._send(render.invited_page(
                 f"{scheme}://{host}/signup?invite={token}", found), 200)

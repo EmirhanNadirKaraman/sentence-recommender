@@ -39,6 +39,15 @@ class SharingTest(unittest.TestCase):
         connection.close()
         return result
 
+    def test_local_invitation_uses_configured_public_url(self):
+        self.door.registry.owner.return_value = SimpleNamespace(name='owner')
+        self.door.registry.invite.return_value = 'test-token'
+        with patch.dict('os.environ', {'PUBLIC_URL': 'https://public.example.test/'}), \
+                patch('web.render.invited_page', side_effect=lambda url, found: url):
+            status, body = self.request('POST', '/invite', 'owner', 'language=de&native=en')
+        self.assertEqual(status, 200)
+        self.assertEqual(body, 'https://public.example.test/signup?invite=test-token')
+
     def test_friend_cannot_bypass_hidden_pages_or_actions(self):
         for method, paths in [('GET', OWNER_PAGES), ('POST', OWNER_ACTIONS)]:
             for path in paths:

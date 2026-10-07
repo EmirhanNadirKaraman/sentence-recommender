@@ -28,6 +28,9 @@ Ayrı terminalde:
 cloudflared tunnel --url http://127.0.0.1:8790
 ```
 
+Tünel açıldıktan sonra uygulamayı `PUBLIC_URL=https://TUNEL_ADRESIN` ortam
+değişkeniyle yeniden başlat. Böylece localhost üzerinden hazırlanan davetler de
+internet adresini kullanır. Tünel adresi değişirse PUBLIC_URL değerini güncelle.
 Terminalin verdiği HTTPS adresinden kendi hesabınla giriş yap. Settings içindeki
 Invite a reader formundan arkadaşının öğrenme dilini seçerek davet oluştur.
 Davet bağlantısını arkadaşına gönder: kendi kullanıcı adını ve parolasını

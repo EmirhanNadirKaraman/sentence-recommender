@@ -27,6 +27,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env.production}
       DB_HOST: db
       DB_PORT: 5432
+      PUBLIC_URL: https://${APP_DOMAIN:?Set APP_DOMAIN in .env.production}
       REQUIRE_AUTH: "1"
       INVITE_ONLY: "1"
       SERVE_ANNOUNCE: ${APP_DOMAIN:?Set APP_DOMAIN in .env.production}
