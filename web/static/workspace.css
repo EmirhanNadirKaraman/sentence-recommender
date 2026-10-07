@@ -370,3 +370,59 @@ body[data-page='/anki'] .cloze .target { padding: 3px 7px; border-radius: 6px;
 .cover-search-box input:focus { outline:none; }
 .cover-search-results { max-height:460px; overflow-y:auto; overscroll-behavior:contain; padding:3px; margin:0 -3px; }
 #cover-result { scroll-margin-top:24px; }
+
+/* Phone controls need their own space rather than overlapping invisible
+   hit areas. Keep inline vocabulary words and the immersive reels separate. */
+@media (max-width:760px) {
+  .workspace-top, .learning-page main {
+    padding-left:max(20px, env(safe-area-inset-left));
+    padding-right:max(20px, env(safe-area-inset-right));
+  }
+  .learning-page .controls button,
+  .learning-page .tools button, .learning-page .tools .link,
+  .learning-page .stepper button,
+  .learning-page .entry .actions button,
+  .learning-page .rows button, .learning-page .taste button,
+  .learning-page .pager a, .settings-index a,
+  .cover-word-chip button, .cover-time {
+    min-width:44px; min-height:44px;
+  }
+  .learning-page .tools { flex-wrap:wrap; gap:8px; }
+  .learning-page .tools .link, .settings-index a, .cover-time {
+    display:inline-flex; align-items:center;
+  }
+  .learning-page .tools button::after, .learning-page .tools .link::after,
+  .learning-page .stepper button::after { inset:0; }
+  .learning-page .stepper { flex-wrap:wrap; }
+  .learning-page .switch a { display:inline-flex; align-items:center; min-height:44px; }
+  .cover-word-chip { padding:2px 2px 2px 12px; }
+  .cover-search-results { max-height:min(460px, 42dvh); }
+  .week-strip { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; }
+  .week-day { width:auto; min-width:0; }
+  .week-day > span { width:min(36px,100%); height:auto; aspect-ratio:1; }
+  .more-panel { max-height:calc(100dvh - 100px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+  .keys-open { display:none; }
+}
+@media (max-width:360px) {
+  .more-panel { padding:16px; gap:8px; }
+  .collection-card { padding:16px; gap:7px 10px; }
+  .cover-discovery, .cover-selection, .cover-video-card { padding:16px; }
+}
+@media (max-width:760px) {
+  .reel-exit { width:44px; height:44px; flex-shrink:0; }
+  .reel-journey { min-height:44px; display:flex; align-items:center; }
+  .reel-drawer .controls button { min-width:44px; min-height:44px; }
+  .reel-drawer { display:flex; flex-direction:column; }
+  .reel-drawer:not([open]) { display:none; }
+  .drawer-head { flex-shrink:0; }
+  .drawer-scroll { min-height:0; }
+}
+@media (max-height:500px) and (max-width:960px) {
+  .reel-topbar { padding:calc(8px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 8px max(16px, env(safe-area-inset-left)); }
+  .reel-rail { bottom:calc(20px + env(safe-area-inset-bottom)); gap:5px; }
+  .reel-rail button { min-height:44px; }
+  .reel-rail button small { display:none; }
+  .reels-page #reel .caption { min-height:0; bottom:calc(120px + env(safe-area-inset-bottom)); }
+  .reels-page #reel .caption .de { font-size:18px; max-height:2.8em; }
+  .reel-desktop-step { display:none; }
+}

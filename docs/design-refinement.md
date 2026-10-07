@@ -65,3 +65,30 @@ does not claim to address those backend cold-start delays.
 3. Combine Next milestones and Learning gaps into one progress view.
 
 All three remain available until the user chooses a removal or consolidation.
+
+## Mobile follow-up
+
+- Explicit 44 px controls for mobile playback, sentence navigation, collection
+  chip removal, table actions, filters and settings section links. Inline
+  vocabulary words retain their reading layout.
+- Wrapping action rows use non-overlapping hit areas. The floating keyboard
+  shortcut trigger stays on desktop; the keyboard shortcuts still work.
+- The mobile menu fits short viewports and safe areas. Live search results
+  take at most 42% of viewport height so the selected collection is closer.
+- The seven-day progress strip uses seven flexible columns, fixing its
+  horizontal overflow at 320 px.
+- Reels keeps its full-screen surface. Short landscape screens use a compact
+  action rail; drawer content scrolls within the available height.
+
+Checked 320 × 568 in the real app: Learn, Review, Listening, Writing,
+Vocabulary check, Video library, Channels, Saved sentences, Dictionary,
+Word lists, Anki, Your atlas, Learning path, Watch plan, Next milestones and
+Learning gaps had no document overflow after the changes. Checked the cover
+builder at 320 px and its updated removal controls at 360 × 740. Checked Reels
+and its open drawer at 667 × 375;
+all four rail controls fit and document width remained 667 px.
+The earlier 390 × 844 audit remains applicable. Browser viewport checks do
+not replace physical iOS/Android testing, particularly the virtual keyboard.
+
+Focused verification: **7 design tests and 11 JavaScript tests passed**;
+`git diff --check` passed. Changes are CSS only.
