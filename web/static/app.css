@@ -1093,3 +1093,199 @@ button.go, a.go, .quizcard .actions .yes, .login button, .brand-mark,
   font: 400 16px/1 var(--sans); vertical-align: middle; }
 .de .star:hover { background: var(--accent-soft); color: var(--target); }
 .de .star.on { color: var(--target); }
+
+/* The atlas: quiet scaffolding, vivid milestones. */
+.journey-hud { display:flex; align-items:center; gap:10px; color:var(--ink); text-decoration:none; }
+.journey-hud small { display:block; font-size:8px; font-weight:700; letter-spacing:1.5px; color:var(--ink-2); }
+.journey-hud strong { font-size:13px; font-variant-numeric:tabular-nums; }
+.level-orb { width:36px; height:36px; border-radius:50%; display:grid; place-items:center;
+  background:conic-gradient(var(--target) var(--fill),var(--faint) 0); font-size:12px; font-weight:750;
+  position:relative; isolation:isolate; }
+.level-orb::before { content:''; position:absolute; inset:3px; border-radius:50%; background:var(--surface); z-index:-1; }
+.hud-quests { font-size:11px; border:1px solid var(--faint); padding:4px 7px; border-radius:20px; }
+.journey-hero { display:grid; grid-template-columns:1.1fr 1fr; gap:36px; align-items:center; margin:12px 0 38px; }
+.journey-hero h1 { font-size:clamp(36px,4vw,60px); line-height:1.06; letter-spacing:-2.5px; margin:18px 0; }
+.journey-hero p { color:var(--ink-2); font-size:15px; line-height:1.6; max-width:340px; }
+.journey-rank { display:flex; gap:10px; align-items:center; margin-top:24px; font-size:12px; }
+.journey-rank > span:last-child { color:var(--ink-2); }
+.rank-star { font-size:22px; color:var(--target); }
+.xp-line { display:flex; justify-content:space-between; font-size:11px; color:var(--ink-2); margin:15px 0 7px; max-width:390px; }
+.xp-progress { max-width:390px; margin-bottom:23px; }
+.journey-hero .go { display:inline-block; font-size:13px; padding:14px 20px; }
+.hero-secondary { display:inline-block; font-size:12px; margin-left:14px; color:var(--ink-2); text-decoration:none; }
+.atlas-scene { position:relative; overflow:hidden; border-radius:28px; box-shadow:0 20px 60px #07112222;
+  border:1px solid #7dafff25; transform:perspective(1000px) rotateY(-4deg); }
+.atlas-scene > svg { width:100%; display:block; }
+.atlas-coordinate { position:absolute; top:23px; left:28px; font-size:8px; letter-spacing:2px; color:#8db8fa; }
+.atlas-star circle { fill:#1c3d6b; stroke:#4475ad; }
+.atlas-star path { stroke:#82aeed; stroke-width:1.5; }
+.atlas-star.lit circle { fill:#8bc2ff; stroke:#d7e9ff; filter:drop-shadow(0 0 9px #439bff); }
+.atlas-star.lit path { stroke:#fff; }
+.atlas-star.lit { animation:atlas-breathe 5s ease-in-out var(--delay) infinite; }
+@keyframes atlas-breathe { 50% { opacity:.65; } }
+.expedition-heading { display:flex; justify-content:space-between; align-items:center; gap:18px; margin-bottom:18px; }
+.expedition-heading h2 { margin:6px 0 0; font-size:23px; letter-spacing:-.6px; }
+.chapter-reward { white-space:nowrap; font-size:10px; color:var(--target); background:var(--paper); padding:10px 12px; border:1px solid var(--faint); border-radius:30px; }
+.quest-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.quest-card { border:1px solid var(--faint); border-radius:20px; padding:23px; background:var(--surface); position:relative; }
+.quest-symbol { display:block; width:30px; height:30px; color:var(--target); margin-bottom:24px; }
+.quest-symbol svg { width:100%; }
+.quest-count { position:absolute; top:25px; right:23px; color:var(--ink-2); font-size:11px; font-variant-numeric:tabular-nums; }
+.quest-card h3 { margin:0 0 8px; font-size:15px; letter-spacing:-.2px; }
+.quest-card p { font-size:11px; color:var(--ink-2); margin:0 0 20px; line-height:1.6; min-height:18px; }
+.journey-hero progress,.quest-card progress,.atlas-summary progress,.achievement progress { width:100%; height:5px; border:0; border-radius:10px; overflow:hidden; background:var(--faint); appearance:none; }
+progress::-webkit-progress-bar { background:var(--faint); border-radius:10px; }
+progress::-webkit-progress-value { background:var(--target); border-radius:10px; transition:width .6s; }
+progress::-moz-progress-bar { background:var(--target); border-radius:10px; }
+.quest-go { display:block; margin-top:16px; color:var(--target); font-size:12px; text-decoration:none; font-weight:650; }
+.quest-alternative { display:block; font-size:10px; color:var(--ink-2); margin-top:8px; text-decoration:none; }
+.quest-card.complete { background:color-mix(in srgb,var(--target) 4%,var(--surface)); border-color:color-mix(in srgb,var(--target) 30%,var(--faint)); }
+.quest-card.complete .quest-count::before { content:'✓ '; color:var(--target); }
+.daily-expedition { margin:26px 0 38px; }
+.journey-heading h1 { font-size:clamp(38px,5vw,65px); letter-spacing:-2px; line-height:1.07; margin:15px 0; }
+.journey-heading p { color:var(--ink-2); }
+.atlas-panel { display:grid; grid-template-columns:1.6fr 1fr; gap:35px; align-items:center; margin:30px 0; }
+.atlas-large { transform:none; }
+.atlas-summary h2 { font-size:30px; letter-spacing:-1px; margin:12px 0; }
+.atlas-summary p { font-size:13px; color:var(--ink-2); }
+.journey-footnote { display:block; font-size:10px; color:var(--ink-2); line-height:1.6; margin-top:18px; }
+.journey-stats { display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--faint); border-radius:20px; margin:35px 0; overflow:hidden; }
+.journey-stats > div { padding:25px 20px; border-right:1px solid var(--faint); }
+.journey-stats > div:last-child { border:0; }
+.journey-stats strong { display:block; font-size:28px; font-weight:650; letter-spacing:-1px; }
+.journey-stats span { font-size:11px; color:var(--ink-2); }
+.rhythm-panel { display:flex; flex-wrap:wrap; align-items:center; gap:25px; justify-content:space-between; margin:40px 0; padding:26px; background:var(--surface); border:1px solid var(--faint); border-radius:22px; }
+.rhythm-panel h2 { font-size:22px; margin:8px 0; }.rhythm-panel p { font-size:11px; color:var(--ink-2); max-width:320px; }
+.week-strip { display:flex; gap:10px; }
+.week-day { text-align:center; width:44px; color:var(--ink-2); }
+.week-day > span { display:grid; place-items:center; width:36px; height:36px; border:1px solid var(--faint); border-radius:50%; margin:0 auto 8px; }
+.week-day svg { width:17px; }.week-day strong,.week-day small { display:block; font-size:8px; line-height:1.7; }
+.week-day.active > span { background:var(--target); color:#fff; border-color:var(--target); }
+.achievement-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:24px 0; }
+.achievement { text-align:center; position:relative; padding:25px 18px; border:1px solid var(--faint); border-radius:20px; background:var(--surface); }
+.achievement-medallion { width:66px; height:75px; margin:0 auto 20px; display:grid; place-items:center;
+  background:var(--paper); color:var(--ink-2); clip-path:polygon(50% 0,94% 23%,94% 72%,50% 100%,6% 72%,6% 23%); }
+.achievement-medallion svg { width:34px; height:34px; }
+.achievement.earned .achievement-medallion { color:#f7e2a1; background:linear-gradient(140deg,#256fd8,#17315d); }
+.achievement.earned::before { content:'✦'; position:absolute; color:#bf9440; font-size:14px; top:18px; right:20px; }
+.achievement-status { font-size:7px; letter-spacing:1.5px; color:var(--ink-2); }
+.achievement.earned .achievement-status { color:var(--target); }
+.achievement h3 { font-size:13px; margin:9px 0; }.achievement p { font-size:10px; line-height:1.7; color:var(--ink-2); min-height:35px; }
+.achievement small,.earned-date { display:block; font-size:9px; margin-top:10px; color:var(--ink-2); }
+.reward-rules { margin:28px 0; font-size:12px; }.reward-rules p { line-height:1.8; max-width:650px; color:var(--ink-2); }
+.reward-sound { display:flex; align-items:center; gap:10px; font-size:12px; color:var(--ink-2); }
+.reward-toast { position:fixed; bottom:calc(28px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%);
+  z-index:120; padding:14px 21px; background:#14243b; border:1px solid #5b94d466; color:#fff; border-radius:40px;
+  box-shadow:0 10px 40px #0003; font-size:12px; display:flex; align-items:center; gap:12px; pointer-events:none;
+  animation:reward-arrive .35s cubic-bezier(.2,.8,.2,1); }
+.reward-toast b { color:#a5cfff; font-size:15px; }.reward-toast span { color:#d0ddef; }
+.reward-celebration { position:fixed; inset:0; z-index:125; pointer-events:none; display:flex; align-items:flex-start; justify-content:center; padding-top:max(50px,9vh); }
+.reward-card { pointer-events:auto; position:relative; width:min(370px,calc(100vw - 36px)); padding:30px;
+  color:#fff; text-align:center; border:1px solid #9cc6ff55; background:linear-gradient(145deg,#173d76,#0a1933);
+  border-radius:26px; box-shadow:0 28px 100px #0006; animation:reward-arrive .45s cubic-bezier(.16,1,.3,1); }
+.reward-card .reward-mark { display:block; color:#f5dfa0; font-size:42px; margin-bottom:15px; }
+.reward-card .eyebrow { color:#9fc3f9; font-size:8px; }.reward-card h2 { font-size:27px; letter-spacing:-.8px; margin:10px 0; }
+.reward-card p { color:#c2d6f4; font-size:12px; line-height:1.65; }.reward-card a { color:#fff; font-size:11px; display:inline-block; margin-top:10px; }
+.reward-close { position:absolute; right:10px; top:10px; background:none; color:#b9d0ef; border:0; padding:5px 10px; font-size:20px; }
+.reward-particle { position:fixed; width:5px; height:9px; background:#81b5ff; left:var(--x); top:5vh;
+  transform:rotate(var(--spin)); animation:reward-fall 1.8s ease-out forwards; pointer-events:none; z-index:124; }
+.reward-particle:nth-child(3n) { background:#e3c87e; }.reward-particle:nth-child(2n) { border-radius:50%; background:#d8eaff; }
+@keyframes reward-arrive { from { opacity:0; translate:0 15px; scale:.96; } to { opacity:1; translate:0 0; scale:1; } }
+@keyframes reward-fall { to { translate:var(--drift) 55vh; rotate:260deg; opacity:0; } }
+
+/* Reels is a separate, edge-to-edge stage: no desktop rail or app menus. */
+body.reels-page { margin:0; padding:0; background:#07090e; color:#fff; overflow:hidden; height:100dvh; }
+.reels-page .workspace { margin:0; padding:0; width:100%; max-width:none; height:100dvh; }
+.reels-page #main-content { margin:0; padding:0; width:100%; max-width:none; height:100dvh; }
+.reels-page .keys-open { display:none; }
+.reel-viewport { position:relative; height:100dvh; overflow:hidden; background:#07090e; }
+.reel-track { height:100%; width:min(100%,560px); margin:auto; position:relative; will-change:transform; }
+.reels-page #reel { position:absolute; inset:0; width:100%; height:100%; box-sizing:border-box; border:0;
+  margin:0; padding:0; border-radius:0; background:#090d15; box-shadow:none; touch-action:none; user-select:none; overflow:hidden; }
+.reels-page #reel::before { content:''; position:absolute; inset:-10%; background-image:var(--reel-poster);
+  background-size:cover; background-position:center; filter:blur(50px); opacity:.15; }
+.reels-page #reel .stage { position:absolute; inset:0; height:100%; margin:0; border:0; padding:0; }
+.reels-page #reel .player { position:absolute; inset:0; height:100%; width:100%; margin:0; aspect-ratio:auto; padding:0; touch-action:none; background:transparent; }
+.reels-page #reel .player iframe { position:absolute; inset:0; width:100%; height:100%; border:0; pointer-events:none; }
+.reels-page #reel > .controls { display:none; }
+.reel-shade { position:absolute; inset:0; pointer-events:none; background:linear-gradient(#0007,transparent 20%,transparent 55%,#000a 82%,#000e); }
+.reel-topbar { position:absolute; top:0; left:0; right:0; display:flex; gap:12px; align-items:center;
+  padding:calc(16px + env(safe-area-inset-top)) 20px 12px; z-index:5; }
+.reel-exit { width:36px; height:36px; display:grid; place-items:center; color:white; border-radius:50%; background:#ffffff15; backdrop-filter:blur(15px); }
+.reel-exit svg { width:20px; height:20px; }.reel-brand { font-weight:650; font-size:20px; letter-spacing:-1px; }
+.reel-brand small { font-size:8px; letter-spacing:2px; font-weight:550; color:#c1cddd; margin-left:7px; }
+.reel-journey { margin-left:auto; background:#ffffff15; border:1px solid #ffffff20; border-radius:30px; padding:9px 12px; font-size:11px; color:#c8e0ff; text-decoration:none; backdrop-filter:blur(15px); }
+.reel-journey small { font-size:8px; margin-left:4px; }
+.reels-page #reel .caption { position:absolute; left:22px; right:78px; bottom:calc(133px + env(safe-area-inset-bottom));
+  border:0; padding:0; margin:0; min-height:80px; text-shadow:0 2px 10px #0009; }
+.reels-page #reel .caption .de { color:white; font:600 clamp(21px,4.6vw,29px)/1.4 var(--sans);
+  background:none; padding:0; margin:0 0 8px; letter-spacing:-.4px; max-height:5.6em; overflow:auto; scrollbar-width:none; }
+.reels-page #reel .caption .en { color:#cbd4e1; font-size:12px; line-height:1.5; background:none; padding:0; margin:0; max-height:3em; overflow:auto; }
+.reels-page #reel .caption .w { color:#fff; font:inherit; background:none; border:0; border-radius:0; padding:0; }
+.reels-page #reel .caption .w.new { color:#9dcdff; box-shadow:inset 0 -2px 0 #83bdff; }
+.reel-info { position:absolute; bottom:calc(42px + env(safe-area-inset-bottom)); left:22px; right:78px; z-index:4; }
+.reel-fit { display:inline-block; font-size:9px; letter-spacing:.3px; color:#badbff; border:1px solid #acd0ff45; background:#15345e88; border-radius:6px; padding:4px 7px; }
+.reels-page #reel-title { color:#fff; font-size:14px; font-weight:600; letter-spacing:0; line-height:1.45; margin:9px 0 3px;
+  display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; }
+.reel-position { font-size:9px; color:#a9b4c5; }
+.reel-rail { position:absolute; right:12px; bottom:calc(100px + env(safe-area-inset-bottom)); display:flex; flex-direction:column; gap:19px; z-index:6; }
+.reel-rail button { background:none; padding:0; border:0; color:white; width:48px; display:flex; flex-direction:column; align-items:center; gap:5px; }
+.reel-rail button > span { width:42px; height:42px; display:grid; place-items:center; background:#ffffff17; border:1px solid #ffffff23; border-radius:50%; font-size:22px; backdrop-filter:blur(15px); }
+.reel-rail button small { font-size:8px; color:#e1e7ee; font-weight:550; }
+.reel-rail button:hover > span { background:#0066cc; }
+.reel-drag-hint { position:absolute; bottom:calc(13px + env(safe-area-inset-bottom)); width:100%; text-align:center; font-size:8px; color:#a8b8cd; letter-spacing:.3px; pointer-events:none; }
+.reel-neighbor { position:absolute; inset:0; background:#0a0e18; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.reel-previous { transform:translateY(-100%); }.reel-next { transform:translateY(100%); }
+.reel-neighbor img { width:100%; height:100%; object-fit:contain; opacity:.8; }
+.reel-neighbor span { position:absolute; bottom:60px; left:22px; right:70px; font-size:15px; text-shadow:0 2px 8px #000; }
+.reel-loading { position:absolute; inset:0; z-index:3; pointer-events:none; background:#07090eaa var(--reel-poster) center / contain no-repeat; }
+.reel-loading[hidden] { display:none; }
+.reel-loading-orb { position:absolute; left:50%; top:50%; width:30px; height:30px; margin:-15px; border:2px solid #ffffff33; border-top-color:#a5cdff; border-radius:50%; animation:spin .7s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.reel-desktop-step { position:absolute; right:max(20px,calc((100vw - 700px)/2)); top:45%; }
+.reel-desktop-step .reel-pager { display:flex; flex-direction:column; gap:12px; margin:0; }
+.reel-desktop-step a { font-size:0; color:#fff; border:1px solid #ffffff25; background:#ffffff0c; border-radius:50%; width:44px; height:44px; display:grid; place-items:center; padding:0; }
+.reel-desktop-step a[data-act='easier']::before { content:'↑'; font-size:22px; }
+.reel-desktop-step a[data-act='harder']::before { content:'↓'; font-size:22px; }
+.reel-drawer { width:min(520px,100%); max-width:100%; max-height:min(80dvh,700px); position:fixed; inset:auto 0 0;
+  margin:0 auto; padding:0; background:var(--surface); color:var(--ink); border:1px solid var(--faint);
+  border-radius:24px 24px 0 0; box-shadow:0 -25px 100px #0008; overflow:hidden; }
+.reel-drawer::backdrop { background:#0005; backdrop-filter:blur(4px); }
+.drawer-head { display:flex; align-items:center; justify-content:space-between; padding:20px 24px 12px; }
+.drawer-head button { padding:4px 11px; border:0; background:var(--paper); color:var(--ink); border-radius:50%; font-size:23px; }
+.drawer-scroll { padding:5px 24px calc(24px + env(safe-area-inset-bottom)); overflow:auto; max-height:65dvh; overscroll-behavior:contain; }
+.reel-drawer #reel-panel h2 { font-size:20px; }.reel-drawer .actions { gap:10px; flex-wrap:wrap; }
+.reel-drawer .actions button,.reel-drawer .actions a { padding:10px 13px; font-size:11px; }
+.reel-drawer .controls { display:flex; flex-wrap:wrap; padding:10px 0; height:auto; margin:0; }
+.reel-drawer .controls button { font-size:10px; padding:8px; }
+.reel-settings { padding:16px 0; border-top:1px solid var(--faint); margin-top:14px; font-size:12px; }
+.reel-settings summary { cursor:pointer; color:var(--ink-2); }
+.reel-status { position:absolute; top:calc(90px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%);
+  z-index:10; font-size:11px; background:#11233de8; color:white; border-radius:30px; padding:10px 18px; display:none; }
+.reel-status:not(:empty) { display:block; }.reels-page .undo { bottom:calc(20px + env(safe-area-inset-bottom)); z-index:122; }
+@media(max-width:700px) {
+  .journey-hero { grid-template-columns:1fr; gap:24px; }.journey-hero h1 { font-size:43px; }
+  .atlas-scene { transform:none; }.journey-hero .atlas-scene { max-width:none; }
+  .quest-grid { grid-template-columns:1fr; gap:10px; }
+  .quest-card { display:grid; grid-template-columns:36px 1fr auto; column-gap:15px; padding:18px; }
+  .quest-symbol { grid-row:1 / 4; margin:0; align-self:center; }.quest-count { position:static; grid-column:3; grid-row:1; }
+  .quest-card h3 { grid-column:2; grid-row:1; }.quest-card p { grid-column:2 / 4; grid-row:2; margin:0 0 10px; }
+  .quest-card progress { grid-column:2 / 4; }.quest-go { grid-column:2; margin-top:10px; }.quest-alternative { grid-column:2 / 4; }
+  .expedition-heading { align-items:flex-start; flex-direction:column; gap:12px; }.expedition-heading h2 { font-size:21px; }
+  .achievement-grid { grid-template-columns:repeat(2,1fr); gap:10px; }.achievement { padding:23px 14px; }
+  .atlas-panel { grid-template-columns:1fr; gap:20px; }.atlas-summary h2 { font-size:26px; }
+  .journey-stats { grid-template-columns:repeat(2,1fr); }.journey-stats > div { border-bottom:1px solid var(--faint); }
+  .journey-stats > div:nth-child(even) { border-right:0; }
+  .week-strip { gap:6px; width:100%; justify-content:space-between; }.week-day { width:35px; }
+  .reward-toast { bottom:calc(84px + env(safe-area-inset-bottom)); white-space:nowrap; max-width:calc(100vw - 24px); box-sizing:border-box; }
+  .reels-page .reward-toast { bottom:calc(18px + env(safe-area-inset-bottom)); }
+  .reel-desktop-step { display:none; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .atlas-star,.reward-toast,.reward-card,.reward-particle,.reel-loading-orb { animation:none !important; }
+  .reward-particle { display:none; }.reel-track { transition:none !important; }
+}
+
+.reel-drawer h2 { margin:16px 0 12px; }
+.drawer-reward { margin:0 24px 12px; padding:12px 14px; border-radius:12px; background:#edf4ff; color:#1b4f91; font-size:12px; font-weight:650; }
+.reels-page #reel .caption { z-index:4; }

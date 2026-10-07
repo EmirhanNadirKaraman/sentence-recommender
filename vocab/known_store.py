@@ -52,13 +52,14 @@ class KnownStore:
                 "SELECT version FROM known_version WHERE id = 1").fetchone()
         return row[0] if row else 0
 
-    def add(self, unit: Unit) -> None:
+    def add(self, unit: Unit) -> bool:
         with open_state(self._db) as conn:
-            conn.execute(
+            row = conn.execute(
                 "INSERT INTO known_units (kind, key, marked)"
-                " VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
+                " VALUES (%s, %s, %s) ON CONFLICT DO NOTHING RETURNING kind",
                 (unit.kind, unit.key, datetime.now().isoformat()),
-            )
+            ).fetchone()
+        return row is not None
 
     def remove(self, unit: Unit) -> None:
         with open_state(self._db) as conn:

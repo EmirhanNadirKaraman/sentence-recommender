@@ -59,7 +59,7 @@
   }
   var stored = false;
   try { stored = localStorage.getItem(KEY) === '1'; } catch (e) {}
-  apply(stored);
+  apply(stored && !document.body.classList.contains('reels-page'));
   var b = document.getElementById('mode');
   if (b) b.onclick = function () {
     var on = !document.body.classList.contains('audio');
@@ -191,16 +191,23 @@ function quietEvents(events) {
 // of a heard line is one encounter of the word (`vocab.encounters`).
 var hearing = (function () {
   var HEARD_AFTER = 0.8, TICK = 0.25;
-  var playing = {}, heard = {}, queue = [], video = null;
-  function reset(id) { if (id !== video) { video = id; playing = {}; heard = {}; } }
-  function tick(id, index, cue, isPlaying) {
+  var playing = {}, traversed = {}, heard = {}, rewarded = {}, queue = [], video = null, pendingReward;
+  function reset(id) { if (id !== video) { video = id; playing = {}; traversed = {}; heard = {}; rewarded = {}; } }
+  function tick(id, index, cue, isPlaying, rate) {
     if (!id || index < 0 || !cue || !isPlaying) return;
     reset(id);
-    if (heard[index]) return;
+    if (rewarded[index]) return;
     playing[index] = (playing[index] || 0) + TICK;
+    traversed[index] = (traversed[index] || 0) + TICK * Math.max(.25,Math.min(2,Number(rate) || 1));
+    var rewardAfter = Math.max(HEARD_AFTER, (Number(cue.duration) || 1) * .75);
+    var reward = traversed[index] >= rewardAfter;
+    if (heard[index] && !reward) return;
     if (playing[index] < HEARD_AFTER) return;
     heard[index] = true;
-    queue.push({text: cue.text, video: id, at: cue.at, words: cue.words || []});
+    if (reward) rewarded[index] = true;
+    queue.push({text:cue.text,video:id,at:cue.at,words:cue.words || [],reward:reward});
+    if (reward) { clearTimeout(pendingReward); pendingReward = setTimeout(function () { flush(false); },250); }
+
   }
   function flush(leaving) {
     if (!queue.length) return;
@@ -211,6 +218,8 @@ var hearing = (function () {
     }
     fetch('/api/heard', {method: 'POST', body: body, keepalive: true,
                          headers: {'Content-Type': 'application/json'}})
+      .then(function (r) { if (!r.ok) throw new Error('Hearing save failed'); return r.json(); })
+      .then(function (d) { if (window.journeyUpdate && d.journey) window.journeyUpdate(d.journey, true); })
       .catch(function () {});
   }
   setInterval(function () { flush(false); }, 10000);
@@ -342,7 +351,7 @@ window.__i1Times = null;
       if (p.isMuted()) { p.unMute(); b.textContent = 'Sound off'; }
       else { p.mute(); b.textContent = 'Sound on'; }
     } else if (act === 'full') {
-      var frame = document.getElementById('player');
+      var frame = document.querySelector('.reel-viewport') || document.getElementById('player');
       if (frame && frame.requestFullscreen) frame.requestFullscreen();
       else if (frame && frame.webkitRequestFullscreen) frame.webkitRequestFullscreen();
     }
@@ -387,6 +396,7 @@ window.__i1Times = null;
     var p = live();
     if (!p) return;
     var key = e.key;
+    if (document.getElementById('reel-state') && (key === 'ArrowUp' || key === 'ArrowDown')) return;
     if (key === 'ArrowLeft') p.seekTo(Math.max(p.getCurrentTime() - 5, 0), true);
     else if (key === 'ArrowRight') p.seekTo(p.getCurrentTime() + 5, true);
     else if (key === 'ArrowUp') p.setVolume(Math.min(p.getVolume() + 5, 100));
@@ -400,7 +410,7 @@ window.__i1Times = null;
     // V, not F: F keeps a sentence now, and full screen is also a button in
     // the bar, so it loses a shortcut rather than the ability.
     else if (key === 'v') {
-      var frame = document.getElementById('player');
+      var frame = document.querySelector('.reel-viewport') || document.getElementById('player');
       if (frame && frame.requestFullscreen) frame.requestFullscreen();
     }
     else if (key === 'q') step(p, -1);
@@ -588,9 +598,12 @@ function glossPopup(button, lineText) {
   if (knownBtn) knownBtn.onclick = function () {
     var body = new URLSearchParams({kind: kind, key: key, src: src, action: 'known', back: '/'});
     knownBtn.disabled = true;
-    fetch('/known', {method: 'POST', body: body, redirect: 'manual', keepalive: true})
-      .catch(function () {})
-      .then(function () { knownBtn.textContent = 'Known'; learned(kind, key); });
+    fetch('/known', {method: 'POST', body: body, headers: {Accept: 'application/json'}, keepalive: true})
+      .then(function (r) { if (!r.ok) throw new Error('Word save failed'); return r.json(); })
+      .then(function (d) {
+        if (window.journeyUpdate && d.journey) window.journeyUpdate(d.journey);
+        knownBtn.textContent = 'Known'; learned(kind,key);
+      }).catch(function () { knownBtn.disabled=false; knownBtn.textContent='Try again'; });
   };
   // Queue the word for a card, or take it out again. The button says which
   // it is rather than only doing it: the queue lives on another page, and a
@@ -848,7 +861,7 @@ function cueAt(cues, now) {
         var now = player.getCurrentTime();
         follow(now);
         var i = cueAt(cues, now);
-        hearing.tick(video, i, cues[i], player.getPlayerState() === 1);
+        hearing.tick(video, i, cues[i], player.getPlayerState() === 1, player.getPlaybackRate ? player.getPlaybackRate() : 1);
       }, 250);
     }})});
   };
@@ -868,8 +881,10 @@ function cueAt(cues, now) {
     body.append('action', value);
     var was = {kind: body.get('kind'), key: body.get('key'),
                src: body.get('src')};
-    fetch('/known', {method: 'POST', body: body, redirect: 'manual',
+    fetch('/known', {method: 'POST', body: body, headers: {Accept: 'application/json'},
                      keepalive: true})
+      .then(function (r) { if (!r.ok) throw new Error('Word save failed'); return r.json(); })
+      .then(function (d) { if (window.journeyUpdate && d.journey) window.journeyUpdate(d.journey); })
       // The study page swaps in a video's next word the same way; it names
       // its route on the region.
       .then(function () {
@@ -1009,244 +1024,250 @@ function cueAt(cues, now) {
   var reel = document.getElementById('reel');
   var stateEl = document.getElementById('reel-state');
   if (!reel || !stateEl) return;
-
   var s = JSON.parse(stateEl.textContent);
-  // The picture, not the whole card: everything under it has to stay
-  // scrollable or the page cannot be read to the bottom.
-  var surface = reel.querySelector('.player') || reel;
+  var track = document.getElementById('reel-track') || reel;
+  var drawer = document.getElementById('reel-drawer');
+  var surface = reel; // Captions and empty space are part of the same gesture.
   var title = document.getElementById('reel-title');
   var board = document.getElementById('reel-board');
   var panel = document.getElementById('reel-panel');
   var taste = document.getElementById('reel-taste');
   var counter = document.getElementById('reel-at');
+  var total = document.getElementById('reel-total');
   var caption = document.getElementById('caption');
   var captionEn = document.getElementById('caption-en');
-  var cues = [], marking = -1;
+  var loading = document.getElementById('reel-loading');
+  var status = document.getElementById('reel-status');
+  var slot = document.getElementById('reel-controls-slot');
+  var controls = reel.querySelector('.controls');
+  if (slot && controls) slot.appendChild(controls);
   var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var player = null, ready = false, busy = false;
-
-  // The line being spoken, under the picture. The feed plays muted by
-  // default and a reel is chosen by how well it plays with your hands full,
-  // so what is being said has to be readable without sound. The full
-  // transcript the reading page carries would not fit a swipe feed; the
-  // caption is the part that belongs here.
+  var player = null, ready = false, busy = false, cues = [], marking = -1;
+  var cache = {}, from = null, dragged = 0, wheel = 0, wheelQuiet = null, wheelLocked = false;
+  var generation = 0;
+  if (counter) counter.textContent = s.at + 1;
+  if (total) total.textContent = s.total;
+  function say(message) {
+    if (!status) return;
+    status.textContent = message;
+    setTimeout(function () { if (status.textContent === message) status.textContent = ''; }, 3500);
+  }
   function showCues(id) {
-    marking = -1;
+    cues = []; marking = -1;
     if (caption) caption.textContent = '';
     if (captionEn) captionEn.textContent = '';
-    loadCues(id).then(function (rows) {
-      if (id === s.video) cues = rows;
-    });
+    loadCues(id).then(function (rows) { if (id === s.video) cues = rows; });
   }
-
   window.onYouTubeIframeAPIReady = function () {
-    player = new YT.Player('player', {events: quietEvents({onReady: function () {
-      ready = true;
-      window.__player = player;
-      window.__sentenceStart = function () {
-        return cues[marking] ? cues[marking].at : 0;
-      };
-      window.__cueTimes = function () { return cues.map(function (c) { return c.at; }); };
-      window.__i1Times = function () {
-        return cues.filter(oneStep).map(function (c) { return c.at; });
-      };
-      setInterval(function () {
-        if (!player || !player.getCurrentTime) return;
-        var i = cueAt(cues, player.getCurrentTime());
-        hearing.tick(s.video, i, cues[i], player.getPlayerState() === 1);
-        if (i < 0 || i === marking) return;
-        marking = i;
-        if (caption) { caption.innerHTML = wordsHtml(cues[i]); caption.dataset.text = cues[i].text; }
-        if (captionEn) captionEn.textContent = cues[i].en || '';
-      }, 250);
-    }})});
+    player = new YT.Player('player', {events: quietEvents({
+      onReady: function () {
+        ready = true; window.__player = player;
+        window.__sentenceStart = function () { return cues[marking] ? cues[marking].at : 0; };
+        window.__cueTimes = function () { return cues.map(function (c) { return c.at; }); };
+        window.__i1Times = function () { return cues.filter(oneStep).map(function (c) { return c.at; }); };
+        // Muted playback works on mobile; sound remains a deliberate tap.
+        try { player.mute(); player.loadVideoById({videoId:s.video,startSeconds:0}); } catch (ignore) {}
+        setInterval(function () {
+          if (!ready || !player.getCurrentTime) return;
+          var at = cueAt(cues, player.getCurrentTime()), playing = player.getPlayerState() === 1;
+          hearing.tick(s.video, at, cues[at], playing, player.getPlaybackRate ? player.getPlaybackRate() : 1);
+          var toggle = document.querySelector('[data-reel-action="toggle"]');
+          if (toggle) { toggle.querySelector('span').textContent = playing ? 'Ⅱ' : '▷'; toggle.querySelector('small').textContent = playing ? 'Pause' : 'Play'; }
+          if (at < 0 || at === marking) return;
+          marking = at;
+          if (caption) { caption.innerHTML = wordsHtml(cues[at]); caption.dataset.text = cues[at].text; }
+          if (captionEn) captionEn.textContent = cues[at].en || '';
+        }, 250);
+      },
+      onStateChange: function (e) { if (loading && e.data === 1) loading.hidden = true; },
+      onError: function () { if (loading) loading.hidden = true; say('This video cannot play here. Swipe to another.'); }
+    })});
   };
-
   showCues(s.video);
-
-  // The pager is rendered from the position the page loaded at, and the
-  // feed moves without reloading -- so after a swipe its links pointed at
-  // where you had been, not where you are. Both copies are rebuilt from
-  // `s.at` instead, which is the only thing that knows.
+  function url(at, keepVideo) {
+    var q = new URLSearchParams({i: at, src: s.src, list: s.list || '', sort: s.sort || 'watch'});
+    if (keepVideo) q.set('video', s.video);
+    return '/api/reels?' + q.toString();
+  }
+  function request(at, keepVideo) {
+    if (!keepVideo && cache[at]) return cache[at];
+    var result = fetch(url(at, keepVideo)).then(function (r) {
+      if (!r.ok) throw new Error('Feed request failed');
+      return r.json();
+    });
+    if (!keepVideo) { cache[at] = result; result.catch(function () { delete cache[at]; }); }
+    return result;
+  }
   function repaintPagers() {
-    var links = document.querySelectorAll('.reel-pager a[data-act]');
-    for (var i = 0; i < links.length; i++) {
-      var a = links[i];
-      var to = s.at + (a.dataset.act === 'harder' ? 1 : -1);
-      var dead = to < 0 || to >= s.total;
+    document.querySelectorAll('.reel-pager a[data-act]').forEach(function (a) {
+      var at = s.at + (a.dataset.act === 'harder' ? 1 : -1);
+      var dead = at < 0 || at >= s.total;
       a.classList.toggle('off', dead);
       a.setAttribute('aria-disabled', dead ? 'true' : 'false');
-      a.href = '/reels?src=' + encodeURIComponent(s.src) +
-        (s.sort && s.sort !== 'watch' ? '&sort=' + encodeURIComponent(s.sort) : '') +
-        '&i=' + Math.max(to, 0);
-    }
+      a.setAttribute('aria-label', a.dataset.act === 'harder' ? 'Next reel' : 'Previous reel');
+      a.href = '/reels?' + new URLSearchParams({src:s.src, list:s.list || '', sort:s.sort || 'watch', i:Math.max(at,0)}).toString();
+    });
   }
-
-  // Clicked rather than followed: the link is the fallback for before this
-  // script runs, and stepping in place keeps the player alive where
-  // navigating would reload it and lose the second you were at.
-  document.addEventListener('click', function (e) {
-    var a = e.target.closest('.reel-pager a[data-act]');
-    if (!a) return;
-    e.preventDefault();
-    if (!a.classList.contains('off')) {
-      go(s.at + (a.dataset.act === 'harder' ? 1 : -1));
-    }
-  });
-
-  function go(to) {
-    if (busy || to < 0 || to >= s.total) return;
+  function prefetch() {
+    var version = generation;
+    [s.at - 1, s.at + 1].forEach(function (at) {
+      if (at < 0 || at >= s.total) return;
+      request(at).then(function (d) {
+        if (version !== generation || d.empty) return;
+        var next = document.querySelector(at < s.at ? '.reel-previous' : '.reel-next');
+        if (next) { next.querySelector('img').src = 'https://i.ytimg.com/vi/' + encodeURIComponent(d.video) + '/hqdefault.jpg'; next.querySelector('span').textContent = d.title; }
+      }).catch(function () {});
+    });
+    Object.keys(cache).forEach(function (at) { if (Math.abs(Number(at) - s.at) > 1) delete cache[at]; });
+  }
+  function offset(y, x) { track.style.transform = y || x ? 'translate3d(' + (x || 0) + 'px,' + (y || 0) + 'px,0)' : ''; }
+  function settle() {
+    track.style.transition = calm ? 'none' : 'transform .22s cubic-bezier(.2,.8,.2,1)';
+    offset(0, 0);
+  }
+  function go(at, keepVideo) {
+    if (busy || at < 0 || at >= s.total) { settle(); if (at >= s.total) say('You’ve reached the end. Your atlas is waiting.'); return; }
     busy = true;
-    // The order travels with the swipe. Without it every fetch would answer
-    // from the default ranking and the feed would reorder itself underneath
-    // a reader who had asked for something else.
-    fetch('/api/reels?i=' + to + '&src=' + encodeURIComponent(s.src) +
-          (s.sort && s.sort !== 'watch' ? '&sort=' + encodeURIComponent(s.sort) : ''))
-      .then(function (r) { return r.json(); })
-      .then(function (d) {
-        if (d.empty) return;
-        s.at = d.at;
+    var direction = at > s.at ? 1 : at < s.at ? -1 : 0;
+    var milliseconds = calm || !direction ? 0 : 220;
+    track.style.transition = calm ? 'none' : 'transform .22s cubic-bezier(.2,.8,.2,1)';
+    offset(direction ? -direction * surface.clientHeight : 0, 0);
+    Promise.all([request(at, keepVideo), new Promise(function (resolve) { setTimeout(resolve, milliseconds); })])
+      .then(function (result) {
+        var d = result[0];
+        if (d.empty) { say('No more videos in this collection.'); settle(); return; }
+        s.at = d.at; s.total = d.total;
         title.textContent = d.title;
-        board.innerHTML = d.scoreboard;
-        panel.innerHTML = d.panel;
+        if (board) board.innerHTML = d.scoreboard;
+        if (panel) panel.innerHTML = d.panel;
         if (taste) taste.innerHTML = d.taste || '';
-        if (counter) counter.textContent = d.at + 1;
-        repaintPagers();
-        // The URL follows so a reload lands where you are, without the
-        // navigation that would take the player with it.
-        history.replaceState(null, '', '/reels?src=' +
-          encodeURIComponent(s.src) +
-          (s.sort && s.sort !== 'watch' ? '&sort=' + encodeURIComponent(s.sort) : '') +
-          '&i=' + d.at);
+        if (counter) counter.textContent = s.at + 1;
+        if (total) total.textContent = s.total;
+        var fit = reel.querySelector('.reel-fit');
+        if (fit && d.familiar !== undefined) fit.textContent = Math.round(d.familiar * 100) + '% familiar';
         if (d.video !== s.video) {
+          var trouble = reel.querySelector('.trouble'); if (trouble) trouble.remove();
+          if (status) status.textContent='';
           s.video = d.video;
+          reel.style.setProperty('--reel-poster', 'url("https://i.ytimg.com/vi/' + encodeURIComponent(d.video) + '/hqdefault.jpg")');
+          if (loading) { loading.hidden = false; var loadingVideo = d.video; setTimeout(function () { if (s.video === loadingVideo) loading.hidden = true; }, 10000); }
           if (ready) player.loadVideoById({videoId: d.video, startSeconds: 0});
           showCues(d.video);
         }
+        stateEl.textContent = JSON.stringify(s);
+        track.style.transition = 'none'; offset(0, 0);
+        history.replaceState(null, '', '/reels?' + new URLSearchParams({
+          src:s.src, list:s.list || '', sort:s.sort || 'watch', i:s.at, video:s.video}).toString());
+        repaintPagers();
+        prefetch();
       })
-      .catch(function () {})
+      .catch(function () { settle(); say('Couldn’t load the next reel. Try again.'); })
       .then(function () { busy = false; });
   }
-
-  // Saying more or less of a channel, without leaving the page and without
-  // reordering the feed under you. The server toggles — pressing the chosen
-  // one takes the opinion back — so the button state is flipped to match and
-  // the new order arrives with the next swipe, which is the moment it can be
-  // seen without something jumping out from under a thumb.
+  repaintPagers(); prefetch();
+  document.addEventListener('click', function (e) {
+    var link = e.target.closest('.reel-pager a[data-act]');
+    if (link) { e.preventDefault(); if (!link.classList.contains('off')) go(s.at + (link.dataset.act === 'harder' ? 1 : -1)); return; }
+    var button = e.target.closest('[data-reel-action]');
+    if (!button) return;
+    var act = button.dataset.reelAction;
+    if (act === 'close') { if (drawer) drawer.close(); return; }
+    if (act === 'learn' || act === 'more') {
+      if (drawer) { drawer.showModal(); if (act === 'learn') panel.scrollIntoView({block:'nearest'}); }
+    } else if (ready && act === 'toggle') {
+      if (player.getPlayerState() === 1) player.pauseVideo(); else player.playVideo();
+    } else if (ready && act === 'mute') {
+      if (player.isMuted()) player.unMute(); else player.mute();
+      button.querySelector('small').textContent = player.isMuted() ? 'Sound off' : 'Sound on';
+    }
+  });
+  if (drawer) drawer.addEventListener('click', function (e) { if (e.target === drawer) { var r = drawer.getBoundingClientRect(); if (e.clientY < r.top) drawer.close(); } });
   if (taste) taste.addEventListener('click', function (e) {
-    var b = e.target.closest ? e.target.closest('button[name="taste"]') : null;
+    var b = e.target.closest('button[name="taste"]');
     if (!b || !b.form) return;
     e.preventDefault();
-    var body = new URLSearchParams(new FormData(b.form));
-    body.append('taste', b.value);
+    var body = new URLSearchParams(new FormData(b.form)); body.append('taste', b.value);
     var was = b.classList.contains('on');
-    fetch('/taste', {method: 'POST', body: body, redirect: 'manual',
-                     keepalive: true})
-      .catch(function () {})
-      .then(function () {
-        var all = b.form.querySelectorAll('button[name="taste"]');
-        Array.prototype.forEach.call(all, function (x) {
-          x.classList.remove('on');
-          x.setAttribute('aria-pressed', 'false');
-        });
-        if (!was) {
-          b.classList.add('on');
-          b.setAttribute('aria-pressed', 'true');
-        }
-      });
+    fetch('/taste', {method:'POST', body:body, redirect:'manual'}).then(function (r) {
+      if (r.status >= 400) throw new Error('Taste failed');
+      b.form.querySelectorAll('button[name="taste"]').forEach(function (x) { x.classList.remove('on'); x.setAttribute('aria-pressed','false'); });
+      if (!was) { b.classList.add('on'); b.setAttribute('aria-pressed','true'); }
+      cache = {}; generation++; prefetch();
+    }).catch(function () { say('Couldn’t save that preference.'); });
   });
-
-  // The panel's own forms, posted without leaving the page — a navigation
-  // here would destroy the player, which is the thing this whole file exists
-  // to avoid.
   function decide(value) {
     var b = panel.querySelector('button[value="' + value + '"]');
     if (!b || !b.form || busy) return;
     busy = true;
-    var body = new FormData(b.form);
-    body.append('action', value);
-    var was = {kind: body.get('kind'), key: body.get('key'),
-               src: body.get('src')};
-    fetch('/known', {method: 'POST', body: new URLSearchParams(body),
-                     redirect: 'manual', keepalive: true})
-      .catch(function () {})
-      .then(function () {
-        busy = false;
-        if (value === 'known') { learned(was.kind, was.key); offerUndo(was.kind, was.key, was.src); }
-        go(s.at);            // the word is gone; the panel behind it moved on
-      });
+    var body = new URLSearchParams(new FormData(b.form)); body.append('action',value);
+    var was = {kind:body.get('kind'), key:body.get('key'), src:body.get('src')};
+    fetch('/known', {method:'POST', body:body, headers:{Accept:'application/json'}})
+      .then(function (r) { if (!r.ok) throw new Error('Decision failed'); return r.json(); })
+      .then(function (d) {
+        if (window.journeyUpdate && d.journey) window.journeyUpdate(d.journey);
+        if (value === 'known') { learned(was.kind,was.key); offerUndo(was.kind,was.key,was.src,{back:location.pathname + location.search}); }
+        cache = {}; generation++; busy = false; go(s.at,true);
+      }).catch(function () { busy = false; say('Couldn’t save that word. Please try again.'); });
   }
-
-  var LOCK = 10, GO = 0.18, FLICK = 0.35, from = null;
-
-  function offset(dx, dy) {
-    reel.style.transform = dx || dy
-      ? 'translate(' + dx + 'px,' + dy + 'px)' : '';
-  }
-
-  surface.addEventListener('pointerdown', function (e) {
-    if (!e.isPrimary || e.clientX < 24) return;
-    if (e.target.closest('button, a, input, textarea, select, [contenteditable]'))
-      return;
-    from = {x: e.clientX, y: e.clientY, t: e.timeStamp, axis: null};
-    reel.style.transition = 'none';
+  if (panel) panel.addEventListener('click', function (e) {
+    var b = e.target.closest('button[name="action"]');
+    if (b && (b.value === 'known' || b.value === 'pass')) { e.preventDefault(); decide(b.value); }
   });
-
+  // Capture after direction lock, so word taps still open their dictionary.
+  function interactive(target) { return target.closest('a, input, textarea, select, [contenteditable], button:not(.w)'); }
+  surface.addEventListener('pointerdown', function (e) {
+    if (!e.isPrimary || busy || e.clientX < 16 || interactive(e.target)) return;
+    from = {x:e.clientX,y:e.clientY,t:e.timeStamp,axis:null,id:e.pointerId};
+    track.style.transition = 'none';
+  });
   surface.addEventListener('pointermove', function (e) {
     if (!from) return;
     var dx = e.clientX - from.x, dy = e.clientY - from.y;
     if (!from.axis) {
-      if (Math.abs(dx) < LOCK && Math.abs(dy) < LOCK) return;
-      from.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+      if (Math.max(Math.abs(dx),Math.abs(dy)) < 9) return;
+      from.axis = Math.abs(dy) >= Math.abs(dx) ? 'y' : 'x';
+      try { surface.setPointerCapture(e.pointerId); } catch (ignore) {}
     }
-    if (from.axis === 'x') offset(dx * 0.5, 0);
-    else offset(0, dy * 0.3);
+    if (from.axis === 'y') {
+      var edge = (s.at === 0 && dy > 0) || (s.at === s.total - 1 && dy < 0);
+      offset(edge ? dy * .18 : dy,0);
+    } else offset(0,dx * .25);
   });
-
-  function release(e) {
+  surface.addEventListener('pointerup', function (e) {
     if (!from) return;
-    var dx = e.clientX - from.x, dy = e.clientY - from.y;
-    var axis = from.axis, ms = Math.max(e.timeStamp - from.t, 1);
+    var origin = from, dx = e.clientX - from.x, dy = e.clientY - from.y;
     from = null;
-    reel.style.transition = calm ? 'none' : 'transform .18s ease-out';
-    offset(0, 0);
-    // No axis means it never moved: a tap. The iframe cannot receive it —
-    // pointer-events is off so swipes are seen at all — so play/pause is
-    // handed back here rather than lost with it.
-    if (!axis) {
-      if (ready && player.getPlayerState) {
-        if (player.getPlayerState() === 1) player.pauseVideo();
-        else player.playVideo();
-      }
+    if (!origin.axis) {
+      if (!e.target.closest('.w') && ready) { if (player.getPlayerState() === 1) player.pauseVideo(); else player.playVideo(); }
       return;
     }
-    var d = axis === 'x' ? dx : dy;
-    var span = axis === 'x' ? surface.clientWidth : surface.clientHeight;
-    if (Math.abs(d) < span * GO && Math.abs(d) / ms < FLICK) return;
-    if (axis === 'x') decide(d > 0 ? 'known' : 'pass');
-    else go(s.at + (d < 0 ? 1 : -1));      // swipe up = next, as a feed does
-  }
-
-  surface.addEventListener('pointerup', release);
-  surface.addEventListener('pointercancel', function () {
-    from = null;
-    reel.style.transition = calm ? 'none' : 'transform .18s ease-out';
-    offset(0, 0);
+    dragged = Date.now();
+    try { surface.releasePointerCapture(e.pointerId); } catch (ignore) {}
+    var d = origin.axis === 'y' ? dy : dx, span = origin.axis === 'y' ? surface.clientHeight : surface.clientWidth;
+    if (Math.abs(d) < span * .15 && Math.abs(d) / Math.max(e.timeStamp - origin.t,1) < .45) { settle(); return; }
+    if (origin.axis === 'y') go(s.at + (d < 0 ? 1 : -1));
+    else { settle(); decide(d > 0 ? 'known' : 'pass'); }
   });
-
+  surface.addEventListener('pointercancel', function () { from = null; settle(); });
+  document.addEventListener('click', function (e) {
+    if (Date.now() - dragged < 300 && reel.contains(e.target)) { e.preventDefault(); e.stopImmediatePropagation(); }
+  },true);
+  surface.addEventListener('wheel', function (e) {
+    if (e.ctrlKey || e.metaKey || (drawer && drawer.open)) return;
+    e.preventDefault();
+    clearTimeout(wheelQuiet);
+    wheelQuiet = setTimeout(function () { wheel = 0; wheelLocked = false; },180);
+    if (wheelLocked || busy) return;
+    var delta = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? surface.clientHeight : 1);
+    wheel += delta;
+    if (Math.abs(wheel) >= 60) { wheelLocked = true; go(s.at + (wheel > 0 ? 1 : -1)); wheel = 0; }
+  },{passive:false});
   document.addEventListener('keydown', function (e) {
-    var el = document.activeElement;
-    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ||
-               el.tagName === 'SELECT' || el.isContentEditable)) return;
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
-    // W/S sit under the left hand beside A/D, which are the decisions;
-    // O/P sit under the right, for skipping through the feed without
-    // deciding anything. Both do the same thing, and having the pair on
-    // each side means neither hand has to leave where it is.
-    if (e.key === 's' || e.key === 'p') { go(s.at + 1); e.preventDefault(); }
-    if (e.key === 'w' || e.key === 'o') { go(s.at - 1); e.preventDefault(); }
-    if (e.key === 'd') { decide('known'); e.preventDefault(); }
-    if (e.key === 'a') { decide('pass'); e.preventDefault(); }
+    if ((drawer && drawer.open) || e.target.closest('input,textarea,select,[contenteditable]') || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 's' || e.key === 'p' || e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); go(s.at + 1); }
+    if (e.key === 'w' || e.key === 'o' || e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); go(s.at - 1); }
+    if (e.key === 'd') { e.preventDefault(); decide('known'); }
+    if (e.key === 'a') { e.preventDefault(); decide('pass'); }
   });
 })();
 
@@ -1551,4 +1572,153 @@ document.addEventListener('keydown', function (e) {
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
   else bind();
+})();
+
+// --- the atlas: feedback follows committed reader state ---------------------
+(function () {
+  var node = document.getElementById('journey-state');
+  if (!node) return;
+  var current;
+  try { current = JSON.parse(node.textContent); } catch (ignore) { return; }
+  var key = 'i1-journey-' + current.identity;
+  var previous = null, celebrationTimer, toastTimer, soundContext;
+  var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  try { previous = JSON.parse(localStorage.getItem(key) || 'null'); } catch (ignore) {}
+  function remember(data) {
+    try { localStorage.setItem(key, JSON.stringify({xp:data.xp,level:data.level,day:data.day,
+      badges:data.badges.filter(function (b) { return b.earned; }).map(function (b) { return b.key; }),
+      chapter:data.chapter_complete})); } catch (ignore) {}
+  }
+  function closeCelebration() {
+    var old = document.getElementById('reward-celebration');
+    if (old) old.remove();
+    document.querySelectorAll('.reward-particle').forEach(function (p) { p.remove(); });
+  }
+  function chime() {
+    var on = false;
+    try { on = localStorage.getItem('i1-reward-sound') === '1'; } catch (ignore) {}
+    if (!on || !soundContext || soundContext.state !== 'running') return;
+    [523.25,659.25,783.99].forEach(function (pitch,i) {
+      var oscillator = soundContext.createOscillator(), gain = soundContext.createGain();
+      var at = soundContext.currentTime + i * .07;
+      oscillator.type = 'sine'; oscillator.frequency.value = pitch;
+      gain.gain.setValueAtTime(0,at); gain.gain.linearRampToValueAtTime(.045,at + .015);
+      gain.gain.exponentialRampToValueAtTime(.001,at + .24);
+      oscillator.connect(gain); gain.connect(soundContext.destination);
+      oscillator.start(at); oscillator.stop(at + .25);
+    });
+  }
+  document.addEventListener('pointerdown', function () {
+    var on = false; try { on = localStorage.getItem('i1-reward-sound') === '1'; } catch (ignore) {}
+    var Audio = window.AudioContext || window.webkitAudioContext;
+    if (on && Audio) { if (!soundContext) soundContext = new Audio(); if (soundContext.state === 'suspended') soundContext.resume().catch(function () {}); }
+  },{passive:true});
+  var toggle = document.getElementById('reward-sound');
+  if (toggle) {
+    try { toggle.checked = localStorage.getItem('i1-reward-sound') === '1'; } catch (ignore) {}
+    toggle.addEventListener('change',function () { try { localStorage.setItem('i1-reward-sound',toggle.checked ? '1' : '0'); } catch (ignore) {} });
+  }
+  function celebrate(title, detail, eyebrow) {
+    closeCelebration(); clearTimeout(celebrationTimer);
+    var box = document.createElement('section');
+    box.id = 'reward-celebration'; box.className = 'reward-celebration';
+    box.setAttribute('role','status'); box.setAttribute('aria-live','polite');
+    box.innerHTML = "<div class='reward-card'><button class='reward-close' type='button' aria-label='Dismiss achievement'>×</button>" +
+      "<span class='reward-mark'>✦</span><span class='eyebrow'>" + escapeText(eyebrow || 'ACHIEVEMENT UNLOCKED') +
+      "</span><h2>" + escapeText(title) + "</h2><p>" + escapeText(detail) +
+      "</p><a href='/journey" + escapeAttr(location.search) + "'>Explore your atlas ↗</a></div>";
+    document.body.appendChild(box);
+    box.querySelector('button').onclick = closeCelebration;
+    if (!calm) {
+      for (var i=0;i<20;i++) {
+        var particle = document.createElement('i'); particle.className = 'reward-particle';
+        particle.style.setProperty('--x',(30 + Math.random() * 40) + 'vw');
+        particle.style.setProperty('--drift',((Math.random() - .5) * 220) + 'px');
+        particle.style.setProperty('--spin',Math.random() * 180 + 'deg');
+        document.body.appendChild(particle);
+      }
+    }
+    chime();
+    celebrationTimer = setTimeout(closeCelebration,6000);
+  }
+  function toast(points, quiet) {
+    var old = document.getElementById('reward-toast'); if (old) old.remove();
+    clearTimeout(toastTimer);
+    var box = document.createElement('div'); box.id='reward-toast'; box.className='reward-toast';
+    box.setAttribute('role','status'); box.setAttribute('aria-live','polite');
+    var session = 0;
+    try { session = Number(sessionStorage.getItem(key) || 0); } catch (ignore) {}
+    box.innerHTML = '<b>✦ +' + points + ' XP</b><span>' + (quiet ? 'Real voices. Real progress.' : 'Your world just grew.') +
+      '</span><small>' + session + ' this session</small>';
+    document.body.appendChild(box);
+    toastTimer = setTimeout(function () { box.remove(); },quiet ? 1800 : 2600);
+  }
+  function paint(data) {
+    document.querySelectorAll('[data-journey="rank"]').forEach(function (el) { el.textContent=data.rank; });
+    var regionStyle = Math.floor((data.level - 1) / 7) % 3;
+    var lands = ['M0 206l50-29 50 15 72-43 62 34 48-47 61 34 54-27 103 37v60H0z',
+      'M0 212l55-60 40 20 65-95 70 116 67-103 59 91 65-45 79 79v25H0z',
+      'M0 210q60-20 110 0t110 0t110 0t170 0v30H0z M100 207q30-45 62 0 M306 207q26-60 58 0'];
+    document.querySelectorAll('[data-atlas-land]').forEach(function (el) { el.setAttribute('d',lands[regionStyle]); });
+    document.querySelectorAll('[data-atlas-sky]').forEach(function (el) { el.setAttribute('stop-color',['#122348','#172247','#0f273a'][regionStyle]); });
+    document.querySelectorAll('.atlas-scene').forEach(function (el) { el.setAttribute('aria-label','Your atlas grows with your journey: level ' + data.level); });
+    var lit = (data.level - 1) % 7 + 1;
+    document.querySelectorAll('[data-atlas-step]').forEach(function (el) {
+      var step = Number(el.dataset.atlasStep);
+      el.classList.toggle('lit',step <= lit); el.classList.toggle('sleeping',step > lit);
+      el.querySelector('circle').setAttribute('r',step === lit ? 12 : 7);
+    });
+    document.querySelectorAll('[data-atlas-region]').forEach(function (el) { el.textContent='REGION ' + (Math.floor((data.level - 1) / 7) + 1); });
+    var points = [[65,132],[127,101],[197,129],[246,67],[320,100],[365,42],[431,79]];
+    document.querySelectorAll('.atlas-thread').forEach(function (el) { el.setAttribute('points',points.slice(0,lit).map(function (p) { return p.join(','); }).join(' ')); });
+    document.querySelectorAll('[data-journey="xp"]').forEach(function (el) { el.textContent = data.xp.toLocaleString(); });
+    document.querySelectorAll('[data-journey="level"]').forEach(function (el) { el.textContent=data.level; el.style.setProperty('--fill',data.percent + '%'); });
+    document.querySelectorAll('[data-journey="quests"]').forEach(function (el) { el.textContent=data.quest_done + '/3'; });
+    document.querySelectorAll('[data-journey="remaining"]').forEach(function (el) { el.textContent=data.remaining + ' to level ' + (data.level+1); });
+    var xpBar = document.querySelector('.xp-progress');
+    if (xpBar) { xpBar.max=data.ceiling - data.floor; xpBar.value=data.xp - data.floor; }
+    data.quests.forEach(function (q) {
+      var card = document.querySelector('[data-quest="' + q.key + '"]'); if (!card) return;
+      card.classList.toggle('complete',q.value >= q.target);
+      card.querySelector('[data-quest-count]').textContent=q.value + '/' + q.target;
+      card.querySelector('progress').value=q.value;
+      card.querySelector('.quest-go').textContent=(q.value >= q.target ? 'Explore more' : 'Let’s go') + ' ↗';
+    });
+    if (data.chapter_complete) {
+      var title = document.getElementById('expedition-title'); if (title) title.textContent='A chapter well spent.';
+      var chapter = document.querySelector('.chapter-reward'); if (chapter) chapter.textContent='✓ Chapter complete';
+    }
+  }
+  function update(data, quiet, baseline) {
+    if (!data || data.identity !== current.identity) return;
+    var old = baseline || {xp:current.xp,level:current.level,day:current.day,
+      badges:current.badges.filter(function (b) { return b.earned; }).map(function (b) { return b.key; }),chapter:current.chapter_complete};
+    var points = data.xp - old.xp;
+    var fresh = data.badges.filter(function (b) { return b.earned && (old.badges || []).indexOf(b.key) < 0; });
+    current = data; paint(data); remember(data);
+    if (points <= 0) return;
+    try { sessionStorage.setItem(key,String(Number(sessionStorage.getItem(key) || 0) + points)); } catch (ignore) {}
+    var drawer = document.getElementById('reel-drawer');
+    if (drawer && drawer.open) {
+      var last = drawer.querySelector('.drawer-reward'); if (last) last.remove();
+      var note = document.createElement('div'); note.className='drawer-reward'; note.setAttribute('role','status');
+      var win = data.chapter_complete && (!old.chapter || old.day !== data.day) ? 'Daily expedition complete' :
+        data.level > old.level ? 'Level ' + data.level + ' · ' + data.rank : fresh.length ? fresh[0].name : 'Your atlas just grew';
+      note.textContent='✦ +' + points + ' XP · ' + win;
+      drawer.querySelector('.drawer-head').insertAdjacentElement('afterend',note);
+      if (fresh.length || data.level > old.level || data.chapter_complete && !old.chapter) chime();
+      setTimeout(function () { note.remove(); },6000);
+      return;
+    }
+    if (data.chapter_complete && (!old.chapter || old.day !== data.day)) celebrate('Today’s chapter complete.', 'Three small quests. A little more of the world is yours. +20 bonus XP.', 'EXPEDITION COMPLETE');
+    else if (data.level > old.level) celebrate(data.rank, 'Welcome to chapter ' + data.level + '. Your atlas has a new light.', 'LEVEL UP · ' + data.level);
+    else if (fresh.length) celebrate(fresh[0].name, fresh[0].detail + (fresh.length > 1 ? ' And ' + (fresh.length - 1) + ' more achievement' + (fresh.length > 2 ? 's' : '') + '.' : ''), 'ACHIEVEMENT UNLOCKED');
+    else toast(points,quiet);
+  }
+  window.journeyUpdate = update;
+  paint(current);
+  if (previous) update(current,false,previous); else remember(current);
+  document.addEventListener('keydown',function (e) { if (e.key === 'Escape') closeCelebration(); });
+  // A full-page form returns new state in its HTML. AJAX learning/hearing calls
+  // use the same update function, so there is no polling loop or view reward.
 })();

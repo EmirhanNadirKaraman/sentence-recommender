@@ -37,13 +37,13 @@ NAV = (("/", "Learn"), ("/reels", "Reels"), ("/review", "Review"), ("/hear", "Li
        ("/roadmap", "Learning path"), ("/words", "Dictionary"), ("/quiz", "Vocabulary check"),
        ("/blocked", "Learning gaps"), ("/lists", "Word lists"), ("/frontier", "Next milestones"),
        ("/subtitles", "Video library"), ("/plan", "Watch plan"), ("/channels", "Channels"),
-       ("/settings", "Settings"))
+       ("/settings", "Settings"), ("/journey", "Your atlas"))
 
 NAV_GROUPS = (
     ("YOUR PRACTICE", ("/", "/review", "/hear", "/mine", "/quiz")),
     ("EXPLORE", ("/reels", "/subtitles", "/channels")),
     ("YOUR COLLECTION", ("/starred", "/words", "/lists", "/anki")),
-    ("YOUR JOURNEY", ("/roadmap", "/plan", "/frontier", "/blocked", "/settings")),
+    ("YOUR JOURNEY", ("/journey", "/roadmap", "/plan", "/frontier", "/blocked", "/settings")),
 )
 
 ICON_PATHS = {
@@ -63,6 +63,7 @@ ICON_PATHS = {
     "/plan": "M5 4h14v17H5z M8 9h8 M8 13h8 M8 17h4",
     "/frontier": "M4 20V4 M4 4h14l-3 4 3 4H4",
     "/blocked": "M4 20h16 M7 20V13h4v7 M13 20V6h4v14",
+    "/journey": "m12 3 3 6 6 3-6 3-3 6-3-6-6-3 6-3z",
     "/settings": "M4 7h16 M4 17h16 M8 4v6 M16 14v6",
 }
 
@@ -104,7 +105,7 @@ ANKI_REMIND = 15
 
 
 def layout(title: str, body: str, here: str = "/", source: str = "",
-           wordlist: str = "", anki_new: int = 0, bare: bool = False) -> str:
+           wordlist: str = "", anki_new: int = 0, bare: bool = False, journey: dict | None = None) -> str:
     # Both carried, because a nav link that drops either one silently puts
     # the reader back on the default corpus or the default goal list, which
     # looks like the switch did not work.
@@ -159,6 +160,16 @@ def layout(title: str, body: str, here: str = "/", source: str = "",
               + "<nav class='more-panel' aria-label='All sections'>" + groups + account + "</nav></details></nav>"
               if not bare else "")
     intro = welcome(suffix) if here == "/" and not bare and "id='reading-top'" in body else ""
+    immersive = here == "/reels" and "id='reel-state'" in body
+    journey_data = ""
+    if journey is not None and not bare:
+        from web.journey import hud, home, state
+        journey_data = state(journey)
+        if here == "/" and "id='reading-top'" in body:
+            intro = home(journey, suffix)
+        toolbar = toolbar.replace("<span class='space-mark'>✦</span>", hud(journey, suffix))
+    if immersive:
+        shell = toolbar = mobile = ""
     # Some handlers already insert the script beside their player. The shell's
     # shortcuts must also work on account pages, and must never bind twice.
     script = "" if "app.js" in body else f"<script src='{stamped('app.js')}'></script>"
@@ -189,9 +200,9 @@ def layout(title: str, body: str, here: str = "/", source: str = "",
         # before the body, so the first paint is already the right one.
         "<script>try{if(localStorage.getItem('colours')==='1')"
         "document.documentElement.classList.add('coloured')}catch(e){}</script>"
-        f"</head><body class='{'auth-page' if bare else 'learning-page'}' data-page='{escape(here, quote=True)}'>"
+        f"</head><body class='{'auth-page' if bare else 'reels-page' if immersive else 'learning-page'}' data-page='{escape(here, quote=True)}'>"
         "<a class='skip-link' href='#main-content'>Skip to content</a>"
-        f"{shell}<div class='workspace'>{toolbar}"
+        f"{shell}{journey_data}<div class='workspace'>{toolbar}"
         f"<main id='main-content'>{intro}{body}</main></div>{mobile}"
         # The keys, on every page, because they were written down in one
         # `.hint` on one card and nowhere else -- so the reel, the video page

@@ -219,18 +219,28 @@ def run(args):
                        check=True, stdout=subprocess.DEVNULL)
         try:
             env = dict(os.environ, PGPASSWORD=settings.state.password)
-            dump = subprocess.check_output([
-                'pg_dump', '-h', settings.state.host, '-p', str(settings.state.port),
-                '-U', settings.state.user, '-d', settings.state.name,
-                '--schema', settings.state.schema, '--no-owner', '--no-privileges'], env=env)
-            # pg_dump's qualified names/DDL make each clone independent,
-            # including sequences and foreign keys.
+            dump_path = Path(folder) / 'reader.sql'
+            with dump_path.open('wb') as backup:
+                subprocess.run([
+                    'pg_dump', '-h', settings.state.host, '-p', str(settings.state.port),
+                    '-U', settings.state.user, '-d', settings.state.name,
+                    '--schema', settings.state.schema, '--no-owner', '--no-privileges'],
+                    env=env, stdout=backup, check=True)
+            # Stream the dump instead of keeping two multi-GB byte strings in
+            # the parent throughout the application test. That hidden memory
+            # pressure distorts cold timings even when child memory is bounded.
             for n in range(1, 2 if args.mode == 'profile' else 5):
-                sql = dump.replace((settings.state.schema + '.').encode(), f'probe{n}.'.encode())
-                sql = sql.replace(('SCHEMA ' + settings.state.schema).encode(), f'SCHEMA probe{n}'.encode())
-                subprocess.run(['psql', '-h', folder, '-p', str(args.pg_port),
-                                '-d', 'postgres', '-v', 'ON_ERROR_STOP=1'], input=sql,
-                               check=True, stdout=subprocess.DEVNULL)
+                command = ['psql', '-h', folder, '-p', str(args.pg_port),
+                           '-d', 'postgres', '-v', 'ON_ERROR_STOP=1']
+                with dump_path.open('rb') as backup, subprocess.Popen(
+                        command, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL) as restore:
+                    for line in backup:
+                        line = line.replace((settings.state.schema + '.').encode(), f'probe{n}.'.encode())
+                        line = line.replace(('SCHEMA ' + settings.state.schema).encode(), f'SCHEMA probe{n}'.encode())
+                        restore.stdin.write(line)
+                    restore.stdin.close()
+                    if restore.wait() != 0:
+                        raise subprocess.CalledProcessError(restore.returncode, command)
             subprocess.run(['psql', '-h', folder, '-p', str(args.pg_port),
                             '-d', 'postgres', '-c', 'ANALYZE'], check=True,
                            stdout=subprocess.DEVNULL)
@@ -259,6 +269,8 @@ def run(args):
                                          'memory_metric': 'physical_footprint' if sys.platform == 'darwin' else 'rss',
                                          'peak_memory_mb': round(peak), 'exit_code': child.returncode}) + '\n')
             emit({'output': str(result), 'peak_memory_mb': round(peak), 'exit_code': child.returncode})
+            if child.returncode != 0:
+                raise SystemExit(1)
         finally:
             subprocess.run(['pg_ctl', '-D', str(pgdata), 'stop', '-m', 'fast'],
                            check=True, stdout=subprocess.DEVNULL)
@@ -275,7 +287,16 @@ if __name__ == '__main__':
     p.add_argument('--scratch', help=argparse.SUPPRESS)
     options = p.parse_args()
     if options.worker:
-        worker(options)
+        import faulthandler
+        import traceback
+        faulthandler.dump_traceback_later(45, repeat=True)
+        try:
+            worker(options)
+        except Exception:
+            traceback.print_exc()
+            sys.stdout.flush()
+            os._exit(1)
+        faulthandler.cancel_dump_traceback_later()
         # The disposable child has no pending writes after phase joins.
         # Avoid walking gigabytes of swapped Python objects during final GC;
         # the parent owns PostgreSQL shutdown and temporary-directory cleanup.

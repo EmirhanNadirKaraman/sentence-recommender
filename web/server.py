@@ -482,7 +482,11 @@ def _make_handler(door: "Door"):
             viewer = viewers.pick(form)
             try:
                 if posted == "/known":
-                    self._redirect(viewer.mark_known(form))
+                    back = viewer.mark_known(form)
+                    if "application/json" in self.headers.get("Accept", ""):
+                        self._send_json({"redirect": back, "journey": viewer.journey_json()})
+                    else:
+                        self._redirect(back)
                 elif posted == "/add-video":
                     self._redirect(viewer.add_video(form))
                 elif posted == "/add-channel":
@@ -932,6 +936,11 @@ def _make_handler(door: "Door"):
                 return viewer.mine(query), 200
             if path == "/review":
                 return viewer.review(query), 200
+            if path == "/journey":
+                return viewer.journey_page(query), 200
+            if path == "/api/journey":
+                self._send_json(viewer.journey_json(query))
+                return "", 0
             if path == "/api/next":
                 self._send_json(viewer.next_json(query))
                 return "", 0

@@ -1,0 +1,4 @@
+{"event": "corpus", "builds": [["generated", 290], ["subtitle", 293837], ["transcript", 53134]], "peak_rss_mb": 42, "cpu_seconds": 0.622}
+{"event": "begin", "phase": "cold_reader_1", "peak_rss_mb": 42, "cpu_seconds": 0.765}
+{"event": "phase", "phase": "cold_reader_1", "wall_seconds": 180.165, "requests": [{"user": 1, "route": "/", "source": "subtitle", "status": 0, "seconds": 180.1646, "bytes": 0, "error": "timed out"}], "peak_rss_mb": 911, "cpu_seconds": 57.558, "physical_footprint_mb": 1560}
+{"event": "summary", "mode": "staged", "memory_metric": "physical_footprint", "peak_memory_mb": 1630, "exit_code": -15}

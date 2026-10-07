@@ -59,6 +59,11 @@ class Application:
         # lifetime; web readers share only immutable corpus inputs/indexes.
         self.corpus_pool = None
 
+    @cached_property
+    def journey(self):
+        from journey import JourneyStore
+        return JourneyStore(self.settings.state)
+
     # --- storage ---------------------------------------------------------
 
     @cached_property

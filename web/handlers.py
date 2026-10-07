@@ -871,7 +871,23 @@ class Viewer:
         if "app.js" not in body:
             body += f"<script src='{stamped('app.js')}'></script>"
         return layout(title, body, here, source, self.list_name(),
-                      anki_new=self.app.overrides.anki_unexported())
+                      anki_new=self.app.overrides.anki_unexported(),
+                      journey=self.journey_json() or None)
+
+    def journey_json(self, query=None):
+        store = getattr(self.app, "journey", None)
+        return store.snapshot() if store is not None else {}
+
+    def journey_page(self, query):
+        from web.journey import page
+        source = self.source(query)
+        suffix = self._link("/journey", source).partition("?")[2]
+        return self._page("Your atlas", page(self.journey_json(), "?" + suffix),
+                          "/journey", source)
+
+    def _reward(self, kind, entity):
+        store = getattr(self.app, "journey", None)
+        return store.record(kind, entity) if store is not None else 0
 
     def list_switch(self, query: dict, page: str) -> str:
         """Which list the page is about.
@@ -1259,7 +1275,8 @@ class Viewer:
         """
         return {"cues": [
             {"at": round(c.timing.start, 2), "clock": _clock(c.timing.start),
-             "text": c.text, "en": c.translation or "", "words": _words(c)}
+             "text": c.text, "en": c.translation or "", "words": _words(c),
+             "duration": round(c.timing.duration, 2)}
             for c in self.app.with_english(self._cues(video_id))
         ]}
 
@@ -1267,17 +1284,25 @@ class Viewer:
         """Lines the page played through, each with its words as the
         transcript sent them: one encounter per word per line."""
         found = []
+        heard_texts = set()
         for line in lines if isinstance(lines, list) else []:
             if not isinstance(line, dict):
                 continue
             text = str(line.get("text") or "")
             units = {Unit(kind, key) for token, kind, key in line.get("words", [])
                      if kind in ("lemma", "pattern") and key}
+            if units and text and line.get("video") and line.get("reward") is True:
+                heard_texts.add(text)
             for unit in units:
                 found.append((unit, text, line.get("video") or None,
                               float(line["at"]) if line.get("at") is not None else None))
         if found:
             self.app.encounters.add(found)
+        store = getattr(self.app, "journey", None)
+        if store is not None:
+            for text in heard_texts:
+                store.record("listen", text)
+            return {"heard": len(found), "journey": store.snapshot()}
         return {"heard": len(found)}
 
     def gloss_json(self, query: dict) -> dict:
@@ -2019,7 +2044,11 @@ class Viewer:
         elif form.get("action") == "pass":
             self.app.snoozes.snooze(unit, self.app.settings.snooze_words)
         else:
-            self.app.marked_known.add(unit)
+            reward_store = getattr(self.app, "journey", None)
+            already_known = unit in self.known if reward_store is not None else False
+            added = self.app.marked_known.add(unit)
+            if added and not already_known:
+                self._reward("learn", f"{unit.kind}:{unit.key}")
             # A claim on probation: known at once, and a card due tomorrow
             # to confirm it -- five passes graduate it, two failures in a row
             # take the mark back (`srs.scheduler`). The card used to be
@@ -2985,7 +3014,7 @@ class Viewer:
                     {"src": source},
                     {"own": text, "wrote": (form.get("sentence") or "").strip()}))
             if action in ("good", "again"):
-                self.app.own.grade(text, action == "good")
+                Viewer._grade_own(self, text, action == "good")
             return back
         card = self.app.card_store.get(unit) if unit.key else None
         if card is None:
@@ -3137,7 +3166,10 @@ class Viewer:
         move the same card, and this is the one place that moves it.
         """
         from srs.scheduler import GRADUATED, UNMARKED, verdict  # noqa: PLC0415
-        reviewed = self.app.scheduler.review(card, correct, datetime.now())
+        now = datetime.now()
+        if card.due_date > now:
+            return {"outcome": "not_due", "due": card.due_date.isoformat()}
+        reviewed = self.app.scheduler.review(card, correct, now)
         outcome = verdict(reviewed)
         if outcome == GRADUATED:
             self.app.card_store.remove(card.unit)
@@ -3145,7 +3177,21 @@ class Viewer:
             self._unmark(card.unit)
         else:
             self.app.card_store.save(reviewed)
+        if card.due_date <= datetime.now():
+            self._reward("recall" if correct else "practice",
+                         f"{card.unit.kind}:{card.unit.key}:{card.due_date.isoformat()}")
+            if outcome == GRADUATED:
+                self._reward("master", f"{card.unit.kind}:{card.unit.key}")
         return {"outcome": outcome, "due": reviewed.due_date.isoformat()}
+
+    def _grade_own(self, text: str, correct: bool):
+        store = getattr(self.app, "journey", None)
+        due = next((row for row in self.app.own.due() if row["text"] == text), None) if store else None
+        if store and due is None:
+            return
+        self.app.own.grade(text, correct)
+        if due and store:
+            store.record("recall" if correct else "practice", f"sentence:{text}:{due['due']}")
 
     # --- the sentences you wrote ------------------------------------------
 
@@ -3269,8 +3315,9 @@ class Viewer:
                     # shared by every reader of the language, and what one
                     # of them writes is not the others' to read.
                     self.app.own.add(text, english)
+                self._reward("write", text)
         elif action in ("good", "again") and text:
-            self.app.own.grade(text, action == "good")
+            Viewer._grade_own(self, text, action == "good")
         elif action == "forget" and text:
             self.app.own.remove(text)
             self.app._own_texts = None
@@ -4679,18 +4726,21 @@ class Viewer:
             # reason to refuse the video, only to show it somewhere else.
             return self.video_page({"id": wanted, "src": source})
         if here is None:
-            here = min(max(int(query.get("i") or 0), 0), len(ranked) - 1)
+            try:
+                here = min(max(int(query.get("i") or 0), 0), len(ranked) - 1)
+            except ValueError:
+                here = 0
         row = ranked[here]
         # The order travels on every link out of here, or a swipe and the
         # pager would silently reorder the feed under the reader.
-        args = f"?src={quote(source)}" + (
+        args = f"?src={quote(source)}&list={quote(self.list_name())}" + (
             f"&sort={quote(order)}" if order != "watch" else "")
         # Anchors either way, marked rather than swapped for text, because
         # the reel moves without reloading: `go` in `app.js` steps the feed
         # in place, so a pager built once from `here` is wrong the moment
         # you swipe. It used to be exactly that -- three videos down, and
         # "easier" still pointed at the position the page had loaded at.
-        # `data-act` lets the script rebind both copies to wherever the
+        # `data-act` lets the script rebind the pager to wherever the
         # feed actually is, and the href keeps them working before it runs.
         def step_link(act: str, to: int, label: str) -> str:
             dead = " off" if not 0 <= to < len(ranked) else ""
@@ -4704,38 +4754,17 @@ class Viewer:
                     + "</div>")
 
         state = json.dumps({"at": here, "total": len(ranked), "sort": order,
-                            "src": source, "video": row["video"]})
-        body = (
-            f"<h1 id='reel-title'>{escape(row['title'] or row['video'])}</h1>"
-            + "<p class='note'><span id='reel-at'>" + f"{here + 1}"
-            + f"</span> of {len(ranked):,}, ranked by how well it plays with "
-              "your hands full. Swipe up and down to move, right to say you "
-              "know a word, left to set it aside — W/S, D and A on a keyboard; "
-              "the arrows and space drive the video.</p>"
-            + self._order_switch("/reels", source, order)
-            + f"<div id='reel-taste'>"
-            + self._taste_control(row["video"], f"/reels{args}&i={here}")
-            + "</div>"
-            + self._audio_toggle()
-            # Once above the picture and once below it. On a phone the video
-            # fills the screen, so a pager only at the bottom is a scroll
-            # away exactly when it is wanted.
-            + pager()
-            + "<div class='card' id='reel'>"
-            # `stage`, not `player`: it carries the caption line under the
-            # picture, and a feed of muted autoplaying video with nothing
-            # written under it is the one place a caption matters most.
-            + video.stage(row["video"], 0)
-            + f"<div id='reel-board'>{self._scoreboard(row)}</div>"
-            + f"<div id='reel-panel'>"
-            + self._to_follow(source, row, back=f"/reels?i={here}")
-            + "</div></div>"
-            + pager()
-            # State as data, never interpolated into code: the title is a
-            # video title and goes nowhere near a script body.
-            + "<script type='application/json' id='reel-state'>"
-            + state.replace("<", "\\u003c") + "</script>"
-            + video.merged_script(self.known)
+                            "src": source, "list": self.list_name(), "video": row["video"]})
+        from web.reels import feed
+        body = feed(
+            title=row["title"] or row["video"], row=row, state=state,
+            exit_url=self._link("/", source), atlas_url=self._link("/journey", source),
+            scoreboard=self._scoreboard(row),
+            panel=self._to_follow(source, row, back=f"/reels{args}&i={here}"),
+            taste=self._taste_control(row["video"], f"/reels{args}&i={here}"),
+            ordering=self._order_switch("/reels", source, order),
+            player=video.stage(row["video"], 0), pager=pager(),
+            script=video.merged_script(self.known),
         )
         return self._page("Reels", body, "/reels", source)
 
@@ -4757,15 +4786,22 @@ class Viewer:
         ranked = self._settled(source, order, plan)
         if not ranked:
             return {"empty": True}
-        here = min(max(int(query.get("i") or 0), 0), len(ranked) - 1)
+        requested = query.get("video") or ""
+        here = next((n for n, r in enumerate(ranked) if r["video"] == requested), None) if requested else None
+        if here is None:
+            try:
+                here = min(max(int(query.get("i") or 0), 0), len(ranked) - 1)
+            except ValueError:
+                here = 0
         row = ranked[here]
-        back = f"/reels?src={quote(source)}" + (
+        back = f"/reels?src={quote(source)}&list={quote(self.list_name())}" + (
             f"&sort={quote(order)}" if order != "watch" else "") + f"&i={here}"
         return {
             "at": here,
             "total": len(ranked),
             "video": row["video"],
             "title": row["title"] or row["video"],
+            "familiar": row["comprehension"],
             "scoreboard": self._scoreboard(row),
             "panel": self._to_follow(source, row, back=back),
             # Follows the reel, because what you think of a channel is about
@@ -5180,6 +5216,9 @@ class Viewer:
         taught again with a new sentence.
         """
         self.app.marked_known.remove(unit)
+        store = getattr(self.app, "journey", None)
+        if store is not None:
+            store.undo_word(f"{unit.kind}:{unit.key}")
         self.app.card_store.remove(unit)
         self._known = None
         self._scopes.clear()

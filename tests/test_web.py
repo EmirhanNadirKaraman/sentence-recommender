@@ -403,12 +403,12 @@ class ReelOrderTest(unittest.TestCase):
         """Without it every fetch answers from the default ranking and the
         feed reorders itself under a reader who asked for something else."""
         js = (ROOT / "web" / "static" / "app.js").read_text(encoding="utf-8")
-        self.assertIn("'&sort=' + encodeURIComponent(s.sort)", js)
+        self.assertIn("sort: s.sort || 'watch'", js)
         # Three URLs the reel builds for itself: the fetch, the address it
         # writes back, and the pager links it rebuilds as the feed moves.
         # Every one of them has to carry the order, or following it answers
         # from the default ranking and the feed reorders under the reader.
-        self.assertEqual(js.count("s.sort && s.sort !== 'watch'"), 3,
+        self.assertEqual(js.count("sort:s.sort || 'watch'") + js.count("sort: s.sort || 'watch'"), 3,
                          "the fetch, the URL it writes back and the pager")
 
 
@@ -527,14 +527,14 @@ class PlayerControlsTest(unittest.TestCase):
         after = js.index("var p = live();\n    if (!p) return;")
         self.assertLess(before, after)
 
-    def test_only_the_picture_and_the_deck_refuse_a_touch(self) -> None:
+    def test_reels_uses_the_whole_card_for_swiping(self) -> None:
         """`.stage` used to be in this list with no gesture handler of its
         own, which made the caption a band that neither swiped nor scrolled.
         The handler is bound to `.player`; the deck has a drag of its own."""
         css = self.css()
         self.assertIn(".card .player, .card .deck {", css)
         self.assertNotIn(".card .player, .card .stage, .card .deck {", css)
-        self.assertIn("reel.querySelector('.player')", self.js())
+        self.assertIn("var surface = reel;", self.js())
 
     def test_the_caption_still_refuses_a_text_selection(self) -> None:
         """Dropping `touch-action` must not drop the selection guard: a long
@@ -1284,13 +1284,16 @@ class ReelStepTest(unittest.TestCase):
         self.assertIn("repaintPagers()", js)
         self.assertIn(".reel-pager a[data-act]", js)
 
-    def test_both_pagers_are_rendered(self) -> None:
-        """One above the picture and one below: on a phone the video fills
-        the screen, so a pager only at the bottom is a scroll away exactly
-        when it is wanted."""
-        src = (ROOT / "web" / "handlers.py").read_text(encoding="utf-8")
-        reel = src.split("def reels(self, query: dict)")[1].split("def reels_json")[0]
-        self.assertEqual(reel.count("+ pager()"), 2)
+    def test_immersive_feed_keeps_one_desktop_pager(self) -> None:
+        from web.reels import feed
+        html = feed(title="Video", row={"video": "abc12345678", "comprehension": .8},
+                    state="{}", exit_url="/", atlas_url="/journey", scoreboard="",
+                    panel="", taste="", ordering="", player="", script="",
+                    pager="<div class='reel-pager'>Previous / Next</div>")
+        self.assertEqual(html.count("class='reel-pager'"), 1)
+        self.assertIn("class='reel-desktop-step'", html)
+        self.assertIn("class='reel-track'", html)
+
 
 
 class RemoveOneVideoTest(unittest.TestCase):
