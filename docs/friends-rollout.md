@@ -11,8 +11,13 @@ göremez. Cover API'si, cover araması, cümle düzenleme, corpus ekleme ve plan
 yeniden hesaplama da sunucuda 403 ile engellenir. Kontrol Viewer/corpus kurulmadan
 önce yapılır; menü gizlemek tek başına güvenlik değildir.
 Reels, sözlük, tekrar, videolar, kelime listeleri, gelişim ve öğrenme akışları açıktır.
-İlk ziyaret hâlâ cache kurulmasını bekleyebilir; özellikle arkadaşların farklı
-listeler açması yeni hesaplama oluşturur. Soğuk performans sorunu tamamen çözülmedi.
+Hazır planı olmayan arkadaşların Learn akışı SQL’den en fazla 2.000 kısa
+örnekle başlar; gerçek bilinen kelimeler ve bütün bilinmeyen birimler korunur.
+Gösterilen sayılar bu koleksiyona aittir, bütün corpus’un bitirildiği iddia edilmez.
+7 Ekim ölçümünde yeni Application/Viewer ile arkadaş hesabının doğrudan Learn
+render’ı ilk 1.470 ms, sıcak 10 ms sürdü. Bunlar HTTP/tünel/video gecikmesini
+içermeyen yerel ölçümlerdir. Reels ve diğer tam-corpus akışlarının soğuk
+performansı ayrıca incelenmelidir. Sahibin tam corpus davranışı korunur.
 
 ## Şimdi, bilgisayardan deneme
 

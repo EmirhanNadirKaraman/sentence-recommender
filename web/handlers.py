@@ -630,7 +630,7 @@ class Viewer:
         """
         return (query.get("count") or "all") == "unblock"
 
-    def scope(self, source: str, list_only: bool = True) -> Scope:
+    def scope(self, source: str, list_only: bool = True, limit: int = 0) -> Scope:
         """The live index for one corpus, built once and kept current.
 
         Keyed by counting mode as well as corpus: narrowing to the study list
@@ -641,10 +641,21 @@ class Viewer:
         The default here still reads True, but `counting()` now defaults to
         strict, so nearly every caller passes False.
         """
-        key = self._corpus_key(source, list_only)
+        key = self._corpus_key(source, list_only) + (f"|limit={limit}" if limit else "")
 
         def build() -> Scope:
-            sentences = self.corpus_for(source, list_only)
+            if limit:
+                # No-plan guest reading must not allocate the full corpus.
+                # SQL caps rows before decoding; strict resolution preserves
+                # every genuine unknown, so i+1 remains personalized.
+                at = self._corpus_stamp()
+                sentences = self.app.corpus(*self._builds(source),
+                                            list_only=list_only, strict=not list_only,
+                                            limit=limit)
+                if self._corpus_at is None:
+                    self._corpus_at = at
+            else:
+                sentences = self.corpus_for(source, list_only)
             # The resolved vocabulary, not a fresh resolution: known_set()
             # re-runs the parser over every word in the files, which is
             # sixteen seconds, and this viewer already holds the answer.
@@ -1136,7 +1147,7 @@ class Viewer:
         if step is None:
             body = (switch + picker + "<h1>Ready for a different kind of practice?</h1>"
                     "<p class='empty'>The remaining sentences introduce more than "
-                    "one new thing. Revisit what you have learned, explore "
+                    "one new thing in this practice collection. Revisit what you have learned, explore "
                     "another video, or widen the filters above.</p>"
                     "<div class='actions'>"
                     f"<a class='go' href='{escape(self._link('/review', source), quote=True)}'>"
@@ -1170,7 +1181,7 @@ class Viewer:
             # sit *outside* whatever gets replaced, or a decision tears down
             # the iframe and the YouTube API has to boot again — a second or
             # two of nothing, on the action taken most often.
-            + f"<div id='reading-top'>{self._progress(readable, total)}"
+            + f"<div id='reading-top'>{self._practice_notice()}{self._progress(readable, total)}"
             + f"<p class='note'>{lede}</p>"
             + self._new_thing(step, occurrences, kind) + "</div>"
             + self._audio_toggle()
@@ -1230,7 +1241,7 @@ class Viewer:
             lede = "Everything in this sentence is yours except one word."
             kind = "a word"
         return {
-            "top": (self._progress(readable, total)
+            "top": (self._practice_notice() + self._progress(readable, total)
                     + f"<p class='note'>{lede}</p>"
                     + self._new_thing(step, occurrences, kind)),
             "html": self._reading(step, deck, source, watchable),
@@ -1342,16 +1353,26 @@ class Viewer:
         deck = self.app.apply_overrides(deck)
         return (step, deck, self._store.total(label)) if deck else None
 
+    def _practice_notice(self) -> str:
+        if getattr(self.app, "guest", None) is None:
+            return ""
+        return ("<p class='note'>Your practice collection keeps lessons quick. "
+                "The counts below describe this collection. "
+                "Explore the video library for more conversations.</p>")
+
     def _walked(self, query: dict, source: str, only: str
                 ) -> tuple[RoadmapStep | None, list[Sentence], int, int, int]:
-        """The same answer, computed from a live index over the corpus.
+        """Compute i+1 live against this reader's actual knowledge.
 
-        The original behaviour, and still the honest one: it recomputes what
-        is i+1 against everything marked known this instant. It is kept as the
-        fallback, and it is what runs whenever the stored plan cannot be
-        trusted.
+        Owners use the complete corpus. A guest without a usable stored plan
+        starts with a SQL-capped collection of short examples, so their first
+        lesson does not allocate a full private corpus/index. Counts describe
+        that collection; absence of a candidate does not exhaust the corpus.
         """
-        scope = self.scope(source, self.counting(query))
+        if getattr(self.app, "guest", None) is not None:
+            scope = self.scope(source, self.counting(query), limit=2000)
+        else:
+            scope = self.scope(source, self.counting(query))
         skip = set(self.app.snoozes.asleep())
         if only == "word":
             skip |= {u for u in scope.index.known_units_of_kind(PATTERN)}
