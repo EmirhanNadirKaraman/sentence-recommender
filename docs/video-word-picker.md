@@ -80,3 +80,25 @@ kanıtlanmayan otomatik kararlar manuel bekleyenlere döner.
 `*-automatic-no.tsv` tarayıcıdaki manuel kararlar öncesindeki otomatik eleme
 önerilerini saklar. Bunlar da Git ve Docker dışında kalır. Snapshot'ı sıfırdan
 üretince eleme komutunu yeniden çalıştırmak gerekir.
+
+## Fiiller, isimler ve diğer kelimeler
+
+Kelime türü filtresi üç ayrı grup sunar: Fiiller, İsimler, Diğer kelimeler.
+Her grupta toplam ve bekleyen kart sayısı görünür. Kart aileleri ve karar
+kimlikleri korunur. Açık artikel+isim biçimi önceliklidir; kalan kelimeler mevcut
+`de_core_news_md` modeliyle tek kelime ve fiil bağlamında etiketlenir. Edatlı ve
+refleksif fiil kalıpları ilgili fiil grubunda yer alır. Diğer grup sıfatları,
+zarfları, bağlaçları ve belirsiz/mixed ifadeleri içerir.
+
+İsim olarak sınıflanan ve baş kelimesi `-ung` ile biten kartlar otomatik Evet
+olur. Bu kullanıcı kuralı önceki otomatik Hayır kararından önceliklidir; manuel
+Evet/Hayır değişmez. Evet kartında da gerekçe görünür ve JSON yedeğine eklenir.
+Yeniden değerlendirmeye alınmış veya manuel değiştirilmiş kartlar yenilemede
+tekrar otomatik kabul edilmez.
+
+Yeni snapshot üretimi grupları ve `-ung` kuralını içerir. Mevcut snapshot'ı,
+öğrenme durumunu yeniden okumadan güncellemek için:
+
+```sh
+.venv/bin/python tools/group_video_words.py
+```

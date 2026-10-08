@@ -40,6 +40,9 @@ def main():
                       'head_known': parent in known, 'rank': min(rank[u] for u in missing),
                       'members': [{'kind': u.kind, 'key': u.key} for u in missing]})
     cards.sort(key=lambda c: c['rank'])
+    import spacy
+    from tools.group_video_words import annotate
+    annotate(cards, spacy.load('de_core_news_md', disable=['parser', 'ner']))
     snapshot = {'schema': 1, 'reader': reader.name, 'language': 'de',
                 'source': str(app.settings.goal_words.relative_to(ROOT)),
                 'created': datetime.now(ZoneInfo('Europe/Istanbul')).isoformat(timespec='seconds'),
