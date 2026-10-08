@@ -98,3 +98,6 @@ out/*.json
 # Deployment credentials and database backups.
 .env.production
 backups/
+
+# Private, generated vocabulary selection snapshots.
+docs/video-selection/

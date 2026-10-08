@@ -29,3 +29,6 @@ backups/
 
 # All runtime vocabulary/private reader files are mounted, never baked in.
 data/
+
+# Private, generated vocabulary selection snapshots.
+docs/video-selection/
